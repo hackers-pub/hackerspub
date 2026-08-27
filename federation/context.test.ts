@@ -8,6 +8,7 @@ import type {
 } from "@hackerspub/models/context";
 import {
   getFedifyContext,
+  sendRelayActivityWithOutbox,
   toApplicationContext,
   withInboxTransaction,
 } from "./context.ts";
@@ -95,6 +96,26 @@ test("sendActivity binds the rebound transaction to the outbox", async () => {
   await context.sendActivity({}, {}, {} as never);
 
   assertStrictEquals(observedDb, transactionDb);
+});
+
+test("relay sends skip deferred fanout while preserving options", async () => {
+  const db = {} as ContextData["db"];
+  const context = createFedifyContext({ db } as ContextData);
+  let observedOptions: unknown;
+  context.sendActivity = (_sender, _recipients, _activity, options) => {
+    observedOptions = options;
+    return Promise.resolve();
+  };
+
+  await sendRelayActivityWithOutbox(context, {}, {}, {} as never, {
+    orderingKey: "article:relay",
+  });
+
+  assertStrictEquals(
+    (observedOptions as { orderingKey: string }).orderingKey,
+    "article:relay",
+  );
+  assertStrictEquals((observedOptions as { fanout: string }).fanout, "skip");
 });
 
 test("inbox transactions rebind the Fedify context database", async () => {

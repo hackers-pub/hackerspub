@@ -1,6 +1,11 @@
 import { and, eq, isNotNull, lt, or, sql } from "drizzle-orm";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
+  recordArticleDeliveries,
+  updateArticleDeliveryStatus,
+} from "./article-analytics.ts";
+import {
+  type ArticleDeliveryChannel,
   type OutboxEvent,
   type OutboxEventError,
   outboxEventTable,
@@ -24,6 +29,7 @@ export interface OutboxEventInput {
   readonly activityId?: string;
   readonly activityType?: string;
   readonly inbox?: string;
+  readonly articleDeliveryChannel?: ArticleDeliveryChannel;
 }
 
 export interface EnqueueOutboxOptions {
@@ -180,7 +186,13 @@ export async function enqueueOutboxEvents(
       .values(
         events.map((event, index) => ({
           id: generateUuidV7(),
-          ...event,
+          eventType: event.eventType,
+          payloadVersion: event.payloadVersion,
+          messageId: event.messageId,
+          payload: event.payload,
+          activityId: event.activityId,
+          activityType: event.activityType,
+          inbox: event.inbox,
           groupId,
           sequence,
           position: (options.position ?? 0) + index,
@@ -194,6 +206,23 @@ export async function enqueueOutboxEvents(
       .onConflictDoNothing({
         target: [outboxEventTable.eventType, outboxEventTable.messageId],
       });
+    await recordArticleDeliveries(
+      tx,
+      events
+        .filter(
+          (event) =>
+            event.eventType === "activitypub.delivery" &&
+            (event.activityType === "Create" ||
+              event.activityType?.endsWith("#Create") === true),
+        )
+        .map((event) => ({
+          messageId: event.messageId,
+          activityId: event.activityId ?? null,
+          inbox: event.inbox ?? null,
+          channel: event.articleDeliveryChannel ?? "direct",
+          now,
+        })),
+    );
   });
 }
 
@@ -294,25 +323,34 @@ export async function completeOutboxEvent(
   event: Pick<ClaimedOutboxEvent, "id" | "leaseToken">,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db
-    .update(outboxEventTable)
-    .set({
-      status: "completed",
-      payload: null,
-      leaseToken: null,
-      leased: null,
-      completed: now,
-      updated: now,
-    })
-    .where(
-      and(
-        eq(outboxEventTable.id, event.id),
-        eq(outboxEventTable.status, "processing"),
-        eq(outboxEventTable.leaseToken, event.leaseToken),
-      ),
-    )
-    .returning({ id: outboxEventTable.id });
-  return rowCount(rows);
+  return await runInTransaction(db, async (tx) => {
+    const rows = await tx
+      .update(outboxEventTable)
+      .set({
+        status: "completed",
+        payload: null,
+        leaseToken: null,
+        leased: null,
+        completed: now,
+        inbox: null,
+        updated: now,
+      })
+      .where(
+        and(
+          eq(outboxEventTable.id, event.id),
+          eq(outboxEventTable.status, "processing"),
+          eq(outboxEventTable.leaseToken, event.leaseToken),
+        ),
+      )
+      .returning({
+        eventType: outboxEventTable.eventType,
+        messageId: outboxEventTable.messageId,
+      });
+    if (rows[0]?.eventType === "activitypub.delivery") {
+      await updateArticleDeliveryStatus(tx, rows[0].messageId, "accepted", now);
+    }
+    return rowCount(rows);
+  });
 }
 
 export async function retryOutboxEvent(
@@ -350,25 +388,33 @@ export async function failOutboxEvent(
   error: OutboxEventError,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db
-    .update(outboxEventTable)
-    .set({
-      status: "dead",
-      leaseToken: null,
-      leased: null,
-      lastError: error,
-      failed: now,
-      updated: now,
-    })
-    .where(
-      and(
-        eq(outboxEventTable.id, event.id),
-        eq(outboxEventTable.status, "processing"),
-        eq(outboxEventTable.leaseToken, event.leaseToken),
-      ),
-    )
-    .returning({ id: outboxEventTable.id });
-  return rowCount(rows);
+  return await runInTransaction(db, async (tx) => {
+    const rows = await tx
+      .update(outboxEventTable)
+      .set({
+        status: "dead",
+        leaseToken: null,
+        leased: null,
+        lastError: error,
+        failed: now,
+        updated: now,
+      })
+      .where(
+        and(
+          eq(outboxEventTable.id, event.id),
+          eq(outboxEventTable.status, "processing"),
+          eq(outboxEventTable.leaseToken, event.leaseToken),
+        ),
+      )
+      .returning({
+        eventType: outboxEventTable.eventType,
+        messageId: outboxEventTable.messageId,
+      });
+    if (rows[0]?.eventType === "activitypub.delivery") {
+      await updateArticleDeliveryStatus(tx, rows[0].messageId, "failed", now);
+    }
+    return rowCount(rows);
+  });
 }
 
 export async function replayOutboxEvent(
@@ -376,27 +422,35 @@ export async function replayOutboxEvent(
   id: Uuid,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db
-    .update(outboxEventTable)
-    .set({
-      status: "pending",
-      available: now,
-      processingAttempts: 0,
-      leaseToken: null,
-      leased: null,
-      completed: null,
-      failed: null,
-      updated: now,
-    })
-    .where(
-      and(
-        eq(outboxEventTable.id, id),
-        eq(outboxEventTable.status, "dead"),
-        isNotNull(outboxEventTable.payload),
-      ),
-    )
-    .returning({ id: outboxEventTable.id });
-  return rowCount(rows);
+  return await runInTransaction(db, async (tx) => {
+    const rows = await tx
+      .update(outboxEventTable)
+      .set({
+        status: "pending",
+        available: now,
+        processingAttempts: 0,
+        leaseToken: null,
+        leased: null,
+        completed: null,
+        failed: null,
+        updated: now,
+      })
+      .where(
+        and(
+          eq(outboxEventTable.id, id),
+          eq(outboxEventTable.status, "dead"),
+          isNotNull(outboxEventTable.payload),
+        ),
+      )
+      .returning({
+        eventType: outboxEventTable.eventType,
+        messageId: outboxEventTable.messageId,
+      });
+    if (rows[0]?.eventType === "activitypub.delivery") {
+      await updateArticleDeliveryStatus(tx, rows[0].messageId, "pending", now);
+    }
+    return rowCount(rows);
+  });
 }
 
 export async function renewOutboxLease(

@@ -16,12 +16,18 @@ import type { Database, Transaction } from "./db.ts";
 import { runInTransaction } from "./db.ts";
 import {
   articleContentTable,
+  articleDeliveryEventTable,
+  type ArticleDeliveryChannel,
+  type ArticleDeliveryStatus,
+  articlePublicationAnalyticsTable,
   articleSourceTable,
   articleViewDailyTable,
   articleViewDeduplicationTable,
   articleViewLanguageDailyTable,
   articleViewReferrerDailyTable,
   ARTICLE_REFERRER_CATEGORIES,
+  actorTable,
+  followingTable,
   instanceTable,
   organizationMembershipTable,
   type ArticleReferrerCategory,
@@ -118,6 +124,135 @@ export interface ArticleViewAnalytics {
   externalDomains: ArticleAnalyticsExternalDomain[];
   otherExternalViews: number;
   lastUpdated: Date | null;
+}
+
+export interface RecordArticlePublicationInput {
+  articleSourceId: Uuid;
+  createActivityIri: string;
+  actorId: Uuid;
+  published: Date;
+  now?: Date;
+}
+
+export interface RecordArticleDeliveryInput {
+  messageId: string;
+  activityId: string | null;
+  inbox: string | null;
+  channel: ArticleDeliveryChannel;
+  now?: Date;
+}
+
+export async function recordArticlePublication(
+  db: Database | Transaction,
+  input: RecordArticlePublicationInput,
+): Promise<void> {
+  const now = input.now ?? new Date();
+  const [remoteFollowers] = await db
+    .select({ count: sql<number>`count(*)::integer` })
+    .from(followingTable)
+    .innerJoin(actorTable, eq(actorTable.id, followingTable.followerId))
+    .where(
+      and(
+        eq(followingTable.followeeId, input.actorId),
+        isNotNull(followingTable.accepted),
+        sql`${actorTable.accountId} is null`,
+      ),
+    );
+  await db
+    .insert(articlePublicationAnalyticsTable)
+    .values({
+      articleSourceId: input.articleSourceId,
+      createActivityIri: input.createActivityIri,
+      remoteFollowers: remoteFollowers.count,
+      published: input.published,
+      updated: now,
+    })
+    .onConflictDoNothing({
+      target: articlePublicationAnalyticsTable.articleSourceId,
+    });
+}
+
+function hashDeliveryServer(inbox: string): Buffer | null {
+  try {
+    const url = new URL(inbox);
+    const hostname = canonicalizeArticleReferrerHostname(url.hostname);
+    if (hostname == null || !["http:", "https:"].includes(url.protocol)) {
+      return null;
+    }
+    return createHash("sha256").update(hostname, "utf8").digest();
+  } catch {
+    return null;
+  }
+}
+
+export async function recordArticleDelivery(
+  db: Database | Transaction,
+  input: RecordArticleDeliveryInput,
+): Promise<void> {
+  await recordArticleDeliveries(db, [input]);
+}
+
+export async function recordArticleDeliveries(
+  db: Database | Transaction,
+  inputs: readonly RecordArticleDeliveryInput[],
+): Promise<void> {
+  const candidates = inputs.flatMap((input) => {
+    if (input.activityId == null || input.inbox == null) return [];
+    const serverKey = hashDeliveryServer(input.inbox);
+    return serverKey == null ? [] : [{ input, serverKey }];
+  });
+  const activityIds = [
+    ...new Set(candidates.map(({ input }) => input.activityId!)),
+  ];
+  if (activityIds.length < 1) return;
+  const publications = await db
+    .select({
+      articleSourceId: articlePublicationAnalyticsTable.articleSourceId,
+      createActivityIri: articlePublicationAnalyticsTable.createActivityIri,
+    })
+    .from(articlePublicationAnalyticsTable)
+    .where(
+      inArray(articlePublicationAnalyticsTable.createActivityIri, activityIds),
+    );
+  const sourceIds = new Map(
+    publications.map((publication) => [
+      publication.createActivityIri,
+      publication.articleSourceId,
+    ]),
+  );
+  const values = candidates.flatMap(({ input, serverKey }) => {
+    const articleSourceId = sourceIds.get(input.activityId!);
+    if (articleSourceId == null) return [];
+    const now = input.now ?? new Date();
+    return [
+      {
+        messageId: input.messageId,
+        articleSourceId,
+        channel: input.channel,
+        serverKey,
+        status: "pending" as const,
+        attempted: now,
+        updated: now,
+      },
+    ];
+  });
+  if (values.length < 1) return;
+  await db
+    .insert(articleDeliveryEventTable)
+    .values(values)
+    .onConflictDoNothing();
+}
+
+export async function updateArticleDeliveryStatus(
+  db: Database | Transaction,
+  messageId: string,
+  status: ArticleDeliveryStatus,
+  now = new Date(),
+): Promise<void> {
+  await db
+    .update(articleDeliveryEventTable)
+    .set({ status, updated: now })
+    .where(eq(articleDeliveryEventTable.messageId, messageId));
 }
 
 function hostnameMatchesDomain(hostname: string, domain: string): boolean {

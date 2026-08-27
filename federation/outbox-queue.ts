@@ -19,7 +19,10 @@ import {
   renewOutboxLease,
   retryOutboxEvent,
 } from "@hackerspub/models/outbox";
-import type { OutboxEventError } from "@hackerspub/models/schema";
+import type {
+  ArticleDeliveryChannel,
+  OutboxEventError,
+} from "@hackerspub/models/schema";
 
 const logger = getLogger(["hackerspub", "federation", "transactional-outbox"]);
 
@@ -36,6 +39,7 @@ interface OutboxContext {
   readonly db: OutboxDatabase;
   readonly pending: Promise<void>[];
   readonly processing?: ProcessingContext;
+  readonly articleDeliveryChannel?: ArticleDeliveryChannel;
 }
 
 const contextStorage = new AsyncLocalStorage<OutboxContext>();
@@ -47,10 +51,24 @@ export function getCurrentOutboxDatabase(): OutboxDatabase | undefined {
 export async function runWithOutboxContext<T>(
   db: OutboxDatabase,
   callback: () => Promise<T>,
+  options: { articleDeliveryChannel?: ArticleDeliveryChannel } = {},
 ): Promise<T> {
   const parent = contextStorage.getStore();
-  if (parent?.db === db && parent.processing == null) return await callback();
-  const context: OutboxContext = { db, pending: [] };
+  if (
+    parent?.db === db &&
+    parent.processing == null &&
+    options.articleDeliveryChannel == null
+  ) {
+    return await callback();
+  }
+  // A nested send inherits the surrounding delivery channel so Fedify's
+  // queue enqueues remain classified as part of the same send operation.
+  const context: OutboxContext = {
+    db,
+    pending: [],
+    articleDeliveryChannel:
+      options.articleDeliveryChannel ?? parent?.articleDeliveryChannel,
+  };
   return await contextStorage.run(context, async () => {
     const result = await callback();
     await Promise.all(context.pending);
@@ -345,6 +363,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
               ? message.activityType
               : undefined,
           inbox: typeof message.inbox === "string" ? message.inbox : undefined,
+          articleDeliveryChannel: context?.articleDeliveryChannel,
         },
       ],
       {
@@ -400,6 +419,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
             ? message.activityType
             : undefined,
         inbox: typeof message.inbox === "string" ? message.inbox : undefined,
+        articleDeliveryChannel: context?.articleDeliveryChannel,
       })),
       {
         orderingKey: options?.orderingKey,

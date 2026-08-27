@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import {
@@ -6,23 +7,146 @@ import {
   getArticleViewAnalytics,
   normalizeArticleReferrerHostname,
   pruneExpiredArticleViewDeduplications,
+  recordArticleDelivery,
+  recordArticlePublication,
   recordArticleView,
+  updateArticleDeliveryStatus,
 } from "./article-analytics.ts";
 import {
+  articleDeliveryEventTable,
+  articlePublicationAnalyticsTable,
   articleContentTable,
   articleSourceTable,
   articleViewDailyTable,
   articleViewDeduplicationTable,
   articleViewLanguageDailyTable,
   articleViewReferrerDailyTable,
+  followingTable,
   organizationMembershipTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   insertAccountWithActor,
+  insertRemoteActor,
   seedInstance,
   withRollback,
 } from "../test/postgres.ts";
+
+test("publication delivery analytics retain only hashed remote servers", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "publicationanalyticsauthor",
+      name: "Publication Analytics Author",
+      email: "publicationanalyticsauthor@example.com",
+    });
+    const localFollower = await insertAccountWithActor(tx, {
+      username: "publicationanalyticslocal",
+      name: "Publication Analytics Local Follower",
+      email: "publicationanalyticslocal@example.com",
+    });
+    const acceptedRemote = await insertRemoteActor(tx, {
+      username: "accepted",
+      name: "Accepted Remote Follower",
+      host: "delivery.example",
+    });
+    const pendingRemote = await insertRemoteActor(tx, {
+      username: "pending",
+      name: "Pending Remote Follower",
+      host: "pending.example",
+    });
+    const accepted = new Date("2026-08-27T10:00:00.000Z");
+    await tx.insert(followingTable).values([
+      {
+        iri: "https://delivery.example/follows/article-author",
+        followerId: acceptedRemote.id,
+        followeeId: author.actor.id,
+        accepted,
+      },
+      {
+        iri: "https://pending.example/follows/article-author",
+        followerId: pendingRemote.id,
+        followeeId: author.actor.id,
+      },
+      {
+        iri: "http://localhost/follows/article-author",
+        followerId: localFollower.actor.id,
+        followeeId: author.actor.id,
+        accepted,
+      },
+    ]);
+    const sourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "publication-delivery",
+      published: accepted,
+      updated: accepted,
+    });
+    const activityId = "http://localhost/articles/publication-delivery#create";
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri: activityId,
+      actorId: author.actor.id,
+      published: accepted,
+      now: accepted,
+    });
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri: activityId,
+      actorId: author.actor.id,
+      published: accepted,
+      now: new Date("2026-08-27T11:00:00.000Z"),
+    });
+
+    await recordArticleDelivery(tx, {
+      messageId: "publication-delivery-message",
+      activityId,
+      inbox: "https://DELIVERY.example/users/accepted/inbox",
+      channel: "direct",
+      now: accepted,
+    });
+    await recordArticleDelivery(tx, {
+      messageId: "ignored-invalid-inbox",
+      activityId,
+      inbox: "not an inbox URL",
+      channel: "direct",
+      now: accepted,
+    });
+    await recordArticleDelivery(tx, {
+      messageId: "ignored-ip-inbox",
+      activityId,
+      inbox: "https://192.0.2.1/inbox",
+      channel: "direct",
+      now: accepted,
+    });
+    await updateArticleDeliveryStatus(
+      tx,
+      "publication-delivery-message",
+      "accepted",
+      accepted,
+    );
+
+    const publication =
+      await tx.query.articlePublicationAnalyticsTable.findFirst({
+        where: { articleSourceId: sourceId },
+      });
+    assert.equal(publication?.remoteFollowers, 1);
+    const deliveries = await tx.select().from(articleDeliveryEventTable);
+    assert.equal(deliveries.length, 1);
+    assert.equal(deliveries[0].status, "accepted");
+    assert.equal(deliveries[0].channel, "direct");
+    assert.deepEqual(
+      deliveries[0].serverKey,
+      createHash("sha256").update("delivery.example").digest(),
+    );
+    assert.equal(
+      JSON.stringify(deliveries[0]).includes("delivery.example"),
+      false,
+    );
+    assert.equal(await tx.$count(articlePublicationAnalyticsTable), 1);
+  });
+});
 
 test("normalizeArticleReferrerHostname() removes presentation prefixes", () => {
   assert.equal(

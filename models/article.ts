@@ -21,6 +21,7 @@ import { getOriginalArticleContent } from "./article-source.ts";
 import type { ApplicationContext, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
+import { recordArticlePublication } from "./article-analytics.ts";
 import { transactional, withTransaction } from "./tx.ts";
 import { syncPostFromArticleSource } from "./post/source.ts";
 import {
@@ -439,11 +440,17 @@ async function createArticleOperation(
     account,
   });
   const activity = new vocab.Create({
-    id: new URL("#create", articleObject.id ?? fedCtx.origin),
+    id: new URL("#create", articleObject.id ?? new URL(post.iri)),
     actor: fedCtx.getActorUri(source.accountId),
     tos: articleObject.toIds,
     ccs: articleObject.ccIds,
     object: articleObject,
+  });
+  await recordArticlePublication(db, {
+    articleSourceId: articleSource.id,
+    createActivityIri: activity.id!.href,
+    actorId: post.actorId,
+    published: post.published,
   });
   await fedCtx.sendActivity(
     { identifier: source.accountId },

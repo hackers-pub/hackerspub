@@ -2,8 +2,15 @@ import assert from "node:assert";
 import test from "node:test";
 import { eq, inArray, sql } from "drizzle-orm";
 import { db as testDb } from "../test/database.ts";
-import { withRollback } from "../test/postgres.ts";
-import { outboxEventTable } from "@hackerspub/models/schema";
+import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
+import { recordArticlePublication } from "@hackerspub/models/article-analytics";
+import { replayOutboxEvent } from "@hackerspub/models/outbox";
+import {
+  articleDeliveryEventTable,
+  articleSourceTable,
+  outboxEventTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import {
   getCurrentOutboxDatabase,
   recordOutboxDeliveryError,
@@ -48,6 +55,100 @@ test("transactional queue enqueues batches with delay and reports depth", async 
       ["one", "two"],
     );
     assert(rows.every((row) => row.payloadVersion === 1));
+  });
+});
+
+test("delivery queue tracks article relay acceptance without retaining inboxes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "outboxanalyticsauthor",
+      name: "Outbox Analytics Author",
+      email: "outboxanalyticsauthor@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const activityId = "http://localhost/articles/outbox-analytics#create";
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "outbox-analytics",
+      published: now,
+      updated: now,
+    });
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri: activityId,
+      actorId: author.actor.id,
+      published: now,
+      now,
+    });
+    const queue = new TransactionalOutboxQueue(tx, "activitypub.delivery", {
+      now: () => now,
+      pollInterval: { milliseconds: 1 },
+      maximumProcessingAttempts: 1,
+    });
+    const relayMessage = {
+      ...message("article-relay"),
+      activityId,
+      inbox: "https://relay.example/inbox",
+    };
+    await runWithOutboxContext(
+      tx,
+      async () => await queue.enqueue(relayMessage),
+      { articleDeliveryChannel: "relay" },
+    );
+
+    const [pending] = await tx.select().from(articleDeliveryEventTable);
+    assert.equal(pending.channel, "relay");
+    assert.equal(pending.status, "pending");
+
+    const controller = new AbortController();
+    await queue.listen(() => controller.abort(), {
+      signal: controller.signal,
+    });
+
+    const [accepted] = await tx.select().from(articleDeliveryEventTable);
+    assert.equal(accepted.status, "accepted");
+    assert.equal(JSON.stringify(accepted).includes("relay.example"), false);
+    const acceptedOutbox = await tx.query.outboxEventTable.findFirst({
+      where: { messageId: relayMessage.id },
+    });
+    assert.equal(acceptedOutbox?.inbox, null);
+
+    const failedMessage = {
+      ...message("article-relay-failed"),
+      activityId,
+      inbox: "https://unavailable.example/inbox",
+    };
+    await runWithOutboxContext(
+      tx,
+      async () => await queue.enqueue(failedMessage),
+      { articleDeliveryChannel: "relay" },
+    );
+    const failureController = new AbortController();
+    await queue.listen(
+      async () => {
+        recordOutboxDeliveryError(new Error("relay unavailable"));
+        await queue.enqueue({ ...failedMessage, attempt: 1 });
+        failureController.abort();
+      },
+      { signal: failureController.signal },
+    );
+
+    const failedDelivery = await tx.query.articleDeliveryEventTable.findFirst({
+      where: { messageId: failedMessage.id },
+    });
+    assert.equal(failedDelivery?.status, "failed");
+    const failedOutbox = await tx.query.outboxEventTable.findFirst({
+      where: { messageId: failedMessage.id },
+    });
+    assert.equal(failedOutbox?.status, "dead");
+    assert.ok(failedOutbox != null);
+    assert.equal(await replayOutboxEvent(tx, failedOutbox.id, now), true);
+    const replayedDelivery = await tx.query.articleDeliveryEventTable.findFirst(
+      { where: { messageId: failedMessage.id } },
+    );
+    assert.equal(replayedDelivery?.status, "pending");
   });
 });
 
