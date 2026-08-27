@@ -498,9 +498,9 @@ msgstr "必須填寫理由。"
 msgid "A reason is required."
 msgstr "必須填寫理由。"
 
-#: src/routes/(root)/admin/relay.tsx:260
-msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
-msgstr "中繼只有在接受關注後才會開始轉發內容。在此之前，訂閱會保持待處理狀態。"
+#: src/routes/(root)/admin/relay.tsx:265
+msgid "A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending."
+msgstr "中繼僅在接受關注後交換公開內容。在此之前，訂閱將維持待處理狀態。"
 
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
@@ -3013,9 +3013,9 @@ msgstr "查找使用者"
 msgid "Looking up user…"
 msgstr "正在查找使用者資訊…"
 
-#: src/routes/(root)/admin/relay.tsx:225
-msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "讓此站台的站台 actor 關注一個 ActivityPub 中繼，使中繼將聯邦宇宙各處的公開內容轉發到此站台。請輸入中繼 actor 的 URL（例如 https://relay.example/actor）。"
+#: src/routes/(root)/admin/relay.tsx:229
+msgid "Make this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receives new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "讓此站台的站台 actor 關注一個 ActivityPub 中繼。接受後，中繼可將聯邦宇宙各處的公開內容轉發至此，並接收此站台新發布的公開文章。請輸入中繼 actor 的 URL（例如 https://relay.example/actor）。"
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"

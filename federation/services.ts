@@ -1,5 +1,6 @@
 import type { ApplicationContext } from "@hackerspub/models/context";
 import type { FederationServices } from "@hackerspub/models/services";
+import { sendArticleRelayActivity } from "./article-relay.ts";
 import { getFedifyContext } from "./context.ts";
 import {
   getAnnounce,
@@ -34,6 +35,13 @@ export const federationServices: FederationServices<ApplicationContext> = {
     getQuestion(getFedifyContext(context), note, poll, relations),
   sendTagsPubRelayActivity: (context, accountId, activity, options) =>
     sendTagsPubRelayActivity(
+      getFedifyContext(context),
+      accountId,
+      activity,
+      options,
+    ),
+  sendArticleRelayActivity: (context, accountId, activity, options) =>
+    sendArticleRelayActivity(
       getFedifyContext(context),
       accountId,
       activity,

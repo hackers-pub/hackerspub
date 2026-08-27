@@ -2,7 +2,7 @@ import { Follow, Undo } from "@fedify/vocab";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
 import type { ApplicationContext } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   type Actor,
   type Instance,
@@ -48,10 +48,24 @@ export function getRelayFollowIri(
 
 /** Lists every relay this instance is subscribed to, newest first. */
 export function getRelaySubscriptions(
-  db: Database,
+  db: Database | Transaction,
 ): Promise<RelaySubscriptionWithActor[]> {
   return db.query.relaySubscriptionTable.findMany({
     with: { actor: { with: { instance: true } } },
+    orderBy: { created: "desc" },
+  });
+}
+
+/**
+ * Lists relays that accepted the instance actor's `Follow`. These relays are
+ * eligible to receive the initial `Create` for public local articles.
+ */
+export function getAcceptedRelaySubscriptions(
+  db: Database | Transaction,
+): Promise<RelaySubscriptionWithActor[]> {
+  return db.query.relaySubscriptionTable.findMany({
+    with: { actor: { with: { instance: true } } },
+    where: { accepted: { isNotNull: true } },
     orderBy: { created: "desc" },
   });
 }

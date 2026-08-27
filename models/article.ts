@@ -462,7 +462,7 @@ async function createArticleOperation(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+  const relayedTags = await fedCtx.services.federation.sendArticleRelayActivity(
     fedCtx,
     source.accountId,
     activity,

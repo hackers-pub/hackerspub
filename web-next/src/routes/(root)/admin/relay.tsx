@@ -226,7 +226,7 @@ export default function AdminRelayPage() {
                     <CardHeader>
                       <CardTitle>{t`Subscribe to a relay`}</CardTitle>
                       <CardDescription>
-                        {t`Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor.`}
+                        {t`Make this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receives new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor.`}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -262,7 +262,7 @@ export default function AdminRelayPage() {
                     <CardHeader>
                       <CardTitle>{t`Subscribed relays`}</CardTitle>
                       <CardDescription>
-                        {t`A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending.`}
+                        {t`A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending.`}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
