@@ -6002,7 +6002,7 @@ msgid "90 days"
 msgstr "90日間"
 
 msgid "Accepted"
-msgstr "成功"
+msgstr "受理"
 
 msgid "All time"
 msgstr "全期間"
@@ -6025,8 +6025,8 @@ msgstr "日付と期間にはUTCを使用します。"
 msgid "Delivery data is unavailable for articles published before analytics collection began."
 msgstr "分析データの収集開始前に公開された記事では、配信データを利用できません。"
 
-msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
-msgstr "配信記録は最初の記事がリモートサーバーに届いたかを示すもので、誰かが閲覧したかを示すものではありません。"
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "配信記録は最初の記事の送信試行がエラーの記録なく完了したかを示すもので、リモートでの表示や閲覧を示すものではありません。"
 
 msgid "Direct delivery"
 msgstr "直接配信"

@@ -92,10 +92,12 @@ invitation links you create and how many times they have been used.
 
 ### Article Analytics
 
-When an article remains visible in a focused browser for at least two seconds,
-we count a read.  Reads by the signed-in author, other signed-in accounts
-allowed to edit the article, and identifiable bots are excluded.  For each
-counted read, we collect:
+When article view analytics are enabled, we collect them only for articles
+authored on this instance, not articles received from remote servers.  When a
+local article remains visible in a focused browser for at least two seconds, we
+count a read.  Reads by the signed-in author, other signed-in accounts allowed
+to edit the article, and identifiable bots are excluded.  For each counted
+read, we collect:
 
  -  **Article and date**: the article's stable identifier and the UTC date
  -  **Displayed language**: including whether it is the original or a
@@ -109,10 +111,12 @@ counted read, we collect:
 
 For a public article's initial ActivityPub delivery, we also record its
 publication time, the number of accepted remote followers at publication, and
-the delivery channel and outcome for each remote server.  Remote server
-hostnames are stored only as SHA-256 hashes.  Article analytics are shown only
-to the personal author, accepted members of the authoring organization, or
-moderators.
+the delivery channel and outcome for each remote server.  Direct and relay
+deliveries are recorded separately.  A delivery attempt is marked accepted
+when it completes without a recorded error.  This does not measure remote
+impressions, views, or readership.  Remote server hostnames are stored only as
+SHA-256 hashes.  Article analytics are shown only to the personal author,
+accepted members of the authoring organization, or moderators.
 Displayed-language groups with fewer than three views are combined.  Only the
 top 10 external hostnames with at least three views are shown.  After 100
 distinct external hostnames for one article in one day, additional hostnames

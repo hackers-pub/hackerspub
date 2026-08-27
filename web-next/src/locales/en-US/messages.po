@@ -6029,8 +6029,8 @@ msgstr "Dates and intervals use UTC."
 msgid "Delivery data is unavailable for articles published before analytics collection began."
 msgstr "Delivery data is unavailable for articles published before analytics collection began."
 
-msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
-msgstr "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
 
 msgid "Direct delivery"
 msgstr "Direct delivery"

@@ -6002,7 +6002,7 @@ msgid "90 days"
 msgstr "90일"
 
 msgid "Accepted"
-msgstr "성공"
+msgstr "수락"
 
 msgid "All time"
 msgstr "전체 기간"
@@ -6025,8 +6025,8 @@ msgstr "날짜와 구간은 UTC를 기준으로 합니다."
 msgid "Delivery data is unavailable for articles published before analytics collection began."
 msgstr "분석 수집을 시작하기 전에 발행된 게시글은 전송 데이터를 확인할 수 없습니다."
 
-msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
-msgstr "전송 기록은 최초 게시글이 원격 서버에 도착했는지를 나타내며, 누군가 게시글을 보았는지는 나타내지 않습니다."
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "전송 기록은 최초 게시글의 전송 시도가 기록된 오류 없이 완료됐는지를 나타내며, 원격 화면 표시나 읽기를 나타내지 않습니다."
 
 msgid "Direct delivery"
 msgstr "직접 전송"
@@ -6122,4 +6122,4 @@ msgid "Views are counted reads, not unique people. Engagement totals are cumulat
 msgstr "조회는 고유 사용자 수가 아니라 읽은 횟수입니다. 참여 합계는 누적값이며 선택한 기간에 따라 바뀌지 않습니다."
 
 msgid "Views over time"
-msgstr "시간대별 조회"
+msgstr "시간 경과에 따른 조회"

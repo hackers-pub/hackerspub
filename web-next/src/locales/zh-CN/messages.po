@@ -6002,7 +6002,7 @@ msgid "90 days"
 msgstr "90 天"
 
 msgid "Accepted"
-msgstr "成功"
+msgstr "已接受"
 
 msgid "All time"
 msgstr "全部时间"
@@ -6025,8 +6025,8 @@ msgstr "日期和时间区间均使用 UTC。"
 msgid "Delivery data is unavailable for articles published before analytics collection began."
 msgstr "在开始收集分析数据之前发布的文章没有投递数据。"
 
-msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
-msgstr "投递记录表示初始文章是否到达远程服务器，并不表示是否有人查看过文章。"
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "投递记录表示初始文章的发送尝试是否在没有记录错误的情况下完成，并不表示远程查看次数或阅读情况。"
 
 msgid "Direct delivery"
 msgstr "直接投递"
@@ -6113,7 +6113,7 @@ msgid "View article analytics"
 msgstr "查看文章分析"
 
 msgid "View trend"
-msgstr "查看趋势"
+msgstr "查看次数趋势"
 
 msgid "Views"
 msgstr "查看次数"

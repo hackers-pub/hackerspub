@@ -541,7 +541,7 @@ function ArticleAnalyticsBody(props: ArticleAnalyticsBodyProps) {
         <CardHeader>
           <CardTitle>{t`Federation delivery`}</CardTitle>
           <CardDescription>
-            {t`Delivery records whether the initial article reached a remote server, not whether anyone viewed it.`}
+            {t`Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership.`}
           </CardDescription>
         </CardHeader>
         <CardContent>

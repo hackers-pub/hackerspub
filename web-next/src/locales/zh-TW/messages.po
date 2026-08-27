@@ -6002,7 +6002,7 @@ msgid "90 days"
 msgstr "90 天"
 
 msgid "Accepted"
-msgstr "成功"
+msgstr "已接受"
 
 msgid "All time"
 msgstr "全部期間"
@@ -6025,8 +6025,8 @@ msgstr "日期和時間區間均使用 UTC。"
 msgid "Delivery data is unavailable for articles published before analytics collection began."
 msgstr "在開始收集分析資料之前發布的文章沒有投遞資料。"
 
-msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
-msgstr "投遞記錄表示初始文章是否送達遠端伺服器，並不表示是否有人瀏覽過文章。"
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "投遞記錄表示初始文章的傳送嘗試是否在沒有記錄錯誤的情況下完成，並不表示遠端瀏覽次數或閱讀情況。"
 
 msgid "Direct delivery"
 msgstr "直接投遞"
