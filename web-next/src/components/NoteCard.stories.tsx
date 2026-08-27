@@ -222,16 +222,37 @@ export const LongNote: Story = {
   args: { content: longHtml },
 };
 
-const noteWithLinkHtml =
-  "<p>Worth a read if you've ever wondered how inbox delivery actually " +
-  "works under the hood:</p>";
+// The real backend only ever populates `link`/`linkPreviewUrl` by parsing
+// the post's own rendered content for the first qualifying `<a href>`
+// (`models/html.ts`'s `extractExternalLinks`, called from
+// `models/post/source.ts` and `models/post/remote.ts`); it's never set
+// independently of content. So this story's content actually contains the
+// same URL as the mocked `link`, the way a real post would — and it's
+// long enough to also exercise the collapse: `LinkPreview` renders after
+// `ExpandableHtmlContent`, unclamped, so a collapsed note still shows its
+// full-size link preview below the faded text.
+const linkUrl = "https://example.blog/activitypub-federation-explained";
+const longNoteWithLinkHtml = `
+  <p>I've been meaning to write this down for a while: every time someone
+  asks how ActivityPub federation actually works end to end, I end up
+  re-explaining the same handful of moving parts from scratch.</p>
+  <p>The short version is that your instance's outbox signs an activity
+  and POSTs it to the target actor's inbox URL, the receiving instance
+  verifies the HTTP signature against a key fetched from your actor
+  document, and only then does it get queued for processing. Almost
+  every subtle bug people hit lives somewhere in that handshake.</p>
+  <p>I finally found a writeup that walks through the whole thing,
+  inbox delivery included, without skipping the parts that usually trip
+  people up. Linking it here so I stop re-typing this explanation:
+  <a href="${linkUrl}">${linkUrl}</a></p>
+`;
 
-export const NoteWithLink: Story = {
-  name: "Note with a link preview",
+export const LongNoteWithLink: Story = {
+  name: "Long note with a link preview (collapsed)",
   args: {
-    content: noteWithLinkHtml,
+    content: longNoteWithLinkHtml,
     link: {
-      url: "https://example.blog/activitypub-federation-explained",
+      url: linkUrl,
       title: "How ActivityPub Federation Actually Works",
       description:
         "A practical walkthrough of inbox delivery, actors, and the " +
