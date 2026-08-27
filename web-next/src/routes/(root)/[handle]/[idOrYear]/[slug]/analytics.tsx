@@ -164,6 +164,44 @@ type DeliveryChannel = Analytics["federation"] extends infer Federation
     : never
   : never;
 
+interface ArticleAnalyticsLoadedProps {
+  article: Article;
+  sourceId: analyticsDataQuery$variables["articleSourceId"];
+  articleHref: string;
+}
+
+interface ArticleAnalyticsBodyProps {
+  article: Article;
+  analytics: Analytics;
+  range: ArticleAnalyticsRange;
+  articleHref: string;
+  onRangeChange: (range: ArticleAnalyticsRange) => void;
+}
+
+interface MetricCardProps {
+  label: string;
+  value: string;
+}
+
+interface BreakdownCardProps {
+  title: string;
+  description: string;
+  children: JSX.Element;
+}
+
+interface BreakdownRowProps {
+  label: string;
+  value: string;
+  share?: string;
+}
+
+interface DeliveryCardProps {
+  title: string;
+  channel: DeliveryChannel;
+  number: (value: number) => string;
+  percent: (value: number | null | undefined) => string;
+}
+
 export default function ArticleAnalyticsPage() {
   const params = useParams();
   const routeParams = createMemo(() => {
@@ -225,11 +263,7 @@ export default function ArticleAnalyticsPage() {
   );
 }
 
-function ArticleAnalyticsLoaded(props: {
-  article: Article;
-  sourceId: analyticsDataQuery$variables["articleSourceId"];
-  articleHref: string;
-}) {
+function ArticleAnalyticsLoaded(props: ArticleAnalyticsLoadedProps) {
   const [searchParams, setSearchParams] = useSearchParams<{ range?: string }>();
   const range = () => parseArticleAnalyticsRange(searchParams.range);
   const data = createStablePreloadedQuery<analyticsDataQuery>(
@@ -264,13 +298,7 @@ function ArticleAnalyticsLoaded(props: {
   );
 }
 
-function ArticleAnalyticsBody(props: {
-  article: Article;
-  analytics: Analytics;
-  range: ArticleAnalyticsRange;
-  articleHref: string;
-  onRangeChange: (range: ArticleAnalyticsRange) => void;
-}) {
+function ArticleAnalyticsBody(props: ArticleAnalyticsBodyProps) {
   const { i18n, t } = useLingui();
   const title = () =>
     props.article.contents.find(
@@ -568,7 +596,7 @@ function ArticleAnalyticsBody(props: {
   );
 }
 
-function MetricCard(props: { label: string; value: string }) {
+function MetricCard(props: MetricCardProps) {
   return (
     <Card>
       <CardContent class="p-4">
@@ -579,11 +607,7 @@ function MetricCard(props: { label: string; value: string }) {
   );
 }
 
-function BreakdownCard(props: {
-  title: string;
-  description: string;
-  children: JSX.Element;
-}) {
+function BreakdownCard(props: BreakdownCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -595,7 +619,7 @@ function BreakdownCard(props: {
   );
 }
 
-function BreakdownRow(props: { label: string; value: string; share?: string }) {
+function BreakdownRow(props: BreakdownRowProps) {
   return (
     <div class="flex items-baseline justify-between gap-4 text-sm">
       <span class="min-w-0 truncate" title={props.label}>
@@ -611,12 +635,7 @@ function BreakdownRow(props: { label: string; value: string; share?: string }) {
   );
 }
 
-function DeliveryCard(props: {
-  title: string;
-  channel: DeliveryChannel;
-  number: (value: number) => string;
-  percent: (value: number | null | undefined) => string;
-}) {
+function DeliveryCard(props: DeliveryCardProps) {
   const { t } = useLingui();
   return (
     <div class="rounded-md border p-4">
