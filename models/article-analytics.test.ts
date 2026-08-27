@@ -3,6 +3,7 @@ import test from "node:test";
 import { eq } from "drizzle-orm";
 import {
   canViewArticleAnalytics,
+  getArticleViewAnalytics,
   normalizeArticleReferrerHostname,
   pruneExpiredArticleViewDeduplications,
   recordArticleView,
@@ -10,7 +11,10 @@ import {
 import {
   articleContentTable,
   articleSourceTable,
+  articleViewDailyTable,
   articleViewDeduplicationTable,
+  articleViewLanguageDailyTable,
+  articleViewReferrerDailyTable,
   organizationMembershipTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
@@ -310,5 +314,176 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
       ),
       5,
     );
+  });
+});
+
+test("getArticleViewAnalytics() groups protected values and bounds trends", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "analyticsreader",
+      name: "Analytics Reader",
+      email: "analyticsreader@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-05-01T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "analytics-reader",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleViewDailyTable).values([
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-05-01T00:00:00.000Z"),
+        views: 4,
+        updated: new Date("2026-05-01T12:00:00.000Z"),
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        views: 39,
+        updated: new Date("2026-08-27T12:00:00.000Z"),
+      },
+    ]);
+    await tx.insert(articleViewLanguageDailyTable).values([
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        language: "en",
+        original: true,
+        views: 36,
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        language: "ko",
+        original: false,
+        views: 2,
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        language: "fr",
+        original: true,
+        views: 1,
+      },
+    ]);
+    await tx.insert(articleViewReferrerDailyTable).values([
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "hackers_pub",
+        views: 2,
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "search",
+        views: 1,
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "fediverse",
+        views: 1,
+      },
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "direct_or_unknown",
+        views: 1,
+      },
+      ...Array.from({ length: 11 }, (_, index) => ({
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "other_external" as const,
+        domain: `d${index.toString().padStart(2, "0")}.example`,
+        views: 3,
+      })),
+      {
+        articleSourceId: sourceId,
+        day: new Date("2026-08-27T00:00:00.000Z"),
+        category: "other_external",
+        domain: "tiny.example",
+        views: 1,
+      },
+    ]);
+
+    const analytics = await getArticleViewAnalytics(
+      tx,
+      sourceId,
+      "thirty_days",
+      new Date("2026-08-27T23:00:00.000Z"),
+    );
+    assert.equal(analytics.totalViews, 39);
+    assert.equal(analytics.trendInterval, "day");
+    assert.equal(analytics.trend.length, 30);
+    assert.equal(analytics.trend.at(-1)?.views, 39);
+    assert.deepEqual(analytics.languages, [
+      { language: "en", original: true, views: 36, share: 36 / 39 },
+      { language: null, original: null, views: 3, share: 3 / 39 },
+    ]);
+    assert.equal(
+      analytics.referrers.reduce((total, row) => total + row.views, 0),
+      39,
+    );
+    assert.equal(analytics.externalDomains.length, 10);
+    assert.deepEqual(analytics.externalDomains[0], {
+      domain: "d00.example",
+      views: 3,
+      share: 3 / 39,
+    });
+    assert.equal(analytics.otherExternalViews, 4);
+    assert.equal(
+      analytics.lastUpdated?.toISOString(),
+      "2026-08-27T12:00:00.000Z",
+    );
+
+    const lifetime = await getArticleViewAnalytics(
+      tx,
+      sourceId,
+      "all",
+      new Date("2026-08-27T23:00:00.000Z"),
+    );
+    assert.equal(lifetime.totalViews, 43);
+    assert.equal(lifetime.trendInterval, "week");
+    assert.ok(lifetime.trend.length <= 90);
+  });
+});
+
+test("getArticleViewAnalytics() accounts for aligned week boundaries", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "analyticsboundary",
+      name: "Analytics Boundary",
+      email: "analyticsboundary@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const firstDay = new Date("2025-01-05T00:00:00.000Z");
+    const lastDay = new Date(firstDay.getTime() + 629 * 24 * 60 * 60 * 1000);
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2025,
+      slug: "aligned-week-boundaries",
+      published: firstDay,
+      updated: firstDay,
+    });
+    await tx.insert(articleViewDailyTable).values([
+      { articleSourceId: sourceId, day: firstDay, views: 1 },
+      { articleSourceId: sourceId, day: lastDay, views: 1 },
+    ]);
+
+    const analytics = await getArticleViewAnalytics(
+      tx,
+      sourceId,
+      "all",
+      lastDay,
+    );
+    assert.equal(analytics.trendInterval, "month");
+    assert.ok(analytics.trend.length <= 90);
   });
 });

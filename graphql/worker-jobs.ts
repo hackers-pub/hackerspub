@@ -1,4 +1,5 @@
 import { getLogger } from "@logtape/logtape";
+import { pruneExpiredArticleViewDeduplications } from "@hackerspub/models/article-analytics";
 import { sweepExpiredSuspensionRescores } from "@hackerspub/models/moderation";
 import {
   drainNewsRescoreQueue,
@@ -47,6 +48,10 @@ export const WORKER_JOB_SCHEDULES = {
     name: "prune-transactional-outbox",
     schedule: "30 3 * * *",
   },
+  pruneArticleViewDeduplications: {
+    name: "prune-article-view-deduplications",
+    schedule: "45 3 * * *",
+  },
 } as const satisfies Record<string, WorkerJobSchedule>;
 
 export interface WorkerJobResources {
@@ -63,6 +68,7 @@ export interface WorkerJobOperations {
   readonly notifyEndedPolls: typeof notifyEndedPolls;
   readonly sendNotificationDigests: typeof sendNotificationDigests;
   readonly pruneOutboxEvents: typeof pruneOutboxEvents;
+  readonly pruneExpiredArticleViewDeduplications: typeof pruneExpiredArticleViewDeduplications;
 }
 
 export interface WorkerJobOptions {
@@ -81,6 +87,7 @@ const defaultOperations: WorkerJobOperations = {
   notifyEndedPolls,
   sendNotificationDigests,
   pruneOutboxEvents,
+  pruneExpiredArticleViewDeduplications,
 };
 
 const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
@@ -94,6 +101,11 @@ const outboxLogger = getLogger([
   "hackerspub",
   "graphql",
   "transactional-outbox",
+]);
+const articleAnalyticsLogger = getLogger([
+  "hackerspub",
+  "graphql",
+  "article-analytics",
 ]);
 const schedulerLogger = getLogger([
   "hackerspub",
@@ -245,6 +257,21 @@ export function createWorkerJobs(
           outboxLogger.info("Pruned {deleted} expired outbox event(s).", {
             deleted,
           });
+        }
+      },
+    },
+    {
+      ...WORKER_JOB_SCHEDULES.pruneArticleViewDeduplications,
+      async run() {
+        const deleted = await operations.pruneExpiredArticleViewDeduplications(
+          db,
+          now(),
+        );
+        if (deleted > 0) {
+          articleAnalyticsLogger.info(
+            "Pruned {deleted} expired article view deduplication row(s).",
+            { deleted },
+          );
         }
       },
     },

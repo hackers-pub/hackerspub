@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { domainToASCII } from "node:url";
-import { and, eq, inArray, isNotNull, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
 import type { Database, Transaction } from "./db.ts";
 import { runInTransaction } from "./db.ts";
 import {
@@ -11,6 +11,7 @@ import {
   articleViewDeduplicationTable,
   articleViewLanguageDailyTable,
   articleViewReferrerDailyTable,
+  ARTICLE_REFERRER_CATEGORIES,
   instanceTable,
   organizationMembershipTable,
   type ArticleReferrerCategory,
@@ -18,6 +19,8 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 const articleViewDeduplicationWindowMs = 30 * 60 * 1000;
+const articleAnalyticsMinimumGroupSize = 3;
+const articleAnalyticsMaximumTrendBuckets = 90;
 const removableHostnamePrefixes = new Set(["www", "m", "mobile", "amp"]);
 const searchEngineDomains = [
   "baidu.com",
@@ -55,6 +58,54 @@ export interface RecordArticleViewInput {
 export interface ClassifiedArticleReferrer {
   category: ArticleReferrerCategory;
   domain: string;
+}
+
+export const ARTICLE_ANALYTICS_RANGES = [
+  "seven_days",
+  "thirty_days",
+  "ninety_days",
+  "all",
+] as const;
+
+export type ArticleAnalyticsRange = (typeof ARTICLE_ANALYTICS_RANGES)[number];
+export type ArticleAnalyticsTrendInterval = "day" | "week" | "month" | "year";
+
+export interface ArticleAnalyticsTrendPoint {
+  start: Date;
+  views: number;
+}
+
+export interface ArticleAnalyticsLanguage {
+  language: string | null;
+  original: boolean | null;
+  views: number;
+  share: number;
+}
+
+export interface ArticleAnalyticsReferrer {
+  category: ArticleReferrerCategory;
+  views: number;
+  share: number;
+}
+
+export interface ArticleAnalyticsExternalDomain {
+  domain: string;
+  views: number;
+  share: number;
+}
+
+export interface ArticleViewAnalytics {
+  range: ArticleAnalyticsRange;
+  from: Date | null;
+  to: Date;
+  totalViews: number;
+  trendInterval: ArticleAnalyticsTrendInterval;
+  trend: ArticleAnalyticsTrendPoint[];
+  languages: ArticleAnalyticsLanguage[];
+  referrers: ArticleAnalyticsReferrer[];
+  externalDomains: ArticleAnalyticsExternalDomain[];
+  otherExternalViews: number;
+  lastUpdated: Date | null;
 }
 
 function hostnameMatchesDomain(hostname: string, domain: string): boolean {
@@ -334,6 +385,295 @@ export async function recordArticleView(
       });
     return true;
   });
+}
+
+function getRangeStart(range: ArticleAnalyticsRange, today: Date): Date | null {
+  const days =
+    range === "seven_days"
+      ? 7
+      : range === "thirty_days"
+        ? 30
+        : range === "ninety_days"
+          ? 90
+          : null;
+  return days == null
+    ? null
+    : new Date(today.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+}
+
+function getTrendInterval(
+  firstDay: Date,
+  today: Date,
+): ArticleAnalyticsTrendInterval {
+  const inclusiveDays =
+    Math.floor((today.getTime() - firstDay.getTime()) / (24 * 60 * 60 * 1000)) +
+    1;
+  if (inclusiveDays <= articleAnalyticsMaximumTrendBuckets) return "day";
+  const weekMilliseconds = 7 * 24 * 60 * 60 * 1000;
+  const inclusiveWeeks =
+    Math.floor(
+      (getBucketStart(today, "week").getTime() -
+        getBucketStart(firstDay, "week").getTime()) /
+        weekMilliseconds,
+    ) + 1;
+  if (inclusiveWeeks <= articleAnalyticsMaximumTrendBuckets) return "week";
+
+  const inclusiveMonths =
+    (today.getUTCFullYear() - firstDay.getUTCFullYear()) * 12 +
+    today.getUTCMonth() -
+    firstDay.getUTCMonth() +
+    1;
+  return inclusiveMonths <= articleAnalyticsMaximumTrendBuckets
+    ? "month"
+    : "year";
+}
+
+function getBucketStart(
+  date: Date,
+  interval: ArticleAnalyticsTrendInterval,
+): Date {
+  if (interval === "day") return getUtcDay(date);
+  if (interval === "week") {
+    const day = getUtcDay(date);
+    const daysSinceMonday = (day.getUTCDay() + 6) % 7;
+    return new Date(day.getTime() - daysSinceMonday * 24 * 60 * 60 * 1000);
+  }
+  if (interval === "month") {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+  }
+  return new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+}
+
+function getNextBucket(
+  date: Date,
+  interval: ArticleAnalyticsTrendInterval,
+): Date {
+  if (interval === "day") {
+    return new Date(date.getTime() + 24 * 60 * 60 * 1000);
+  }
+  if (interval === "week") {
+    return new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000);
+  }
+  if (interval === "month") {
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1));
+  }
+  return new Date(Date.UTC(date.getUTCFullYear() + 1, 0, 1));
+}
+
+function buildArticleViewTrend(
+  dailyViews: ReadonlyArray<{ day: Date; views: number }>,
+  from: Date,
+  to: Date,
+  interval: ArticleAnalyticsTrendInterval,
+): ArticleAnalyticsTrendPoint[] {
+  const totals = new Map<number, number>();
+  const firstBucket = getBucketStart(from, interval).getTime();
+  for (const row of dailyViews) {
+    const bucket = Math.max(
+      getBucketStart(row.day, interval).getTime(),
+      firstBucket,
+    );
+    totals.set(bucket, (totals.get(bucket) ?? 0) + row.views);
+  }
+
+  const trend: ArticleAnalyticsTrendPoint[] = [];
+  const end = getBucketStart(to, interval).getTime();
+  for (
+    let bucket = getBucketStart(from, interval);
+    bucket.getTime() <= end;
+    bucket = getNextBucket(bucket, interval)
+  ) {
+    trend.push({ start: bucket, views: totals.get(bucket.getTime()) ?? 0 });
+  }
+  return trend;
+}
+
+function getShare(views: number, totalViews: number): number {
+  return totalViews < 1 ? 0 : views / totalViews;
+}
+
+export async function getArticleViewAnalytics(
+  db: Database | Transaction,
+  articleSourceId: Uuid,
+  range: ArticleAnalyticsRange,
+  now = new Date(),
+): Promise<ArticleViewAnalytics> {
+  const today = getUtcDay(now);
+  const from = getRangeStart(range, today);
+  const rangeCondition =
+    from == null
+      ? and(
+          eq(articleViewDailyTable.articleSourceId, articleSourceId),
+          lte(articleViewDailyTable.day, today),
+        )
+      : and(
+          eq(articleViewDailyTable.articleSourceId, articleSourceId),
+          gte(articleViewDailyTable.day, from),
+          lte(articleViewDailyTable.day, today),
+        );
+  const languageCondition =
+    from == null
+      ? and(
+          eq(articleViewLanguageDailyTable.articleSourceId, articleSourceId),
+          lte(articleViewLanguageDailyTable.day, today),
+        )
+      : and(
+          eq(articleViewLanguageDailyTable.articleSourceId, articleSourceId),
+          gte(articleViewLanguageDailyTable.day, from),
+          lte(articleViewLanguageDailyTable.day, today),
+        );
+  const referrerCondition =
+    from == null
+      ? and(
+          eq(articleViewReferrerDailyTable.articleSourceId, articleSourceId),
+          lte(articleViewReferrerDailyTable.day, today),
+        )
+      : and(
+          eq(articleViewReferrerDailyTable.articleSourceId, articleSourceId),
+          gte(articleViewReferrerDailyTable.day, from),
+          lte(articleViewReferrerDailyTable.day, today),
+        );
+
+  const [dailyViews, languageViews, referrerViews, updatedRows] =
+    await Promise.all([
+      db
+        .select({
+          day: articleViewDailyTable.day,
+          views: articleViewDailyTable.views,
+        })
+        .from(articleViewDailyTable)
+        .where(rangeCondition)
+        .orderBy(articleViewDailyTable.day),
+      db
+        .select({
+          language: articleViewLanguageDailyTable.language,
+          original: articleViewLanguageDailyTable.original,
+          views: articleViewLanguageDailyTable.views,
+        })
+        .from(articleViewLanguageDailyTable)
+        .where(languageCondition),
+      db
+        .select({
+          category: articleViewReferrerDailyTable.category,
+          domain: articleViewReferrerDailyTable.domain,
+          views: articleViewReferrerDailyTable.views,
+        })
+        .from(articleViewReferrerDailyTable)
+        .where(referrerCondition),
+      db
+        .select({ updated: articleViewDailyTable.updated })
+        .from(articleViewDailyTable)
+        .where(eq(articleViewDailyTable.articleSourceId, articleSourceId))
+        .orderBy(desc(articleViewDailyTable.updated))
+        .limit(1),
+    ]);
+
+  const totalViews = dailyViews.reduce((total, row) => total + row.views, 0);
+  const firstDay = from ?? dailyViews[0]?.day ?? today;
+  const trendInterval = getTrendInterval(firstDay, today);
+  const trendFrom =
+    trendInterval === "year" &&
+    today.getUTCFullYear() - firstDay.getUTCFullYear() >=
+      articleAnalyticsMaximumTrendBuckets
+      ? new Date(
+          Date.UTC(
+            today.getUTCFullYear() - (articleAnalyticsMaximumTrendBuckets - 1),
+            0,
+            1,
+          ),
+        )
+      : firstDay;
+  const trend = buildArticleViewTrend(
+    dailyViews,
+    trendFrom,
+    today,
+    trendInterval,
+  );
+
+  const languageTotals = new Map<
+    string,
+    { language: string; original: boolean; views: number }
+  >();
+  for (const row of languageViews) {
+    const key = `${row.language}\u0000${row.original ? "1" : "0"}`;
+    const existing = languageTotals.get(key);
+    languageTotals.set(key, {
+      language: row.language,
+      original: row.original,
+      views: (existing?.views ?? 0) + row.views,
+    });
+  }
+  const visibleLanguages = [...languageTotals.values()]
+    .filter((row) => row.views >= articleAnalyticsMinimumGroupSize)
+    .sort((a, b) => b.views - a.views || a.language.localeCompare(b.language));
+  const hiddenLanguageViews = [...languageTotals.values()]
+    .filter((row) => row.views < articleAnalyticsMinimumGroupSize)
+    .reduce((total, row) => total + row.views, 0);
+  const languages: ArticleAnalyticsLanguage[] = visibleLanguages.map((row) => ({
+    ...row,
+    share: getShare(row.views, totalViews),
+  }));
+  if (hiddenLanguageViews > 0) {
+    languages.push({
+      language: null,
+      original: null,
+      views: hiddenLanguageViews,
+      share: getShare(hiddenLanguageViews, totalViews),
+    });
+  }
+
+  const referrerTotals = new Map<ArticleReferrerCategory, number>();
+  const externalDomainTotals = new Map<string, number>();
+  for (const row of referrerViews) {
+    referrerTotals.set(
+      row.category,
+      (referrerTotals.get(row.category) ?? 0) + row.views,
+    );
+    if (row.category === "other_external") {
+      externalDomainTotals.set(
+        row.domain,
+        (externalDomainTotals.get(row.domain) ?? 0) + row.views,
+      );
+    }
+  }
+  const referrers = ARTICLE_REFERRER_CATEGORIES.map((category) => {
+    const views = referrerTotals.get(category) ?? 0;
+    return { category, views, share: getShare(views, totalViews) };
+  });
+  const qualifyingDomains = [...externalDomainTotals.entries()]
+    .filter(([, views]) => views >= articleAnalyticsMinimumGroupSize)
+    .sort(([domainA, viewsA], [domainB, viewsB]) =>
+      viewsB === viewsA ? domainA.localeCompare(domainB) : viewsB - viewsA,
+    );
+  const externalDomains = qualifyingDomains
+    .slice(0, 10)
+    .map(([domain, views]) => ({
+      domain,
+      views,
+      share: getShare(views, totalViews),
+    }));
+  const visibleExternalViews = externalDomains.reduce(
+    (total, row) => total + row.views,
+    0,
+  );
+  const totalExternalViews = [...externalDomainTotals.values()].reduce(
+    (total, views) => total + views,
+    0,
+  );
+
+  return {
+    range,
+    from,
+    to: today,
+    totalViews,
+    trendInterval,
+    trend,
+    languages,
+    referrers,
+    externalDomains,
+    otherExternalViews: totalExternalViews - visibleExternalViews,
+    lastUpdated: updatedRows[0]?.updated ?? null,
+  };
 }
 
 export async function pruneExpiredArticleViewDeduplications(
