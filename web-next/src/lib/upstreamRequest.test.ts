@@ -12,6 +12,7 @@ test("createUpstreamRequestInit forwards trusted request metadata", () => {
       "x-forwarded-for": "203.0.113.4",
       "x-forwarded-host": "public.example",
       "x-forwarded-proto": "https",
+      "user-agent": "Browser/1.0",
     },
     signal: controller.signal,
   });
@@ -28,6 +29,7 @@ test("createUpstreamRequestInit forwards trusted request metadata", () => {
   assert.equal(headers.get("x-forwarded-for"), "203.0.113.4");
   assert.equal(headers.get("x-forwarded-host"), "public.example");
   assert.equal(headers.get("x-forwarded-proto"), "https");
+  assert.equal(headers.get("user-agent"), "Browser/1.0");
   assert.strictEqual(init.signal, request.signal);
   assert.equal(init.body, "request-body");
 });
@@ -38,6 +40,7 @@ test("createUpstreamRequestInit drops untrusted forwarded headers", () => {
       "x-forwarded-for": "203.0.113.4",
       "x-forwarded-host": "attacker.example",
       "x-forwarded-proto": "https",
+      "user-agent": "Browser/1.0",
     },
   });
 
@@ -53,4 +56,5 @@ test("createUpstreamRequestInit drops untrusted forwarded headers", () => {
   assert.equal(headers.has("x-forwarded-for"), false);
   assert.equal(headers.has("x-forwarded-host"), false);
   assert.equal(headers.has("x-forwarded-proto"), false);
+  assert.equal(headers.get("user-agent"), "Browser/1.0");
 });

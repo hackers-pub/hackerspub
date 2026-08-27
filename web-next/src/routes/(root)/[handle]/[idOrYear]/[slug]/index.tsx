@@ -20,6 +20,7 @@ import {
   Show,
 } from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
+import { ArticleViewTracker } from "~/components/ArticleViewTracker.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PermalinkThreadTree } from "~/components/PermalinkThread.tsx";
@@ -376,6 +377,7 @@ interface ArticleBodyProps {
 }
 
 function ArticleBody(props: ArticleBodyProps) {
+  const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
@@ -389,6 +391,7 @@ function ArticleBody(props: ArticleBodyProps) {
         includeBeingTranslated: { type: "Boolean", defaultValue: false }
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
+        sourceId
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -445,7 +448,7 @@ function ArticleBody(props: ArticleBodyProps) {
         return (
           <>
             <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg 2xl:flex 2xl:gap-8">
-              <article class="2xl:flex-1 min-w-0">
+              <article ref={setArticleRef} class="2xl:flex-1 min-w-0">
                 <ArticleTitle
                   title={content()?.title}
                   language={content()?.language ?? undefined}
@@ -524,6 +527,20 @@ function ArticleBody(props: ArticleBodyProps) {
                 })()}
                 <ArticleReplies $article={article} $viewer={props.$viewer} />
               </article>
+
+              <Show
+                when={
+                  article.sourceId != null &&
+                  !content()?.beingTranslated &&
+                  content()?.content
+                }
+              >
+                <ArticleViewTracker
+                  articleSourceId={article.sourceId}
+                  language={content()?.language}
+                  target={articleRef}
+                />
+              </Show>
 
               <ArticleAside
                 toc={toc()}
