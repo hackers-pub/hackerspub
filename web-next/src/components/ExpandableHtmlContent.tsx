@@ -1,9 +1,8 @@
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
-// ~9 lines of plain text (x.com's "Show more" threshold), at the base
-// `.prose` line height of 28px (16px font-size * 1.75 line-height).
-const DEFAULT_MAX_HEIGHT_PX = 9 * 28;
+// ~9 lines of plain text (x.com's "Show more" threshold).
+const DEFAULT_MAX_LINES = 9;
 
 export interface ExpandableHtmlContentProps {
   innerHTML: string;
@@ -12,30 +11,33 @@ export interface ExpandableHtmlContentProps {
   class?: string;
   /** Forwards the rendered content element, e.g. for link/mention handling. */
   contentRef?: (el: HTMLElement) => void;
-  /** Collapsed height in pixels before a "Show more" toggle appears. */
-  maxHeightPx?: number;
+  /** Collapsed height, in lines, before a "Show more" toggle appears. */
+  maxLines?: number;
 }
 
 /**
  * Renders trusted post HTML, collapsing it behind a "Show more" toggle once
- * its rendered height exceeds `maxHeightPx`. The collapse height is applied
- * unconditionally via CSS so there is no flash of full-height content before
+ * its rendered height exceeds `maxLines`. The collapse height is applied
+ * unconditionally via the CSS `lh` unit (so it always matches this
+ * element's actual line height, however that's set, with no pixel value to
+ * keep in sync by hand) so there is no flash of full-height content before
  * measurement; a `ResizeObserver` only decides whether the toggle itself
- * (and the fade) should be shown.
+ * (and the fade) should be shown, by comparing the element's rendered
+ * height against its full content height.
  */
 export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   const { t } = useLingui();
   const [contentEl, setContentEl] = createSignal<HTMLElement>();
   const [expanded, setExpanded] = createSignal(false);
   const [overflowing, setOverflowing] = createSignal(false);
-  const maxHeight = () => props.maxHeightPx ?? DEFAULT_MAX_HEIGHT_PX;
+  const maxLines = () => props.maxLines ?? DEFAULT_MAX_LINES;
 
   createEffect(() => {
     const el = contentEl();
     // Re-measure whenever the HTML changes, e.g. the note gets edited.
     void props.innerHTML;
     if (!el) return;
-    const measure = () => setOverflowing(el.scrollHeight > maxHeight() + 1);
+    const measure = () => setOverflowing(el.scrollHeight > el.clientHeight);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
@@ -44,11 +46,7 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
 
   return (
     <div>
-      <div
-        class="relative"
-        classList={{ "overflow-hidden": !expanded() }}
-        style={expanded() ? undefined : { "max-height": `${maxHeight()}px` }}
-      >
+      <div class="relative">
         <div
           ref={(el) => {
             setContentEl(el);
@@ -57,6 +55,8 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
           innerHTML={props.innerHTML}
           lang={props.lang}
           class={props.class}
+          classList={{ "overflow-hidden": !expanded() }}
+          style={expanded() ? undefined : { "max-height": `${maxLines()}lh` }}
         />
         <Show when={overflowing() && !expanded()}>
           <div
