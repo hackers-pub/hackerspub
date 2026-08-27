@@ -5,6 +5,7 @@ import {
   boolean,
   bytea,
   check,
+  date,
   doublePrecision,
   foreignKey,
   index,
@@ -868,6 +869,221 @@ export const articleContentTable = pgTable(
 
 export type ArticleContent = typeof articleContentTable.$inferSelect;
 export type NewArticleContent = typeof articleContentTable.$inferInsert;
+
+export const ARTICLE_REFERRER_CATEGORIES = [
+  "hackers_pub",
+  "search",
+  "fediverse",
+  "other_external",
+  "direct_or_unknown",
+] as const;
+
+export const articleReferrerCategoryEnum = pgEnum(
+  "article_referrer_category",
+  ARTICLE_REFERRER_CATEGORIES,
+);
+
+export type ArticleReferrerCategory =
+  (typeof articleReferrerCategoryEnum.enumValues)[number];
+
+export const ARTICLE_DELIVERY_CHANNELS = ["direct", "relay"] as const;
+
+export const articleDeliveryChannelEnum = pgEnum(
+  "article_delivery_channel",
+  ARTICLE_DELIVERY_CHANNELS,
+);
+
+export type ArticleDeliveryChannel =
+  (typeof articleDeliveryChannelEnum.enumValues)[number];
+
+export const ARTICLE_DELIVERY_STATUSES = [
+  "pending",
+  "accepted",
+  "failed",
+] as const;
+
+export const articleDeliveryStatusEnum = pgEnum(
+  "article_delivery_status",
+  ARTICLE_DELIVERY_STATUSES,
+);
+
+export type ArticleDeliveryStatus =
+  (typeof articleDeliveryStatusEnum.enumValues)[number];
+
+export const articleViewDeduplicationTable = pgTable(
+  "article_view_deduplication",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    tokenHash: bytea("token_hash").notNull(),
+    expires: timestamp({ withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.articleSourceId, table.tokenHash] }),
+    index().on(table.expires),
+    check(
+      "article_view_deduplication_token_hash_check",
+      sql`octet_length(${table.tokenHash}) = 32`,
+    ),
+  ],
+);
+
+export type ArticleViewDeduplication =
+  typeof articleViewDeduplicationTable.$inferSelect;
+export type NewArticleViewDeduplication =
+  typeof articleViewDeduplicationTable.$inferInsert;
+
+export const articleViewDailyTable = pgTable(
+  "article_view_daily",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    day: date({ mode: "date" }).notNull(),
+    views: integer().notNull().default(0),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.articleSourceId, table.day] }),
+    check("article_view_daily_views_check", sql`${table.views} >= 0`),
+  ],
+);
+
+export type ArticleViewDaily = typeof articleViewDailyTable.$inferSelect;
+export type NewArticleViewDaily = typeof articleViewDailyTable.$inferInsert;
+
+export const articleViewLanguageDailyTable = pgTable(
+  "article_view_language_daily",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    day: date({ mode: "date" }).notNull(),
+    language: varchar().notNull(),
+    original: boolean().notNull(),
+    views: integer().notNull().default(0),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({
+      columns: [
+        table.articleSourceId,
+        table.day,
+        table.language,
+        table.original,
+      ],
+    }),
+    check("article_view_language_daily_views_check", sql`${table.views} >= 0`),
+  ],
+);
+
+export type ArticleViewLanguageDaily =
+  typeof articleViewLanguageDailyTable.$inferSelect;
+export type NewArticleViewLanguageDaily =
+  typeof articleViewLanguageDailyTable.$inferInsert;
+
+export const articleViewReferrerDailyTable = pgTable(
+  "article_view_referrer_daily",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    day: date({ mode: "date" }).notNull(),
+    category: articleReferrerCategoryEnum().notNull(),
+    domain: text().notNull().default(""),
+    views: integer().notNull().default(0),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.articleSourceId, table.day, table.category, table.domain],
+    }),
+    check(
+      "article_view_referrer_daily_domain_check",
+      sql`CASE
+        WHEN ${table.category} = 'other_external'
+          THEN ${table.domain} <> ''
+        ELSE ${table.domain} = ''
+      END`,
+    ),
+    check("article_view_referrer_daily_views_check", sql`${table.views} >= 0`),
+  ],
+);
+
+export type ArticleViewReferrerDaily =
+  typeof articleViewReferrerDailyTable.$inferSelect;
+export type NewArticleViewReferrerDaily =
+  typeof articleViewReferrerDailyTable.$inferInsert;
+
+export const articlePublicationAnalyticsTable = pgTable(
+  "article_publication_analytics",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .primaryKey()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    createActivityIri: text("create_activity_iri").notNull().unique(),
+    remoteFollowers: integer("remote_followers").notNull(),
+    published: timestamp({ withTimezone: true }).notNull(),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "article_publication_analytics_remote_followers_check",
+      sql`${table.remoteFollowers} >= 0`,
+    ),
+  ],
+);
+
+export type ArticlePublicationAnalytics =
+  typeof articlePublicationAnalyticsTable.$inferSelect;
+export type NewArticlePublicationAnalytics =
+  typeof articlePublicationAnalyticsTable.$inferInsert;
+
+export const articleDeliveryEventTable = pgTable(
+  "article_delivery_event",
+  {
+    messageId: text("message_id").primaryKey(),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    channel: articleDeliveryChannelEnum().notNull(),
+    serverKey: bytea("server_key").notNull(),
+    status: articleDeliveryStatusEnum().notNull().default("pending"),
+    attempted: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.articleSourceId, table.channel, table.serverKey),
+    check(
+      "article_delivery_event_server_key_check",
+      sql`octet_length(${table.serverKey}) = 32`,
+    ),
+  ],
+);
+
+export type ArticleDeliveryEvent =
+  typeof articleDeliveryEventTable.$inferSelect;
+export type NewArticleDeliveryEvent =
+  typeof articleDeliveryEventTable.$inferInsert;
 
 export const noteSourceTable = pgTable("note_source", {
   id: uuid().$type<Uuid>().primaryKey(),
