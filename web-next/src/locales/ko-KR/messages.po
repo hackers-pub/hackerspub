@@ -6044,7 +6044,7 @@ msgid "Federation delivery"
 msgstr "페더레이션 전송"
 
 msgid "Fediverse servers"
-msgstr "페디버스 서버"
+msgstr "연합우주 서버"
 
 msgid "Language shown when the view was counted."
 msgstr "조회가 집계될 때 표시된 언어입니다."
