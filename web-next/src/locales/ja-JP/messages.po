@@ -5985,3 +5985,138 @@ msgstr "保存されていない下書きは失われます。"
 #: src/routes/(root)/sign/up/[token].tsx:369
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"
+
+msgid "{name} (original)"
+msgstr "{name}（原文）"
+
+msgid "{name} (translation)"
+msgstr "{name}（翻訳）"
+
+msgid "30 days"
+msgstr "30日間"
+
+msgid "7 days"
+msgstr "7日間"
+
+msgid "90 days"
+msgstr "90日間"
+
+msgid "Accepted"
+msgstr "成功"
+
+msgid "All time"
+msgstr "全期間"
+
+msgid "Analytics"
+msgstr "分析"
+
+msgid "Article analytics"
+msgstr "記事の分析"
+
+msgid "Attempted servers"
+msgstr "送信を試みたサーバー"
+
+msgid "Back to article"
+msgstr "記事に戻る"
+
+msgid "Dates and intervals use UTC."
+msgstr "日付と期間にはUTCを使用します。"
+
+msgid "Delivery data is unavailable for articles published before analytics collection began."
+msgstr "分析データの収集開始前に公開された記事では、配信データを利用できません。"
+
+msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
+msgstr "配信記録は最初の記事がリモートサーバーに届いたかを示すもので、誰かが閲覧したかを示すものではありません。"
+
+msgid "Direct delivery"
+msgstr "直接配信"
+
+msgid "Direct or unknown"
+msgstr "直接または不明"
+
+msgid "External websites"
+msgstr "外部ウェブサイト"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Federation delivery"
+msgstr "フェデレーション配信"
+
+msgid "Fediverse servers"
+msgstr "フェディバースサーバー"
+
+msgid "Language shown when the view was counted."
+msgstr "閲覧が集計された時点で表示されていた言語です。"
+
+msgid "Last updated"
+msgstr "最終更新"
+
+msgid "No analytics update has been recorded yet."
+msgstr "分析データはまだ更新されていません。"
+
+msgid "No external website data is available for this range."
+msgstr "この期間の外部ウェブサイトデータはありません。"
+
+msgid "No views have been counted for this range yet."
+msgstr "この期間に集計された閲覧はまだありません。"
+
+msgid "Not available"
+msgstr "利用不可"
+
+msgid "Only hostnames with enough views are shown. Paths and queries are never collected."
+msgstr "十分な閲覧数があるホスト名のみ表示します。パスやクエリは収集しません。"
+
+msgid "Other external websites"
+msgstr "その他の外部ウェブサイト"
+
+msgid "Other or insufficient data"
+msgstr "その他またはデータ不足"
+
+msgid "Other websites"
+msgstr "その他のウェブサイト"
+
+msgid "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+msgstr "保留中の配信状態は後から変わる場合があります。サーバー数は重複を除いた値で、フォロワー数は公開時点のスナップショットです。"
+
+msgid "Privacy-safe categories derived from the referring hostname."
+msgstr "参照元のホスト名からプライバシーに配慮して分類した項目です。"
+
+msgid "Published"
+msgstr "公開日時"
+
+msgid "Recent activity may take a few minutes to appear."
+msgstr "最近のアクティビティが表示されるまで数分かかる場合があります。"
+
+msgid "Referrers"
+msgstr "参照元"
+
+msgid "Relay delivery"
+msgstr "リレー配信"
+
+msgid "Remote followers at publication"
+msgstr "公開時のリモートフォロワー"
+
+msgid "Replies"
+msgstr "返信"
+
+msgid "Search engines"
+msgstr "検索エンジン"
+
+msgid "Success rate"
+msgstr "成功率"
+
+msgid "Summary"
+msgstr "概要"
+
+msgid "View trend"
+msgstr "閲覧数の推移"
+
+msgid "Views"
+msgstr "閲覧数"
+
+msgid "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+msgstr "閲覧数は読まれた回数であり、ユニークユーザー数ではありません。エンゲージメントの合計は累積値で、選択した期間によって変わりません。"
+
+msgid "Views over time"
+msgstr "期間ごとの閲覧数"

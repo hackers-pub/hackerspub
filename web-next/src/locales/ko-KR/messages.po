@@ -5985,3 +5985,138 @@ msgstr "저장되지 않은 초고가 사라집니다."
 #: src/routes/(root)/sign/up/[token].tsx:369
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."
+
+msgid "{name} (original)"
+msgstr "{name}(원문)"
+
+msgid "{name} (translation)"
+msgstr "{name}(번역)"
+
+msgid "30 days"
+msgstr "30일"
+
+msgid "7 days"
+msgstr "7일"
+
+msgid "90 days"
+msgstr "90일"
+
+msgid "Accepted"
+msgstr "성공"
+
+msgid "All time"
+msgstr "전체 기간"
+
+msgid "Analytics"
+msgstr "분석"
+
+msgid "Article analytics"
+msgstr "게시글 분석"
+
+msgid "Attempted servers"
+msgstr "전송을 시도한 서버"
+
+msgid "Back to article"
+msgstr "게시글로 돌아가기"
+
+msgid "Dates and intervals use UTC."
+msgstr "날짜와 구간은 UTC를 기준으로 합니다."
+
+msgid "Delivery data is unavailable for articles published before analytics collection began."
+msgstr "분석 수집을 시작하기 전에 발행된 게시글은 전송 데이터를 확인할 수 없습니다."
+
+msgid "Delivery records whether the initial article reached a remote server, not whether anyone viewed it."
+msgstr "전송 기록은 최초 게시글이 원격 서버에 도착했는지를 나타내며, 누군가 게시글을 보았는지는 나타내지 않습니다."
+
+msgid "Direct delivery"
+msgstr "직접 전송"
+
+msgid "Direct or unknown"
+msgstr "직접 방문 또는 알 수 없음"
+
+msgid "External websites"
+msgstr "외부 웹사이트"
+
+msgid "Failed"
+msgstr "실패"
+
+msgid "Federation delivery"
+msgstr "페더레이션 전송"
+
+msgid "Fediverse servers"
+msgstr "페디버스 서버"
+
+msgid "Language shown when the view was counted."
+msgstr "조회가 집계될 때 표시된 언어입니다."
+
+msgid "Last updated"
+msgstr "마지막 업데이트"
+
+msgid "No analytics update has been recorded yet."
+msgstr "아직 기록된 분석 업데이트가 없습니다."
+
+msgid "No external website data is available for this range."
+msgstr "이 기간에는 외부 웹사이트 데이터가 없습니다."
+
+msgid "No views have been counted for this range yet."
+msgstr "이 기간에는 아직 집계된 조회가 없습니다."
+
+msgid "Not available"
+msgstr "데이터 없음"
+
+msgid "Only hostnames with enough views are shown. Paths and queries are never collected."
+msgstr "조회 수가 충분한 호스트 이름만 표시합니다. 경로와 쿼리는 수집하지 않습니다."
+
+msgid "Other external websites"
+msgstr "그 밖의 외부 웹사이트"
+
+msgid "Other or insufficient data"
+msgstr "기타 또는 데이터 부족"
+
+msgid "Other websites"
+msgstr "기타 웹사이트"
+
+msgid "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+msgstr "대기 중인 전송 상태는 나중에 바뀔 수 있습니다. 서버 수는 중복을 제외하며, 팔로워 수는 발행 시점의 스냅샷입니다."
+
+msgid "Privacy-safe categories derived from the referring hostname."
+msgstr "유입 호스트 이름에서 개인정보를 보호하도록 분류한 항목입니다."
+
+msgid "Published"
+msgstr "발행 시각"
+
+msgid "Recent activity may take a few minutes to appear."
+msgstr "최근 활동이 표시되기까지 몇 분 걸릴 수 있습니다."
+
+msgid "Referrers"
+msgstr "유입 경로"
+
+msgid "Relay delivery"
+msgstr "릴레이 전송"
+
+msgid "Remote followers at publication"
+msgstr "발행 당시 원격 팔로워"
+
+msgid "Replies"
+msgstr "댓글"
+
+msgid "Search engines"
+msgstr "검색 엔진"
+
+msgid "Success rate"
+msgstr "성공률"
+
+msgid "Summary"
+msgstr "요약"
+
+msgid "View trend"
+msgstr "조회 추이"
+
+msgid "Views"
+msgstr "조회"
+
+msgid "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+msgstr "조회는 고유 사용자 수가 아니라 읽은 횟수입니다. 참여 합계는 누적값이며 선택한 기간에 따라 바뀌지 않습니다."
+
+msgid "Views over time"
+msgstr "시간대별 조회"

@@ -56,6 +56,8 @@ export interface PostEngagementBarProps {
    * other sub-routes ship.
    */
   engagementBase?: string | null;
+  /** Private analytics page for a source-backed local article. */
+  analyticsHref?: string | null;
   connections?: string[];
   pinConnections?: string[];
   bookmarkListConnections?: string[];
@@ -555,6 +557,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             pinConnections={props.pinConnections}
             repliesHref={props.repliesHref ?? null}
             engagementBase={props.engagementBase ?? null}
+            analyticsHref={props.analyticsHref ?? null}
             onDeleted={props.onDeleted}
             onEdit={props.onEdit}
           />

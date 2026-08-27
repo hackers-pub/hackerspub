@@ -118,6 +118,7 @@ export interface PostActionMenuProps {
   pinConnections?: string[];
   repliesHref?: string | null;
   engagementBase?: string | null;
+  analyticsHref?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -178,6 +179,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
       pinConnections={props.pinConnections}
       repliesHref={props.repliesHref}
       engagementBase={props.engagementBase}
+      analyticsHref={props.analyticsHref}
       onDeleted={props.onDeleted}
       onEdit={props.onEdit}
     />
@@ -190,6 +192,7 @@ interface PostActionMenuContentProps {
   pinConnections?: string[];
   repliesHref?: string | null;
   engagementBase?: string | null;
+  analyticsHref?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -372,6 +375,13 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               {t`Edit`}
             </DropdownMenuItem>
           </Show>
+          <Show when={props.analyticsHref != null && isAuthor()}>
+            <PostActionMenuLink
+              href={props.analyticsHref!}
+              label={t`Analytics`}
+              navigate={navigate}
+            />
+          </Show>
           <Show when={canPinPost()}>
             <DropdownMenuItem
               class="cursor-pointer"
@@ -487,7 +497,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
 function PostActionMenuLink(props: {
   href: string;
   label: string;
-  count: number;
+  count?: number;
   navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
@@ -502,9 +512,11 @@ function PostActionMenuLink(props: {
       }}
     >
       <span class="flex-1">{props.label}</span>
-      <span class="ml-3 text-xs text-muted-foreground tabular-nums">
-        {props.count}
-      </span>
+      <Show when={props.count != null}>
+        <span class="ml-3 text-xs text-muted-foreground tabular-nums">
+          {props.count}
+        </span>
+      </Show>
     </DropdownMenuItem>
   );
 }

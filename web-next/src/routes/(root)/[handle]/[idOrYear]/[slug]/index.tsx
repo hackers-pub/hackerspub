@@ -509,6 +509,11 @@ function ArticleBody(props: ArticleBodyProps) {
                       $post={article}
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
+                      analyticsHref={
+                        base == null || article.sourceId == null
+                          ? null
+                          : `${base}/analytics`
+                      }
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&
