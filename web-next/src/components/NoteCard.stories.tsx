@@ -1,8 +1,8 @@
-import { graphql } from "relay-runtime";
 import {
   createOperationDescriptor,
   Environment,
   getRequest,
+  graphql,
   Network,
   RecordSource,
   Store,
