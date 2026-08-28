@@ -232,6 +232,36 @@ test("inbox: keeps a processing failure caused by a database error", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("inbox: drops a statement timeout that Fedify will retry", () => {
+  const cause = new Error("canceling statement due to statement timeout");
+  cause.name = "PostgresError";
+  Object.assign(cause, { code: "57014" });
+  const error = new Error("Failed query: insert into post", { cause });
+  error.name = "DrizzleQueryError";
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to process the incoming activity {activityId} (attempt " +
+      "#{attempt}); retry...:\n{error}",
+    { error },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("inbox: keeps a statement timeout after Fedify gives up", () => {
+  const cause = new Error("canceling statement due to statement timeout");
+  cause.name = "PostgresError";
+  Object.assign(cause, { code: "57014" });
+  const error = new Error("Failed query: insert into post", { cause });
+  error.name = "DrizzleQueryError";
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to process the incoming activity {activityId} after {trial} " +
+      "attempts; giving up:\n{error}",
+    { error },
+  );
+  assert.equal(isRoutineFederationError(r), false);
+});
+
 test("inbox: keeps a processing failure with no error attached", () => {
   const r = record(
     ["fedify", "federation", "inbox"],

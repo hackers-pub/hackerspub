@@ -132,6 +132,27 @@ function isRemoteMalformedMultikeyError(error: unknown): boolean {
   ]).has(message);
 }
 
+function isPostgresStatementTimeout(error: unknown): boolean {
+  let current = error;
+  const seen = new Set<object>();
+  for (let depth = 0; depth < 4; depth++) {
+    if (typeof current !== "object" || current === null || seen.has(current)) {
+      return false;
+    }
+    seen.add(current);
+    if (
+      stringProp(current, "name") === "PostgresError" &&
+      stringProp(current, "code") === "57014" &&
+      stringProp(current, "message") ===
+        "canceling statement due to statement timeout"
+    ) {
+      return true;
+    }
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
 /**
  * Decides whether a LogTape record is a routine, remote-peer-driven federation
  * failure that Fedify logs at `error` level and then retries (so a single bad
@@ -256,8 +277,10 @@ export function isRoutineFederationError(record: LogRecord): boolean {
       // failure; anything else (including unknown errors) is kept so genuine
       // listener bugs still reach Sentry.
       return (
-        message.startsWith("Failed to process the incoming activity") &&
-        isRemoteTransportError(properties.error)
+        (message.startsWith("Failed to process the incoming activity") &&
+          isRemoteTransportError(properties.error)) ||
+        (message.includes("); retry...:") &&
+          isPostgresStatementTimeout(properties.error))
       );
     }
   }
