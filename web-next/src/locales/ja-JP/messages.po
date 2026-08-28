@@ -4575,6 +4575,14 @@ msgstr "表示"
 msgid "Show {0} more in this thread"
 msgstr "このスレッドであと{0}件を表示"
 
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show less"
+msgstr "閉じる"
+
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show more"
+msgstr "もっと見る"
+
 #: src/components/NewsDiscussion.tsx:114
 msgid "Show more sharing posts"
 msgstr "共有コンテンツをもっと表示"

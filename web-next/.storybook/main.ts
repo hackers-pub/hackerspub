@@ -1,7 +1,10 @@
+import { lingui } from "@lingui/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { StorybookConfig } from "storybook-solidjs-vite";
+import { cjsInterop } from "vite-plugin-cjs-interop";
+import relay from "vite-plugin-relay-lite";
 import type { Plugin } from "vite";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -45,6 +48,9 @@ const config: StorybookConfig = {
     viteConfig.plugins = [
       ...(viteConfig.plugins ?? []),
       tailwindcss(),
+      lingui(),
+      relay({ codegen: false }),
+      cjsInterop({ dependencies: ["relay-runtime"] }),
       normalizeDocgenEnums,
     ];
     const existingAlias = viteConfig.resolve?.alias;
