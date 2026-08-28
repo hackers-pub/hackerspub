@@ -24,15 +24,6 @@ const NoteCardStoriesQuery = graphql`
   }
 `;
 
-function avatarDataUri(initials: string, background: string): string {
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
-    `<rect width="64" height="64" rx="32" fill="${background}"/>` +
-    `<text x="32" y="41" text-anchor="middle" font-family="sans-serif" ` +
-    `font-size="22" fill="#fff">${initials}</text></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
-}
-
 // A 1200×630 placeholder that mimics a typical Open Graph image, wide
 // enough to exercise LinkPreview's "wide" layout branch.
 function ogImageDataUri(label: string, background: string): string {
@@ -81,7 +72,10 @@ function mockResolvers(content: string, link?: LinkPreviewArgs): MockResolvers {
       handle: "@ellie@hackers.pub",
       username: "ellie",
       local: true,
-      avatarUrl: avatarDataUri("EB", "#0e8a86"),
+      // No image: exercises PostAvatar's real `AvatarFallback`, which
+      // renders `avatarInitials` (the same path real actors without a
+      // custom avatar take), instead of faking one with a hand-rolled SVG.
+      avatarUrl: null,
       avatarInitials: "EB",
       url: "https://hackers.pub/@ellie",
       iri: "https://hackers.pub/ap/actors/ellie",
