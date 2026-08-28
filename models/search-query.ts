@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { RelationsFilter } from "./db.ts";
+import { postTable } from "./schema.ts";
 import type { Expr } from "./search.ts";
 
 export function compileQuery(expr: Expr): RelationsFilter<"postTable"> {
@@ -22,7 +23,15 @@ export function compileQuery(expr: Expr): RelationsFilter<"postTable"> {
     case "hashtag":
       return {
         RAW(t) {
-          return sql`${t.tags} ? ${expr.hashtag.toLowerCase()}`;
+          const candidates = sql.identifier("hashtag_candidates");
+          return sql`${t.id} IN (
+            WITH ${candidates} AS MATERIALIZED (
+              SELECT ${postTable.id}
+              FROM ${postTable}
+              WHERE ${postTable.tags} ? ${expr.hashtag.toLowerCase()}
+            )
+            SELECT ${sql.identifier("id")} FROM ${candidates}
+          )`;
         },
       };
     case "and":
