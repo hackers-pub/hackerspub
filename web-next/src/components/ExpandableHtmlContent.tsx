@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, Show, untrack } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
 // ~9 lines of plain text (x.com's "Show more" threshold).
@@ -37,7 +37,14 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
     // Re-measure whenever the HTML changes, e.g. the note gets edited.
     void props.innerHTML;
     if (!el) return;
-    const measure = () => setOverflowing(el.scrollHeight > el.clientHeight);
+    // Only measure while collapsed: expanding removes the `max-height`
+    // clamp, so `clientHeight` grows to match `scrollHeight` and this
+    // would otherwise (wrongly) report no overflow, hiding the "Show
+    // less" toggle right after the user opens it.
+    const measure = () => {
+      if (untrack(expanded)) return;
+      setOverflowing(el.scrollHeight > el.clientHeight);
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
