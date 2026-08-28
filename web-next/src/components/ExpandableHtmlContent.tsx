@@ -1,4 +1,11 @@
-import { createEffect, createSignal, onCleanup, Show, untrack } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  createUniqueId,
+  onCleanup,
+  Show,
+  untrack,
+} from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
 // ~9 lines of plain text (x.com's "Show more" threshold).
@@ -27,6 +34,7 @@ export interface ExpandableHtmlContentProps {
  */
 export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   const { t } = useLingui();
+  const contentId = createUniqueId();
   const [contentEl, setContentEl] = createSignal<HTMLElement>();
   const [expanded, setExpanded] = createSignal(false);
   const [overflowing, setOverflowing] = createSignal(false);
@@ -55,6 +63,7 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
     <div>
       <div class="relative">
         <div
+          id={contentId}
           ref={(el) => {
             setContentEl(el);
             props.contentRef?.(el);
@@ -76,6 +85,8 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded()}
+          aria-controls={contentId}
           class="mt-1 cursor-pointer rounded-sm text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           {expanded() ? t`Show less` : t`Show more`}
