@@ -348,7 +348,7 @@ patchedDependencies:
     hash: bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f
     path: patches/@solidjs__start@2.0.0-alpha.2.patch
   solid-js@1.9.12:
-    hash: e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc
+    hash: 34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808
     path: patches/solid-js@1.9.12.patch
 
 importers:
@@ -880,37 +880,37 @@ importers:
         version: 6.41.0
       '@corvu/otp-field':
         specifier: ^0.1.4
-        version: 0.1.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 0.1.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@hackerspub/models':
         specifier: workspace:*
         version: link:../models
       '@kobalte/core':
         specifier: ^0.13.10
-        version: 0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@lingui/core':
         specifier: ^6.4.0
         version: 6.4.0
       '@lingui/solid':
         specifier: ^6.4.0
-        version: 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@plausible-analytics/tracker':
         specifier: ^0.4.4
         version: 0.4.4
       '@sentry/solidstart':
         specifier: ^10.51.0
-        version: 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)))(@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)))(encoding@0.1.13)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)))(encoding@0.1.13)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@simplewebauthn/browser':
         specifier: 'catalog:'
         version: 13.3.0
       '@solid-primitives/keyed':
         specifier: ^1.5.3
-        version: 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@solidjs/meta':
         specifier: ^0.29.4
-        version: 0.29.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 0.29.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@solidjs/router':
         specifier: ^0.15.4
-        version: 0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@solidjs/start':
         specifier: 2.0.0-alpha.2
         version: 2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
@@ -919,13 +919,13 @@ importers:
         version: 0.1.0(drizzle-orm@1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6))(encoding@0.1.13)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       '@soorria/solid-dropzone':
         specifier: ^1.0.1
-        version: 1.0.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 1.0.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@tailwindcss/typography':
         specifier: 'catalog:'
         version: 0.5.19(tailwindcss@4.2.2)
       '@tanstack/solid-virtual':
         specifier: ^3.13.37
-        version: 3.13.37(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 3.13.37(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -961,10 +961,10 @@ importers:
         version: 19.0.0(encoding@0.1.13)
       solid-js:
         specifier: ^1.9.10
-        version: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+        version: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       solid-relay:
         specifier: 1.0.0-beta.29
-        version: 1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -1022,13 +1022,13 @@ importers:
         version: 19.0.0
       solid-devtools:
         specifier: ^0.34.4
-        version: 0.34.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
+        version: 0.34.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       storybook:
         specifier: ^10.3.5
         version: 10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10)
       storybook-solidjs-vite:
         specifier: ^10.0.12
-        version: 10.0.12(@testing-library/jest-dom@6.9.1)(esbuild@0.27.7)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(typescript@6.0.3)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
+        version: 10.0.12(@testing-library/jest-dom@6.9.1)(esbuild@0.27.7)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(typescript@6.0.3)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       unplugin-icons:
         specifier: ^22.5.0
         version: 22.5.0
@@ -9925,15 +9925,15 @@ snapshots:
   '@colors/colors@1.5.0':
     optional: true
 
-  '@corvu/otp-field@0.1.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@corvu/otp-field@0.1.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@corvu/utils@0.4.2(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@corvu/utils@0.4.2(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@floating-ui/dom': 1.7.6
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   '@cropper/element-canvas@2.1.0':
     dependencies:
@@ -10758,32 +10758,32 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kobalte/core@0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@kobalte/core@0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@internationalized/date': 3.12.0
       '@internationalized/number': 3.6.5
-      '@kobalte/utils': 0.9.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/props': 3.2.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/resize-observer': 2.1.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
-      solid-presence: 0.1.8(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-prevent-scroll: 0.1.10(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      '@kobalte/utils': 0.9.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/props': 3.2.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/resize-observer': 2.1.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
+      solid-presence: 0.1.8(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-prevent-scroll: 0.1.10(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
 
   '@kobalte/tailwindcss@0.9.0(tailwindcss@4.2.2)':
     dependencies:
       tailwindcss: 4.2.2
 
-  '@kobalte/utils@0.9.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@kobalte/utils@0.9.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/keyed': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/map': 0.4.13(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/media': 2.3.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/props': 3.2.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/refs': 1.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/keyed': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/map': 0.4.13(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/media': 2.3.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/props': 3.2.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   '@levischuck/tiny-cbor@0.2.11': {}
 
@@ -10947,12 +10947,12 @@ snapshots:
       '@messageformat/parser': 5.1.1
       js-sha256: 0.10.1
 
-  '@lingui/solid@6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@lingui/solid@6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@lingui/babel-plugin-lingui-macro': 6.4.0
       '@lingui/conf': 6.4.0
       '@lingui/core': 6.4.0
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
     transitivePeerDependencies:
       - supports-color
 
@@ -12163,23 +12163,23 @@ snapshots:
       - encoding
       - supports-color
 
-  '@sentry/solid@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)))(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@sentry/solid@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@sentry/browser': 10.51.0
       '@sentry/core': 10.51.0
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
     optionalDependencies:
-      '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
 
-  '@sentry/solidstart@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)))(@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)))(encoding@0.1.13)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@sentry/solidstart@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)))(encoding@0.1.13)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@sentry/core': 10.51.0
       '@sentry/node': 10.51.0
-      '@sentry/solid': 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)))(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      '@sentry/solid': 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@sentry/vite-plugin': 5.2.1(encoding@0.1.13)(rollup@4.60.1)
       '@solidjs/start': 2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
     optionalDependencies:
-      '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
     transitivePeerDependencies:
       - '@opentelemetry/exporter-trace-otlp-http'
       - '@tanstack/solid-router'
@@ -12517,130 +12517,130 @@ snapshots:
       '@smithy/core': 3.29.8
       tslib: 2.8.1
 
-  '@solid-devtools/debugger@0.28.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-devtools/debugger@0.28.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@nothing-but/utils': 0.17.0
-      '@solid-devtools/shared': 0.20.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/bounds': 0.1.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/keyboard': 1.3.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/scheduled': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-devtools/shared': 0.20.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/bounds': 0.1.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/keyboard': 1.3.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/scheduled': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-devtools/shared@0.20.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-devtools/shared@0.20.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@nothing-but/utils': 0.17.0
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/media': 2.3.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/refs': 1.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/scheduled': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/styles': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/media': 2.3.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/refs': 1.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/scheduled': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/styles': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/bounds@0.1.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/bounds@0.1.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/resize-observer': 2.1.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/resize-observer': 2.1.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/event-listener@2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/event-listener@2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/keyboard@1.3.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/keyboard@1.3.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/keyed@1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/keyed@1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/map@0.4.13(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/map@0.4.13(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/trigger': 1.2.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/trigger': 1.2.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/media@2.3.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/media@2.3.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/props@3.2.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/props@3.2.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/refs@1.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/refs@1.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/resize-observer@2.1.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/resize-observer@2.1.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/event-listener': 2.4.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/static-store': 0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/rootless@1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/rootless@1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/scheduled@1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/scheduled@1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/static-store@0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/static-store@0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/styles@0.1.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/styles@0.1.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/rootless': 1.5.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/trigger@1.2.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/trigger@1.2.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-primitives/utils': 6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solid-primitives/utils@6.4.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solid-primitives/utils@6.4.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solidjs/meta@0.29.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solidjs/meta@0.29.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  '@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   '@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/traverse': 7.29.0
       '@babel/types': 7.29.0
-      '@solidjs/meta': 0.29.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      '@solidjs/meta': 0.29.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       '@tanstack/server-functions-plugin': 1.134.5(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       '@types/babel__traverse': 7.28.0
       '@types/micromatch': 4.0.10
@@ -12659,12 +12659,12 @@ snapshots:
       seroval: 1.5.2
       seroval-plugins: 1.5.2(seroval@1.5.2)
       shiki: 1.29.2
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       source-map-js: 1.2.1
       srvx: 0.9.8
-      terracotta: 1.1.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      terracotta: 1.1.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       vite: 7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)
-      vite-plugin-solid: 2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
+      vite-plugin-solid: 2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
     transitivePeerDependencies:
       - '@testing-library/jest-dom'
       - crossws
@@ -12706,10 +12706,10 @@ snapshots:
       - uploadthing
       - xml2js
 
-  '@soorria/solid-dropzone@1.0.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@soorria/solid-dropzone@1.0.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       file-selector: 0.6.0
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   '@speed-highlight/core@1.2.15': {}
 
@@ -12898,10 +12898,10 @@ snapshots:
       - supports-color
       - vite
 
-  '@tanstack/solid-virtual@3.13.37(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))':
+  '@tanstack/solid-virtual@3.13.37(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))':
     dependencies:
       '@tanstack/virtual-core': 3.17.8
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   '@tanstack/virtual-core@3.17.8': {}
 
@@ -13643,12 +13643,12 @@ snapshots:
       babel-plugin-transform-react-jsx-source: 6.22.0
       babel-preset-flow: 6.23.0
 
-  babel-preset-solid@1.9.12(@babel/core@7.29.0)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  babel-preset-solid@1.9.12(@babel/core@7.29.0)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
       '@babel/core': 7.29.0
       babel-plugin-jsx-dom-expressions: 0.40.6(@babel/core@7.29.0)
     optionalDependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   babel-runtime@6.26.0:
     dependencies:
@@ -16731,55 +16731,55 @@ snapshots:
 
   smob@1.6.1: {}
 
-  solid-devtools@0.34.5(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
+  solid-devtools@0.34.5(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-syntax-typescript': 7.28.6(@babel/core@7.29.0)
       '@babel/types': 7.29.0
-      '@solid-devtools/debugger': 0.28.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      '@solid-devtools/shared': 0.20.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@solid-devtools/debugger': 0.28.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      '@solid-devtools/shared': 0.20.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
     optionalDependencies:
       vite: 7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
-  solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc):
+  solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808):
     dependencies:
       csstype: 3.2.3
       seroval: 1.5.2
       seroval-plugins: 1.5.2(seroval@1.5.2)
 
-  solid-presence@0.1.8(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-presence@0.1.8(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
-      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  solid-prevent-scroll@0.1.10(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-prevent-scroll@0.1.10(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
-      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      '@corvu/utils': 0.4.2(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
-  solid-refresh@0.6.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-refresh@0.6.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
       '@babel/generator': 7.29.1
       '@babel/helper-module-imports': 7.28.6
       '@babel/types': 7.29.0
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
     transitivePeerDependencies:
       - supports-color
 
-  solid-relay@1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-relay@1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
       dequal: 2.0.3
       relay-runtime: 19.0.0(encoding@0.1.13)
       seroval: 1.5.2
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       tiny-invariant: 1.3.3
 
-  solid-use@0.9.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-use@0.9.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
 
   source-map-js@1.2.1: {}
 
@@ -16832,15 +16832,15 @@ snapshots:
 
   stoppable@1.1.0: {}
 
-  storybook-solidjs-vite@10.0.12(@testing-library/jest-dom@6.9.1)(esbuild@0.27.7)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(typescript@6.0.3)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
+  storybook-solidjs-vite@10.0.12(@testing-library/jest-dom@6.9.1)(esbuild@0.27.7)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(typescript@6.0.3)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
     dependencies:
       '@joshwooding/vite-plugin-react-docgen-typescript': 0.7.0(typescript@6.0.3)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       '@storybook/builder-vite': 10.3.5(esbuild@0.27.7)(rollup@4.60.1)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
       '@storybook/global': 5.0.0
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       storybook: 10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10)
       vite: 7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)
-      vite-plugin-solid: 2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
+      vite-plugin-solid: 2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
     optionalDependencies:
       typescript: 6.0.3
     transitivePeerDependencies:
@@ -17016,10 +17016,10 @@ snapshots:
 
   temporal-spec@0.3.1: {}
 
-  terracotta@1.1.0(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  terracotta@1.1.0(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
-      solid-use: 0.9.1(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
+      solid-use: 0.9.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
 
   terser@5.46.1:
     dependencies:
@@ -17365,14 +17365,14 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  vite-plugin-solid@2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
+  vite-plugin-solid@2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)):
     dependencies:
       '@babel/core': 7.29.0
       '@types/babel__core': 7.20.5
-      babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       merge-anything: 5.1.7
-      solid-js: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
-      solid-refresh: 0.6.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
+      solid-refresh: 0.6.3(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       vite: 7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)
       vitefu: 1.1.3(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
     optionalDependencies:
