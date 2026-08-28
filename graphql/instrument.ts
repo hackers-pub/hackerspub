@@ -5,6 +5,7 @@ import { getLogger } from "@logtape/logtape";
 import * as Sentry from "@sentry/node-sdk";
 import process from "node:process";
 import metadata from "./package.json" with { type: "json" };
+import { isIncomingRequestAbort } from "./sentryFilter.ts";
 import { reportUnhandledRejection } from "./unhandled-rejection.ts";
 
 const dsn = process.env.SENTRY_DSN;
@@ -15,6 +16,9 @@ if (dsn) {
     enableLogs: true,
     sendDefaultPii: true,
     tracesSampleRate: 1.0,
+    beforeSend(event, hint) {
+      return isIncomingRequestAbort(hint.originalException) ? null : event;
+    },
     integrations: (defaultIntegrations) => [
       // The application classifies detached remote-peer failures itself.
       // Keeping the SDK handler as well would capture application rejections
