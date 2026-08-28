@@ -139,6 +139,22 @@ test("transactional outbox: drops expected delivery retries and failures", () =>
   }
 });
 
+test("transactional outbox: drops serialized remote fetch failures", () => {
+  const r = record(
+    ["hackerspub", "federation", "transactional-outbox"],
+    "Outbox event {eventId} exhausted its retry limit.",
+    {
+      eventType: "activitypub.delivery",
+      error: {
+        name: "FetchError",
+        message: "HTTP 404: https://example.com/inbox",
+      },
+    },
+  );
+
+  assert.equal(isRoutineFederationError(r), true);
+});
+
 test("transactional outbox: keeps application and fanout failures", () => {
   for (const r of [
     record(

@@ -164,7 +164,11 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     const error = properties.error;
     if (typeof error !== "object" || error === null) return false;
     const name = stringProp(error, "name");
-    return name === "SendActivityError" || name === "OutboxHandlerTimeoutError";
+    return (
+      name === "SendActivityError" ||
+      name === "OutboxHandlerTimeoutError" ||
+      isRemoteTransportError(error)
+    );
   }
 
   if (category[0] !== "fedify") return false;
