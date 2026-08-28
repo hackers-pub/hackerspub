@@ -89,59 +89,82 @@ test("measureVirtualListItem() does not observe a detached row", () => {
   assert.equal(measurements, 0);
 });
 
-test("measureVirtualListItemAfterMount() replaces the estimate before paint", async () => {
+test("measureVirtualListItemAfterMount() registers the row before paint", async () => {
   const element = {
     dataset: { index: "7" },
     isConnected: true,
-    offsetHeight: 512,
   } as unknown as HTMLDivElement;
   let observedIndex: string | undefined;
-  let measurement: { index: number; size: number } | undefined;
 
   measureVirtualListItemAfterMount(
     element,
+    "post-7",
     () => "post-7",
     (measuredElement) => {
       observedIndex = measuredElement.dataset.index;
     },
-    (index, size) => (measurement = { index, size }),
   );
   await new Promise<void>((resolve) => queueMicrotask(resolve));
 
   assert.equal(observedIndex, "7");
-  assert.deepEqual(measurement, { index: 7, size: 512 });
 });
 
-test("measureVirtualListItemAfterMount() measures the current row", async () => {
+test("measureVirtualListItemAfterMount() registers only the expected keyed row", async () => {
   const movedElement = {
     dataset: { index: "8" },
     isConnected: true,
-    offsetHeight: 512,
   } as unknown as HTMLDivElement;
   const replacedElement = {
     dataset: { index: "7" },
     isConnected: true,
-    offsetHeight: 512,
   } as unknown as HTMLDivElement;
-  const measurements: Array<{ index: number; size: number }> = [];
+  const measuredIndexes: string[] = [];
   measureVirtualListItemAfterMount(
     movedElement,
+    "post-8",
     (index) => (index === 8 ? "post-8" : undefined),
-    () => undefined,
-    (index, size) => measurements.push({ index, size }),
+    (element) => measuredIndexes.push(element.dataset.index!),
   );
   measureVirtualListItemAfterMount(
     replacedElement,
+    "post-7",
     () => "post-8",
-    () => undefined,
-    (index, size) => measurements.push({ index, size }),
+    (element) => measuredIndexes.push(element.dataset.index!),
   );
   await new Promise<void>((resolve) => queueMicrotask(resolve));
 
-  assert.deepEqual(measurements, [
-    { index: 8, size: 512 },
-    { index: 7, size: 512 },
-  ]);
+  assert.deepEqual(measuredIndexes, ["8"]);
+});
+
+test("measureVirtualListItemAfterMount() retries until the keyed row moves", async () => {
+  let frameCallback: (() => void) | undefined;
+  let currentKey = "post-7";
+  const element = {
+    dataset: { index: "8" },
+    isConnected: true,
+    ownerDocument: {
+      defaultView: {
+        requestAnimationFrame: (callback: () => void) => {
+          frameCallback = callback;
+        },
+      },
+    },
+  } as unknown as HTMLDivElement;
+  let measurements = 0;
+
+  measureVirtualListItemAfterMount(
+    element,
+    "post-8",
+    () => currentKey,
+    () => measurements++,
+  );
+  await new Promise<void>((resolve) => queueMicrotask(resolve));
+  assert.equal(measurements, 0);
+
+  currentKey = "post-8";
+  frameCallback?.();
+
+  assert.equal(measurements, 1);
 });
 
 test("measureVirtualListItemAfterMount() retries until DOM insertion", async () => {
@@ -162,9 +185,9 @@ test("measureVirtualListItemAfterMount() retries until DOM insertion", async () 
 
   measureVirtualListItemAfterMount(
     element,
+    "post-7",
     () => "post-7",
-    () => undefined,
-    (index, size) => (measurement = { index, size }),
+    () => (measurement = { index: 7, size: element.offsetHeight }),
   );
   await new Promise<void>((resolve) => queueMicrotask(resolve));
   assert.equal(measurement, undefined);
@@ -203,8 +226,8 @@ test("measureVirtualListItemAfterMount() cancels pending retries", async () => {
 
   const cancel = measureVirtualListItemAfterMount(
     element,
+    "post-7",
     () => "post-7",
-    () => measurements++,
     () => measurements++,
   );
   await new Promise<void>((resolve) => queueMicrotask(resolve));

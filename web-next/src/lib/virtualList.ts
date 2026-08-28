@@ -52,9 +52,9 @@ export function measureVirtualListItem<T extends HTMLElement>(
 
 export function measureVirtualListItemAfterMount<T extends HTMLElement>(
   element: T,
+  expectedKey: string,
   getCurrentKey: (index: number) => string | undefined,
   measureElement: (element: T) => void,
-  resizeItem: (index: number, size: number) => void,
 ): () => void {
   let cancelled = false;
   let frame: number | undefined;
@@ -65,10 +65,9 @@ export function measureVirtualListItemAfterMount<T extends HTMLElement>(
 
     const index = Number(element.dataset.index);
     if (!Number.isSafeInteger(index) || index < 0) return false;
-    if (getCurrentKey(index) == null) return false;
+    if (getCurrentKey(index) !== expectedKey) return false;
 
     measureElement(element);
-    resizeItem(index, element.offsetHeight);
     return true;
   };
 

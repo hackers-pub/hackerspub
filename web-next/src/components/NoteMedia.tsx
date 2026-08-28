@@ -71,6 +71,8 @@ export function NoteMedia(props: NoteMediaProps) {
         <img
           src={medium.url}
           alt={medium.alt ?? undefined}
+          width={medium.width ?? undefined}
+          height={medium.height ?? undefined}
           class={`object-cover ${imgClass}`}
         />
       </button>
@@ -83,6 +85,8 @@ export function NoteMedia(props: NoteMediaProps) {
         <video
           src={medium.url}
           poster={medium.thumbnailUrl ?? undefined}
+          width={medium.width ?? undefined}
+          height={medium.height ?? undefined}
           controls
           class={`object-cover ${imgClass}`}
         />
@@ -92,6 +96,8 @@ export function NoteMedia(props: NoteMediaProps) {
       <img
         src={medium.url}
         alt={medium.alt ?? undefined}
+        width={medium.width ?? undefined}
+        height={medium.height ?? undefined}
         class={`object-cover ${imgClass}`}
       />
     );

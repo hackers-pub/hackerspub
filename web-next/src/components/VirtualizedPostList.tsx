@@ -1,3 +1,4 @@
+import { Key } from "@solid-primitives/keyed";
 import {
   createWindowVirtualizer,
   defaultRangeExtractor,
@@ -61,7 +62,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     // Row refs run before Solid inserts the element, so the synchronous
     // measurement from the ref sees a detached node and would read 0. A 0px
     // size is written to the virtualizer immediately, which re-runs the range
-    // calculation while <For> is still iterating the virtual items store and
+    // calculation while Solid is still iterating the virtual items store and
     // crashes. Keep the cached/estimated size instead; the ResizeObserver
     // measures the real height once the row is in the document.
     measureElement: (element, entry, instance) =>
@@ -212,6 +213,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
   const measureVirtualItem = (
     element: HTMLDivElement,
     index: number,
+    expectedKey: string,
   ): (() => void) => {
     // Solid runs refs before applying reactive attributes, while TanStack
     // Virtual reads data-index synchronously when measureElement() is called.
@@ -226,12 +228,12 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     // cards cannot overlap.
     return measureVirtualListItemAfterMount(
       element,
+      expectedKey,
       (currentIndex) => {
         const currentItem = props.items[currentIndex];
         return currentItem == null ? undefined : props.getItemKey(currentItem);
       },
       virtualizer.measureElement,
-      virtualizer.resizeItem,
     );
   };
 
@@ -269,11 +271,17 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
             </For>
           }
         >
-          <For each={virtualizer.getVirtualItems()}>
+          {/* The Solid adapter reconciles virtual items by index. Key the DOM
+              by the post instead so prepends move each row together with its
+              ResizeObserver registration. */}
+          <Key
+            each={virtualizer.getVirtualItems()}
+            by={(virtualItem) => virtualItem.key}
+          >
             {(virtualItem) => {
               let cancelMeasurement: (() => void) | undefined;
               onCleanup(() => cancelMeasurement?.());
-              const item = () => props.items[virtualItem.index];
+              const item = () => props.items[virtualItem().index];
               const key = () => {
                 const value = item();
                 return value == null ? undefined : props.getItemKey(value);
@@ -282,24 +290,27 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
                 <Show when={item()}>
                   {(item) => (
                     <div
-                      data-index={virtualItem.index}
-                      data-virtual-post-index={virtualItem.index}
+                      data-index={virtualItem().index}
+                      data-virtual-post-index={virtualItem().index}
                       ref={(element) => {
                         cancelMeasurement?.();
+                        const itemKey = key();
+                        if (itemKey == null) return;
                         cancelMeasurement = measureVirtualItem(
                           element,
-                          virtualItem.index,
+                          virtualItem().index,
+                          itemKey,
                         );
                       }}
                       onFocusIn={() => setFocusedKey(key())}
                       onFocusOut={onRowFocusOut}
                       class="absolute top-0 left-0 w-full [&>article]:border-b-0"
                       classList={{
-                        "border-b": rowHasBottomBorder(virtualItem.index),
+                        "border-b": rowHasBottomBorder(virtualItem().index),
                       }}
                       style={{
                         transform: `translateY(${
-                          virtualItem.start - virtualizer.options.scrollMargin
+                          virtualItem().start - virtualizer.options.scrollMargin
                         }px)`,
                       }}
                     >
@@ -309,7 +320,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
                 </Show>
               );
             }}
-          </For>
+          </Key>
         </Show>
       </div>
       <Show when={footerVisible()}>{props.renderFooter?.()}</Show>
