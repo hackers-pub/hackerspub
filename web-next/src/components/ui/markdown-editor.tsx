@@ -26,6 +26,7 @@ import {
   onMount,
   Show,
   splitProps,
+  untrack,
 } from "solid-js";
 import {
   hasSupportedImageContentType,
@@ -398,9 +399,11 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       EditorView.lineWrapping,
       editableCompartment.of(EditorView.editable.of(!local.disabled)),
       EditorView.updateListener.of((update: ViewUpdate) => {
-        if (update.docChanged && local.onInput) {
-          local.onInput(update.state.doc.toString());
-        }
+        untrack(() => {
+          if (update.docChanged && local.onInput) {
+            local.onInput(update.state.doc.toString());
+          }
+        });
       }),
       // Only stop propagation for shortcuts the editor actually handles,
       // so they don't trigger app-level handlers (e.g. sidebar toggle on Mod-b)

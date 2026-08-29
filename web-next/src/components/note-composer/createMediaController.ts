@@ -1,5 +1,5 @@
 import { fetchQuery, graphql, type IEnvironment } from "relay-runtime";
-import { type Accessor, createSignal, onCleanup } from "solid-js";
+import { type Accessor, createSignal, onCleanup, untrack } from "solid-js";
 import type { createMediaControllerDraftMediaQuery } from "./__generated__/createMediaControllerDraftMediaQuery.graphql.ts";
 import type { createMediaControllerGeneratedAltTextQuery } from "./__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
 import { type MediaItem, reduceMediaItems } from "./mediaState.ts";
@@ -131,19 +131,21 @@ export function createMediaController(
           dispatch({ type: "upload-completed", localId, result });
         })
         .catch((error) => {
-          if (error instanceof UploadAbortedError) return;
-          const failed = items().find((item) => item.localId === localId);
-          if (failed != null) {
-            revokePreviewUrl(failed.previewUrl);
-            dispatch({ type: "remove", localId });
-          }
-          showToast({
-            title: t`Error`,
-            description:
-              error instanceof Error && error.message
-                ? error.message
-                : t`Failed to upload image`,
-            variant: "error",
+          untrack(() => {
+            if (error instanceof UploadAbortedError) return;
+            const failed = items().find((item) => item.localId === localId);
+            if (failed != null) {
+              revokePreviewUrl(failed.previewUrl);
+              dispatch({ type: "remove", localId });
+            }
+            showToast({
+              title: t`Error`,
+              description:
+                error instanceof Error && error.message
+                  ? error.message
+                  : t`Failed to upload image`,
+              variant: "error",
+            });
           });
         });
       return {

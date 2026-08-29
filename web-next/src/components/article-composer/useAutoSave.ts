@@ -1,4 +1,10 @@
-import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
+import {
+  type Accessor,
+  createEffect,
+  createSignal,
+  onCleanup,
+  untrack,
+} from "solid-js";
 import { debounce } from "es-toolkit";
 
 export interface UseAutoSaveOptions {
@@ -34,9 +40,11 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
 
   // Debounced auto-save (1.5 second interval)
   const debouncedAutoSave = debounce(() => {
-    if (!options.isSaving() && options.title().trim() && isDirty()) {
-      options.save(true);
-    }
+    untrack(() => {
+      if (!options.isSaving() && options.title().trim() && isDirty()) {
+        options.save(true);
+      }
+    });
   }, 1500);
 
   // Auto-save effect

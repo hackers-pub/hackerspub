@@ -4,7 +4,7 @@ import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import encodeQR from "qr";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, Show, Switch, untrack } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
@@ -843,7 +843,8 @@ interface InvitationTreeCardProps {
 
 function InvitationTreeCard(props: InvitationTreeCardProps) {
   const { t } = useLingui();
-  const [hidden, setHidden] = createSignal(props.hidden);
+  const initialHidden = untrack(() => props.hidden);
+  const [hidden, setHidden] = createSignal(initialHidden);
   const [save] = createMutation<inviteHideFromTreeMutation>(
     hideFromInvitationTreeMutation,
   );

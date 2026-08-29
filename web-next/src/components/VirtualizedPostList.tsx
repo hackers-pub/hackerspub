@@ -202,10 +202,12 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     event: FocusEvent & { currentTarget: HTMLDivElement },
   ) => {
     const row = event.currentTarget;
-    const key = focusedKey();
+    const initialFocusedKey = focusedKey();
     queueMicrotask(() => {
       if (!row.contains(document.activeElement)) {
-        setFocusedKey((current) => (current === key ? undefined : current));
+        setFocusedKey((current) =>
+          current === initialFocusedKey ? undefined : current,
+        );
       }
     });
   };
@@ -229,10 +231,13 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     return measureVirtualListItemAfterMount(
       element,
       expectedKey,
-      (currentIndex) => {
-        const currentItem = props.items[currentIndex];
-        return currentItem == null ? undefined : props.getItemKey(currentItem);
-      },
+      (currentIndex) =>
+        untrack(() => {
+          const currentItem = props.items[currentIndex];
+          return currentItem == null
+            ? undefined
+            : props.getItemKey(currentItem);
+        }),
       virtualizer.measureElement,
     );
   };

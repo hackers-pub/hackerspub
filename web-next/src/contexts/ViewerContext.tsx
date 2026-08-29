@@ -24,18 +24,18 @@ export interface ViewerProviderProps {
 const ViewerContext = createContext<ViewerContextValue>();
 
 export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
+  const value: ViewerContextValue = {
+    isAuthenticated: () => props.isAuthenticated(),
+    isLoaded: () => props.isLoaded(),
+    id: () => props.id?.(),
+    username: () => props.username?.(),
+    moderator: () => props.moderator?.() ?? false,
+    suspended: () => props.suspended?.() ?? false,
+    preferAiSummary: () => props.preferAiSummary?.() ?? true,
+  };
+
   return (
-    <ViewerContext.Provider
-      value={{
-        isAuthenticated: props.isAuthenticated,
-        isLoaded: props.isLoaded,
-        id: props.id ?? (() => undefined),
-        username: props.username ?? (() => undefined),
-        moderator: props.moderator ?? (() => false),
-        suspended: props.suspended ?? (() => false),
-        preferAiSummary: props.preferAiSummary ?? (() => true),
-      }}
-    >
+    <ViewerContext.Provider value={value}>
       {props.children}
     </ViewerContext.Provider>
   );

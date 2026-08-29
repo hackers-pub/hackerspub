@@ -1,5 +1,4 @@
-import { createMemo, createSignal, onCleanup } from "solid-js";
-import { isServer } from "solid-js/web";
+import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface TimestampProps {
@@ -27,13 +26,13 @@ export function Timestamp(props: TimestampProps) {
     );
   };
 
-  if (!isServer) {
+  onMount(() => {
     scheduleNextUpdate();
     onCleanup(() => {
       disposed = true;
       if (timeout != null) clearTimeout(timeout);
     });
-  }
+  });
 
   return (
     <time

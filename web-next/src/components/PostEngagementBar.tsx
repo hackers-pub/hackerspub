@@ -8,6 +8,7 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from "solid-js";
 import { Portal } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
@@ -209,15 +210,15 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     if (!restoreFocus) return;
 
     queueMicrotask(() => {
-      const trigger = emojiTrigger();
+      const trigger = untrack(emojiTrigger);
       if (trigger?.isConnected) trigger.focus();
     });
   };
 
   const focusAfterEmojiTrigger = () => {
     queueMicrotask(() => {
-      const bar = engagementBar();
-      const trigger = emojiTrigger();
+      const bar = untrack(engagementBar);
+      const trigger = untrack(emojiTrigger);
       if (!bar?.isConnected || !trigger?.isConnected) return;
 
       const controls = Array.from(
@@ -317,13 +318,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   createEffect(() => {
     if (!showEmojiPopover() || !focusEmojiPopover()) return;
 
-    const popover = emojiPopover();
-    if (popover == null) return;
+    const initialPopover = emojiPopover();
+    if (initialPopover == null) return;
     queueMicrotask(() => {
-      if (!showEmojiPopover() || !focusEmojiPopover() || !popover.isConnected) {
+      if (
+        !untrack(showEmojiPopover) ||
+        !untrack(focusEmojiPopover) ||
+        !initialPopover.isConnected
+      ) {
         return;
       }
-      popover
+      initialPopover
         .querySelector<HTMLButtonElement>("button:not(:disabled)")
         ?.focus();
       setFocusEmojiPopover(false);

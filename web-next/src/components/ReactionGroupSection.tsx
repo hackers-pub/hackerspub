@@ -203,7 +203,9 @@ export function ReactionGroupSection(props: ReactionGroupSectionProps) {
       <Show when={hasNext()}>
         <button
           type="button"
-          on:click={loadingState() === "loading" ? undefined : onLoadMore}
+          on:click={() => {
+            if (loadingState() !== "loading") onLoadMore();
+          }}
           disabled={loadingState() === "loading"}
           class="block w-full cursor-pointer border-t px-4 py-3 text-center text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >

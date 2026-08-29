@@ -8,6 +8,7 @@ import {
   createSignal,
   on,
   type ParentComponent,
+  untrack,
   useContext,
 } from "solid-js";
 import { isServer } from "solid-js/web";
@@ -222,11 +223,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const navigate = useNavigate();
   const params = useParams();
   const env = useRelayEnvironment();
-  const draftUuid = (props.draftUuid ??
+  const initialExistingDraftUuid = untrack(() => props.draftUuid);
+  const draftUuid = (initialExistingDraftUuid ??
     crypto.randomUUID()) as `${string}-${string}-${string}-${string}-${string}`;
 
   // Draft loading
-  const draftData = props.draftUuid
+  const draftData = initialExistingDraftUuid
     ? createStablePreloadedQuery<ArticleComposerContextDraftQueryType>(
         ArticleComposerDraftQuery,
         () =>
@@ -234,14 +236,14 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             env(),
             ArticleComposerDraftQuery,
             {
-              uuid: props.draftUuid as `${string}-${string}-${string}-${string}-${string}`,
+              uuid: initialExistingDraftUuid as `${string}-${string}-${string}-${string}-${string}`,
             },
           ),
       )
     : undefined;
 
   const loadedDraft = createMemo(() => {
-    if (!props.draftUuid || !draftData) return undefined;
+    if (!initialExistingDraftUuid || !draftData) return undefined;
     return draftData()?.articleDraft ?? undefined;
   });
   const [savedDraft, setSavedDraft] = createSignal<DraftState | undefined>();
@@ -253,8 +255,8 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     // already has the data. Returning false on the server for this case
     // keeps the initial render consistent (both sides show the loading
     // state) and avoids a hydration mismatch.
-    if (props.draftUuid && isServer) return false;
-    return !props.draftUuid || !!draftData?.();
+    if (initialExistingDraftUuid && isServer) return false;
+    return !initialExistingDraftUuid || !!draftData?.();
   });
 
   // Form state
@@ -326,8 +328,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       return;
     }
 
-    const submittedForm = createDraftFormSnapshot(title(), content(), tags());
-    const submittedDraft = createDraftSaveInput(submittedForm);
+    const initialSubmittedForm = createDraftFormSnapshot(
+      title(),
+      content(),
+      tags(),
+    );
+    const submittedDraft = createDraftSaveInput(initialSubmittedForm);
 
     saveDraft({
       variables: {
@@ -357,7 +363,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           );
           const { formReconciled, baseline } = reconcileDraftSaveResponse(
             currentForm,
-            submittedForm,
+            initialSubmittedForm,
             savedForm,
           );
 
@@ -762,7 +768,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   const contextValue: ArticleComposerContextValue = {
     draftUuid,
-    existingDraft: props.draftUuid != null,
+    existingDraft: initialExistingDraftUuid != null,
     draftDataLoaded,
     draft,
 

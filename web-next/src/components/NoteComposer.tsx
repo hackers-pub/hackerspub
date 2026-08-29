@@ -256,14 +256,16 @@ export function NoteComposer(props: NoteComposerProps) {
   // on the first render (avoids an async createEffect lag).  Empty for a plain
   // compose / reply / quote, where `initialContent` is null.
   const initialEditContent = props.initialContent ?? "";
+  const initialEditingNoteId = untrack(() => props.editingNoteId);
+  const initialLanguage = props.initialLanguage;
+  const initialQuotePolicy = props.initialQuotePolicy;
   const [content, setContent] = createSignal(initialEditContent);
   const [visibility, setVisibility] = createSignal<PostVisibility>(
     props.defaultVisibility ?? "PUBLIC",
   );
   const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>(
-    props.editingNoteId
-      ? ((props.initialQuotePolicy as QuotePolicy | null | undefined) ??
-          "EVERYONE")
+    initialEditingNoteId
+      ? ((initialQuotePolicy as QuotePolicy | null | undefined) ?? "EVERYONE")
       : "EVERYONE",
   );
   // Keep visibility in sync when the modal is reused for a different reply/quote
@@ -281,13 +283,12 @@ export function NoteComposer(props: NoteComposerProps) {
     return vis === "PUBLIC" || vis === "UNLISTED" ? quotePolicy() : "SELF";
   };
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
-    props.editingNoteId && props.initialLanguage
-      ? new Intl.Locale(props.initialLanguage)
+    initialEditingNoteId && initialLanguage
+      ? new Intl.Locale(initialLanguage)
       : new Intl.Locale(i18n.locale),
   );
-  const [manualLanguageChange, setManualLanguageChange] = createSignal(
-    !!props.editingNoteId,
-  );
+  const [manualLanguageChange, setManualLanguageChange] =
+    createSignal(!!initialEditingNoteId);
   const [actingAccountKey, setActingAccountKey] = createSignal(
     PERSONAL_COMPOSE_ACCOUNT_KEY,
   );

@@ -4,6 +4,7 @@ import {
   createSignal,
   onCleanup,
   Show,
+  untrack,
 } from "solid-js";
 import { useLocation } from "@solidjs/router";
 import IconPencil from "~icons/lucide/pencil";
@@ -51,7 +52,9 @@ export function TimelineNoteComposer() {
 
   onCleanup(
     subscribeNoteDraftChanges((change) => {
-      if (change.key === draftStorageKey()) updateSavedDraftStatus();
+      if (change.key === untrack(draftStorageKey)) {
+        untrack(updateSavedDraftStatus);
+      }
     }),
   );
 

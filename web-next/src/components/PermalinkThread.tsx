@@ -343,7 +343,7 @@ function PermalinkThreadAncestorsLoaded(
   const stablePost = createStablePermalinkPost(props, post);
   const { targetUuid, targetIsFocused } = createPermalinkTarget(
     stablePost,
-    props.locationHash,
+    () => props.locationHash(),
   );
   // With ancestors above the focused post, land the reader on the focused
   // post itself (Mastodon-style); the ancestors stay reachable by scrolling
@@ -396,7 +396,7 @@ function PermalinkThreadDescendantsLoaded(props: PermalinkThreadContextProps) {
   const stablePost = createStablePermalinkPost(props, post);
   const { targetUuid, targetIsFocused } = createPermalinkTarget(
     stablePost,
-    props.locationHash,
+    () => props.locationHash(),
   );
   const treeTargetUuid = createMemo(() =>
     targetIsFocused() ? null : targetUuid(),

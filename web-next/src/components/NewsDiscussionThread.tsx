@@ -12,6 +12,7 @@ import {
   runWithOwner,
   Show,
   Switch,
+  untrack,
 } from "solid-js";
 import { createFragment, useRelayEnvironment } from "solid-relay";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
@@ -210,8 +211,9 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   // row would lose the `rendered` claim anyway), so don't fetch its subtree
   // either.  Same synchronous check the row component makes before claiming.
   const ownId = post()?.id;
+  const initialRendered = untrack(() => props.rendered);
   // eslint-disable-next-line solid/components-return-once -- Deduplication is an intentional one-time claim made before this component starts fetching.
-  if (ownId != null && props.rendered.has(ownId)) return null;
+  if (ownId != null && initialRendered.has(ownId)) return null;
 
   const [nodes, setNodes] = createSignal<SubtreeReplyNode[]>([]);
   const [hasMore, setHasMore] = createSignal(false);
@@ -511,11 +513,12 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // a duplicate occurrence elsewhere in the tree renders nothing.  Released on
   // unmount so a reload/refetch of the same post can re-claim it.
   const ownId = post()?.id;
+  const initialRendered = untrack(() => props.rendered);
   if (ownId != null) {
     // eslint-disable-next-line solid/components-return-once -- Deduplication is an intentional one-time claim paired with cleanup on unmount.
-    if (props.rendered.has(ownId)) return null;
-    props.rendered.add(ownId);
-    onCleanup(() => props.rendered.delete(ownId));
+    if (initialRendered.has(ownId)) return null;
+    initialRendered.add(ownId);
+    onCleanup(() => initialRendered.delete(ownId));
   }
 
   const [quoteChildren, setQuoteChildren] = createSignal<QuoteChild[]>([]);
@@ -597,6 +600,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     }
     setExpanded(true);
     setLoadState("loading");
+    const initialVisited = props.visited;
     fetchQuery<NewsDiscussionThreadChildrenQuery>(environment(), quotesQuery, {
       id: p.id,
       quoteCursor: mode === "more" ? quoteCursor() : null,
@@ -611,7 +615,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             const n = edge?.node;
             if (n == null) continue;
             if (n.id === p.id) continue; // never re-render self
-            if (props.visited?.has(n.id)) continue; // ancestor already shows it
+            if (initialVisited?.has(n.id)) continue; // ancestor already shows it
             if (seen.has(n.id)) continue; // already loaded under this node
             seen.add(n.id);
             quotes.push({ id: n.id, key: n });

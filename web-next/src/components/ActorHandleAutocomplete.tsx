@@ -1,6 +1,13 @@
 import { debounce } from "es-toolkit";
 import { fetchQuery, graphql } from "relay-runtime";
-import { createSignal, For, type JSX, onCleanup, Show } from "solid-js";
+import {
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  Show,
+  untrack,
+} from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
 import {
   Avatar,
@@ -104,23 +111,24 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
   let blurTimer: ReturnType<typeof setTimeout> | undefined;
 
   const runSearch = debounce((prefix: string, id: number) => {
-    const limit = props.localAccountsOnly || props.accountKind != null ? 25 : 8;
+    const { accountKind, localAccountsOnly } = untrack(() => ({
+      accountKind: props.accountKind,
+      localAccountsOnly: props.localAccountsOnly,
+    }));
+    const limit = localAccountsOnly || accountKind != null ? 25 : 8;
     fetchQuery<ActorHandleAutocompleteQuery>(
-      environment(),
+      untrack(environment),
       actorHandleAutocompleteQuery,
       { prefix, limit },
     ).subscribe({
       next(data) {
         if (id !== requestId) return;
         const actors = (data.searchActorsByHandle ?? []).filter((actor) => {
-          if (!props.localAccountsOnly && props.accountKind == null) {
+          if (!localAccountsOnly && accountKind == null) {
             return true;
           }
           if (actor.account == null) return false;
-          return (
-            props.accountKind == null ||
-            actor.account.kind === props.accountKind
-          );
+          return accountKind == null || actor.account.kind === accountKind;
         });
         setSuggestions(actors);
         setActiveIndex(0);

@@ -259,6 +259,7 @@ export function createStablePreloadedQuery<TQuery extends OperationType>(
   // reaches the Suspense boundary that consumes this store during SSR. A store
   // must remain owned by one boundary; sibling boundaries need independent
   // createStablePreloadedQuery calls.
+  // eslint-disable-next-line solid/reactivity -- This accessor must stay lazy so the consuming SSR Suspense boundary owns the pending read.
   const accessor = (() => {
     const value = store();
     if (value != null) hydrationValue = value;
@@ -291,7 +292,7 @@ export function createPersistentPreloadedQuery<TQuery extends OperationType>(
     const value = store();
     return value ?? previous;
   });
-  const accessor = (() => current()) as unknown as DataStore<
+  const accessor = current as unknown as DataStore<
     TQuery["response"] | null | undefined
   >;
   Object.defineProperties(accessor, {

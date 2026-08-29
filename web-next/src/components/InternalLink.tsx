@@ -26,7 +26,8 @@ export function InternalLink(props: InternalLinkProps) {
       return;
     }
     event.preventDefault();
-    void startTransition(() => navigate(internalProps.internalHref.toString()));
+    const href = internalProps.internalHref.toString();
+    void startTransition(() => navigate(href));
   }
   return (
     <a {...restProps} on:click={onClick}>

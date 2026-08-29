@@ -142,7 +142,7 @@ function SegmentButton(props: {
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={() => props.onClick()}
       aria-pressed={props.active}
       class={cn(
         "inline-flex h-7 items-center rounded-sm px-3 text-xs font-medium transition-colors",

@@ -41,21 +41,21 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   const maxLines = () => props.maxLines ?? DEFAULT_MAX_LINES;
 
   createEffect(() => {
-    const el = contentEl();
+    const initialElement = contentEl();
     // Re-measure whenever the HTML changes, e.g. the note gets edited.
     void props.innerHTML;
-    if (!el) return;
+    if (!initialElement) return;
     // Only measure while collapsed: expanding removes the `max-height`
     // clamp, so `clientHeight` grows to match `scrollHeight` and this
     // would otherwise (wrongly) report no overflow, hiding the "Show
     // less" toggle right after the user opens it.
     const measure = () => {
       if (untrack(expanded)) return;
-      setOverflowing(el.scrollHeight > el.clientHeight);
+      setOverflowing(initialElement.scrollHeight > initialElement.clientHeight);
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(el);
+    observer.observe(initialElement);
     onCleanup(() => observer.disconnect());
   });
 

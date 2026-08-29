@@ -202,7 +202,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   const navigate = useNavigate();
   const actingAccount = useActingAccount();
   const viewer = useViewer();
-  const post = props.post;
+  const post = () => props.post();
   const [showConfirm, setShowConfirm] = createSignal(false);
   const [showReport, setShowReport] = createSignal(false);
 

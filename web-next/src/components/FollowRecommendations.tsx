@@ -110,9 +110,11 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
     if (allActors.length === 0) return null;
 
     const hidden = hiddenActorIds();
-    const filtered = allActors
-      .filter((a) => !hidden.has(a.id))
-      .slice(0, MAX_VISIBLE);
+    const filtered = [];
+    for (const actor of allActors) {
+      if (!hidden.has(actor.id)) filtered.push(actor);
+      if (filtered.length >= MAX_VISIBLE) break;
+    }
     if (filtered.length === 0) return null;
 
     return filtered;

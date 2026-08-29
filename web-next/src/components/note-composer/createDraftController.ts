@@ -159,10 +159,10 @@ export function createDraftController(
   });
 
   createEffect(() => {
-    const key = storageKey();
+    const initialKey = storageKey();
     const scope = options.scope();
     clearTimeout(saveTimer);
-    if (key == null || scope == null) {
+    if (initialKey == null || scope == null) {
       setSaveStatus("idle");
       setLoadedKey(null);
       formKey = null;
@@ -174,11 +174,11 @@ export function createDraftController(
       shouldPreserveCurrentDraftForm({
         previousLoadedKey,
         formDraftKey: formKey,
-        nextKey: key,
+        nextKey: initialKey,
         dirty: options.dirty(),
       }),
     );
-    untrack(() => load(key, scope, preserveCurrentForm));
+    untrack(() => load(initialKey, scope, preserveCurrentForm));
   });
 
   onCleanup(
