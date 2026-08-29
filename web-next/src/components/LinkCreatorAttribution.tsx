@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { cn } from "~/lib/utils.ts";
+import { ActorHandle } from "./ActorHandle.tsx";
 import type { LinkCreatorAttribution_creator$key } from "./__generated__/LinkCreatorAttribution_creator.graphql.ts";
 
 export interface LinkCreatorAttributionProps {
@@ -65,7 +66,10 @@ export function LinkCreatorAttribution(props: LinkCreatorAttributionProps) {
                 class="font-semibold hover:underline"
               />{" "}
             </Show>
-            <span class="select-all text-muted-foreground">{c.handle}</span>
+            <ActorHandle
+              handle={c.handle}
+              class="wrap-anywhere text-muted-foreground"
+            />
           </div>
         </div>
       )}

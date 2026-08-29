@@ -4,6 +4,7 @@ import { HtmlContent } from "./HtmlContent.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import { ActorHandle } from "./ActorHandle.tsx";
 
 /** The actor fields a row needs; structurally satisfied by the list fragments. */
 export interface AccountListItem {
@@ -78,12 +79,10 @@ export function AccountListBase(props: AccountListBaseProps) {
                       class="truncate font-semibold"
                     />
                   </Show>
-                  <span
-                    class="truncate text-sm text-muted-foreground select-all"
-                    title={edge.node.handle}
-                  >
-                    {edge.node.handle}
-                  </span>
+                  <ActorHandle
+                    handle={edge.node.handle}
+                    class="truncate text-sm text-muted-foreground"
+                  />
                 </div>
                 <Button
                   variant="outline"

@@ -8,6 +8,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
+import { ActorHandle } from "./ActorHandle.tsx";
 import type { ActorPreviewCard_actor$key } from "./__generated__/ActorPreviewCard_actor.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
 import { InternalLink } from "./InternalLink.tsx";
@@ -102,12 +103,10 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
                     class="truncate font-semibold"
                   />
                 </Show>
-                <span
-                  class="truncate text-sm text-muted-foreground select-all"
-                  title={a.handle}
-                >
-                  {a.handle}
-                </span>
+                <ActorHandle
+                  handle={a.handle}
+                  class="truncate text-sm text-muted-foreground"
+                />
               </div>
               <div class="shrink-0">
                 <FollowButton $actor={a} />
