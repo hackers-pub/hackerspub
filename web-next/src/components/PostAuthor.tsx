@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import type {
   PostAuthorAvatar_post$data,
@@ -242,10 +243,11 @@ function AuthorIdentity(props: AuthorIdentityProps) {
       )}
     >
       <Show when={(props.actor.name ?? "").trim() !== ""}>
-        <InternalLink
+        <HtmlContent
+          as={InternalLink}
           href={actorHref(props.actor)}
           internalHref={actorInternalHref(props.actor)}
-          innerHTML={props.actor.name ?? ""}
+          html={props.actor.name ?? ""}
           class={cn("min-w-0 truncate font-semibold", props.nameClass)}
         />
       </Show>

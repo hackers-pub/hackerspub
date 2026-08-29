@@ -1,5 +1,6 @@
 import { Show } from "solid-js";
 import IconLoader2 from "~icons/lucide/loader-2";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import { cn } from "~/lib/utils.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -117,9 +118,9 @@ export function ComposerEditorPanes(props: ComposerEditorPanesProps) {
             }
           >
             <div class="relative">
-              <div
+              <HtmlContent
                 class="prose dark:prose-invert max-w-none px-4 py-3 sm:px-6"
-                innerHTML={props.previewHtml}
+                html={props.previewHtml}
               />
               <Show when={props.previewPending}>
                 <span class="absolute right-3 top-3 rounded-md border bg-background/80 px-2 py-0.5 text-xs text-muted-foreground backdrop-blur">
@@ -142,7 +143,7 @@ function SegmentButton(props: {
   return (
     <button
       type="button"
-      onClick={props.onClick}
+      onClick={() => props.onClick()}
       aria-pressed={props.active}
       class={cn(
         "inline-flex h-7 items-center rounded-sm px-3 text-xs font-medium transition-colors",

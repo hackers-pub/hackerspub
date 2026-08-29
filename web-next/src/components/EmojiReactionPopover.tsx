@@ -510,7 +510,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     );
 
     // Filter out already used emojis from the available emojis
-    return REACTION_EMOJIS.filter((emoji) => !usedEmojis.has(emoji));
+    const available = [];
+    for (const emoji of REACTION_EMOJIS) {
+      if (!usedEmojis.has(emoji)) available.push(emoji);
+    }
+    return available;
   };
 
   return (

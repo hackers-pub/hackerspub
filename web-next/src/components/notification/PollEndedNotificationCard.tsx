@@ -10,9 +10,9 @@ interface PollEndedNotificationCardProps {
   $notification: PollEndedNotificationCard_notification$key;
 }
 
-export function PollEndedNotificationCard({
-  $notification,
-}: PollEndedNotificationCardProps) {
+export function PollEndedNotificationCard(
+  props: PollEndedNotificationCardProps,
+) {
   const { t } = useLingui();
   const notification = createFragment(
     graphql`
@@ -23,7 +23,7 @@ export function PollEndedNotificationCard({
         }
       }
     `,
-    () => $notification,
+    () => props.$notification,
   );
 
   return (

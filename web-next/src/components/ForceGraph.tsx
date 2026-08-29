@@ -42,6 +42,8 @@ export function ForceGraph(props: ForceGraphProps) {
     if (!svgRef) return;
 
     const data = props.data;
+    const initialWidth = width();
+    const initialHeight = height();
 
     // Create copies of data
     const links: LinkDatum[] = data.links.map((d) => ({ ...d }));
@@ -66,7 +68,12 @@ export function ForceGraph(props: ForceGraphProps) {
     // Create SVG
     const svg = d3
       .select(svgRef)
-      .attr("viewBox", [-width() / 2, -height() / 2, width(), height()]);
+      .attr("viewBox", [
+        -initialWidth / 2,
+        -initialHeight / 2,
+        initialWidth,
+        initialHeight,
+      ]);
 
     // Clear previous content
     svg.selectAll("*").remove();

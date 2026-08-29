@@ -22,6 +22,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { MutedReplyPlaceholder } from "~/components/MutedReplyPlaceholder.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
@@ -343,7 +344,7 @@ function PermalinkThreadAncestorsLoaded(
   const stablePost = createStablePermalinkPost(props, post);
   const { targetUuid, targetIsFocused } = createPermalinkTarget(
     stablePost,
-    props.locationHash,
+    () => props.locationHash(),
   );
   // With ancestors above the focused post, land the reader on the focused
   // post itself (Mastodon-style); the ancestors stay reachable by scrolling
@@ -396,7 +397,7 @@ function PermalinkThreadDescendantsLoaded(props: PermalinkThreadContextProps) {
   const stablePost = createStablePermalinkPost(props, post);
   const { targetUuid, targetIsFocused } = createPermalinkTarget(
     stablePost,
-    props.locationHash,
+    () => props.locationHash(),
   );
   const treeTargetUuid = createMemo(() =>
     targetIsFocused() ? null : targetUuid(),
@@ -955,9 +956,9 @@ function ThreadReplyRow(props: ThreadReplyRowProps) {
                 </div>
                 <Switch
                   fallback={
-                    <div
+                    <HtmlContent
                       ref={setProseRef}
-                      innerHTML={p.content}
+                      html={p.content}
                       lang={p.language ?? undefined}
                       class="prose dark:prose-invert mt-1 max-w-none break-words"
                     />
@@ -978,9 +979,9 @@ function ThreadReplyRow(props: ThreadReplyRowProps) {
                           </h3>
                         )}
                       </Show>
-                      <div
+                      <HtmlContent
                         ref={setProseRef}
-                        innerHTML={p.excerptHtml}
+                        html={p.excerptHtml}
                         lang={p.language ?? undefined}
                         class="prose dark:prose-invert mt-1 line-clamp-4 max-w-none break-words text-sm text-muted-foreground"
                       />

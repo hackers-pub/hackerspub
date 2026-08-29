@@ -4,6 +4,7 @@ import { createSignal, For, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import IconMoveRight from "~icons/lucide/move-right";
 import IconShieldAlert from "~icons/lucide/shield-alert";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import {
   Avatar,
   AvatarFallback,
@@ -169,8 +170,9 @@ export function ProfileCard(props: ProfileCardProps) {
                 </Avatar>
                 <div class="flex-1">
                   <h1 class="text-xl font-semibold">
-                    <a
-                      innerHTML={actor.name ?? actor.username}
+                    <HtmlContent
+                      as="a"
+                      html={actor.name ?? actor.username}
                       href={
                         actor.local
                           ? `/@${actor.username}`
@@ -261,9 +263,10 @@ export function ProfileCard(props: ProfileCardProps) {
                           </AvatarFallback>
                         </Avatar>
                         <span class="min-w-0">
-                          <span
+                          <HtmlContent
+                            as="span"
                             class="block truncate font-semibold"
-                            innerHTML={successor.name ?? successor.username}
+                            html={successor.name ?? successor.username}
                           />
                           <span class="block truncate text-muted-foreground">
                             {successor.handle}
@@ -318,9 +321,9 @@ export function ProfileCard(props: ProfileCardProps) {
             </Show>
             <Show when={(actor.bio?.trim() ?? "") !== ""}>
               <div class="p-4 pt-0">
-                <div
+                <HtmlContent
                   ref={setBioRef}
-                  innerHTML={actor.bio ?? ""}
+                  html={actor.bio ?? ""}
                   class="mx-auto prose dark:prose-invert"
                 />
                 <MentionHoverCardLayer state={mentionState} />
@@ -343,7 +346,7 @@ export function ProfileCard(props: ProfileCardProps) {
                             <span class="text-muted-foreground mr-1">
                               {field.name}
                             </span>
-                            <span innerHTML={field.value}></span>
+                            <HtmlContent as="span" html={field.value} />
                           </li>
                         )}
                       </For>

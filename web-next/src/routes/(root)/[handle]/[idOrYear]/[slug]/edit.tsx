@@ -7,7 +7,7 @@ import {
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpStatusCode } from "@solidjs/start";
 import { fetchQuery, graphql } from "relay-runtime";
-import { createEffect, createSignal, onCleanup, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, Show, untrack } from "solid-js";
 import { isServer } from "solid-js/web";
 import { debounce } from "es-toolkit";
 import {
@@ -284,6 +284,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
   const actingAccount = useActingAccount();
   const isMobile = useIsMobile();
 
+  const initialArticle = untrack(() => props.article);
   const article = () => props.article;
   const actingAccountIdForArticle = () => {
     const selected = actingAccount.selectedActingAccountId();
@@ -298,21 +299,23 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     createMutation<edit_updateArticle_Mutation>(updateArticleMutation);
 
   // Initialize form state from the original content (not translations).
-  const initialContent = article().contents?.find(
+  const initialContent = initialArticle.contents?.find(
     (c) => c.originalLanguage == null,
   );
   const [title, setTitle] = createSignal(initialContent?.title ?? "");
   const [markdown, setMarkdown] = createSignal(
     initialContent?.rawContent ?? "",
   );
-  const [tags, setTags] = createSignal<string[]>([...(article().tags ?? [])]);
+  const [tags, setTags] = createSignal<string[]>([
+    ...(initialArticle.tags ?? []),
+  ]);
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     initialContent?.language
       ? new Intl.Locale(initialContent.language)
       : undefined,
   );
   const [allowLlmTranslation, setAllowLlmTranslation] = createSignal(
-    article().allowLlmTranslation ?? false,
+    initialArticle.allowLlmTranslation ?? false,
   );
 
   // Two-stage flow: Stage 1 is the writing surface; Stage 2 the settings.
@@ -381,7 +384,10 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     });
   };
 
-  const debouncedRenderPreview = debounce(renderPreview, 800);
+  const debouncedRenderPreview = debounce(
+    (text: string) => untrack(() => renderPreview(text)),
+    800,
+  );
   onCleanup(() => debouncedRenderPreview.cancel());
 
   // Keep the preview live while editing. On desktop both panes are always

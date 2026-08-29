@@ -213,7 +213,9 @@ function SharesList(props: { $post: sharesNoteEngagement_post$key }) {
       <Show when={shares.hasNext}>
         <button
           type="button"
-          on:click={loadingState() === "loading" ? undefined : onLoadMore}
+          on:click={() => {
+            if (loadingState() !== "loading") onLoadMore();
+          }}
           disabled={shares.pending || loadingState() === "loading"}
           class="block w-full cursor-pointer border-t px-4 py-5 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >

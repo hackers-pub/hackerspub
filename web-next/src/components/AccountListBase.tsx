@@ -1,5 +1,6 @@
 import { For, Match, Show, Switch } from "solid-js";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -70,9 +71,10 @@ export function AccountListBase(props: AccountListBaseProps) {
                       </a>
                     }
                   >
-                    <a
+                    <HtmlContent
+                      as="a"
                       href={profileHref(edge.node)}
-                      innerHTML={edge.node.name ?? ""}
+                      html={edge.node.name ?? ""}
                       class="truncate font-semibold"
                     />
                   </Show>
@@ -100,7 +102,7 @@ export function AccountListBase(props: AccountListBaseProps) {
       <Show when={props.hasNext}>
         <button
           type="button"
-          onClick={props.onLoadMore}
+          onClick={() => props.onLoadMore()}
           disabled={props.pending || props.loadingState === "loading"}
           class="block w-full cursor-pointer px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >

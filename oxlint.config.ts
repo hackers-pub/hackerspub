@@ -4,6 +4,7 @@ export default defineConfig({
   jsPlugins: [
     "@fedify/lint/oxlint",
     { name: "@logtape", specifier: "@logtape/lint/eslint" },
+    "eslint-plugin-solid",
     "./lint-plugins/keyed-show.ts",
     "./lint-plugins/no-deno-globals.ts",
     "./lint-plugins/no-load-query-in-router-query.ts",
@@ -44,6 +45,27 @@ export default defineConfig({
     "hackerspub-solid-relay/no-load-query-in-router-query": "error",
   },
   overrides: [
+    {
+      files: ["web-next/**/*.{ts,tsx}"],
+      rules: {
+        "solid/components-return-once": "warn",
+        "solid/event-handlers": "warn",
+        "solid/imports": "warn",
+        "solid/jsx-no-duplicate-props": "error",
+        "solid/jsx-no-script-url": "error",
+        "solid/jsx-no-undef": ["error", { typescriptEnabled: true }],
+        "solid/jsx-uses-vars": "error",
+        "solid/no-destructure": "error",
+        "solid/no-innerhtml": "error",
+        "solid/no-react-deps": "warn",
+        "solid/no-react-specific-props": "warn",
+        "solid/no-unknown-namespaces": "off",
+        "solid/prefer-for": "error",
+        "solid/reactivity": "warn",
+        "solid/self-closing-comp": "warn",
+        "solid/style-prop": "warn",
+      },
+    },
     {
       files: ["web-next/**/*.tsx"],
       rules: {

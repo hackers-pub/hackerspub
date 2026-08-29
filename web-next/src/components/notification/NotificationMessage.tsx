@@ -5,6 +5,7 @@ import type { JSX } from "solid-js";
 import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import type { NotificationMessage_notification$key } from "./__generated__/NotificationMessage_notification.graphql.ts";
@@ -78,7 +79,7 @@ export function NotificationMessage(props: NotificationMessageProps) {
           >
             {(name) => (
               <span class="inline min-w-0">
-                <span innerHTML={name} class="font-semibold" />{" "}
+                <HtmlContent as="span" html={name} class="font-semibold" />{" "}
                 <span
                   class="break-all text-muted-foreground"
                   title={actor.handle}

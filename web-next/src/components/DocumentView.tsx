@@ -3,6 +3,7 @@ import { Title } from "@solidjs/meta";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { DocumentView_document$key } from "./__generated__/DocumentView_document.graphql.ts";
@@ -42,9 +43,9 @@ export function DocumentView(props: DocumentViewProps) {
               class="text-sm leading-6 text-muted-foreground"
             />
           </aside>
-          <div
+          <HtmlContent
             class="prose prose-slate mx-auto w-full max-w-3xl px-4 py-6 dark:prose-invert sm:px-6 lg:px-8"
-            innerHTML={document.html}
+            html={document.html}
           />
         </div>
       )}

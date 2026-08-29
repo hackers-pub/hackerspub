@@ -7,6 +7,7 @@ import {
   type Uuid,
 } from "~/components/ActorHandleAutocomplete.tsx";
 import { AdminTabs } from "~/components/AdminTabs.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -784,7 +785,9 @@ export default function AdminNewsPage() {
                                       when={s.actor.name}
                                       fallback={s.actor.handle}
                                     >
-                                      {(name) => <span innerHTML={name()} />}
+                                      {(name) => (
+                                        <HtmlContent as="span" html={name()} />
+                                      )}
                                     </Show>
                                   </p>
                                   <p class="truncate text-xs text-muted-foreground">

@@ -3,6 +3,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import type { NotificationActor_notification$key } from "./__generated__/NotificationActor_notification.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 
 interface NotificationActorProps {
   $notification: NotificationActor_notification$key;
@@ -61,7 +62,11 @@ export function NotificationActor(props: NotificationActorProps) {
                   >
                     {(name) => (
                       <span class="inline min-w-0">
-                        <span innerHTML={name} class="font-semibold" />{" "}
+                        <HtmlContent
+                          as="span"
+                          html={name}
+                          class="font-semibold"
+                        />{" "}
                         <span
                           class="break-all text-muted-foreground"
                           title={firstActor.handle}

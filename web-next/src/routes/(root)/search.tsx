@@ -5,7 +5,7 @@ import {
 } from "@hackerspub/models/searchPatterns";
 import { Navigate, useNavigate, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { type Accessor, createEffect, Show } from "solid-js";
+import { type Accessor, createEffect, Match, Show, Switch } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -182,20 +182,32 @@ function SearchObjectResult(props: {
 }) {
   const { t } = useLingui();
 
-  if (props.searchResult == null) {
-    return (
-      <Show when={props.postsData()} fallback={<SearchResultsSkeleton />} keyed>
-        {(queryData) => (
-          <SearchResults $posts={queryData} query={props.searchQuery} />
-        )}
-      </Show>
-    );
-  }
-  if ("url" in props.searchResult && props.searchResult.url) {
-    return <Navigate href={toRoutablePath(props.searchResult.url)} />;
-  }
-  if (props.searchResult.__typename === "EmptySearchQueryError") {
-    return <div class="text-red-500">{t`Query cannot be empty`}</div>;
-  }
-  return <div>{t`No matching object found`}</div>;
+  return (
+    <Switch fallback={<div>{t`No matching object found`}</div>}>
+      <Match when={props.searchResult == null}>
+        <Show
+          when={props.postsData()}
+          fallback={<SearchResultsSkeleton />}
+          keyed
+        >
+          {(queryData) => (
+            <SearchResults $posts={queryData} query={props.searchQuery} />
+          )}
+        </Show>
+      </Match>
+      <Match
+        when={
+          props.searchResult != null &&
+          "url" in props.searchResult &&
+          props.searchResult.url
+        }
+        keyed
+      >
+        {(url) => <Navigate href={toRoutablePath(url)} />}
+      </Match>
+      <Match when={props.searchResult?.__typename === "EmptySearchQueryError"}>
+        <div class="text-red-500">{t`Query cannot be empty`}</div>
+      </Match>
+    </Switch>
+  );
 }

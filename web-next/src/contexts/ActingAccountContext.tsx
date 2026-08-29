@@ -146,11 +146,10 @@ export const ActingAccountProvider: ParentComponent = (props) => {
   const selectedOrganization = createMemo(() => {
     const accountId = parseOrganizationActingAccountKey(selectedKeySignal());
     if (accountId == null) return null;
-    return (
-      organizations().find(
-        (membership) => membership.organization.id === accountId,
-      ) ?? null
-    );
+    for (const membership of organizations()) {
+      if (membership.organization.id === accountId) return membership;
+    }
+    return null;
   });
 
   const defaultComposeAccountKey = () => {

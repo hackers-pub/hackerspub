@@ -3,6 +3,7 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -113,12 +114,26 @@ const invitationLinkRedeemMutation = graphql`
 
 export default function InvitationLinkPage() {
   const params = useParams();
+  const validId = () =>
+    UUID_PATTERN.test(params.id ?? "") ? params.id : undefined;
+
+  return (
+    <Show when={validId()} fallback={<NotFoundPage embedded />} keyed>
+      {(id) => (
+        <InvitationLinkPageContent
+          id={id}
+          handle={decodeRouteParam(params.handle!)}
+        />
+      )}
+    </Show>
+  );
+}
+
+function InvitationLinkPageContent(props: { id: string; handle: string }) {
   const { t, i18n } = useLingui();
-  if (!UUID_PATTERN.test(params.id!)) return <NotFoundPage embedded />;
   const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
-    () =>
-      loadInvitationLinkPageQuery(params.id!, decodeRouteParam(params.handle!)),
+    () => loadInvitationLinkPageQuery(props.id, props.handle),
   );
   const [email, setEmail] = createSignal("");
   const [locale, setLocale] = createSignal(i18n.locale);
@@ -149,7 +164,7 @@ export default function InvitationLinkPage() {
 
     redeemLink({
       variables: {
-        id: params.id! as UUID,
+        id: props.id as UUID,
         email: email(),
         locale: locale(),
         verifyUrl,
@@ -308,9 +323,9 @@ export default function InvitationLinkPage() {
                             {/* `keyed`: same race shape; messageHtml can flip to null. */}
                             <Show keyed when={link.messageHtml}>
                               {(html) => (
-                                <div
+                                <HtmlContent
                                   class="prose dark:prose-invert prose-sm max-w-none rounded-lg bg-muted p-3"
-                                  innerHTML={html}
+                                  html={html}
                                 />
                               )}
                             </Show>

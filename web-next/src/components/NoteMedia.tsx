@@ -163,12 +163,19 @@ export function NoteMedia(props: NoteMediaProps) {
                     <For each={range(0, note.media.length / 2)}>
                       {(i) => (
                         <div class="flex flex-row">
-                          <For each={note.media.slice(i * 2, i * 2 + 2)}>
-                            {(medium, j) =>
+                          <For
+                            each={note.media
+                              .slice(i * 2, i * 2 + 2)
+                              .map((medium, offset) => ({
+                                medium,
+                                mediumIndex: i * 2 + offset,
+                              }))}
+                          >
+                            {({ medium, mediumIndex }) =>
                               wrappedMediaItem(
                                 medium,
-                                i * 2 + j(),
-                                imageIndexFor[i * 2 + j()],
+                                mediumIndex,
+                                imageIndexFor[mediumIndex],
                                 "w-[32.5ch] h-[32.5ch]",
                               )
                             }
@@ -191,12 +198,19 @@ export function NoteMedia(props: NoteMediaProps) {
                     <For each={range(0, (note.media.length - 1) / 2)}>
                       {(i) => (
                         <div class="flex flex-row">
-                          <For each={note.media.slice(1 + i * 2, i * 2 + 3)}>
-                            {(medium, j) =>
+                          <For
+                            each={note.media
+                              .slice(1 + i * 2, i * 2 + 3)
+                              .map((medium, offset) => ({
+                                medium,
+                                mediumIndex: 1 + i * 2 + offset,
+                              }))}
+                          >
+                            {({ medium, mediumIndex }) =>
                               wrappedMediaItem(
                                 medium,
-                                1 + i * 2 + j(),
-                                imageIndexFor[1 + i * 2 + j()],
+                                mediumIndex,
+                                imageIndexFor[mediumIndex],
                                 "w-[32.5ch] h-[32.5ch]",
                               )
                             }

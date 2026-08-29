@@ -78,6 +78,7 @@ catalog:
   dataloader: ^2.2.3
   drizzle-kit: 1.0.0-rc.2
   drizzle-orm: 1.0.0-rc.2
+  eslint-plugin-solid: 0.17.0
   es-toolkit: ^1.50.0
   feed: ^4.2.2
   fluent-ffmpeg: ^2.1.3

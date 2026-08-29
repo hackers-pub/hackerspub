@@ -1,6 +1,7 @@
 import { Show } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
 
@@ -38,7 +39,7 @@ export function ActorSharer(props: ActorSharerProps) {
                   when={(props.actor.name ?? "").trim() !== ""}
                   fallback={props.actor.handle}
                 >
-                  <span innerHTML={props.actor.name!} />
+                  <HtmlContent as="span" html={props.actor.name!} />
                 </Show>
               </a>
             </ActorHoverCard>

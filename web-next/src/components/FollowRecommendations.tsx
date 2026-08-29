@@ -9,6 +9,7 @@ import {
   Suspense,
 } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import {
   readBrowserLocalStorage,
@@ -110,9 +111,11 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
     if (allActors.length === 0) return null;
 
     const hidden = hiddenActorIds();
-    const filtered = allActors
-      .filter((a) => !hidden.has(a.id))
-      .slice(0, MAX_VISIBLE);
+    const filtered = [];
+    for (const actor of allActors) {
+      if (!hidden.has(actor.id)) filtered.push(actor);
+      if (filtered.length >= MAX_VISIBLE) break;
+    }
     if (filtered.length === 0) return null;
 
     return filtered;
@@ -168,8 +171,9 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
                     >
                       <div class="truncate font-medium text-foreground">
                         {actor.name != null ? (
-                          <span
-                            innerHTML={actor.name}
+                          <HtmlContent
+                            as="span"
+                            html={actor.name}
                             class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
                           />
                         ) : (
@@ -209,16 +213,18 @@ function Skeleton() {
       <div class="flex items-center justify-between border-b px-4 py-3">
         <div class="h-4 w-48 animate-pulse rounded bg-muted" />
       </div>
-      {[0, 1, 2].map((_i) => (
-        <div class="flex items-center gap-3 border-b px-4 py-3 last:border-none">
-          <div class="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
-          <div class="flex-1 space-y-1.5">
-            <div class="h-3.5 w-28 animate-pulse rounded bg-muted" />
-            <div class="h-3 w-20 animate-pulse rounded bg-muted" />
+      <For each={[0, 1, 2]}>
+        {() => (
+          <div class="flex items-center gap-3 border-b px-4 py-3 last:border-none">
+            <div class="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
+            <div class="flex-1 space-y-1.5">
+              <div class="h-3.5 w-28 animate-pulse rounded bg-muted" />
+              <div class="h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
+            <div class="h-8 w-16 animate-pulse rounded bg-muted" />
           </div>
-          <div class="h-8 w-16 animate-pulse rounded bg-muted" />
-        </div>
-      ))}
+        )}
+      </For>
     </div>
   );
 }

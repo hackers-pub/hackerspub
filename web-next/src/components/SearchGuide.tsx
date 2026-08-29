@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { SearchGuide_searchGuideQuery } from "./__generated__/SearchGuide_searchGuideQuery.graphql.ts";
@@ -30,9 +31,9 @@ export function SearchGuide() {
           <h3 class="text-lg font-semibold mb-3 text-foreground">
             {searchGuide.searchGuide.title}
           </h3>
-          <div
+          <HtmlContent
             class="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-td:text-foreground prose-th:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-th:border-border prose-td:border-border"
-            innerHTML={searchGuide.searchGuide.html}
+            html={searchGuide.searchGuide.html}
           />
         </div>
       )}

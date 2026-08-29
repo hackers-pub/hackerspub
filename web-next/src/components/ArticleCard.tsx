@@ -12,6 +12,7 @@ import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInte
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
@@ -432,8 +433,8 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                         on:mouseout={() => props.setHover?.(false)}
                         class="px-4 pb-4"
                       >
-                        <div
-                          innerHTML={article.excerptHtml}
+                        <HtmlContent
+                          html={article.excerptHtml}
                           class="line-clamp-4 overflow-hidden"
                         />
                       </a>
@@ -448,8 +449,8 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                       on:mouseout={() => props.setHover?.(false)}
                       class="px-4 pb-4"
                     >
-                      <div
-                        innerHTML={article.excerptHtml}
+                      <HtmlContent
+                        html={article.excerptHtml}
                         class="line-clamp-4 overflow-hidden"
                       />
                     </InternalLink>
@@ -457,9 +458,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 }
               >
                 {(summary) => (
-                  <a
+                  <HtmlContent
+                    as="a"
                     href={article.url ?? article.iri}
-                    innerHTML={summary}
+                    html={summary}
                     lang={article.language ?? undefined}
                     hreflang={article.language ?? undefined}
                     target="_blank"
@@ -472,10 +474,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             }
           >
             {(llmSummary) => (
-              <InternalLink
+              <HtmlContent
+                as={InternalLink}
                 href={article.contents?.[0]?.url ?? article.url ?? article.iri}
                 internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                innerHTML={llmSummary}
+                html={llmSummary}
                 lang={
                   article.contents?.[0]?.language ??
                   article.language ??

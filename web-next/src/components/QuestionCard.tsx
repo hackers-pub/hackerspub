@@ -31,6 +31,7 @@ import type { QuestionCardContent_question$key } from "./__generated__/QuestionC
 import type { QuestionCard_voteOnPoll_Mutation } from "./__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
@@ -257,9 +258,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                 privileged={q.actor.isViewer || viewer.moderator()}
               />
             </Show>
-            <div
+            <HtmlContent
               ref={setProseRef}
-              innerHTML={q.content}
+              html={q.content}
               lang={q.language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap"
             />
