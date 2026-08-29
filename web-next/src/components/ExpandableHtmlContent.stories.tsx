@@ -39,6 +39,18 @@ const longHtml = `
   blocks, and lists.</p>
 `;
 
+const marginalOverflowHtml = `
+  <p>Hackers' Pub을 사용하면서 불편한 점이나 버그, 기능 추가 제안 등을
+  제보하실 때는 개인적으로 연락하는 것도 괜찮지만, 공식 이슈 트래커에
+  이슈를 만들어 주시는 쪽이 좋습니다. 이슈는 영어가 아니어도 됩니다.</p>
+  <ul>
+    <li>서비스 전반, 서버, 웹 앱</li>
+    <li>Android 앱</li>
+    <li>iOS/iPadOS 앱</li>
+  </ul>
+  <p>감사합니다.</p>
+`;
+
 export const ShortContent: Story = {
   name: "Short content (no toggle)",
   args: {
@@ -50,5 +62,13 @@ export const LongContent: Story = {
   name: "Long content (collapsed)",
   args: {
     html: longHtml,
+  },
+};
+
+export const MarginalOverflow: Story = {
+  name: "Marginal overflow (no toggle)",
+  args: {
+    html: marginalOverflowHtml,
+    lang: "ko",
   },
 };
