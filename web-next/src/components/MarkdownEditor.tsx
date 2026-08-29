@@ -150,57 +150,55 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     </>
   );
 
-  if (props.showPreview === false) {
-    return <>{textarea()}</>;
-  }
-
   return (
-    <Tabs value={activeTab()} onChange={handleTabChange}>
-      <TabsList class="h-8 w-full p-0.5 mb-1">
-        <TabsTrigger value="write" class="flex-1 text-xs">
-          {t`Write`}
-        </TabsTrigger>
-        <TabsTrigger value="preview" class="flex-1 text-xs">
-          {t`Preview`}
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent
-        value="write"
-        class="mt-0 hidden data-[selected]:block"
-        forceMount
-      >
-        {textarea()}
-      </TabsContent>
-      <TabsContent value="preview" class="mt-0">
-        <Show
-          when={!previewLoading()}
-          fallback={
-            <div
-              class={`${minHeight()} flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input`}
-            >
-              {t`Rendering…`}
-            </div>
-          }
+    <Show when={props.showPreview !== false} fallback={<>{textarea()}</>}>
+      <Tabs value={activeTab()} onChange={handleTabChange}>
+        <TabsList class="h-8 w-full p-0.5 mb-1">
+          <TabsTrigger value="write" class="flex-1 text-xs">
+            {t`Write`}
+          </TabsTrigger>
+          <TabsTrigger value="preview" class="flex-1 text-xs">
+            {t`Preview`}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent
+          value="write"
+          class="mt-0 hidden data-[selected]:block"
+          forceMount
         >
+          {textarea()}
+        </TabsContent>
+        <TabsContent value="preview" class="mt-0">
           <Show
-            when={previewHtml()}
+            when={!previewLoading()}
             fallback={
               <div
                 class={`${minHeight()} flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input`}
               >
-                {previewError()
-                  ? t`Failed to render preview`
-                  : t`Nothing to preview`}
+                {t`Rendering…`}
               </div>
             }
           >
-            <div
-              innerHTML={previewHtml()}
-              class={`prose dark:prose-invert prose-sm ${minHeight()} max-w-none rounded-md border border-input px-3 py-2 text-sm`}
-            />
+            <Show
+              when={previewHtml()}
+              fallback={
+                <div
+                  class={`${minHeight()} flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input`}
+                >
+                  {previewError()
+                    ? t`Failed to render preview`
+                    : t`Nothing to preview`}
+                </div>
+              }
+            >
+              <div
+                innerHTML={previewHtml()}
+                class={`prose dark:prose-invert prose-sm ${minHeight()} max-w-none rounded-md border border-input px-3 py-2 text-sm`}
+              />
+            </Show>
           </Show>
-        </Show>
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+      </Tabs>
+    </Show>
   );
 }

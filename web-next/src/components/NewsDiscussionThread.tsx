@@ -210,6 +210,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   // row would lose the `rendered` claim anyway), so don't fetch its subtree
   // either.  Same synchronous check the row component makes before claiming.
   const ownId = post()?.id;
+  // eslint-disable-next-line solid/components-return-once -- Deduplication is an intentional one-time claim made before this component starts fetching.
   if (ownId != null && props.rendered.has(ownId)) return null;
 
   const [nodes, setNodes] = createSignal<SubtreeReplyNode[]>([]);
@@ -511,6 +512,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // unmount so a reload/refetch of the same post can re-claim it.
   const ownId = post()?.id;
   if (ownId != null) {
+    // eslint-disable-next-line solid/components-return-once -- Deduplication is an intentional one-time claim paired with cleanup on unmount.
     if (props.rendered.has(ownId)) return null;
     props.rendered.add(ownId);
     onCleanup(() => props.rendered.delete(ownId));

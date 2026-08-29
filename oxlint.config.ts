@@ -51,7 +51,7 @@ export default defineConfig({
         // Enable these recommended rules after the existing violations have
         // been migrated.  `mise run check` denies warnings, so even the
         // preset's warning-level rules must start from a clean baseline.
-        "solid/components-return-once": "off",
+        "solid/components-return-once": "warn",
         "solid/event-handlers": "warn",
         "solid/imports": "warn",
         "solid/jsx-no-duplicate-props": "error",

@@ -113,12 +113,26 @@ const invitationLinkRedeemMutation = graphql`
 
 export default function InvitationLinkPage() {
   const params = useParams();
+  const validId = () =>
+    UUID_PATTERN.test(params.id ?? "") ? params.id : undefined;
+
+  return (
+    <Show when={validId()} fallback={<NotFoundPage embedded />} keyed>
+      {(id) => (
+        <InvitationLinkPageContent
+          id={id}
+          handle={decodeRouteParam(params.handle!)}
+        />
+      )}
+    </Show>
+  );
+}
+
+function InvitationLinkPageContent(props: { id: string; handle: string }) {
   const { t, i18n } = useLingui();
-  if (!UUID_PATTERN.test(params.id!)) return <NotFoundPage embedded />;
   const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
-    () =>
-      loadInvitationLinkPageQuery(params.id!, decodeRouteParam(params.handle!)),
+    () => loadInvitationLinkPageQuery(props.id, props.handle),
   );
   const [email, setEmail] = createSignal("");
   const [locale, setLocale] = createSignal(i18n.locale);
@@ -149,7 +163,7 @@ export default function InvitationLinkPage() {
 
     redeemLink({
       variables: {
-        id: params.id! as UUID,
+        id: props.id as UUID,
         email: email(),
         locale: locale(),
         verifyUrl,

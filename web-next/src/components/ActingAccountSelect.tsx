@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { createMemo, For } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import {
   Avatar,
   AvatarFallback,
@@ -134,12 +134,15 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
 }
 
 function AccountOption(props: { option?: ComposeActingAccountOption }) {
-  if (props.option == null) return null;
   return (
-    <div class="flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden py-0.5">
-      <AccountAvatarStack accounts={props.option.accounts} size="md" />
-      <AccountOptionIdentity accounts={props.option.accounts} />
-    </div>
+    <Show when={props.option} keyed>
+      {(option) => (
+        <div class="flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden py-0.5">
+          <AccountAvatarStack accounts={option.accounts} size="md" />
+          <AccountOptionIdentity accounts={option.accounts} />
+        </div>
+      )}
+    </Show>
   );
 }
 

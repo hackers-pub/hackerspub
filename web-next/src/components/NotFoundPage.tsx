@@ -1,6 +1,7 @@
 import { Title } from "@solidjs/meta";
 import { A } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
+import { Match, Switch } from "solid-js";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
@@ -52,28 +53,27 @@ export function NotFoundPage(props: NotFoundPageProps) {
     </>
   );
 
-  if (props.fullscreen) {
-    return (
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-background px-6 py-16 text-foreground">
-        {content}
-      </div>
-    );
-  }
-
-  if (props.embedded) {
-    return (
-      <section class="min-h-svh flex items-center justify-center px-6 py-16 text-foreground">
-        {content}
-      </section>
-    );
-  }
-
   return (
-    <main
-      lang={new Intl.Locale(i18n.locale).minimize().baseName}
-      class="min-h-svh flex items-center justify-center bg-background text-foreground px-6 py-16"
+    <Switch
+      fallback={
+        <main
+          lang={new Intl.Locale(i18n.locale).minimize().baseName}
+          class="min-h-svh flex items-center justify-center bg-background text-foreground px-6 py-16"
+        >
+          {content}
+        </main>
+      }
     >
-      {content}
-    </main>
+      <Match when={props.fullscreen}>
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-background px-6 py-16 text-foreground">
+          {content}
+        </div>
+      </Match>
+      <Match when={props.embedded}>
+        <section class="min-h-svh flex items-center justify-center px-6 py-16 text-foreground">
+          {content}
+        </section>
+      </Match>
+    </Switch>
   );
 }

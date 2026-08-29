@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import type { JSX, ValidComponent } from "solid-js";
-import { Match, splitProps, Switch } from "solid-js";
+import { Match, Show, splitProps, Switch } from "solid-js";
 import { Portal } from "solid-js/web";
 
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
@@ -180,15 +180,16 @@ function ShowToastContent(props: {
     </>
   );
 
-  if (props.href == null) return content;
   return (
-    <A
-      href={props.href}
-      class="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      onClick={() => ToastPrimitive.toaster.dismiss(props.toastId)}
-    >
-      {content}
-    </A>
+    <Show when={props.href != null} fallback={content}>
+      <A
+        href={props.href!}
+        class="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        onClick={() => ToastPrimitive.toaster.dismiss(props.toastId)}
+      >
+        {content}
+      </A>
+    </Show>
   );
 }
 
