@@ -65,7 +65,7 @@ export default defineConfig({
         "solid/no-react-deps": "warn",
         "solid/no-react-specific-props": "warn",
         "solid/no-unknown-namespaces": "off",
-        "solid/prefer-for": "off",
+        "solid/prefer-for": "error",
         "solid/reactivity": "off",
         "solid/self-closing-comp": "warn",
         "solid/style-prop": "warn",

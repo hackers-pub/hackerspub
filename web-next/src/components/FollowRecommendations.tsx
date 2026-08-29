@@ -209,16 +209,18 @@ function Skeleton() {
       <div class="flex items-center justify-between border-b px-4 py-3">
         <div class="h-4 w-48 animate-pulse rounded bg-muted" />
       </div>
-      {[0, 1, 2].map((_i) => (
-        <div class="flex items-center gap-3 border-b px-4 py-3 last:border-none">
-          <div class="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
-          <div class="flex-1 space-y-1.5">
-            <div class="h-3.5 w-28 animate-pulse rounded bg-muted" />
-            <div class="h-3 w-20 animate-pulse rounded bg-muted" />
+      <For each={[0, 1, 2]}>
+        {() => (
+          <div class="flex items-center gap-3 border-b px-4 py-3 last:border-none">
+            <div class="size-10 shrink-0 animate-pulse rounded-full bg-muted" />
+            <div class="flex-1 space-y-1.5">
+              <div class="h-3.5 w-28 animate-pulse rounded bg-muted" />
+              <div class="h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
+            <div class="h-8 w-16 animate-pulse rounded bg-muted" />
           </div>
-          <div class="h-8 w-16 animate-pulse rounded bg-muted" />
-        </div>
-      ))}
+        )}
+      </For>
     </div>
   );
 }
