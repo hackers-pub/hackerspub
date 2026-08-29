@@ -4,13 +4,14 @@ import {
   createUniqueId,
   onCleanup,
   Show,
-  untrack,
 } from "solid-js";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
 // ~9 lines of plain text (x.com's "Show more" threshold).
 const DEFAULT_MAX_LINES = 9;
+// Expanding should reveal enough content to justify the extra control.
+const DEFAULT_MIN_HIDDEN_LINES = 4;
 
 export interface ExpandableHtmlContentProps {
   html: string;
@@ -19,40 +20,42 @@ export interface ExpandableHtmlContentProps {
   class?: string;
   /** Forwards the rendered content element, e.g. for link/mention handling. */
   contentRef?: (el: HTMLElement) => void;
-  /** Collapsed height, in lines, before a "Show more" toggle appears. */
+  /** Height retained when content is collapsed. */
   maxLines?: number;
 }
 
 /**
- * Renders trusted post HTML, collapsing it behind a "Show more" toggle once
- * its rendered height exceeds `maxLines`. The collapse height is applied
- * unconditionally via the CSS `lh` unit (so it always matches this
- * element's actual line height, however that's set, with no pixel value to
- * keep in sync by hand) so there is no flash of full-height content before
- * measurement; a `ResizeObserver` only decides whether the toggle itself
- * (and the fade) should be shown, by comparing the element's rendered
- * height against its full content height.
+ * Renders trusted post HTML, collapsing it behind a "Show more" toggle only
+ * when the hidden portion is large enough to make expanding worthwhile. The
+ * collapse height is applied before measurement via the CSS `lh` unit so long
+ * content does not flash at full height. After measurement, marginal overflow
+ * is unclamped and shown without a toggle.
  */
 export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   const { t } = useLingui();
   const contentId = createUniqueId();
   const [contentEl, setContentEl] = createSignal<HTMLElement>();
   const [expanded, setExpanded] = createSignal(false);
-  const [overflowing, setOverflowing] = createSignal(false);
+  const [collapsible, setCollapsible] = createSignal<boolean>();
   const maxLines = () => props.maxLines ?? DEFAULT_MAX_LINES;
+  // Keep the initial server/client render clamped until it can be measured.
+  const collapsed = () => collapsible() !== false && !expanded();
 
   createEffect(() => {
     const initialElement = contentEl();
     // Re-measure whenever the HTML changes, e.g. the note gets edited.
     void props.html;
     if (!initialElement) return;
-    // Only measure while collapsed: expanding removes the `max-height`
-    // clamp, so `clientHeight` grows to match `scrollHeight` and this
-    // would otherwise (wrongly) report no overflow, hiding the "Show
-    // less" toggle right after the user opens it.
     const measure = () => {
-      if (untrack(expanded)) return;
-      setOverflowing(initialElement.scrollHeight > initialElement.clientHeight);
+      const computedStyle = getComputedStyle(initialElement);
+      const computedLineHeight = Number.parseFloat(computedStyle.lineHeight);
+      const computedFontSize = Number.parseFloat(computedStyle.fontSize);
+      const lineHeight = Number.isFinite(computedLineHeight)
+        ? computedLineHeight
+        : computedFontSize * 1.2;
+      const collapseThreshold =
+        (maxLines() + DEFAULT_MIN_HIDDEN_LINES) * lineHeight;
+      setCollapsible(initialElement.scrollHeight > collapseThreshold);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -72,17 +75,17 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
           html={props.html}
           lang={props.lang}
           class={props.class}
-          classList={{ "overflow-hidden": !expanded() }}
-          style={expanded() ? undefined : { "max-height": `${maxLines()}lh` }}
+          classList={{ "overflow-hidden": collapsed() }}
+          style={collapsed() ? { "max-height": `${maxLines()}lh` } : undefined}
         />
-        <Show when={overflowing() && !expanded()}>
+        <Show when={collapsible() && !expanded()}>
           <div
             aria-hidden="true"
             class="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-background to-transparent"
           />
         </Show>
       </div>
-      <Show when={overflowing()}>
+      <Show when={collapsible()}>
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}

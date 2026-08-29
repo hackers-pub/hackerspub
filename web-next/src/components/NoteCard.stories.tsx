@@ -46,7 +46,11 @@ interface LinkPreviewArgs {
 // A single reusable `Actor` mock: every place the fragment tree reaches an
 // actor (post author, organization member, action-menu ownership check)
 // gets the same values, which keeps the payload below readable.
-function mockResolvers(content: string, link?: LinkPreviewArgs): MockResolvers {
+function mockResolvers(
+  content: string,
+  link?: LinkPreviewArgs,
+  language = "en",
+): MockResolvers {
   return {
     Node: () => ({ __typename: "Note" }),
     PostLink: () => ({
@@ -90,7 +94,7 @@ function mockResolvers(content: string, link?: LinkPreviewArgs): MockResolvers {
       viewerCanRevokeQuote: false,
       censored: false,
       content,
-      language: "en",
+      language,
       personalRawContent: null,
       rawContent: null,
       sensitive: false,
@@ -134,6 +138,7 @@ function mockResolvers(content: string, link?: LinkPreviewArgs): MockResolvers {
 function noteCardKey(
   content: string,
   link?: LinkPreviewArgs,
+  language?: string,
 ): {
   environment: Environment;
   note: NoteCard_note$key;
@@ -150,7 +155,7 @@ function noteCardKey(
   );
   const payload = MockPayloadGenerator.generate(
     operation,
-    mockResolvers(content, link),
+    mockResolvers(content, link, language),
   );
   if (payload.data == null) {
     throw new Error("MockPayloadGenerator produced no data");
@@ -167,12 +172,18 @@ interface NoteCardStoryArgs {
   content: string;
   /** When set, the note also carries a link preview (see `LinkPreview`). */
   link?: LinkPreviewArgs;
+  /** BCP 47 language tag for the mocked note content. */
+  language?: string;
 }
 
 const meta = {
   title: "Components/NoteCard",
   render: (args: NoteCardStoryArgs) => {
-    const { environment, note } = noteCardKey(args.content, args.link);
+    const { environment, note } = noteCardKey(
+      args.content,
+      args.link,
+      args.language,
+    );
     return (
       <RelayEnvironmentProvider environment={environment}>
         <div class="max-w-lg border-x">
@@ -206,9 +217,33 @@ const longHtml = `
   blocks, and lists.</p>
 `;
 
+// Mirrors the reported note's paragraph/list/short-closing structure. It
+// crosses the nine-line display height but does not hide enough content to
+// justify an expand/collapse control.
+const marginalNoteHtml = `
+  <p>Hackers' Pub을 사용하면서 불편한 점이나 버그, 기능 추가 제안 등을
+  제보하실 때는 개인적으로 연락하는 것도 괜찮지만, 공식 이슈 트래커에
+  이슈를 만들어 주시는 쪽이 좋습니다. 이슈는 꼭 영어로 작성할 필요는
+  없으니 한국어로도 편하게 올려주세요.</p>
+  <ul>
+    <li>서비스 전반, 서버, 웹 앱: hackers-pub/hackerspub</li>
+    <li>Android 앱: hackers-pub/android</li>
+    <li>iOS/iPadOS 앱: hackers-pub/ios</li>
+  </ul>
+  <p>감사합니다.</p>
+`;
+
 export const ShortNote: Story = {
   name: "Short note (no toggle)",
   args: { content: shortHtml },
+};
+
+export const MarginalNote: Story = {
+  name: "Marginal note (no toggle)",
+  args: {
+    content: marginalNoteHtml,
+    language: "ko",
+  },
 };
 
 export const LongNote: Story = {
