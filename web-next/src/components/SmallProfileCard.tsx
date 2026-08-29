@@ -92,7 +92,7 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 ref={setBioRef}
                 innerHTML={bio}
                 class="prose dark:prose-invert break-words"
-              ></div>
+              />
             )}
           </Show>
           <MentionHoverCardLayer state={mentionState} />

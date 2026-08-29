@@ -67,7 +67,7 @@ export default defineConfig({
         "solid/no-unknown-namespaces": "off",
         "solid/prefer-for": "off",
         "solid/reactivity": "off",
-        "solid/self-closing-comp": "off",
+        "solid/self-closing-comp": "warn",
         "solid/style-prop": "warn",
       },
     },

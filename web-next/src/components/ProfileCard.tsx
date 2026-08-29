@@ -343,7 +343,7 @@ export function ProfileCard(props: ProfileCardProps) {
                             <span class="text-muted-foreground mr-1">
                               {field.name}
                             </span>
-                            <span innerHTML={field.value}></span>
+                            <span innerHTML={field.value} />
                           </li>
                         )}
                       </For>

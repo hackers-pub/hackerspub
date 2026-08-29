@@ -32,7 +32,7 @@ export function LanguageList(props: LanguageListProps) {
           <TableHead class="shrink">{t`Language code`}</TableHead>
           <TableHead>{t`Language`}</TableHead>
           <TableHead>{t`Native name`}</TableHead>
-          <TableHead class="shrink"></TableHead>
+          <TableHead class="shrink" />
         </TableRow>
       </TableHeader>
       <TableBody>
