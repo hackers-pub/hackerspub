@@ -4,6 +4,7 @@ export default defineConfig({
   jsPlugins: [
     "@fedify/lint/oxlint",
     { name: "@logtape", specifier: "@logtape/lint/eslint" },
+    "eslint-plugin-solid",
     "./lint-plugins/keyed-show.ts",
     "./lint-plugins/no-deno-globals.ts",
     "./lint-plugins/no-load-query-in-router-query.ts",
@@ -44,6 +45,32 @@ export default defineConfig({
     "hackerspub-solid-relay/no-load-query-in-router-query": "error",
   },
   overrides: [
+    {
+      files: ["web-next/**/*.{ts,tsx}"],
+      rules: {
+        // Enable these recommended rules after the existing violations have
+        // been migrated.  `mise run check` denies warnings, so even the
+        // preset's warning-level rules must start from a clean baseline.
+        "solid/components-return-once": "off",
+        "solid/event-handlers": "warn",
+        "solid/imports": "warn",
+        "solid/jsx-no-duplicate-props": "error",
+        "solid/jsx-no-script-url": "error",
+        "solid/jsx-no-undef": ["error", { typescriptEnabled: true }],
+        "solid/jsx-uses-vars": "error",
+        "solid/no-destructure": "off",
+        // Audit the existing rich-text rendering sites separately before
+        // enabling this rule across web-next.
+        "solid/no-innerhtml": "off",
+        "solid/no-react-deps": "warn",
+        "solid/no-react-specific-props": "warn",
+        "solid/no-unknown-namespaces": "off",
+        "solid/prefer-for": "off",
+        "solid/reactivity": "off",
+        "solid/self-closing-comp": "off",
+        "solid/style-prop": "warn",
+      },
+    },
     {
       files: ["web-next/**/*.tsx"],
       rules: {
