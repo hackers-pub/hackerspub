@@ -9,6 +9,7 @@ import {
   Suspense,
 } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import {
   readBrowserLocalStorage,
@@ -170,8 +171,9 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
                     >
                       <div class="truncate font-medium text-foreground">
                         {actor.name != null ? (
-                          <span
-                            innerHTML={actor.name}
+                          <HtmlContent
+                            as="span"
+                            html={actor.name}
                             class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
                           />
                         ) : (

@@ -8,6 +8,7 @@ import {
   Show,
 } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import {
   Tabs,
   TabsContent,
@@ -191,8 +192,8 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
                 </div>
               }
             >
-              <div
-                innerHTML={previewHtml()}
+              <HtmlContent
+                html={previewHtml()}
                 class={`prose dark:prose-invert prose-sm ${minHeight()} max-w-none rounded-md border border-input px-3 py-2 text-sm`}
               />
             </Show>

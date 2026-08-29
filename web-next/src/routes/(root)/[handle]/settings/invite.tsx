@@ -11,6 +11,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { SettingsContainer } from "~/components/SettingsContainer.tsx";
@@ -668,9 +669,9 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
               <Show when={qrUrl()}>
                 {(url) => (
                   <div class="flex max-h-[95vh] max-w-[95vw] flex-col items-center gap-4 p-4">
-                    <div
+                    <HtmlContent
                       class="aspect-square max-h-[85vh] w-full max-w-[85vh] [&>svg]:h-full [&>svg]:w-full [&>svg]:invert"
-                      innerHTML={encodeQR(url(), "svg", { border: 4 })}
+                      html={encodeQR(url(), "svg", { border: 4 })}
                     />
                     <code class="max-w-full break-all text-center text-xs text-white/70">
                       {url()}
@@ -733,9 +734,9 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                        Relay field flips to null inside a `batch()` update. */}
                     <Show keyed when={link().messageHtml}>
                       {(html) => (
-                        <div
+                        <HtmlContent
                           class="prose dark:prose-invert prose-sm max-w-none truncate text-muted-foreground"
-                          innerHTML={html}
+                          html={html}
                         />
                       )}
                     </Show>

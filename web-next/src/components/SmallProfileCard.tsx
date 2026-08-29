@@ -9,6 +9,7 @@ import {
 import type { SmallProfileCard_actor$key } from "./__generated__/SmallProfileCard_actor.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { FollowButton } from "./FollowButton.tsx";
+import { HtmlContent } from "./HtmlContent.tsx";
 
 export interface SmallProfileCardProps {
   $actor: SmallProfileCard_actor$key;
@@ -65,11 +66,12 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                     </a>
                   }
                 >
-                  <a
+                  <HtmlContent
+                    as="a"
                     href={`/${
                       actor.local ? `@${actor.username}` : actor.handle
                     }`}
-                    innerHTML={actor.name ?? ""}
+                    html={actor.name ?? ""}
                     class="truncate text-lg font-semibold"
                   />
                 </Show>
@@ -88,9 +90,9 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
           </div>
           <Show keyed when={actor.bio}>
             {(bio) => (
-              <div
+              <HtmlContent
                 ref={setBioRef}
-                innerHTML={bio}
+                html={bio}
                 class="prose dark:prose-invert break-words"
               />
             )}

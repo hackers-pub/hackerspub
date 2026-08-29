@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import {
   Avatar,
@@ -56,10 +57,11 @@ export function LinkCreatorAttribution(props: LinkCreatorAttributionProps) {
           </Avatar>
           <div class="min-w-0 break-words">
             <Show when={(c.name ?? "").trim() !== ""}>
-              <InternalLink
+              <HtmlContent
+                as={InternalLink}
                 href={c.url ?? c.iri}
                 internalHref={internalHref(c)}
-                innerHTML={c.name ?? ""}
+                html={c.name ?? ""}
                 class="font-semibold hover:underline"
               />{" "}
             </Show>

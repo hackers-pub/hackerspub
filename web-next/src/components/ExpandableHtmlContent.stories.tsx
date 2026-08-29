@@ -42,13 +42,13 @@ const longHtml = `
 export const ShortContent: Story = {
   name: "Short content (no toggle)",
   args: {
-    innerHTML: shortHtml,
+    html: shortHtml,
   },
 };
 
 export const LongContent: Story = {
   name: "Long content (collapsed)",
   args: {
-    innerHTML: longHtml,
+    html: longHtml,
   },
 };

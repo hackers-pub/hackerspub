@@ -4,6 +4,7 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import IconFileText from "~icons/lucide/file-text";
 import IconUser from "~icons/lucide/user";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   Avatar,
@@ -173,7 +174,10 @@ export function ModerationCaseList(props: ModerationCaseListProps) {
                           when={(node.targetActor.name ?? "").trim() !== ""}
                           fallback={node.targetActor.username}
                         >
-                          <span innerHTML={node.targetActor.name ?? ""} />
+                          <HtmlContent
+                            as="span"
+                            html={node.targetActor.name ?? ""}
+                          />
                         </Show>
                       </span>
                     </div>

@@ -4,6 +4,7 @@ import { For, Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { ModerationSubTabs } from "~/components/admin/ModerationSubTabs.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { Title } from "~/components/Title.tsx";
 import {
   Avatar,
@@ -109,10 +110,11 @@ export default function ModerationSanctionedPage() {
                             </a>
                           }
                         >
-                          <a
+                          <HtmlContent
+                            as="a"
                             href={profileHref(actor)}
                             class="truncate font-medium hover:underline"
-                            innerHTML={actor.name ?? ""}
+                            html={actor.name ?? ""}
                           />
                         </Show>
                         <span

@@ -13,6 +13,7 @@ import IconArrowLeft from "~icons/lucide/arrow-left";
 import IconSparkles from "~icons/lucide/sparkles";
 import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { ModerationActionForm } from "~/components/admin/ModerationActionForm.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import {
@@ -228,10 +229,11 @@ export default function ModerationCaseDetailPage() {
                             </a>
                           }
                         >
-                          <a
+                          <HtmlContent
+                            as="a"
                             href={profileHref(flagCase.targetActor)}
                             class="truncate text-lg font-semibold hover:underline"
-                            innerHTML={flagCase.targetActor.name ?? ""}
+                            html={flagCase.targetActor.name ?? ""}
                           />
                         </Show>
                         <span class="truncate text-sm text-muted-foreground">
@@ -311,9 +313,9 @@ export default function ModerationCaseDetailPage() {
                                       <summary class="cursor-pointer text-muted-foreground">
                                         {t`Snapshot at report time`}
                                       </summary>
-                                      <div
+                                      <HtmlContent
                                         class="prose dark:prose-invert mt-2 max-w-none rounded-md border bg-muted/40 p-3"
-                                        innerHTML={snapshot.contentHtml}
+                                        html={snapshot.contentHtml}
                                       />
                                     </details>
                                   )}

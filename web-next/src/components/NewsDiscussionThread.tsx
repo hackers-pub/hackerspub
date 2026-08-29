@@ -15,6 +15,7 @@ import {
   untrack,
 } from "solid-js";
 import { createFragment, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
@@ -774,9 +775,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                 </div>
                 <Switch
                   fallback={
-                    <div
+                    <HtmlContent
                       ref={setProseRef}
-                      innerHTML={p.content}
+                      html={p.content}
                       lang={p.language ?? undefined}
                       class="prose dark:prose-invert mt-1 max-w-none break-words"
                     />
@@ -793,9 +794,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                           </h3>
                         )}
                       </Show>
-                      <div
+                      <HtmlContent
                         ref={setProseRef}
-                        innerHTML={p.excerptHtml}
+                        html={p.excerptHtml}
                         lang={p.language ?? undefined}
                         class="prose dark:prose-invert mt-1 line-clamp-4 max-w-none break-words text-sm text-muted-foreground"
                       />

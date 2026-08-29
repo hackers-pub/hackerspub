@@ -170,7 +170,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show when={contentVisible()}>
               <ExpandableHtmlContent
                 contentRef={setProseRef}
-                innerHTML={n.content}
+                html={n.content}
                 lang={n.language ?? undefined}
                 class="prose dark:prose-invert mt-1 break-words overflow-wrap"
               />

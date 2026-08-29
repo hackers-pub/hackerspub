@@ -13,6 +13,7 @@ test("QuestionCardContent intercepts backend-tagged content links", async () => 
   const questionContent = source.slice(contentStart, contentEnd);
 
   assertStringIncludes(questionContent, "ref={setProseRef}");
-  assertStringIncludes(questionContent, "innerHTML={q.content}");
+  assertStringIncludes(questionContent, "<HtmlContent");
+  assertStringIncludes(questionContent, "html={q.content}");
   assertStringIncludes(questionContent, "useContentLinkInterceptor(proseRef);");
 });

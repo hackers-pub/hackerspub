@@ -48,9 +48,6 @@ export default defineConfig({
     {
       files: ["web-next/**/*.{ts,tsx}"],
       rules: {
-        // Enable these recommended rules after the existing violations have
-        // been migrated.  `mise run check` denies warnings, so even the
-        // preset's warning-level rules must start from a clean baseline.
         "solid/components-return-once": "warn",
         "solid/event-handlers": "warn",
         "solid/imports": "warn",
@@ -59,9 +56,7 @@ export default defineConfig({
         "solid/jsx-no-undef": ["error", { typescriptEnabled: true }],
         "solid/jsx-uses-vars": "error",
         "solid/no-destructure": "error",
-        // Audit the existing rich-text rendering sites separately before
-        // enabling this rule across web-next.
-        "solid/no-innerhtml": "off",
+        "solid/no-innerhtml": "error",
         "solid/no-react-deps": "warn",
         "solid/no-react-specific-props": "warn",
         "solid/no-unknown-namespaces": "off",

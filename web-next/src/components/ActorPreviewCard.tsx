@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import {
   Avatar,
   AvatarFallback,
@@ -93,10 +94,11 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
                     </InternalLink>
                   }
                 >
-                  <InternalLink
+                  <HtmlContent
+                    as={InternalLink}
                     href={actorHref()}
                     internalHref={actorInternalHref()}
-                    innerHTML={a.name ?? ""}
+                    html={a.name ?? ""}
                     class="truncate font-semibold"
                   />
                 </Show>
@@ -113,8 +115,8 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
             </div>
             <Show when={(a.bio?.trim() ?? "") !== ""}>
               <div class="px-4 pb-3">
-                <div
-                  innerHTML={a.bio ?? ""}
+                <HtmlContent
+                  html={a.bio ?? ""}
                   class="prose prose-sm dark:prose-invert max-w-none break-words line-clamp-4"
                 />
               </div>

@@ -3,6 +3,7 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -322,9 +323,9 @@ function InvitationLinkPageContent(props: { id: string; handle: string }) {
                             {/* `keyed`: same race shape; messageHtml can flip to null. */}
                             <Show keyed when={link.messageHtml}>
                               {(html) => (
-                                <div
+                                <HtmlContent
                                   class="prose dark:prose-invert prose-sm max-w-none rounded-lg bg-muted p-3"
-                                  innerHTML={html}
+                                  html={html}
                                 />
                               )}
                             </Show>

@@ -23,6 +23,7 @@ import {
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
 import { ArticleViewTracker } from "~/components/ArticleViewTracker.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PermalinkThreadTree } from "~/components/PermalinkThread.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
@@ -502,11 +503,11 @@ function ArticleBody(props: ArticleBodyProps) {
                   when={!content()?.beingTranslated && content()?.content}
                 >
                   {(html) => (
-                    <div
+                    <HtmlContent
                       ref={setProseRef}
                       lang={content()?.language ?? undefined}
                       class="prose dark:prose-invert mt-4 text-xl leading-8"
-                      innerHTML={html}
+                      html={html}
                     />
                   )}
                 </Show>

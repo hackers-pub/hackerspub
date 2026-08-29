@@ -20,6 +20,7 @@ import {
   type PageEvent,
   StartServer,
 } from "@solidjs/start/server";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 
 // Read the Sentry DSN from the runtime environment, NOT at build time —
 // the Docker image is public, so a baked-in DSN would leak. The value
@@ -78,8 +79,8 @@ export default createHandler(
               <link rel="apple-touch-icon" href="/apple-icon-180.png" />
               <link rel="manifest" href="/manifest.json" />
               <meta name="theme-color" content="#000000" />
-              <script innerHTML={SENTRY_DSN_SCRIPT} />
-              <script innerHTML={PLAUSIBLE_SCRIPT} />
+              <HtmlContent as="script" html={SENTRY_DSN_SCRIPT} />
+              <HtmlContent as="script" html={PLAUSIBLE_SCRIPT} />
               {assets}
             </head>
             <body>

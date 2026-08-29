@@ -6,13 +6,14 @@ import {
   Show,
   untrack,
 } from "solid-js";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 
 // ~9 lines of plain text (x.com's "Show more" threshold).
 const DEFAULT_MAX_LINES = 9;
 
 export interface ExpandableHtmlContentProps {
-  innerHTML: string;
+  html: string;
   lang?: string;
   /** Classes for the element the HTML is rendered into (e.g. `prose` classes). */
   class?: string;
@@ -43,7 +44,7 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   createEffect(() => {
     const initialElement = contentEl();
     // Re-measure whenever the HTML changes, e.g. the note gets edited.
-    void props.innerHTML;
+    void props.html;
     if (!initialElement) return;
     // Only measure while collapsed: expanding removes the `max-height`
     // clamp, so `clientHeight` grows to match `scrollHeight` and this
@@ -62,13 +63,13 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
   return (
     <div>
       <div class="relative">
-        <div
+        <HtmlContent
           id={contentId}
           ref={(el) => {
             setContentEl(el);
             props.contentRef?.(el);
           }}
-          innerHTML={props.innerHTML}
+          html={props.html}
           lang={props.lang}
           class={props.class}
           classList={{ "overflow-hidden": !expanded() }}

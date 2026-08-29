@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -271,9 +272,9 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                     when={post.__typename === "Article"}
                     fallback={
                       <>
-                        <div
+                        <HtmlContent
                           ref={setProseRef}
-                          innerHTML={post.content}
+                          html={post.content}
                           lang={post.language ?? undefined}
                           class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
                         />
@@ -300,18 +301,19 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                             internalHref={getQuotedPostInternalHref(post)}
                             class="mt-3 block"
                           >
-                            <div
-                              innerHTML={post.excerptHtml}
+                            <HtmlContent
+                              html={post.excerptHtml}
                               class="line-clamp-4 overflow-hidden"
                             />
                           </InternalLink>
                         }
                       >
                         {(summary) => (
-                          <InternalLink
+                          <HtmlContent
+                            as={InternalLink}
                             href={post.url ?? post.iri}
                             internalHref={getQuotedPostInternalHref(post)}
-                            innerHTML={summary}
+                            html={summary}
                             data-llm-summary-label={t`Summarized by LLM`}
                             class="prose dark:prose-invert break-words overflow-wrap mt-3 block before:content-[attr(data-llm-summary-label)] before:mr-1 before:rounded-sm before:border before:bg-background before:p-1 before:text-sm before:text-muted-foreground"
                           />
