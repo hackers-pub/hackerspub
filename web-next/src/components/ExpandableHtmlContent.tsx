@@ -43,8 +43,10 @@ export function ExpandableHtmlContent(props: ExpandableHtmlContentProps) {
 
   createEffect(() => {
     const initialElement = contentEl();
-    // Re-measure whenever the HTML changes, e.g. the note gets edited.
+    // Re-measure whenever the HTML or language changes, e.g. the note gets
+    // edited or language-specific line breaking changes.
     void props.html;
+    void props.lang;
     if (!initialElement) return;
     const measure = () => {
       const computedStyle = getComputedStyle(initialElement);
