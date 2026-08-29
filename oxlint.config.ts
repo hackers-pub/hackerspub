@@ -58,7 +58,7 @@ export default defineConfig({
         "solid/jsx-no-script-url": "error",
         "solid/jsx-no-undef": ["error", { typescriptEnabled: true }],
         "solid/jsx-uses-vars": "error",
-        "solid/no-destructure": "off",
+        "solid/no-destructure": "error",
         // Audit the existing rich-text rendering sites separately before
         // enabling this rule across web-next.
         "solid/no-innerhtml": "off",

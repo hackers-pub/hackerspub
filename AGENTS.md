@@ -153,7 +153,8 @@ Code Style Guidelines
 
 ### Components
 
- -  Use functional components with props destructuring
+ -  Use functional components with a single `props` parameter.  Do not
+    destructure Solid props, because doing so breaks reactivity
  -  Tailwind CSS for styling
  -  Components in `web-next/src/components/`
  -  For visual decisions in `web-next/` (color tokens, typography, component
