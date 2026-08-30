@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { ActorHandle } from "~/components/ActorHandle.tsx";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";
 import { InternalLink } from "./InternalLink.tsx";
@@ -251,15 +252,10 @@ function AuthorIdentity(props: AuthorIdentityProps) {
           class={cn("min-w-0 truncate font-semibold", props.nameClass)}
         />
       </Show>
-      <span
-        class={cn(
-          "min-w-0 truncate select-all text-muted-foreground",
-          props.handleClass,
-        )}
-        title={props.actor.handle}
-      >
-        {props.actor.handle}
-      </span>
+      <ActorHandle
+        handle={props.actor.handle}
+        class={cn("min-w-0 truncate text-muted-foreground", props.handleClass)}
+      />
     </ActorHoverCard>
   );
 }

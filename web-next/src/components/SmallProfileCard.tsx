@@ -7,6 +7,7 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import type { SmallProfileCard_actor$key } from "./__generated__/SmallProfileCard_actor.graphql.ts";
+import { ActorHandle } from "./ActorHandle.tsx";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { FollowButton } from "./FollowButton.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";
@@ -76,12 +77,10 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                   />
                 </Show>
               </ActorHoverCard>
-              <span
-                class="truncate text-muted-foreground select-all"
-                title={actor.handle}
-              >
-                {actor.handle}
-              </span>
+              <ActorHandle
+                handle={actor.handle}
+                class="truncate text-muted-foreground"
+              />
             </div>
             <div class="flex shrink-0 items-center gap-1">
               <FollowButton $actor={actor} />

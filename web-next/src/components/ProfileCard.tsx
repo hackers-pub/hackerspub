@@ -29,6 +29,7 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
+import { ActorHandle } from "./ActorHandle.tsx";
 import type { ProfileCard_actor$key } from "./__generated__/ProfileCard_actor.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
 import { InternalLink } from "./InternalLink.tsx";
@@ -168,8 +169,8 @@ export function ProfileCard(props: ProfileCardProps) {
                     </AvatarFallback>
                   </a>
                 </Avatar>
-                <div class="flex-1">
-                  <h1 class="text-xl font-semibold">
+                <div class="min-w-0 flex-1">
+                  <h1 class="wrap-anywhere text-xl font-semibold">
                     <HtmlContent
                       as="a"
                       html={actor.name ?? actor.username}
@@ -183,7 +184,10 @@ export function ProfileCard(props: ProfileCardProps) {
                     />
                   </h1>
                   <div class="text-muted-foreground">
-                    <span class="select-all">{actor.handle}</span>
+                    <ActorHandle
+                      handle={actor.handle}
+                      class="block wrap-anywhere"
+                    />
                   </div>
                 </div>
                 <div class="flex shrink-0 items-center gap-1">
