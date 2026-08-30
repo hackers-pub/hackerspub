@@ -1091,6 +1091,7 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
   const { t } = useLingui();
   const activePath = useActivePath();
   const draftsHref = () => `/@${props.signedAccount!.username}/drafts`;
+  const draftHref = (uuid: string) => `${draftsHref()}/${uuid}`;
   const visibleDrafts = () =>
     props.signedAccount?.articleDrafts?.edges
       .filter((edge) => edge.node != null)
@@ -1120,8 +1121,8 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`${draftsHref()}/${edge.node.uuid}`}
-                  active={activePath(`${draftsHref()}/${edge.node.uuid}`)}
+                  href={draftHref(edge.node.uuid)}
+                  active={activePath(draftHref(edge.node.uuid))}
                 >
                   <span>{edge.node.title}</span>
                 </SidebarMenuButton>
@@ -1133,7 +1134,12 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
               <SidebarMenuButton
                 as={A}
                 href={draftsHref()}
-                active={activePath(draftsHref(), { exact: true })}
+                active={activePath(draftsHref(), {
+                  except: [
+                    draftHref("new"),
+                    ...visibleDrafts().map((edge) => draftHref(edge.node.uuid)),
+                  ],
+                })}
                 class="text-muted-foreground"
               >
                 {t`View all drafts →`}
