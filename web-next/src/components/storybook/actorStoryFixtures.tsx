@@ -79,6 +79,9 @@ export function actorMockResolvers(
       followers: { totalCount: 128 },
       mutualFollowers: { totalCount: 0, edges: [] },
     }),
+    ActorFolloweesConnection: () => ({ totalCount: 42, edges: [] }),
+    ActorFollowersConnection: () => ({ totalCount: 128, edges: [] }),
+    ActorMutualFollowersConnection: () => ({ totalCount: 0, edges: [] }),
     Note: () => ({
       id: "story-post",
       organizationAuthor: null,
