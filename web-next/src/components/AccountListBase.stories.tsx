@@ -1,8 +1,5 @@
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import {
-  AccountListBase,
-  type AccountListBaseProps,
-} from "./AccountListBase.tsx";
+import { AccountListBase } from "./AccountListBase.tsx";
 import {
   type ActorStoryArgs,
   actorAvatarDataUri,
@@ -12,7 +9,7 @@ import {
   StorySurface,
 } from "./storybook/actorStoryFixtures.tsx";
 
-interface AccountListStoryArgs extends ActorStoryArgs, AccountListBaseProps {}
+interface AccountListStoryArgs extends ActorStoryArgs {}
 
 function renderAccountList(args: AccountListStoryArgs) {
   return (
@@ -45,7 +42,6 @@ function renderAccountList(args: AccountListStoryArgs) {
 
 const meta = {
   title: "Components/AccountListBase",
-  component: AccountListBase,
   args: {
     handle: defaultActorHandle,
     name: defaultActorName,

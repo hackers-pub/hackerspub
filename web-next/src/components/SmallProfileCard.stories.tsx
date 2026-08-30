@@ -2,10 +2,7 @@ import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import type { SmallProfileCardStoriesQuery } from "./__generated__/SmallProfileCardStoriesQuery.graphql.ts";
-import {
-  SmallProfileCard,
-  type SmallProfileCardProps,
-} from "./SmallProfileCard.tsx";
+import { SmallProfileCard } from "./SmallProfileCard.tsx";
 import {
   type ActorStoryArgs,
   actorMockResolvers,
@@ -16,8 +13,7 @@ import {
   StorySurface,
 } from "./storybook/actorStoryFixtures.tsx";
 
-interface SmallProfileCardStoryArgs
-  extends ActorStoryArgs, SmallProfileCardProps {}
+interface SmallProfileCardStoryArgs extends ActorStoryArgs {}
 
 const SmallProfileCardStoriesQuery = graphql`
   query SmallProfileCardStoriesQuery($id: ID!, $actingAccountId: ID) {
@@ -50,7 +46,6 @@ function renderSmallProfileCard(args: SmallProfileCardStoryArgs) {
 
 const meta = {
   title: "Components/SmallProfileCard",
-  component: SmallProfileCard,
   args: {
     handle: defaultActorHandle,
     name: defaultActorName,

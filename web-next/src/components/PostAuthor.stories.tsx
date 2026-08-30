@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import type { PostAuthorStoriesQuery } from "./__generated__/PostAuthorStoriesQuery.graphql.ts";
-import { PostAuthorLine, type PostAuthorLineProps } from "./PostAuthor.tsx";
+import { PostAuthorLine } from "./PostAuthor.tsx";
 import {
   type ActorStoryArgs,
   actorMockResolvers,
@@ -13,7 +13,7 @@ import {
   StorySurface,
 } from "./storybook/actorStoryFixtures.tsx";
 
-interface PostAuthorStoryArgs extends ActorStoryArgs, PostAuthorLineProps {}
+interface PostAuthorStoryArgs extends ActorStoryArgs {}
 
 const PostAuthorStoriesQuery = graphql`
   query PostAuthorStoriesQuery($id: ID!) {
@@ -47,7 +47,6 @@ function renderPostAuthorLine(args: PostAuthorStoryArgs) {
 
 const meta = {
   title: "Components/PostAuthor",
-  component: PostAuthorLine,
   args: {
     handle: defaultActorHandle,
     name: defaultActorName,

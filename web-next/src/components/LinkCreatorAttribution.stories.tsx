@@ -2,10 +2,7 @@ import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import type { LinkCreatorAttributionStoriesQuery } from "./__generated__/LinkCreatorAttributionStoriesQuery.graphql.ts";
-import {
-  LinkCreatorAttribution,
-  type LinkCreatorAttributionProps,
-} from "./LinkCreatorAttribution.tsx";
+import { LinkCreatorAttribution } from "./LinkCreatorAttribution.tsx";
 import {
   type ActorStoryArgs,
   actorMockResolvers,
@@ -16,8 +13,7 @@ import {
   StorySurface,
 } from "./storybook/actorStoryFixtures.tsx";
 
-interface LinkCreatorAttributionStoryArgs
-  extends ActorStoryArgs, LinkCreatorAttributionProps {}
+interface LinkCreatorAttributionStoryArgs extends ActorStoryArgs {}
 
 const LinkCreatorAttributionStoriesQuery = graphql`
   query LinkCreatorAttributionStoriesQuery($id: ID!) {
@@ -51,7 +47,6 @@ function renderLinkCreatorAttribution(args: LinkCreatorAttributionStoryArgs) {
 
 const meta = {
   title: "Components/LinkCreatorAttribution",
-  component: LinkCreatorAttribution,
   args: {
     handle: defaultActorHandle,
     name: defaultActorName,

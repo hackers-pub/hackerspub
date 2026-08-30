@@ -1,10 +1,7 @@
 import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import {
-  ActorPreviewCard,
-  type ActorPreviewCardProps,
-} from "./ActorPreviewCard.tsx";
+import { ActorPreviewCard } from "./ActorPreviewCard.tsx";
 import type { ActorPreviewCardStoriesQuery } from "./__generated__/ActorPreviewCardStoriesQuery.graphql.ts";
 import {
   type ActorStoryArgs,
@@ -16,8 +13,7 @@ import {
   StorySurface,
 } from "./storybook/actorStoryFixtures.tsx";
 
-interface ActorPreviewCardStoryArgs
-  extends ActorStoryArgs, ActorPreviewCardProps {}
+interface ActorPreviewCardStoryArgs extends ActorStoryArgs {}
 
 const ActorPreviewCardStoriesQuery = graphql`
   query ActorPreviewCardStoriesQuery($id: ID!, $actingAccountId: ID) {
@@ -50,7 +46,6 @@ function renderActorPreviewCard(args: ActorPreviewCardStoryArgs) {
 
 const meta = {
   title: "Components/ActorPreviewCard",
-  component: ActorPreviewCard,
   args: {
     handle: defaultActorHandle,
     name: defaultActorName,
