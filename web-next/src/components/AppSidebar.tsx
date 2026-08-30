@@ -254,7 +254,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed"
-                  active={activePath("/feed", true)}
+                  active={activePath("/feed", { exact: true })}
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feed,
@@ -806,6 +806,8 @@ function AccountSection(props: AccountSectionProps) {
       ? actingAccount.selectedOrganization()?.organization
       : (actingAccount.personalAccount() ?? props.signedAccount);
   const activePath = useActivePath();
+  const inviteVisible = () =>
+    !organizationSelected() && (props.signedAccount?.invitationsLeft ?? 0) > 0;
 
   return (
     <SidebarGroup>
@@ -852,7 +854,7 @@ function AccountSection(props: AccountSectionProps) {
                   href={`/@${profileAccount()?.username ?? signedAccount.username}`}
                   active={activePath(
                     `/@${profileAccount()?.username ?? signedAccount.username}`,
-                    true,
+                    { exact: true },
                   )}
                 >
                   <AccountAvatar
@@ -889,11 +891,7 @@ function AccountSection(props: AccountSectionProps) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </Show>
-              <Show
-                when={
-                  !organizationSelected() && signedAccount.invitationsLeft > 0
-                }
-              >
+              <Show when={inviteVisible()}>
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
                     as={A}
@@ -929,6 +927,14 @@ function AccountSection(props: AccountSectionProps) {
                   href={`/@${settingsAccount()?.username ?? signedAccount.username}/settings`}
                   active={activePath(
                     `/@${settingsAccount()?.username ?? signedAccount.username}/settings`,
+                    {
+                      // Invite has an entry of its own whenever it is shown;
+                      // with no invitations left the page is still reachable,
+                      // and then Settings covers it.
+                      except: inviteVisible()
+                        ? [`/@${signedAccount.username}/settings/invite`]
+                        : [],
+                    },
                   )}
                 >
                   <svg
@@ -1127,7 +1133,7 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
               <SidebarMenuButton
                 as={A}
                 href={draftsHref()}
-                active={activePath(draftsHref(), true)}
+                active={activePath(draftsHref(), { exact: true })}
                 class="text-muted-foreground"
               >
                 {t`View all drafts →`}
