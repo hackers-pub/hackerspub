@@ -1,5 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
+import { postTable } from "@hackerspub/models/schema";
+import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
@@ -8,6 +10,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   insertRemoteActor,
+  insertRemotePost,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -252,6 +255,44 @@ test("searchObject resolves cached post URLs without federation lookup for signe
       },
     });
     assert.deepEqual(lookupCalls, []);
+  });
+});
+
+test("searchObject prefers a post whose IRI matches a colliding URL", async () => {
+  await withRollback(async (tx) => {
+    const remote = await insertRemoteActor(tx, {
+      username: "postcollision",
+      name: "Post Collision",
+      host: "post-collision.example",
+    });
+    const collidingPost = await insertRemotePost(tx, {
+      actorId: remote.id,
+      contentHtml: "<p>Human-facing URL collision</p>",
+    });
+    const canonicalPost = await insertRemotePost(tx, {
+      actorId: remote.id,
+      contentHtml: "<p>Canonical IRI match</p>",
+    });
+    await tx
+      .update(postTable)
+      .set({ url: canonicalPost.iri })
+      .where(eq(postTable.id, collidingPost.id));
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: { query: canonicalPost.iri },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: {
+        __typename: "SearchedObject",
+        url: `/${remote.handle}/${canonicalPost.id}`,
+      },
+    });
   });
 });
 

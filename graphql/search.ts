@@ -99,14 +99,26 @@ async function searchAsUrl(
     return { url: actorRedirectUrl(cachedActorByUrl) };
   }
 
-  const cachedPost = await ctx.db.query.postTable.findFirst({
+  // Keep the canonical IRI lookup independent from the nullable, non-unique
+  // human-facing URL lookup. This guarantees that `post_iri_unique` can serve
+  // the common canonical case instead of an OR forcing a scan of `post`.
+  const cachedPostByIri = await ctx.db.query.postTable.findFirst({
     where: {
-      OR: [{ iri: url }, { url }],
+      iri: url,
       sharedPostId: { isNull: true },
     },
   });
-  if (cachedPost != null) {
-    return postRedirect(ctx, cachedPost);
+  if (cachedPostByIri != null) {
+    return postRedirect(ctx, cachedPostByIri);
+  }
+  const cachedPostByUrl = await ctx.db.query.postTable.findFirst({
+    where: {
+      url,
+      sharedPostId: { isNull: true },
+    },
+  });
+  if (cachedPostByUrl != null) {
+    return postRedirect(ctx, cachedPostByUrl);
   }
 
   // Guests must not trigger federation lookups: they would let unauthenticated

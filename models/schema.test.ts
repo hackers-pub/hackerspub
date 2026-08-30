@@ -15,7 +15,7 @@ test("postTable indexes actor outbox pagination", () => {
   assert.ok(index.config.where);
 });
 
-test("postTable indexes link preview and news boost lookups", () => {
+test("postTable indexes URL and news boost lookups", () => {
   const indexes = getTableConfig(postTable).indexes;
 
   const linkUrlIndex = indexes.find(
@@ -27,6 +27,16 @@ test("postTable indexes link preview and news boost lookups", () => {
   assert.ok("name" in linkUrlIndex.config.columns[0]);
   assert.equal(linkUrlIndex.config.columns[0].name, "link_url");
   assert.ok(linkUrlIndex.config.where);
+
+  const urlIndex = indexes.find(
+    (index) => index.config.name === "idx_post_url_hash",
+  );
+  assert.ok(urlIndex);
+  assert.equal(urlIndex.config.method, "hash");
+  assert.equal(urlIndex.config.columns.length, 1);
+  assert.ok("name" in urlIndex.config.columns[0]);
+  assert.equal(urlIndex.config.columns[0].name, "url");
+  assert.ok(urlIndex.config.where);
 
   const newsBoostIndex = indexes.find(
     (index) => index.config.name === "idx_post_news_boost_updated",

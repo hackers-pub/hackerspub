@@ -1307,6 +1307,12 @@ export const postTable = pgTable(
     index("idx_post_link_url_hash")
       .using("hash", table.linkUrl)
       .where(isNotNull(table.linkUrl)),
+    // URL search only performs equality lookups. A hash index avoids the
+    // B-tree entry-size limit for unbounded remote URLs while keeping null
+    // rows out of the index.
+    index("idx_post_url_hash")
+      .using("hash", table.url)
+      .where(isNotNull(table.url)),
     index("idx_post_outbox_actor_id_id").on(table.actorId, desc(table.id))
       .where(sql`
         ${table.censored} IS NULL

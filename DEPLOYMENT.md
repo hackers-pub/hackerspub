@@ -81,7 +81,46 @@ Cutover
 
 3.  Pull the new image on the host.
 
-4.  Run database migrations once, from the new image, before starting any
+4.  A release that includes [#390] needs the `post.url` hash index before its
+    migration runs.  From a shell with the production `DATABASE_URL`, inspect
+    any index left by an earlier attempt:
+
+    ~~~~ sh
+    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+    SELECT i.indisready, i.indisvalid, pg_get_indexdef(i.indexrelid)
+    FROM pg_index AS i
+    JOIN pg_class AS c ON c.oid = i.indexrelid
+    WHERE i.indrelid = 'post'::regclass
+      AND c.relname = 'idx_post_url_hash';
+    SQL
+    ~~~~
+
+    An existing index is usable only when both flags are `t` and the definition
+    is a hash index on `post.url` with the `url IS NOT NULL` predicate.  If the
+    query returns no rows, create it in its own `psql` invocation:
+
+    ~~~~ sh
+    PGOPTIONS='-c statement_timeout=0' \
+      psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+    CREATE INDEX CONCURRENTLY idx_post_url_hash
+      ON post USING hash (url) WHERE url IS NOT NULL;
+    SQL
+    ~~~~
+
+    Do not wrap this command in a transaction.  If the inspection query finds
+    an index whose flags or definition do not match, remove it and repeat the
+    concurrent build:
+
+    ~~~~ sh
+    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+    DROP INDEX CONCURRENTLY idx_post_url_hash;
+    SQL
+    ~~~~
+
+    Run the inspection query again after the build.  Do not continue until it
+    reports the expected definition with both flags set to `t`.
+
+5.  Run database migrations once, from the new image, before starting any
     service on it:
 
     ~~~~ sh
@@ -91,12 +130,12 @@ Cutover
     Installations upgraded from the removed Fresh application also need
     `mise run migrate:media` once; it is safe to repeat and never overwrites.
 
-5.  Restart the roles in this order, waiting for each probe to pass before
+6.  Restart the roles in this order, waiting for each probe to pass before
     continuing: **worker → API → web UI.**  The worker first because it drains
     federation queues and is the only role that can be down without user-facing
     effect; the API before the web UI because the web UI proxies to it.
 
-6.  Run the post-deploy checks below.
+7.  Run the post-deploy checks below.
 
 The API and worker shut down gracefully on `SIGTERM`: the API stops accepting
 connections and drains in-flight requests, and the worker stops taking new
@@ -105,6 +144,8 @@ stop.  Give them time to exit rather than killing them, or in-flight federation
 work may be retried, and can be duplicated when a delivery completed before its
 acknowledgement was recorded.  See [*FEDERATION.md*](./FEDERATION.md) for the
 delivery guarantees this preserves.
+
+[#390]: https://github.com/hackers-pub/hackerspub/issues/390
 
 
 Post-deploy checks
@@ -146,6 +187,11 @@ Rollback
 
 Roll back by redeploying the previously recorded image tag, in the same
 worker → API → web UI order, then rerunning the post-deploy checks.
+
+The `idx_post_url_hash` index added for [#390] is additive and can remain in
+place during an image rollback.  If its concurrent build fails before cutover,
+drop the invalid index with the command above and retry it; do not start the
+new image while the index is invalid.
 
 > [!CAUTION]
 > Rollback is image-level only.  There is no second runtime to fall back to,
