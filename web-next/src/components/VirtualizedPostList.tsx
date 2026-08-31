@@ -22,6 +22,8 @@ import {
   measureVirtualListItemAfterMount,
   shouldResetVirtualListMeasurements,
   virtualListFooterVisible,
+  virtualListGapAfter,
+  virtualListGapBefore,
   virtualListRowHasBottomBorder,
 } from "~/lib/virtualList.ts";
 
@@ -89,6 +91,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
       };
     },
   });
+  const virtualItems = () => virtualizer.getVirtualItems();
 
   const footerVisible = () =>
     virtualListFooterVisible(
@@ -156,22 +159,28 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
         updateScrollMargin();
       });
     };
-    const resizeObserver =
-      typeof ResizeObserver === "undefined"
+    const mutationObserver =
+      typeof MutationObserver === "undefined"
         ? undefined
-        : new ResizeObserver(scheduleScrollMarginUpdate);
-    if (listElement != null) {
-      resizeObserver?.observe(listElement);
-    }
+        : new MutationObserver(scheduleScrollMarginUpdate);
+    // Do not ResizeObserve the list, its parent, or the document body. Row
+    // measurements change all three sizes, which feeds back into another
+    // observer delivery and can defer layout updates. Direct sibling changes
+    // cover the new-post banner/footer cases that can move the list itself.
     if (listElement?.parentElement != null) {
-      resizeObserver?.observe(listElement.parentElement);
+      mutationObserver?.observe(listElement.parentElement, { childList: true });
     }
-    resizeObserver?.observe(document.body);
     window.addEventListener("resize", scheduleScrollMarginUpdate);
+    window.addEventListener("scroll", scheduleScrollMarginUpdate, {
+      passive: true,
+    });
+    document.addEventListener("load", scheduleScrollMarginUpdate, true);
 
     onCleanup(() => {
-      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
       window.removeEventListener("resize", scheduleScrollMarginUpdate);
+      window.removeEventListener("scroll", scheduleScrollMarginUpdate);
+      document.removeEventListener("load", scheduleScrollMarginUpdate, true);
       if (frame != null) window.cancelAnimationFrame(frame);
       if (activationFrame != null) {
         window.cancelAnimationFrame(activationFrame);
@@ -247,8 +256,6 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
       <div
         ref={(element) => (listElement = element)}
         style={{
-          height: active() ? `${virtualizer.getTotalSize()}px` : undefined,
-          position: active() ? "relative" : undefined,
           "overflow-anchor": active() ? "none" : undefined,
         }}
       >
@@ -277,13 +284,11 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
           }
         >
           {/* The Solid adapter reconciles virtual items by index. Key the DOM
-              by the post instead so prepends move each row together with its
-              ResizeObserver registration. */}
-          <Key
-            each={virtualizer.getVirtualItems()}
-            by={(virtualItem) => virtualItem.key}
-          >
-            {(virtualItem) => {
+              by the post so prepends preserve its ResizeObserver, and keep
+              mounted rows in normal flow so height changes move later rows
+              immediately. Spacers represent only the unmounted ranges. */}
+          <Key each={virtualItems()} by={(virtualItem) => virtualItem.key}>
+            {(virtualItem, position) => {
               let cancelMeasurement: (() => void) | undefined;
               onCleanup(() => cancelMeasurement?.());
               const item = () => props.items[virtualItem().index];
@@ -292,40 +297,57 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
                 return value == null ? undefined : props.getItemKey(value);
               };
               return (
-                <Show when={item()}>
-                  {(item) => (
-                    <div
-                      data-index={virtualItem().index}
-                      data-virtual-post-index={virtualItem().index}
-                      ref={(element) => {
-                        cancelMeasurement?.();
-                        const itemKey = key();
-                        if (itemKey == null) return;
-                        cancelMeasurement = measureVirtualItem(
-                          element,
-                          virtualItem().index,
-                          itemKey,
-                        );
-                      }}
-                      onFocusIn={() => setFocusedKey(key())}
-                      onFocusOut={onRowFocusOut}
-                      class="absolute top-0 left-0 w-full [&>article]:border-b-0"
-                      classList={{
-                        "border-b": rowHasBottomBorder(virtualItem().index),
-                      }}
-                      style={{
-                        transform: `translateY(${
-                          virtualItem().start - virtualizer.options.scrollMargin
-                        }px)`,
-                      }}
-                    >
-                      {props.renderItem(item())}
-                    </div>
-                  )}
-                </Show>
+                <>
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      height: `${virtualListGapBefore(
+                        virtualItems(),
+                        position(),
+                        scrollMargin(),
+                      )}px`,
+                    }}
+                  />
+                  <Show when={item()}>
+                    {(item) => (
+                      <div
+                        data-index={virtualItem().index}
+                        data-virtual-post-index={virtualItem().index}
+                        ref={(element) => {
+                          cancelMeasurement?.();
+                          const itemKey = key();
+                          if (itemKey == null) return;
+                          cancelMeasurement = measureVirtualItem(
+                            element,
+                            virtualItem().index,
+                            itemKey,
+                          );
+                        }}
+                        onFocusIn={() => setFocusedKey(key())}
+                        onFocusOut={onRowFocusOut}
+                        class="w-full [&>article]:border-b-0"
+                        classList={{
+                          "border-b": rowHasBottomBorder(virtualItem().index),
+                        }}
+                      >
+                        {props.renderItem(item())}
+                      </div>
+                    )}
+                  </Show>
+                </>
               );
             }}
           </Key>
+          <div
+            aria-hidden="true"
+            style={{
+              height: `${virtualListGapAfter(
+                virtualItems(),
+                virtualizer.getTotalSize(),
+                scrollMargin(),
+              )}px`,
+            }}
+          />
         </Show>
       </div>
       <Show when={footerVisible()}>{props.renderFooter?.()}</Show>

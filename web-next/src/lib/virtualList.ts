@@ -41,6 +41,36 @@ export function virtualListRowHasBottomBorder(
   return index < borderEndIndex || footerVisible;
 }
 
+export interface VirtualListItemBounds {
+  start: number;
+  end: number;
+}
+
+export function virtualListGapBefore(
+  items: readonly VirtualListItemBounds[],
+  position: number,
+  scrollMargin: number,
+): number {
+  const item = items[position];
+  if (item == null) return 0;
+  const previous = items[position - 1];
+  return Math.max(
+    0,
+    previous == null ? item.start - scrollMargin : item.start - previous.end,
+  );
+}
+
+export function virtualListGapAfter(
+  items: readonly VirtualListItemBounds[],
+  totalSize: number,
+  scrollMargin: number,
+): number {
+  const last = items.at(-1);
+  return last == null
+    ? Math.max(0, totalSize)
+    : Math.max(0, totalSize - (last.end - scrollMargin));
+}
+
 export function measureVirtualListItem<T extends HTMLElement>(
   element: T,
   index: number,

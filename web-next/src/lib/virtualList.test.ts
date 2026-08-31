@@ -6,6 +6,8 @@ import {
   measureVirtualListItemAfterMount,
   shouldResetVirtualListMeasurements,
   virtualListFooterVisible,
+  virtualListGapAfter,
+  virtualListGapBefore,
   virtualListRowHasBottomBorder,
 } from "./virtualList.ts";
 
@@ -59,6 +61,32 @@ test("virtual list footer and borders match the rendered range", () => {
   assert.equal(virtualListRowHasBottomBorder(2, 20, 3, false, true), false);
   assert.equal(virtualListRowHasBottomBorder(19, 20, 3, true, false), false);
   assert.equal(virtualListRowHasBottomBorder(19, 20, 3, true, true), true);
+});
+
+test("virtual list gaps preserve unrendered space around flow rows", () => {
+  const items = [
+    { start: 1_100, end: 1_300 },
+    { start: 1_300, end: 1_550 },
+    { start: 2_050, end: 2_350 },
+  ];
+
+  assert.equal(virtualListGapBefore(items, 0, 100), 1_000);
+  assert.equal(virtualListGapBefore(items, 1, 100), 0);
+  assert.equal(virtualListGapBefore(items, 2, 100), 500);
+  assert.equal(virtualListGapAfter(items, 2_700, 100), 450);
+});
+
+test("virtual list gaps clamp stale negative measurements", () => {
+  const items = [
+    { start: 80, end: 300 },
+    { start: 280, end: 500 },
+  ];
+
+  assert.equal(virtualListGapBefore(items, 0, 100), 0);
+  assert.equal(virtualListGapBefore(items, 1, 100), 0);
+  assert.equal(virtualListGapBefore(items, 2, 100), 0);
+  assert.equal(virtualListGapAfter(items, 350, 100), 0);
+  assert.equal(virtualListGapAfter([], 350, 100), 350);
 });
 
 test("measureVirtualListItem() exposes the index before measuring a connected row", () => {
