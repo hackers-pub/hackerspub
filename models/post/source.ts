@@ -273,9 +273,15 @@ export async function syncPostFromNoteSource(
     existingPost != null && existingPost.quotedPostId === quoteTargetId
       ? existingPost.quoteAuthorizationIri
       : null;
+  // FEP-044f interaction policies are advisory, not proof of approval.  A
+  // remote author must issue the QuoteAuthorization even when its policy says
+  // the request will be accepted automatically.  Local automatic approvals
+  // can mint the authorization directly below, while self-quotes need none.
   const quoteRequestRequired =
     quotedPost != null &&
-    !canActorQuotePost(quotedPost, actor) &&
+    quotedPost.actorId !== actor.id &&
+    (quotedPost.actor.accountId == null ||
+      !canActorQuotePost(quotedPost, actor)) &&
     existingQuoteAuthorizationIri == null;
   const quotedPostId =
     !hasQuotedPostRelation && existingPost != null

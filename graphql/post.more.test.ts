@@ -3421,7 +3421,7 @@ test("createNote stores QuoteRequest for local manual-approval quotes", async ()
   });
 });
 
-test("createNote does not send QuoteRequest for automatic remote quotes", async () => {
+test("createNote requests authorization for automatic remote quotes", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {
       username: "quoteautomaticremote",
@@ -3437,7 +3437,6 @@ test("createNote does not send QuoteRequest for automatic remote quotes", async 
       actorId: remoteActor.id,
       contentHtml: "<p>Automatic quote allowed</p>",
       quotePolicy: "everyone",
-      quoteRequestPolicy: "everyone",
     });
     const sent: unknown[][] = [];
 
@@ -3470,11 +3469,37 @@ test("createNote does not send QuoteRequest for automatic remote quotes", async 
     const request = sent
       .map((args) => args[2])
       .find((activity) => activity instanceof QuoteRequest);
-    assert.equal(request, undefined);
+    assert.ok(request instanceof QuoteRequest);
+    assert.equal(request.objectId?.href, remotePost.iri);
+    const fedCtx = createFedCtx(tx);
+    const instrument = await request.getInstrument({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(instrument instanceof ActivityPubNote);
+    assert.equal(instrument.quoteId?.href, remotePost.iri);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    const createdObject = await create.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(createdObject instanceof ActivityPubNote);
+    assert.equal(createdObject.quoteId, null);
+    assert.equal(createdObject.quoteAuthorizationId, null);
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: { quotedPostId: remotePost.id },
     });
-    assert.equal(storedRequest, undefined);
+    assert.ok(storedRequest != null);
+    const createdQuote = await tx.query.postTable.findFirst({
+      where: { actorId: quoter.actor.id },
+    });
+    assert.ok(createdQuote != null);
+    assert.equal(createdQuote.quotedPostId, null);
+    assert.equal(createdQuote.quoteAuthorizationIri, null);
+    assert.equal(createdQuote.quoteTargetState, "pending");
   });
 });
 
