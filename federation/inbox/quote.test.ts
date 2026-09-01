@@ -784,6 +784,10 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
         content: "Quoting after manual approval #Fediverse",
         quotedPostId: quotedPost.id,
       });
+      await tx
+        .update(postTable)
+        .set({ quotesCount: 1 })
+        .where(eq(postTable.id, quotedPost.id));
       assert.ok(quote.noteSourceId != null);
       await tx
         .update(postTable)
@@ -828,6 +832,10 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
       });
       assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
       assert.equal(updatedQuote?.quoteTargetState, null);
+      const unchangedQuotedPost = await tx.query.postTable.findFirst({
+        where: { id: quotedPost.id },
+      });
+      assert.equal(unchangedQuotedPost?.quotesCount, 1);
       const updatedNoteSource = await tx.query.noteSourceTable.findFirst({
         where: { id: quote.noteSourceId },
       });
