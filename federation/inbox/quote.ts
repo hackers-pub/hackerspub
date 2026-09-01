@@ -380,6 +380,15 @@ export async function onQuoteRequestAccepted(
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
+  if (
+    quoteRequestIri != null &&
+    (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
+  ) {
+    logger.info("Ignoring acceptance of superseded quote request: {iri}", {
+      iri: quoteRequestIri,
+    });
+    return true;
+  }
   let storedRequest =
     quoteRequestIri == null
       ? undefined
@@ -394,6 +403,15 @@ export async function onQuoteRequestAccepted(
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
+    if (
+      quoteRequestIri != null &&
+      (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
+    ) {
+      logger.info("Ignoring acceptance of superseded quote request: {iri}", {
+        iri: quoteRequestIri,
+      });
+      return true;
+    }
     storedRequest =
       quoteRequestIri == null
         ? undefined
@@ -565,6 +583,28 @@ async function getQuoteRequestForIri(
   };
 }
 
+async function quoteRequestWasSuperseded(
+  fedCtx: InboxContext<ContextData>,
+  quoteRequestIri: string,
+): Promise<boolean> {
+  const request = await fedCtx.data.db.query.quoteRequestTable.findFirst({
+    columns: { quotePostId: true, superseded: true },
+    where: { iri: quoteRequestIri },
+  });
+  if (request == null || request.superseded != null) {
+    return request?.superseded != null;
+  }
+  await fedCtx.data.db.execute(sql`SELECT ${postTable.id}
+    FROM ${postTable}
+    WHERE ${postTable.id} = ${request.quotePostId}
+    FOR UPDATE`);
+  const lockedRequest = await fedCtx.data.db.query.quoteRequestTable.findFirst({
+    columns: { superseded: true },
+    where: { iri: quoteRequestIri },
+  });
+  return lockedRequest?.superseded != null;
+}
+
 async function sendQuoteUpdate(
   fedCtx: InboxContext<ContextData>,
   quote: QuoteWithRelations,
@@ -666,6 +706,15 @@ export async function onQuoteRequestRejected(
 ): Promise<boolean> {
   if (reject.actorId == null) return false;
   let quoteRequestIri = reject.objectId?.href;
+  if (
+    quoteRequestIri != null &&
+    (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
+  ) {
+    logger.info("Ignoring rejection of superseded quote request: {iri}", {
+      iri: quoteRequestIri,
+    });
+    return true;
+  }
   let storedRequest =
     quoteRequestIri == null
       ? undefined
@@ -681,6 +730,15 @@ export async function onQuoteRequestRejected(
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
+    if (
+      quoteRequestIri != null &&
+      (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
+    ) {
+      logger.info("Ignoring rejection of superseded quote request: {iri}", {
+        iri: quoteRequestIri,
+      });
+      return true;
+    }
     requestTargetIri = request.objectId?.href;
     storedRequest =
       quoteRequestIri == null

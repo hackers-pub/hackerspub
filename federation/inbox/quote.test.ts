@@ -1010,6 +1010,121 @@ test("onQuoteRequestAccepted resolves referenced quote request IDs", async () =>
   });
 });
 
+test("quote request responses ignore superseded requests", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotesupersededremote",
+      name: "Superseded Quote Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Superseded request target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotesupersededlocal",
+      name: "Superseded Quote Local",
+      email: "quotesupersededlocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote with a replaced request",
+      quotedPostId: quotedPost.id,
+    });
+    const requestIri = new URL("#quote-request/old", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+      superseded: new Date(),
+    });
+    const authorizationIri =
+      "https://remote.example/quote-authorization/superseded";
+    const authorization = new QuoteAuthorization({
+      id: new URL(authorizationIri),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const accept = new Accept({
+      id: new URL("https://remote.example/quote-requests/old#accept"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+      result: authorization,
+    });
+    const reject = new Reject({
+      id: new URL("https://remote.example/quote-requests/old#reject"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+    assert.equal(await onQuoteRequestRejected(fedCtx, reject), true);
+
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, quotedPost.id);
+    assert.equal(storedQuote?.quoteAuthorizationIri, null);
+    assert.equal(storedQuote?.quoteTargetState, null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: requestIri },
+    });
+    assert.equal(storedRequest?.accepted, null);
+    assert.equal(storedRequest?.rejected, null);
+    assert.equal(sent.length, 0);
+  });
+});
+
+test("quote request responses recheck supersession after locking", async () => {
+  const quotePostId = generateUuidV7();
+  const requestIri = "http://localhost/objects/quote#quote-request/old";
+  let lookups = 0;
+  let locks = 0;
+  const fedCtx = {
+    data: {
+      db: {
+        execute() {
+          locks++;
+          return Promise.resolve();
+        },
+        query: {
+          quoteRequestTable: {
+            findFirst() {
+              lookups++;
+              return Promise.resolve(
+                lookups === 1
+                  ? { quotePostId, superseded: null }
+                  : { superseded: new Date() },
+              );
+            },
+          },
+        },
+      },
+    },
+  } as unknown as InboxContext<ContextData>;
+  const accept = new Accept({
+    actor: new URL("https://remote.example/users/quoted"),
+    object: new URL(requestIri),
+    result: new URL("https://remote.example/quote-authorizations/old"),
+  });
+
+  assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+  assert.equal(locks, 1);
+  assert.equal(lookups, 2);
+});
+
 test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {

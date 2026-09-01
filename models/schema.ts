@@ -1540,6 +1540,8 @@ export const quoteRequestTable = pgTable(
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
     accepted: timestamp({ withTimezone: true }),
     rejected: timestamp({ withTimezone: true }),
+    objectUpdated: boolean("object_updated").notNull().default(true),
+    superseded: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

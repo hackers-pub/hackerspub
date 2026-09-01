@@ -3,6 +3,7 @@
   "type": "module",
   "dependencies": {
     "@fedify/fedify": "catalog:",
+    "@hackerspub/federation": "workspace:*",
     "@hackerspub/models": "workspace:*",
     "@hackerspub/runtime": "workspace:*",
     "@logtape/logtape": "catalog:",
@@ -15,7 +16,6 @@
     "@fedify/lint": "catalog:",
     "@fedify/vocab": "catalog:",
     "@hackerspub/ai": "workspace:*",
-    "@hackerspub/federation": "workspace:*",
     "@logtape/lint": "catalog:",
     "@std/assert": "catalog:",
     "@types/d3": "catalog:",

@@ -246,6 +246,26 @@ test("root package manifest declares operational and test imports", async () => 
   );
 });
 
+test("quote authorization repair dependencies are installed in production", async () => {
+  const manifest = await readJson<PackageManifest>(
+    new URL("package.json", repositoryRoot),
+  );
+  const productionDependencies = new Set(
+    Object.keys(manifest.dependencies ?? {}),
+  );
+  const imports = await getDirectImports(
+    [new URL("scripts/rerequest-quote-authorization.ts", repositoryRoot)],
+    repositoryRoot,
+    [],
+  );
+  assert.deepEqual(
+    imports.filter((packageName) => !productionDependencies.has(packageName)),
+    [],
+    "The quote authorization repair task has imports missing from the " +
+      "production dependency layer",
+  );
+});
+
 test("core packages declare a version", async () => {
   for (const directory of corePackageDirectories) {
     const manifest = await readJson<PackageManifest>(

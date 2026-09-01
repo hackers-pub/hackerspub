@@ -4,6 +4,7 @@ import {
   Note as ActivityPubNote,
   Question as ActivityPubQuestion,
   QuoteRequest,
+  Update,
 } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
 import type { ApplicationContext } from "./context.ts";
@@ -18,6 +19,7 @@ import {
   pollOptionTable,
   pollTable,
   postTable,
+  quoteRequestTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -89,9 +91,23 @@ test("rerequestQuoteAuthorization() requests approval for a legacy remote quote"
     });
     assert.equal(storedRequest?.quotedPostId, target.id);
     assert.equal(storedRequest?.iri, result.requestIri);
-    const request = sent
-      .map((args) => args[2])
-      .find((activity) => activity instanceof QuoteRequest);
+    assert.equal(storedRequest?.objectUpdated, true);
+    assert.equal(storedRequest?.superseded, null);
+    assert.equal(sent.length, 2);
+    const update = sent[0][2];
+    assert.ok(update instanceof Update);
+    const updatedObject = await update.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(updatedObject instanceof ActivityPubNote);
+    assert.equal(updatedObject.id?.href, quote.iri);
+    assert.equal(updatedObject.quoteId?.href, target.iri);
+    assert.equal(
+      update.ccIds.some((id) => id.href === remoteActor.iri),
+      true,
+    );
+    const request = sent[1][2];
     assert.ok(request instanceof QuoteRequest);
     assert.equal(request.objectId?.href, target.iri);
     assert.equal(
@@ -117,7 +133,159 @@ test("rerequestQuoteAuthorization() requests approval for a legacy remote quote"
       postIri: quote.iri,
       reason: "already-pending",
     });
-    assert.equal(sent.length, 1);
+    assert.equal(sent.length, 2);
+  });
+});
+
+test("rerequestQuoteAuthorization() replaces legacy pending requests once", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pendingquoteauthor",
+      name: "Pending Quote Author",
+      email: "pendingquoteauthor@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "pendingquotetarget",
+      name: "Pending Quote Target",
+      host: "remote.example",
+    });
+    const target = await insertRemotePost(tx, { actorId: remoteActor.id });
+    const { post: quote } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Legacy pending quote request",
+      quotedPostId: target.id,
+    });
+    const legacyRequestIri = new URL("#quote-request/legacy", quote.iri).href;
+    await tx
+      .update(postTable)
+      .set({ quotedPostId: null, quoteTargetState: "pending" })
+      .where(eq(postTable.id, quote.id));
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: legacyRequestIri,
+      quotePostId: quote.id,
+      quotedPostId: target.id,
+      objectUpdated: false,
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as ApplicationContext<Transaction>;
+
+    assert.equal(
+      (await findQuoteAuthorizationRerequestPostIds(tx)).includes(quote.id),
+      true,
+    );
+    const dryRun = await rerequestQuoteAuthorization(fedCtx, quote.id, {
+      dryRun: true,
+    });
+    assert.equal(dryRun.status, "eligible");
+    const unchangedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: legacyRequestIri },
+    });
+    assert.equal(unchangedRequest?.superseded, null);
+    assert.equal(sent.length, 0);
+
+    const result = await rerequestQuoteAuthorization(fedCtx, quote.id);
+    assert.ok(result.status === "requested");
+    const detachedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(detachedQuote?.quotedPostId, null);
+    assert.equal(detachedQuote?.quoteTargetState, "pending");
+    const legacyRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: legacyRequestIri },
+    });
+    assert.ok(legacyRequest?.superseded != null);
+    const currentRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: result.requestIri },
+    });
+    assert.equal(currentRequest?.objectUpdated, true);
+    assert.equal(currentRequest?.superseded, null);
+    assert.ok(sent[0][2] instanceof Update);
+    assert.ok(sent[1][2] instanceof QuoteRequest);
+    assert.equal(
+      (await findQuoteAuthorizationRerequestPostIds(tx)).includes(quote.id),
+      false,
+    );
+
+    const repeated = await rerequestQuoteAuthorization(fedCtx, quote.id);
+    assert.equal(
+      repeated.status === "skipped" && repeated.reason,
+      "already-pending",
+    );
+    assert.equal(sent.length, 2);
+  });
+});
+
+test("rerequestQuoteAuthorization() skips ambiguous detached targets", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "ambiguousquoteauthor",
+      name: "Ambiguous Quote Author",
+      email: "ambiguousquoteauthor@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "ambiguousquotetarget",
+      name: "Ambiguous Quote Target",
+      host: "remote.example",
+    });
+    const firstTarget = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>First target</p>",
+    });
+    const secondTarget = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Second target</p>",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Detached quote with conflicting requests",
+      quotedPostId: firstTarget.id,
+    });
+    await tx
+      .update(postTable)
+      .set({ quotedPostId: null, quoteTargetState: "pending" })
+      .where(eq(postTable.id, quote.id));
+    await tx.insert(quoteRequestTable).values([
+      {
+        id: generateUuidV7(),
+        iri: new URL("#quote-request/first", quote.iri).href,
+        quotePostId: quote.id,
+        quotedPostId: firstTarget.id,
+        objectUpdated: false,
+      },
+      {
+        id: generateUuidV7(),
+        iri: new URL("#quote-request/second", quote.iri).href,
+        quotePostId: quote.id,
+        quotedPostId: secondTarget.id,
+        objectUpdated: false,
+      },
+    ]);
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as ApplicationContext<Transaction>;
+
+    assert.equal(
+      (await findQuoteAuthorizationRerequestPostIds(tx)).includes(quote.id),
+      true,
+    );
+    const result = await rerequestQuoteAuthorization(fedCtx, quote.id);
+    assert.equal(
+      result.status === "skipped" && result.reason,
+      "ambiguous-pending-target",
+    );
+    assert.equal(sent.length, 0);
   });
 });
 
@@ -326,7 +494,8 @@ test("rerequestQuoteAuthorization() sends Questions and skips missing polls", as
 
     const requested = await rerequestQuoteAuthorization(fedCtx, question.id);
     assert.equal(requested.status, "requested");
-    const request = sent[0][2];
+    assert.ok(sent[0][2] instanceof Update);
+    const request = sent[1][2];
     assert.ok(request instanceof QuoteRequest);
     const instrument = await request.getInstrument({
       ...fedCtx,

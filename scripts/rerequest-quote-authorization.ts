@@ -47,9 +47,9 @@ function describeResult(result: QuoteAuthorizationRerequestResult): string {
     return `Skipped ${prefix}: ${result.reason}.`;
   }
   if (result.status === "eligible") {
-    return `Would request ${prefix} -> ${result.quotedPostIri}.`;
+    return `Would refresh and request ${prefix} -> ${result.quotedPostIri}.`;
   }
-  return `Requested ${prefix} -> ${result.quotedPostIri} as ${result.requestIri}.`;
+  return `Refreshed and requested ${prefix} -> ${result.quotedPostIri} as ${result.requestIri}.`;
 }
 
 export async function main(args = process.argv.slice(2)): Promise<void> {

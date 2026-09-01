@@ -361,6 +361,9 @@ importers:
       '@fedify/fedify':
         specifier: 'catalog:'
         version: 2.3.6
+      '@hackerspub/federation':
+        specifier: workspace:*
+        version: link:federation
       '@hackerspub/models':
         specifier: workspace:*
         version: link:models
@@ -392,9 +395,6 @@ importers:
       '@hackerspub/ai':
         specifier: workspace:*
         version: link:ai
-      '@hackerspub/federation':
-        specifier: workspace:*
-        version: link:federation
       '@logtape/lint':
         specifier: 'catalog:'
         version: 2.3.2(eslint@10.9.0(jiti@2.6.1))

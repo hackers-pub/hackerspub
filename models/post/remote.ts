@@ -1187,6 +1187,7 @@ async function getPersistedQuoteTargetState(
         eq(quoteRequestTable.quotedPostId, quotedPostId),
         isNull(quoteRequestTable.accepted),
         isNull(quoteRequestTable.rejected),
+        isNull(quoteRequestTable.superseded),
       ),
     )
     .limit(1);

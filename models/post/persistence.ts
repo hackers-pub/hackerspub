@@ -161,6 +161,7 @@ export async function createTargetPostUpdatedNotifications(
         eq(quoteRequestTable.quotedPostId, updatedPost.id),
         isNull(quoteRequestTable.accepted),
         isNull(quoteRequestTable.rejected),
+        isNull(quoteRequestTable.superseded),
         isNotNull(actorTable.accountId),
       ),
     );

@@ -170,5 +170,5 @@ description = "Repair posts grouped under malformed link-preview URLs"
 run = "node --import temporal-polyfill/global scripts/repair-link-previews.ts"
 
 [tasks.rerequest-quote-authorization]
-description = "Re-request FEP-044f authorization for legacy remote quote posts"
+description = "Refresh and re-request FEP-044f authorization for legacy remote quote posts"
 run = "node --import temporal-polyfill/global scripts/rerequest-quote-authorization.ts"
