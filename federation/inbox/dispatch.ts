@@ -42,8 +42,18 @@ export async function onAccepted(
     return;
   }
 
+  // FEP-044f requires the Accept to embed the original QuoteRequest.  Since
+  // that object is cross-origin from the accepting actor, Fedify otherwise
+  // dereferences its ID.  Fragment-based request IDs then resolve to the quote
+  // post rather than the embedded activity.  Read the signed activity's
+  // embedded object here; the quote handler still validates it against the
+  // stored quote and the independently dereferenced QuoteAuthorization.
   const [object, result] = await Promise.all([
-    accept.getObject({ ...fedCtx, suppressError: true }),
+    accept.getObject({
+      ...fedCtx,
+      crossOrigin: "trust",
+      suppressError: true,
+    }),
     accept.getResult({ ...fedCtx, suppressError: true }),
   ]);
 

@@ -380,14 +380,12 @@ export async function onQuoteRequestAccepted(
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
-  if (
-    quoteRequestIri != null &&
-    (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
-  ) {
-    logger.info("Ignoring acceptance of superseded quote request: {iri}", {
-      iri: quoteRequestIri,
-    });
-    return true;
+  if (quoteRequestIri != null) {
+    quoteRequestIri = await resolveAcceptedQuoteRequestIri(
+      fedCtx,
+      quoteRequestIri,
+    );
+    if (quoteRequestIri == null) return true;
   }
   let storedRequest =
     quoteRequestIri == null
@@ -403,14 +401,12 @@ export async function onQuoteRequestAccepted(
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
-    if (
-      quoteRequestIri != null &&
-      (await quoteRequestWasSuperseded(fedCtx, quoteRequestIri))
-    ) {
-      logger.info("Ignoring acceptance of superseded quote request: {iri}", {
-        iri: quoteRequestIri,
-      });
-      return true;
+    if (quoteRequestIri != null) {
+      quoteRequestIri = await resolveAcceptedQuoteRequestIri(
+        fedCtx,
+        quoteRequestIri,
+      );
+      if (quoteRequestIri == null) return true;
     }
     storedRequest =
       quoteRequestIri == null
@@ -426,6 +422,23 @@ export async function onQuoteRequestAccepted(
     if (quote == null) return true;
   }
   quotedPost ??= quote.quotedPost ?? undefined;
+  if (quote.quotedPostId == null && quote.quoteTargetState !== "pending") {
+    logger.info("Ignoring acceptance for a quote that is no longer pending.", {
+      quotePostIri: quote.iri,
+    });
+    return true;
+  }
+  if (storedRequest == null) {
+    const activeRequest = await getActiveQuoteRequestForQuote(
+      fedCtx,
+      quote.id,
+      quotedPost?.id,
+    );
+    if (activeRequest == null) return true;
+    quoteRequestIri = activeRequest.iri ?? quoteRequestIri;
+    quote = activeRequest.quotePost;
+    quotedPost = activeRequest.quotedPost;
+  }
   if (quotedPost == null || quotedPost.actor.iri !== accept.actorId.href) {
     logger.warn("Ignoring quote request acceptance from unexpected actor.");
     return true;
@@ -583,26 +596,143 @@ async function getQuoteRequestForIri(
   };
 }
 
+async function getActiveQuoteRequestForQuote(
+  fedCtx: InboxContext<ContextData>,
+  quotePostId: Post["id"],
+  quotedPostId?: Post["id"],
+): Promise<
+  | {
+      iri?: string;
+      quotePost: QuoteWithRelations;
+      quotedPost: Post & { actor: Actor };
+    }
+  | undefined
+> {
+  await lockQuotePost(fedCtx, quotePostId);
+  const quote = await fedCtx.data.db.query.postTable.findFirst({
+    with: {
+      actor: true,
+      quotedPost: { with: { actor: true } },
+      replyTarget: true,
+      mentions: { with: { actor: true } },
+    },
+    where: { id: quotePostId },
+  });
+  if (
+    quote == null ||
+    (quote.quotedPostId == null && quote.quoteTargetState !== "pending")
+  ) {
+    return undefined;
+  }
+  if (quote.quotedPostId != null) {
+    return quotedPostId === quote.quotedPostId && quote.quotedPost != null
+      ? { quotePost: quote, quotedPost: quote.quotedPost }
+      : undefined;
+  }
+  const requests = await fedCtx.data.db.query.quoteRequestTable.findMany({
+    columns: { iri: true },
+    where: {
+      quotePostId,
+      ...(quotedPostId == null ? {} : { quotedPostId }),
+      accepted: { isNull: true },
+      rejected: { isNull: true },
+      superseded: { isNull: true },
+    },
+    with: { quotedPost: { with: { actor: true } } },
+    orderBy: { created: "desc" },
+    limit: 2,
+  });
+  if (requests.length !== 1) return undefined;
+  return { ...requests[0], quotePost: quote };
+}
+
+async function lockQuotePost(
+  fedCtx: InboxContext<ContextData>,
+  quotePostId: Post["id"],
+): Promise<void> {
+  await fedCtx.data.db.execute(sql`SELECT ${postTable.id}
+    FROM ${postTable}
+    WHERE ${postTable.id} = ${quotePostId}
+    FOR UPDATE`);
+}
+
+async function getLockedQuoteRequest(
+  fedCtx: InboxContext<ContextData>,
+  quoteRequestIri: string,
+): Promise<
+  | {
+      quotePostId: Post["id"];
+      quotedPostId: Post["id"];
+      superseded: Date | null;
+    }
+  | undefined
+> {
+  const request = await fedCtx.data.db.query.quoteRequestTable.findFirst({
+    columns: { quotePostId: true },
+    where: { iri: quoteRequestIri },
+  });
+  if (request == null) return undefined;
+  await lockQuotePost(fedCtx, request.quotePostId);
+  return await fedCtx.data.db.query.quoteRequestTable.findFirst({
+    columns: { quotePostId: true, quotedPostId: true, superseded: true },
+    where: { iri: quoteRequestIri },
+  });
+}
+
 async function quoteRequestWasSuperseded(
   fedCtx: InboxContext<ContextData>,
   quoteRequestIri: string,
 ): Promise<boolean> {
-  const request = await fedCtx.data.db.query.quoteRequestTable.findFirst({
-    columns: { quotePostId: true, superseded: true },
-    where: { iri: quoteRequestIri },
+  return (
+    (await getLockedQuoteRequest(fedCtx, quoteRequestIri))?.superseded != null
+  );
+}
+
+async function getActiveReplacementQuoteRequestIri(
+  fedCtx: InboxContext<ContextData>,
+  supersededRequest: Readonly<{
+    quotePostId: Post["id"];
+    quotedPostId: Post["id"];
+  }>,
+): Promise<string | undefined> {
+  const replacements = await fedCtx.data.db.query.quoteRequestTable.findMany({
+    columns: { iri: true },
+    where: {
+      quotePostId: supersededRequest.quotePostId,
+      quotedPostId: supersededRequest.quotedPostId,
+      accepted: { isNull: true },
+      rejected: { isNull: true },
+      superseded: { isNull: true },
+    },
+    orderBy: { created: "desc" },
+    limit: 2,
   });
-  if (request == null || request.superseded != null) {
-    return request?.superseded != null;
+  return replacements.length === 1 ? replacements[0].iri : undefined;
+}
+
+async function resolveAcceptedQuoteRequestIri(
+  fedCtx: InboxContext<ContextData>,
+  quoteRequestIri: string,
+): Promise<string | undefined> {
+  const request = await getLockedQuoteRequest(fedCtx, quoteRequestIri);
+  if (request == null || request.superseded == null) {
+    return quoteRequestIri;
   }
-  await fedCtx.data.db.execute(sql`SELECT ${postTable.id}
-    FROM ${postTable}
-    WHERE ${postTable.id} = ${request.quotePostId}
-    FOR UPDATE`);
-  const lockedRequest = await fedCtx.data.db.query.quoteRequestTable.findFirst({
-    columns: { superseded: true },
-    where: { iri: quoteRequestIri },
-  });
-  return lockedRequest?.superseded != null;
+  const replacementIri = await getActiveReplacementQuoteRequestIri(
+    fedCtx,
+    request,
+  );
+  if (replacementIri == null) {
+    logger.info("Ignoring acceptance of superseded quote request: {iri}", {
+      iri: quoteRequestIri,
+    });
+    return undefined;
+  }
+  logger.info(
+    "Matching acceptance of superseded quote request {iri} to active request {replacementIri}.",
+    { iri: quoteRequestIri, replacementIri },
+  );
+  return replacementIri;
 }
 
 async function sendQuoteUpdate(

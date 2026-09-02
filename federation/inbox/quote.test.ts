@@ -1087,8 +1087,185 @@ test("quote request responses ignore superseded requests", async () => {
   });
 });
 
+test("quote request acceptances match superseded requests to active replacements", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotereplacementremote",
+      name: "Replacement Quote Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Replacement quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotereplacementlocal",
+      name: "Replacement Quote Local",
+      email: "quotereplacementlocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote with a replaced request",
+      quotedPostId: quotedPost.id,
+    });
+    await tx
+      .update(postTable)
+      .set({ quotedPostId: null, quoteTargetState: "pending" })
+      .where(eq(postTable.id, quote.id));
+    const supersededIri = new URL("#quote-request/superseded", quote.iri).href;
+    const activeIri = new URL("#quote-request/active", quote.iri).href;
+    await tx.insert(quoteRequestTable).values([
+      {
+        id: generateUuidV7(),
+        iri: supersededIri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+        superseded: new Date(),
+      },
+      {
+        id: generateUuidV7(),
+        iri: activeIri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+      },
+    ]);
+    const authorizationIri =
+      "https://remote.example/quote-authorization/replacement";
+    const authorization = new QuoteAuthorization({
+      id: new URL(authorizationIri),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const accept = new Accept({
+      id: new URL("https://remote.example/quote-requests/replacement#accept"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(supersededIri),
+      result: authorization,
+    });
+    const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, quotedPost.id);
+    assert.equal(storedQuote?.quoteAuthorizationIri, authorizationIri);
+    assert.equal(storedQuote?.quoteTargetState, null);
+    const supersededRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: supersededIri },
+    });
+    assert.equal(supersededRequest?.accepted, null);
+    const activeRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: activeIri },
+    });
+    assert.ok(activeRequest?.accepted != null);
+  });
+});
+
+test("quote request acceptances ignore ambiguous active replacements", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteambiguousremote",
+      name: "Ambiguous Quote Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Ambiguous replacement target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteambiguouslocal",
+      name: "Ambiguous Quote Local",
+      email: "quoteambiguouslocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote with ambiguous active requests",
+      quotedPostId: quotedPost.id,
+    });
+    await tx
+      .update(postTable)
+      .set({ quotedPostId: null, quoteTargetState: "pending" })
+      .where(eq(postTable.id, quote.id));
+    const supersededIri = new URL("#quote-request/superseded", quote.iri).href;
+    const firstActiveIri = new URL("#quote-request/active-1", quote.iri).href;
+    const secondActiveIri = new URL("#quote-request/active-2", quote.iri).href;
+    await tx.insert(quoteRequestTable).values([
+      {
+        id: generateUuidV7(),
+        iri: supersededIri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+        superseded: new Date(),
+      },
+      {
+        id: generateUuidV7(),
+        iri: firstActiveIri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+      },
+      {
+        id: generateUuidV7(),
+        iri: secondActiveIri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+      },
+    ]);
+    const authorizationIri =
+      "https://remote.example/quote-authorization/ambiguous";
+    const authorization = new QuoteAuthorization({
+      id: new URL(authorizationIri),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const unknownRequest = new QuoteRequest({
+      id: new URL("#quote-request/unknown", quote.iri),
+      actor: new URL(quoter.actor.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(quote.iri),
+    });
+    const unknownAccept = new Accept({
+      actor: new URL(remoteActor.iri),
+      object: unknownRequest,
+      result: authorization,
+    });
+    const supersededAccept = new Accept({
+      actor: new URL(remoteActor.iri),
+      object: new URL(supersededIri),
+      result: authorization,
+    });
+    const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, unknownAccept), true);
+    assert.equal(await onQuoteRequestAccepted(fedCtx, supersededAccept), true);
+
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, null);
+    assert.equal(storedQuote?.quoteAuthorizationIri, null);
+    assert.equal(storedQuote?.quoteTargetState, "pending");
+    const activeRequests = await tx.query.quoteRequestTable.findMany({
+      where: { quotePostId: quote.id, superseded: { isNull: true } },
+    });
+    assert.equal(activeRequests.length, 2);
+    assert.equal(
+      activeRequests.every((request) => request.accepted == null),
+      true,
+    );
+  });
+});
+
 test("quote request responses recheck supersession after locking", async () => {
   const quotePostId = generateUuidV7();
+  const quotedPostId = generateUuidV7();
   const requestIri = "http://localhost/objects/quote#quote-request/old";
   let lookups = 0;
   let locks = 0;
@@ -1105,9 +1282,12 @@ test("quote request responses recheck supersession after locking", async () => {
               lookups++;
               return Promise.resolve(
                 lookups === 1
-                  ? { quotePostId, superseded: null }
-                  : { superseded: new Date() },
+                  ? { quotePostId }
+                  : { quotePostId, quotedPostId, superseded: new Date() },
               );
+            },
+            findMany() {
+              return Promise.resolve([]);
             },
           },
         },
@@ -1123,6 +1303,102 @@ test("quote request responses recheck supersession after locking", async () => {
   assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
   assert.equal(locks, 1);
   assert.equal(lookups, 2);
+});
+
+test("unknown quote approvals honor the state read after locking", async () => {
+  const quotePostId = generateUuidV7();
+  const quotedPostId = generateUuidV7();
+  const requestIri = "http://localhost/objects/quote#quote-request/unknown";
+  const quoteIri = "http://localhost/objects/quote";
+  const quotedPostIri = "https://remote.example/posts/quoted";
+  const remoteActorIri = "https://remote.example/users/quoted";
+  let postLookups = 0;
+  let locks = 0;
+  let transactions = 0;
+  const quotedPost = {
+    id: quotedPostId,
+    iri: quotedPostIri,
+    actorId: generateUuidV7(),
+    actor: { iri: remoteActorIri },
+  };
+  const staleQuote = {
+    id: quotePostId,
+    iri: quoteIri,
+    quotedPostId,
+    quoteTargetState: null,
+    quotedPost,
+  };
+  const fedCtx = {
+    data: {
+      db: {
+        execute() {
+          locks++;
+          return Promise.resolve();
+        },
+        transaction() {
+          transactions++;
+          return Promise.reject(new Error("must not update a removed quote"));
+        },
+        query: {
+          quoteRequestTable: {
+            findFirst() {
+              return Promise.resolve(undefined);
+            },
+            findMany() {
+              return Promise.reject(
+                new Error("must not correlate a removed quote"),
+              );
+            },
+          },
+          postTable: {
+            findFirst() {
+              postLookups++;
+              return Promise.resolve(
+                postLookups === 1
+                  ? staleQuote
+                  : {
+                      ...staleQuote,
+                      quotedPostId: null,
+                      quoteTargetState: null,
+                      quotedPost: null,
+                    },
+              );
+            },
+          },
+        },
+      },
+    },
+  } as unknown as InboxContext<ContextData>;
+  const request = new QuoteRequest({
+    id: new URL(requestIri),
+    actor: new URL("http://localhost/actors/quoter"),
+    object: new URL(quotedPostIri),
+    instrument: new URL(quoteIri),
+  });
+  const authorizationIri =
+    "https://remote.example/quote-authorizations/unknown";
+  const authorization = new QuoteAuthorization({
+    id: new URL(authorizationIri),
+    attribution: new URL(remoteActorIri),
+    interactingObject: new URL(quoteIri),
+    interactionTarget: new URL(quotedPostIri),
+  });
+  const accept = new Accept({
+    actor: new URL(remoteActorIri),
+    object: new URL(requestIri),
+    result: new URL(authorizationIri),
+  });
+
+  assert.equal(
+    await onQuoteRequestAccepted(fedCtx, accept, {
+      object: request,
+      result: authorization,
+    }),
+    true,
+  );
+  assert.equal(locks, 1);
+  assert.equal(postLookups, 2);
+  assert.equal(transactions, 0);
 });
 
 test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
@@ -1210,6 +1486,82 @@ test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
     assert.ok(updatedObject instanceof Note);
     assert.equal(updatedObject.quoteId?.href, quotedPost.iri);
     assert.equal(updatedObject.quoteAuthorizationId?.href, authorizationIri);
+  });
+});
+
+test("onQuoteRequestAccepted does not restore a removed quote", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteremovedremote",
+      name: "Removed Quote Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Removed quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteremovedlocal",
+      name: "Removed Quote Local",
+      email: "quoteremovedlocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote removed before approval",
+      quotedPostId: quotedPost.id,
+    });
+    await tx
+      .update(postTable)
+      .set({
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        quoteTargetState: null,
+      })
+      .where(eq(postTable.id, quote.id));
+    const requestIri = new URL("#quote-request/removed", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+    });
+    const authorizationIri =
+      "https://remote.example/quote-authorization/removed";
+    const authorization = new QuoteAuthorization({
+      id: new URL(authorizationIri),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const accept = new Accept({
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+      result: authorization,
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, null);
+    assert.equal(storedQuote?.quoteAuthorizationIri, null);
+    assert.equal(storedQuote?.quoteTargetState, null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: requestIri },
+    });
+    assert.equal(storedRequest?.accepted, null);
+    assert.equal(sent.length, 0);
   });
 });
 
