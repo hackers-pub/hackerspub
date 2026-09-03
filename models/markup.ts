@@ -36,7 +36,12 @@ import toc from "markdown-it-toc-done-right";
 import { codeToHtml } from "shiki";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
 import type { ApplicationContext } from "./context.ts";
-import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
+import {
+  escapeUnsupportedHtmlTags,
+  sanitizeExcerptHtml,
+  sanitizeHtml,
+  stripHtml,
+} from "./html.ts";
 import { negotiateLocale } from "./i18n.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
@@ -44,7 +49,7 @@ const logger = getLogger(["hackerspub", "models", "markup"]);
 const ASCII_DIACRITICS_REGEXP = /(?<=[a-zA-Z])\p{M}+|[^\p{L}\p{M}\p{N}-]+/gu;
 
 const KV_NAMESPACE = "markup";
-const KV_CACHE_VERSION = "2026-07-12";
+const KV_CACHE_VERSION = "2026-09-03";
 
 const MISSING_ARTICLE_MEDIUM_LABELS = {
   en: "This medium has not been attached to this article.",
@@ -149,6 +154,12 @@ const md = MarkdownItAsync({ html: true, linkify: true })
       },
     ),
   );
+
+const renderRawHtml = (tokens: { content: string }[], idx: number): string =>
+  escapeUnsupportedHtmlTags(tokens[idx].content);
+
+md.renderer.rules.html_block = renderRawHtml;
+md.renderer.rules.html_inline = renderRawHtml;
 
 // This is a workaround for the fact that shiki turns into a strange state
 // when the first invocation of codeToHtml is with a wrong lang name:

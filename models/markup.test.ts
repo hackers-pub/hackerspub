@@ -69,6 +69,51 @@ test("renderMarkup() canonicalizes medium URLs before caching", async () => {
   assert.equal(store.size, 1);
 });
 
+test("renderMarkup() preserves unsupported HTML tags as text", async () => {
+  const inline = await renderMarkup(null, "<On Photography> by Susan Sontag");
+  assert.equal(inline.html, "<p>&lt;On Photography&gt; by Susan Sontag</p>\n");
+  assert.equal(
+    inline.excerptHtml,
+    "<p>&lt;On Photography&gt; by Susan Sontag</p>\n",
+  );
+  assert.equal(inline.text, "<On Photography> by Susan Sontag");
+
+  const block = await renderMarkup(null, "<foo>");
+  assert.equal(block.html, "&lt;foo&gt;");
+  assert.equal(block.excerptHtml, "&lt;foo&gt;");
+  assert.equal(block.text, "<foo>");
+
+  const declaration = await renderMarkup(null, "<![CDATA[<b>x</b>]]>");
+  assert.equal(declaration.html, "&lt;![CDATA[&lt;b&gt;x&lt;/b&gt;]]&gt;");
+  assert.equal(
+    declaration.excerptHtml,
+    "&lt;![CDATA[&lt;b&gt;x&lt;/b&gt;]]&gt;",
+  );
+  assert.equal(declaration.text, "<![CDATA[<b>x</b>]]>");
+
+  const nestedDeclaration = await renderMarkup(
+    null,
+    "<div>\n<![CDATA[<b>x</b>]]>\n</div>",
+  );
+  assert.equal(
+    nestedDeclaration.html,
+    "<div>\n&lt;![CDATA[&lt;b&gt;x&lt;/b&gt;]]&gt;\n</div>",
+  );
+  assert.equal(
+    nestedDeclaration.excerptHtml,
+    "<div>\n&lt;![CDATA[&lt;b&gt;x&lt;/b&gt;]]&gt;\n</div>",
+  );
+  assert.equal(nestedDeclaration.text, "<![CDATA[<b>x</b>]]>");
+});
+
+test("renderMarkup() continues to render supported HTML tags", async () => {
+  const rendered = await renderMarkup(null, "<kbd>Ctrl</kbd>");
+
+  assert.equal(rendered.html, "<p><kbd>Ctrl</kbd></p>\n");
+  assert.equal(rendered.excerptHtml, "<p><kbd>Ctrl</kbd></p>\n");
+  assert.equal(rendered.text, "Ctrl");
+});
+
 test("renderMarkup() renders unresolved medium references as an SVG placeholder", async () => {
   const rendered = await renderMarkup(null, "![missing](hp-medium:elsewhere)", {
     missingMediumLabel: getMissingArticleMediumLabel("ko-KR"),

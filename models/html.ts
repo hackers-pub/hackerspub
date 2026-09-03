@@ -12,7 +12,7 @@ import type { Actor } from "./schema.ts";
 
 const { FilterXSS, whiteList } = xss as unknown as typeof xssType;
 
-const htmlXss = new FilterXSS({
+const htmlXssOptions = {
   allowList: {
     a: [
       "lang",
@@ -285,7 +285,19 @@ const htmlXss = new FilterXSS({
       "stop-opacity": true,
     },
   },
+} satisfies xssType.IFilterXSSOptions;
+
+const htmlXss = new FilterXSS(htmlXssOptions);
+
+const unsupportedHtmlTagEscaper = new FilterXSS({
+  allowList: htmlXssOptions.allowList,
+  onTag(_tag, html, options) {
+    if (options.isWhite) return html;
+  },
 });
+
+const unsupportedMarkupPattern =
+  /<!\[CDATA\[[\s\S]*?\]\]>|<\?[\s\S]*?\?>|<![A-Za-z](?:[^>"']|"[^"]*"|'[^']*')*>/g;
 
 const excerptHtmlXss = new FilterXSS({
   allowList: Object.fromEntries(
@@ -301,6 +313,16 @@ const textXss = new FilterXSS({
 
 export function sanitizeHtml(html: string): string {
   return htmlXss.process(html);
+}
+
+/**
+ * Escapes tags that the HTML sanitizer will reject while preserving allowed
+ * tags and their attributes for the final sanitization pass.
+ */
+export function escapeUnsupportedHtmlTags(html: string): string {
+  return unsupportedHtmlTagEscaper.process(
+    html.replace(unsupportedMarkupPattern, escape),
+  );
 }
 
 export function sanitizeExcerptHtml(html: string): string {
