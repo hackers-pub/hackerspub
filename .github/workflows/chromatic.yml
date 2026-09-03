@@ -1,0 +1,46 @@
+name: Chromatic
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+permissions:
+  contents: read
+
+jobs:
+  chromatic:
+    if: >-
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      vars.CHROMATIC_PROJECT_TOKEN != ''
+    runs-on: namespace-profile-linux-amd64-8cpu-16gb
+    env:
+      CHROMATIC_BRANCH: >-
+        ${{ github.event.pull_request.head.repo.full_name != github.repository &&
+        github.event.pull_request.head.label ||
+        github.event.pull_request.head.ref || github.ref_name }}
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN || vars.CHROMATIC_PROJECT_TOKEN }}
+      CHROMATIC_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      CHROMATIC_SLUG: ${{ github.repository }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    - uses: jdx/mise-action@v4
+      with:
+        experimental: true
+        cache: true
+        cache_key_prefix: mise-v4
+    - name: Generate Relay artifacts
+      run: mise run next:codegen
+    - name: Publish Storybook to Chromatic
+      uses: chromaui/action@v18
+      with:
+        projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+        workingDir: web-next
