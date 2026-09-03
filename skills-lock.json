@@ -6,6 +6,18 @@
       "sourceType": "github",
       "skillPath": "skills/graphql-schema-design/SKILL.md",
       "computedHash": "daa7be0631ea37c02ea9e000cfabb867c84fae2e958445beb1f63521f602e448"
+    },
+    "relay-best-practices": {
+      "source": "facebook/relay",
+      "sourceType": "github",
+      "skillPath": "skills/relay-best-practices/SKILL.md",
+      "computedHash": "cbb18a082119045f8af1442b8d0c8f035680670c62539e6220c32f44511c6a6a"
+    },
+    "relay-performance": {
+      "source": "facebook/relay",
+      "sourceType": "github",
+      "skillPath": "skills/relay-performance/SKILL.md",
+      "computedHash": "d60fb55230c107f2f32047b5ba7f8309fb32329eb3aa3316167ce7052e31c7a5"
     }
   }
 }
