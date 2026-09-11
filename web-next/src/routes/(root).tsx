@@ -14,6 +14,7 @@ import {
   Show,
   Suspense,
 } from "solid-js";
+import { isServer } from "solid-js/web";
 import { graphql } from "relay-runtime";
 import {
   createPreloadedQuery,
@@ -124,6 +125,15 @@ export default function RootLayout(props: RouteSectionProps) {
     RootLayoutQuery,
     () => loadRootLayoutQuery(),
   );
+  // Resolve the layout resource before starting the nested route's SSR pass.
+  // Otherwise a late layout response retries the outer Suspense after the
+  // route's own boundary has completed, replacing its HTML with an empty
+  // hydration marker. Read the resource itself so the outer boundary waits;
+  // checking only `.pending` would leave it unaware of the unfinished query.
+  // Client rendering stays reactive and does not unmount the route on refetch.
+  // eslint-disable-next-line solid/components-return-once -- SSR retries the component; the client never takes this branch.
+  if (isServer && signedAccount() == null) return null;
+
   const [chromeMounted, setChromeMounted] = createSignal(false);
   onMount(() => setChromeMounted(true));
   // Root chrome contains several auth-dependent branches in the sidebar and
