@@ -3,6 +3,7 @@ import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
+import { isServer } from "solid-js/web";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -189,6 +190,14 @@ export default function ProfilePage() {
         actingAccountId() ?? null,
       ),
   );
+
+  // Both queries share the route's SSR Suspense boundary. Wait for them before
+  // creating fragment readers: retrying after the content query resolves can
+  // otherwise recreate ProfileCard with an empty fragment store. Read the
+  // resources themselves to register pending work with Suspense. Client-side
+  // loading stays independent, and pins remain deferred until after hydration.
+  // eslint-disable-next-line solid/components-return-once -- SSR retries the component; the client never takes this branch.
+  if (isServer && (baseData() == null || contentData() == null)) return null;
 
   // Pins are loaded client-side only, and must not render during the hydration
   // pass. If loadPinsQuery returns data synchronously (Relay store cache hit),
