@@ -421,3 +421,34 @@ test("article_draft creator_id defaults from the owner for legacy inserts", asyn
     assert.equal(rows[0].creatorId, owner.account.id);
   });
 });
+
+test("saveArticleDraft() upserts a revision-less save by uuid", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "draftupsertowner",
+      name: "Draft Upsert Owner",
+      email: "draftupsertowner@example.com",
+    });
+    const draftId = generateUuidV7();
+    const created = await saveArticleDraft(tx, owner.account, {
+      uuid: draftId,
+      title: "Legacy draft",
+      content: "Legacy body",
+      tags: [],
+    });
+    assert.equal(created.status, "ok");
+
+    // A pre-upgrade composer re-sends the same uuid without a revision, e.g.
+    // after uploading media auto-created the blank draft.
+    const updated = await saveArticleDraft(tx, owner.account, {
+      uuid: draftId,
+      title: "Legacy draft v2",
+      content: "Legacy body v2",
+      tags: [],
+    });
+    assert.equal(updated.status, "ok");
+    if (updated.status !== "ok") return;
+    assert.equal(updated.draft.revision, 2);
+    assert.equal(updated.draft.title, "Legacy draft v2");
+  });
+});

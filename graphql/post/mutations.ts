@@ -905,11 +905,14 @@ builder.relayMutationField(
       revision: t.int({
         required: false,
         description:
-          "The `ArticleDraft.revision` the client is editing from. When " +
-          "provided on an update, a stale value returns " +
-          "`ArticleDraftConflictError`. When omitted, an update writes " +
-          "unconditionally (a transition path for clients built before " +
-          "revision-based checks) and a create ignores it.",
+          "The `ArticleDraft.revision` the client is editing from. With `id`, " +
+          "a matching revision updates the draft and a stale one returns " +
+          "`ArticleDraftConflictError`; omitting it writes unconditionally. " +
+          "With `uuid` and a revision the call updates an existing draft and " +
+          "fails if it is missing. With `uuid` and no revision the call " +
+          "creates the draft or updates it if it already exists (the " +
+          "pre-upgrade composer's path). Supplying `revision` without an " +
+          "identifier is invalid.",
       }),
     }),
   },

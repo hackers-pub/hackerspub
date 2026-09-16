@@ -6217,7 +6217,7 @@ test("saveArticleDraft accepts a missing revision for legacy clients", async () 
       document: saveArticleDraftMutation,
       variableValues: {
         input: {
-          id: encodeGlobalID("ArticleDraft", draftId),
+          uuid: draftId,
           title: "Legacy save v2",
           content: "Legacy save body v2",
           tags: [],

@@ -267,11 +267,13 @@ export async function getAccessibleArticleDraft(
  * `creatorId` and never changes. Updates are conditional on the caller's
  * `revision`: a mismatch returns `status: "conflict"` with the current
  * revision instead of overwriting another contributor's work. A missing
- * `revision` on an update is accepted as an unconditional write, which keeps
- * clients built before revision-based conflict checks working during the
- * rollout. Updates never insert, so a save racing a deletion cannot resurrect a
- * draft, and creation `ON CONFLICT DO NOTHING` collisions are classified after
- * an authorization check so another workspace's revision is never exposed.
+ * `revision` on an update is accepted as an unconditional write, and a
+ * revision-less save by `uuid` creates the draft or updates it if it already
+ * exists, which keeps clients built before revision-based conflict checks
+ * working during the rollout. Updates never insert, so a save racing a deletion
+ * cannot resurrect a draft, and creation `ON CONFLICT DO NOTHING` collisions
+ * are classified after an authorization check so another workspace's revision
+ * is never exposed.
  */
 export async function saveArticleDraft(
   db: Database | Transaction,
@@ -356,10 +358,30 @@ export async function saveArticleDraft(
         .returning();
       if (inserted[0] != null) return { status: "ok", draft: inserted[0] };
       const existing = await lockArticleDraft(tx, draftId);
-      if (existing != null && existing.accountId === workspaceId) {
+      if (existing == null || existing.accountId !== workspaceId) {
+        return { status: "invalid", inputPath: "uuid" };
+      }
+      if (!(await canAccountActAs(tx, viewer, existing.accountId))) {
+        return { status: "invalid", inputPath: "uuid" };
+      }
+      // A revision-less `uuid` save is the pre-upgrade composer's upsert: the
+      // row may already exist from a media attachment, so update it instead of
+      // returning a conflict the old client cannot handle.
+      const rows = await tx
+        .update(articleDraftTable)
+        .set({
+          title,
+          content,
+          tags: normalizedTags,
+          revision: sql`${articleDraftTable.revision} + 1`,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(articleDraftTable.id, draftId))
+        .returning();
+      if (rows[0] == null) {
         return { status: "conflict", currentRevision: existing.revision };
       }
-      return { status: "invalid", inputPath: "uuid" };
+      return { status: "ok", draft: rows[0] };
     },
   );
 }
