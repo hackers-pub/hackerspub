@@ -2,10 +2,10 @@ import assert from "node:assert";
 import test from "node:test";
 import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import { encodeGlobalID } from "@pothos/plugin-relay";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
-import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
+import { createArticle, saveArticleDraft } from "@hackerspub/models/article";
 import { follow } from "@hackerspub/models/following";
 import { createOrganization } from "@hackerspub/models/organization";
 import {
@@ -17,6 +17,7 @@ import {
   followingTable,
   mediumTable,
   type NewPost,
+  organizationMembershipTable,
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
@@ -50,10 +51,14 @@ const saveArticleDraftMutation = parse(`
           uuid
           title
           tags
+          revision
         }
       }
       ... on InvalidInputError {
         inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
       }
     }
   }
@@ -66,16 +71,56 @@ const articleDraftQuery = parse(`
       uuid
       title
       tags
+      revision
+      account {
+        id
+      }
     }
   }
 `);
 
 const deleteArticleDraftMutation = parse(`
-  mutation DeleteArticleDraft($id: ID!) {
-    deleteArticleDraft(input: { id: $id }) {
+  mutation DeleteArticleDraft($id: ID!, $revision: Int) {
+    deleteArticleDraft(input: { id: $id, revision: $revision }) {
       __typename
       ... on DeleteArticleDraftPayload {
         deletedDraftId
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+    }
+  }
+`);
+
+const moveArticleDraftToOrganizationMutation = parse(`
+  mutation MoveArticleDraftToOrganization($input: MoveArticleDraftToOrganizationInput!) {
+    moveArticleDraftToOrganization(input: $input) {
+      __typename
+      ... on MoveArticleDraftToOrganizationPayload {
+        draft {
+          id
+          uuid
+          account {
+            id
+          }
+          creator {
+            id
+          }
+          revision
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+      ... on OrganizationPermissionError {
+        __typename
       }
     }
   }
@@ -91,6 +136,12 @@ const publishArticleDraftMutation = parse(`
           slug
         }
         deletedDraftId
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
       }
     }
   }
@@ -932,13 +983,20 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
       toPlainJson(saveResult.data) as {
         saveArticleDraft: {
           __typename: string;
-          draft: { id: string; uuid: string; title: string; tags: string[] };
+          draft: {
+            id: string;
+            uuid: string;
+            title: string;
+            tags: string[];
+            revision: number;
+          };
         };
       }
     ).saveArticleDraft.draft;
 
     assert.equal(savedDraft.title, "Draft title");
     assert.deepEqual(savedDraft.tags, ["relay", "solid"]);
+    assert.equal(savedDraft.revision, 1);
 
     const draftQueryResult = await execute({
       schema,
@@ -955,6 +1013,8 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
         uuid: savedDraft.uuid,
         title: "Draft title",
         tags: ["relay", "solid"],
+        revision: 1,
+        account: { id: encodeGlobalID("Account", account.account.id) },
       },
     });
 
@@ -998,9 +1058,8 @@ test("saveArticleDraft rejects draft UUIDs owned by another account", async () =
       email: "draftuuidother@example.com",
     });
     const draftId = generateUuidV7();
-    await updateArticleDraft(tx, {
-      id: draftId,
-      accountId: owner.account.id,
+    await saveArticleDraft(tx, owner.account, {
+      uuid: draftId,
       title: "Owned draft",
       content: "Owned content",
       tags: [],
@@ -1110,6 +1169,13 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     assert.equal(disk.putKeys.length, 1);
 
     const draftId = generateUuidV7();
+    const draftSeed = await saveArticleDraft(tx, account.account, {
+      uuid: draftId,
+      title: "Draft with media",
+      content: "",
+      tags: [],
+    });
+    assert.equal(draftSeed.status, "ok");
     const attachResult = await execute({
       schema,
       document: attachArticleDraftMediumMutation,
@@ -1142,11 +1208,34 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
     assert.equal(relation?.mediumId, medium.uuid);
     assert.equal(relation?.key, medium.uuid);
-    const draft = await tx.query.articleDraftTable.findFirst({
-      where: { id: draftId },
+
+    // Re-attaching the same key to the same medium is idempotent.
+    const repeat = await execute({
+      schema,
+      document: attachArticleDraftMediumMutation,
+      variableValues: { input: { draftId, mediumId: medium.uuid } },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
     });
-    assert.equal(draft?.title, "");
-    assert.equal(draft?.content, "");
+    assert.equal(repeat.errors, undefined);
+
+    // Attaching to a missing draft no longer auto-creates it.
+    const missing = await execute({
+      schema,
+      document: attachArticleDraftMediumMutation,
+      variableValues: {
+        input: { draftId: generateUuidV7(), mediumId: medium.uuid },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(missing.errors, undefined);
+    assert.deepEqual(toPlainJson(missing.data), {
+      attachArticleDraftMedium: {
+        __typename: "InvalidInputError",
+        inputPath: "draftId",
+      },
+    });
   });
 });
 
@@ -1507,6 +1596,7 @@ test("publishArticleDraft publishes an article and removes the draft", async () 
           slug: "published-article",
           language: "en",
           allowLlmTranslation: false,
+          revision: 1,
         },
       },
       contextValue: makeTransactionalUserContext(tx, account.account),
@@ -1907,7 +1997,8 @@ test("publishArticleDraft can publish as an organization", async () => {
     const draftId = generateUuidV7();
     await tx.insert(articleDraftTable).values({
       id: draftId,
-      accountId: member.account.id,
+      accountId: organization.id,
+      creatorId: member.account.id,
       title: "Organization article",
       content: "Organization article body",
       tags: ["organization"],
@@ -1922,7 +2013,7 @@ test("publishArticleDraft can publish as an organization", async () => {
           slug: "organization-article",
           language: "en",
           allowLlmTranslation: false,
-          actingAccountId: encodeGlobalID("Account", organization.id),
+          revision: 1,
           attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
         },
       },
@@ -1985,7 +2076,8 @@ test("publishArticleDraft rejects suspended organizations", async () => {
     const draftId = generateUuidV7();
     await tx.insert(articleDraftTable).values({
       id: draftId,
-      accountId: member.account.id,
+      accountId: organization.id,
+      creatorId: member.account.id,
       title: "Suspended organization article",
       content: "Draft content",
     });
@@ -1998,7 +2090,7 @@ test("publishArticleDraft rejects suspended organizations", async () => {
           id: encodeGlobalID("ArticleDraft", draftId),
           slug: "suspended-organization-article",
           language: "en",
-          actingAccountId: encodeGlobalID("Account", organization.id),
+          revision: 1,
         },
       },
       contextValue: makeTransactionalUserContext(tx, member.account),
@@ -5294,5 +5386,698 @@ test("organization members can update organization-authored articles", async () 
         },
       },
     });
+  });
+});
+
+const nodeArticleDraftQuery = parse(`
+  query NodeArticleDraft($id: ID!) {
+    node(id: $id) {
+      __typename
+      ... on ArticleDraft {
+        id
+        title
+        revision
+      }
+    }
+  }
+`);
+
+const publishArticleDraftAttributionMutation = parse(`
+  mutation PublishArticleDraftAttribution($input: PublishArticleDraftInput!) {
+    publishArticleDraft(input: $input) {
+      __typename
+      ... on PublishArticleDraftPayload {
+        article {
+          slug
+          organizationAuthor {
+            publisher { username }
+            member { username }
+          }
+        }
+        deletedDraftId
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+async function insertOrganizationForDrafts(
+  tx: Parameters<Parameters<typeof withRollback>[0]>[0],
+  username: string,
+) {
+  return await insertAccountWithActor(tx, {
+    username,
+    name: username,
+    email: `${username}@example.com`,
+    kind: "organization",
+    type: "Organization",
+  });
+}
+
+async function addDraftOrganizationMember(
+  tx: Parameters<Parameters<typeof withRollback>[0]>[0],
+  organizationAccountId: `${string}-${string}-${string}-${string}-${string}`,
+  memberAccountId: `${string}-${string}-${string}-${string}-${string}`,
+) {
+  const accepted = new Date("2026-04-15T00:00:00.000Z");
+  await tx.insert(organizationMembershipTable).values({
+    organizationAccountId,
+    memberAccountId,
+    role: "member",
+    accepted,
+    created: accepted,
+    updated: accepted,
+  });
+}
+
+test("organization members share article drafts and revoked members lose access", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqlsharedorg",
+    );
+    const memberA = await insertAccountWithActor(tx, {
+      username: "graphqlshareda",
+      name: "GraphQL Shared A",
+      email: "graphqlshareda@example.com",
+    });
+    const memberB = await insertAccountWithActor(tx, {
+      username: "graphqlsharedb",
+      name: "GraphQL Shared B",
+      email: "graphqlsharedb@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "graphqlsharedout",
+      name: "GraphQL Shared Outsider",
+      email: "graphqlsharedout@example.com",
+    });
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      memberA.account.id,
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      memberB.account.id,
+    );
+
+    const draftId = generateUuidV7();
+    const createResult = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          actingAccountId: encodeGlobalID("Account", organization.account.id),
+          title: "Shared draft",
+          content: "Shared body",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, memberA.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(createResult.errors, undefined);
+    assert.deepEqual(toPlainJson(createResult.data), {
+      saveArticleDraft: {
+        __typename: "SaveArticleDraftPayload",
+        draft: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          uuid: draftId,
+          title: "Shared draft",
+          tags: [],
+          revision: 1,
+        },
+      },
+    });
+
+    const memberBRead = await execute({
+      schema,
+      document: articleDraftQuery,
+      variableValues: { uuid: draftId },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(memberBRead.errors, undefined);
+    assert.equal(
+      (toPlainJson(memberBRead.data) as { articleDraft: { title: string } })
+        .articleDraft.title,
+      "Shared draft",
+    );
+
+    const outsiderRead = await execute({
+      schema,
+      document: articleDraftQuery,
+      variableValues: { uuid: draftId },
+      contextValue: makeUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(outsiderRead.errors, undefined);
+    assert.deepEqual(toPlainJson(outsiderRead.data), { articleDraft: null });
+
+    const memberBUpdate = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          revision: 1,
+          title: "Shared draft v2",
+          content: "Shared body v2",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(memberBUpdate.errors, undefined);
+    assert.equal(
+      (
+        toPlainJson(memberBUpdate.data) as {
+          saveArticleDraft: {
+            __typename: string;
+            draft?: { revision: number };
+          };
+        }
+      ).saveArticleDraft.draft?.revision,
+      2,
+    );
+
+    const staleSave = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          revision: 1,
+          title: "Stale",
+          content: "Stale",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, memberA.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(staleSave.errors, undefined);
+    assert.deepEqual(toPlainJson(staleSave.data), {
+      saveArticleDraft: {
+        __typename: "ArticleDraftConflictError",
+        currentRevision: 2,
+      },
+    });
+
+    const nodeBeforeRevoke = await execute({
+      schema,
+      document: nodeArticleDraftQuery,
+      variableValues: { id: encodeGlobalID("ArticleDraft", draftId) },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(nodeBeforeRevoke.errors, undefined);
+    assert.equal(
+      (toPlainJson(nodeBeforeRevoke.data) as { node: { id: string } | null })
+        .node?.id,
+      encodeGlobalID("ArticleDraft", draftId),
+    );
+
+    await tx
+      .delete(organizationMembershipTable)
+      .where(
+        and(
+          eq(
+            organizationMembershipTable.organizationAccountId,
+            organization.account.id,
+          ),
+          eq(organizationMembershipTable.memberAccountId, memberB.account.id),
+        ),
+      );
+
+    const revokedRead = await execute({
+      schema,
+      document: articleDraftQuery,
+      variableValues: { uuid: draftId },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(revokedRead.errors, undefined);
+    assert.deepEqual(toPlainJson(revokedRead.data), { articleDraft: null });
+
+    const revokedNode = await execute({
+      schema,
+      document: nodeArticleDraftQuery,
+      variableValues: { id: encodeGlobalID("ArticleDraft", draftId) },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok((revokedNode.errors?.length ?? 0) > 0);
+    assert.equal(
+      (toPlainJson(revokedNode.data) as { node: unknown }).node,
+      null,
+    );
+
+    const revokedSave = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          revision: 2,
+          title: "Revoked",
+          content: "Revoked",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, memberB.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(revokedSave.errors, undefined);
+    assert.deepEqual(toPlainJson(revokedSave.data), {
+      saveArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "uuid",
+      },
+    });
+  });
+});
+
+test("moveArticleDraftToOrganization moves a personal draft and preserves its creator", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "graphqlmoveowner",
+      name: "GraphQL Move Owner",
+      email: "graphqlmoveowner@example.com",
+    });
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqlmoveorg",
+    );
+    const outsider = await insertAccountWithActor(tx, {
+      username: "graphqlmoveout",
+      name: "GraphQL Move Outsider",
+      email: "graphqlmoveout@example.com",
+    });
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      owner.account.id,
+    );
+
+    const draftId = generateUuidV7();
+    await saveArticleDraft(tx, owner.account, {
+      uuid: draftId,
+      title: "Movable draft",
+      content: "Movable body",
+      tags: [],
+    });
+
+    const moveResult = await execute({
+      schema,
+      document: moveArticleDraftToOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          organizationAccountId: encodeGlobalID(
+            "Account",
+            organization.account.id,
+          ),
+          revision: 1,
+        },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(moveResult.errors, undefined);
+    assert.deepEqual(toPlainJson(moveResult.data), {
+      moveArticleDraftToOrganization: {
+        __typename: "MoveArticleDraftToOrganizationPayload",
+        draft: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          uuid: draftId,
+          account: {
+            id: encodeGlobalID("Account", organization.account.id),
+          },
+          creator: { id: encodeGlobalID("Account", owner.account.id) },
+          revision: 2,
+        },
+      },
+    });
+
+    const outsiderRead = await execute({
+      schema,
+      document: articleDraftQuery,
+      variableValues: { uuid: draftId },
+      contextValue: makeUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(outsiderRead.errors, undefined);
+    assert.deepEqual(toPlainJson(outsiderRead.data), { articleDraft: null });
+
+    const outsiderMove = await execute({
+      schema,
+      document: moveArticleDraftToOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          organizationAccountId: encodeGlobalID(
+            "Account",
+            organization.account.id,
+          ),
+          revision: 2,
+        },
+      },
+      contextValue: makeUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(outsiderMove.errors, undefined);
+    assert.deepEqual(toPlainJson(outsiderMove.data), {
+      moveArticleDraftToOrganization: {
+        __typename: "InvalidInputError",
+        inputPath: "id",
+      },
+    });
+  });
+});
+
+test("publishArticleDraft credits the creator while recording the publisher", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "graphqlpubcreator",
+      name: "GraphQL Pub Creator",
+      email: "graphqlpubcreator@example.com",
+    });
+    const publisher = await insertAccountWithActor(tx, {
+      username: "graphqlpubpublisher",
+      name: "GraphQL Pub Publisher",
+      email: "graphqlpubpublisher@example.com",
+    });
+    const organization = await insertOrganizationForDrafts(tx, "graphqlpuborg");
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      creator.account.id,
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      publisher.account.id,
+    );
+
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: organization.account.id,
+      creatorId: creator.account.id,
+      title: "Attributed article",
+      content: "Attributed body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAttributionMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "attributed-article",
+          language: "en",
+          revision: 1,
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, publisher.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      publishArticleDraft: {
+        __typename: "PublishArticleDraftPayload",
+        article: {
+          slug: "attributed-article",
+          organizationAuthor: {
+            publisher: { username: "graphqlpubpublisher" },
+            member: { username: "graphqlpubcreator" },
+          },
+        },
+        deletedDraftId: encodeGlobalID("ArticleDraft", draftId),
+      },
+    });
+
+    const attribution = await tx.query.organizationPostAuthorTable.findFirst();
+    assert.equal(attribution?.memberAccountId, creator.account.id);
+    assert.equal(attribution?.publisherId, publisher.account.id);
+  });
+});
+
+const organizationArticleDraftsQuery = parse(`
+  query OrganizationArticleDrafts($username: String!) {
+    accountByUsername(username: $username) {
+      id
+      articleDrafts(first: 10) {
+        edges {
+          node {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+`);
+
+test("organization draft connection is limited to accepted members", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqldraftconnorg",
+    );
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqldraftconnmember",
+      name: "GraphQL Draft Conn Member",
+      email: "graphqldraftconnmember@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "graphqldraftconnoutsider",
+      name: "GraphQL Draft Conn Outsider",
+      email: "graphqldraftconnoutsider@example.com",
+    });
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      member.account.id,
+    );
+    const draftId = generateUuidV7();
+    await saveArticleDraft(tx, member.account, {
+      uuid: draftId,
+      actingAccountId: organization.account.id,
+      title: "Connection draft",
+      content: "Connection body",
+      tags: [],
+    });
+
+    const memberResult = await execute({
+      schema,
+      document: organizationArticleDraftsQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(memberResult.errors, undefined);
+    const memberConnection = (
+      toPlainJson(memberResult.data) as {
+        accountByUsername: {
+          articleDrafts: { edges: { node: { id: string } }[] };
+        };
+      }
+    ).accountByUsername.articleDrafts;
+    assert.deepEqual(
+      memberConnection.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("ArticleDraft", draftId)],
+    );
+
+    const outsiderResult = await execute({
+      schema,
+      document: organizationArticleDraftsQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok((outsiderResult.errors?.length ?? 0) > 0);
+  });
+});
+
+test("publishArticleDraft rejects non-members and explicit non-member co-authors", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqlpubrejectorg",
+    );
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlpubrejectmember",
+      name: "GraphQL Pub Reject Member",
+      email: "graphqlpubrejectmember@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "graphqlpubrejectoutsider",
+      name: "GraphQL Pub Reject Outsider",
+      email: "graphqlpubrejectoutsider@example.com",
+    });
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      member.account.id,
+    );
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: organization.account.id,
+      creatorId: member.account.id,
+      title: "Reject publish",
+      content: "Reject body",
+      tags: [],
+    });
+
+    const outsiderPublish = await execute({
+      schema,
+      document: publishArticleDraftAttributionMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "outsider-publish",
+          language: "en",
+          revision: 1,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(outsiderPublish.errors, undefined);
+    assert.deepEqual(toPlainJson(outsiderPublish.data), {
+      publishArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "id",
+      },
+    });
+
+    const badAttribution = await execute({
+      schema,
+      document: publishArticleDraftAttributionMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "bad-attribution",
+          language: "en",
+          revision: 1,
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+          attributionAccountId: encodeGlobalID("Account", outsider.account.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(badAttribution.errors, undefined);
+    assert.deepEqual(toPlainJson(badAttribution.data), {
+      publishArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "attributionAccountId",
+      },
+    });
+
+    const orgAsAttribution = await execute({
+      schema,
+      document: publishArticleDraftAttributionMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "org-attribution",
+          language: "en",
+          revision: 1,
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+          attributionAccountId: encodeGlobalID(
+            "Account",
+            organization.account.id,
+          ),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(orgAsAttribution.errors, undefined);
+    assert.deepEqual(toPlainJson(orgAsAttribution.data), {
+      publishArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "attributionAccountId",
+      },
+    });
+  });
+});
+
+test("publishArticleDraft and deleteArticleDraft reject stale revisions", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlstaledraft",
+      name: "GraphQL Stale Draft",
+      email: "graphqlstaledraft@example.com",
+    });
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: account.account.id,
+      creatorId: account.account.id,
+      title: "Stale draft",
+      content: "Stale body",
+      tags: [],
+      revision: 2,
+    });
+
+    const stalePublish = await execute({
+      schema,
+      document: publishArticleDraftMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "stale-publish",
+          language: "en",
+          revision: 1,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(stalePublish.errors, undefined);
+    assert.deepEqual(toPlainJson(stalePublish.data), {
+      publishArticleDraft: {
+        __typename: "ArticleDraftConflictError",
+        currentRevision: 2,
+      },
+    });
+
+    const staleDelete = await execute({
+      schema,
+      document: deleteArticleDraftMutation,
+      variableValues: {
+        id: encodeGlobalID("ArticleDraft", draftId),
+        revision: 1,
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(staleDelete.errors, undefined);
+    assert.deepEqual(toPlainJson(staleDelete.data), {
+      deleteArticleDraft: {
+        __typename: "ArticleDraftConflictError",
+        currentRevision: 2,
+      },
+    });
+
+    const stillStored = await tx.query.articleDraftTable.findFirst({
+      where: { id: draftId },
+    });
+    assert.equal(stillStored?.revision, 2);
   });
 });

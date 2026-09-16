@@ -35,10 +35,23 @@ import {
 const DRAFTS_PAGE_SIZE = 50 as const;
 
 const DraftsQuery = graphql`
-  query draftsQuery($first: Int, $after: String) {
+  query draftsQuery($username: String!, $first: Int, $after: String) {
     viewer {
       id
       username
+      organizationMemberships {
+        organization {
+          id
+          username
+          name
+        }
+      }
+    }
+    accountByUsername(username: $username) {
+      id
+      username
+      kind
+      viewerCanActAs
       ...draftsPaginationFragment @arguments(first: $first, after: $after)
     }
   }
@@ -91,8 +104,13 @@ const DeleteDraftMutation = graphql`
 `;
 
 const loadDraftsQuery = routePreloadedQuery(
-  (first: number = DRAFTS_PAGE_SIZE, after: string | null = null) =>
+  (
+    username: string,
+    first: number = DRAFTS_PAGE_SIZE,
+    after: string | null = null,
+  ) =>
     loadQuery<draftsQuery>(useRelayEnvironment()(), DraftsQuery, {
+      username,
       first,
       after,
     }),
@@ -103,13 +121,15 @@ export default function ArticleDraftsListPage() {
   const { t, i18n } = useLingui();
   const params = useParams();
 
+  const routeUsername = () => decodeRouteParam(params.handle!).substring(1);
+
   const data = createStablePreloadedQuery<draftsQuery>(DraftsQuery, () =>
-    loadDraftsQuery(),
+    loadDraftsQuery(routeUsername()),
   );
 
   const draftData = createPaginationFragment(
     DraftsPaginationFragment,
-    () => data()?.viewer as draftsPaginationFragment$key,
+    () => data()?.accountByUsername as draftsPaginationFragment$key,
   );
   const draftEdges = () =>
     draftData()?.articleDrafts?.edges?.filter((edge) => edge?.node != null) ??
@@ -135,20 +155,26 @@ export default function ArticleDraftsListPage() {
   const [deleteDraft, isDeleting] =
     createMutation<draftsDeleteMutation>(DeleteDraftMutation);
   const draftConnections = () => {
+    const ownerId = data()?.accountByUsername?.id;
     const viewerId = data()?.viewer?.id;
-    if (viewerId == null) return [];
+    if (ownerId == null) return [];
 
-    return [
-      ConnectionHandler.getConnectionID(
-        viewerId,
-        "SignedAccount_articleDrafts",
-      ),
+    const connections: (string | null | undefined)[] = [
       draftData()?.articleDrafts?.__id,
-      ConnectionHandler.getConnectionID(
-        viewerId,
-        "FloatingComposeButton_articleDrafts",
-      ),
-    ].filter((id): id is string => id != null);
+    ];
+    if (viewerId != null && ownerId === viewerId) {
+      connections.push(
+        ConnectionHandler.getConnectionID(
+          viewerId,
+          "SignedAccount_articleDrafts",
+        ),
+        ConnectionHandler.getConnectionID(
+          viewerId,
+          "FloatingComposeButton_articleDrafts",
+        ),
+      );
+    }
+    return connections.filter((id): id is string => id != null);
   };
 
   const handleDelete = (draftId: string, draftTitle: string) => {
@@ -206,10 +232,7 @@ export default function ArticleDraftsListPage() {
 
   return (
     <Show
-      when={
-        data()?.viewer?.username ===
-        decodeRouteParam(params.handle!).substring(1)
-      }
+      when={data()?.accountByUsername?.viewerCanActAs === true}
       fallback={
         <WideContainer class="px-4 py-6 sm:px-6 lg:py-8">
           <HttpStatusCode code={403} />
@@ -219,7 +242,7 @@ export default function ArticleDraftsListPage() {
               <UICardTitle>{t`Permission denied`}</UICardTitle>
               <CardDescription>
                 {data()?.viewer
-                  ? t`You can only view your own drafts`
+                  ? t`You can only view drafts for your own account or an organization you can post for`
                   : t`Please sign in to access this page`}
               </CardDescription>
             </CardHeader>
@@ -247,6 +270,11 @@ export default function ArticleDraftsListPage() {
               <h1 class="text-2xl font-semibold tracking-tight">
                 {t`Article drafts`}
               </h1>
+              <p class="mt-1 text-sm text-muted-foreground">
+                {data()?.accountByUsername?.username
+                  ? t`Drafts owned by @${data()!.accountByUsername!.username}`
+                  : ""}
+              </p>
             </div>
             <A href={`/@${params.handle!.substring(1)}/drafts/new`}>
               <Button class="gap-2">
@@ -255,6 +283,42 @@ export default function ArticleDraftsListPage() {
               </Button>
             </A>
           </div>
+
+          <Show
+            when={(data()?.viewer?.organizationMemberships?.length ?? 0) > 0}
+          >
+            <div class="mb-4 flex flex-wrap gap-2">
+              <A href={`/@${data()!.viewer!.username}/drafts`}>
+                <Button
+                  variant={
+                    routeUsername() === data()!.viewer!.username
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                >
+                  {t`Personal`}
+                </Button>
+              </A>
+              <For each={data()!.viewer!.organizationMemberships}>
+                {(membership) => (
+                  <A href={`/@${membership.organization.username}/drafts`}>
+                    <Button
+                      variant={
+                        routeUsername() === membership.organization.username
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                    >
+                      {membership.organization.name ||
+                        membership.organization.username}
+                    </Button>
+                  </A>
+                )}
+              </For>
+            </div>
+          </Show>
 
           <Show
             when={draftEdges().length > 0}

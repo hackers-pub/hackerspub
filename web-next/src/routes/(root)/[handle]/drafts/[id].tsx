@@ -16,16 +16,25 @@ import {
 } from "~/lib/relayPreload.ts";
 
 const EditDraftViewerQuery = graphql`
-  query IdQuery {
+  query IdQuery($username: String!) {
     viewer {
       id
       username
+    }
+    accountByUsername(username: $username) {
+      id
+      username
+      kind
+      viewerCanActAs
     }
   }
 `;
 
 const loadEditDraftViewerQuery = routePreloadedQuery(
-  () => loadQuery<IdQuery>(useRelayEnvironment()(), EditDraftViewerQuery, {}),
+  (username: string) =>
+    loadQuery<IdQuery>(useRelayEnvironment()(), EditDraftViewerQuery, {
+      username,
+    }),
   "loadEditDraftViewerQuery",
 );
 
@@ -49,8 +58,9 @@ export default function ArticleDraftPage() {
   onCleanup(() => {
     active = false;
   });
+  const routeUsername = () => decodeRouteParam(params.handle!).substring(1);
   const data = createStablePreloadedQuery<IdQuery>(EditDraftViewerQuery, () =>
-    loadEditDraftViewerQuery(),
+    loadEditDraftViewerQuery(routeUsername()),
   );
 
   createEffect(
@@ -76,12 +86,15 @@ export default function ArticleDraftPage() {
     source: ComposerState,
     draftId: string,
     draftUuid: string,
+    workspaceUsername: string,
   ) => {
     if (!active || composerState() !== source) return;
 
     savedNavigationUuid = draftUuid;
     setSavedDraftId(draftId);
-    navigate(`/${params.handle}/drafts/${draftUuid}`, { replace: true });
+    // Canonicalize to the draft's owning workspace so an organization draft's
+    // URL resolves for every member, not just the creator.
+    navigate(`/@${workspaceUsername}/drafts/${draftUuid}`, { replace: true });
   };
 
   const creatingDraft = () =>
@@ -89,10 +102,7 @@ export default function ArticleDraftPage() {
 
   return (
     <Show
-      when={
-        data()?.viewer?.username ===
-        decodeRouteParam(params.handle!).substring(1)
-      }
+      when={data()?.accountByUsername?.viewerCanActAs === true}
       fallback={
         <WideContainer class="p-6">
           <HttpStatusCode code={403} />
@@ -101,8 +111,8 @@ export default function ArticleDraftPage() {
           <p class="text-muted-foreground mb-4">
             {data()?.viewer
               ? creatingDraft()
-                ? t`You can only create drafts for your own account`
-                : t`You can only edit your own drafts`
+                ? t`You can only create drafts for your own account or an organization you can post for`
+                : t`You can only edit drafts for your own account or an organization you can post for`
               : t`Please sign in to access this page`}
           </p>
           <div class="flex gap-2">
@@ -126,11 +136,18 @@ export default function ArticleDraftPage() {
               draftUuid={state.draftUuid}
               onSaved={
                 state.draftUuid == null
-                  ? (draftId, draftUuid) =>
-                      handleSaved(state, draftId, draftUuid)
+                  ? (draftId, draftUuid, workspaceUsername) =>
+                      handleSaved(state, draftId, draftUuid, workspaceUsername)
                   : undefined
               }
               viewerId={data()?.viewer?.id}
+              workspaceAccountId={data()?.accountByUsername?.id}
+              workspaceUsername={data()?.accountByUsername?.username}
+              workspaceKind={
+                data()?.accountByUsername?.kind === "ORGANIZATION"
+                  ? "organization"
+                  : "personal"
+              }
             />
           )}
         </Show>

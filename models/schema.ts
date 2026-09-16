@@ -749,28 +749,50 @@ export const instanceTable = pgTable(
 export type Instance = typeof instanceTable.$inferSelect;
 export type NewInstance = typeof instanceTable.$inferInsert;
 
-export const articleDraftTable = pgTable("article_draft", {
-  id: uuid().$type<Uuid>().primaryKey(),
-  accountId: uuid("account_id")
-    .$type<Uuid>()
-    .notNull()
-    .references(() => accountTable.id, { onDelete: "cascade" }),
-  articleSourceId: uuid("article_source_id")
-    .$type<Uuid>()
-    .references(() => articleSourceTable.id, { onDelete: "cascade" }),
-  title: text().notNull(),
-  content: text().notNull(),
-  tags: text()
-    .array()
-    .notNull()
-    .default(sql`(ARRAY[]::text[])`),
-  updated: timestamp({ withTimezone: true })
-    .notNull()
-    .default(currentTimestamp),
-  created: timestamp({ withTimezone: true })
-    .notNull()
-    .default(currentTimestamp),
-});
+export const articleDraftTable = pgTable(
+  "article_draft",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    // The account that owns (and shares) this draft. It is a personal account
+    // for private drafts, or an organization account for shared drafts.
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    // The individual who created the draft. This is an editing record, not an
+    // author credit, and it never changes once set. It is `null` for legacy
+    // rows whose creator is unknown, or after the creator's account is deleted.
+    creatorId: uuid("creator_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    title: text().notNull(),
+    content: text().notNull(),
+    tags: text()
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
+    // Optimistic concurrency token. Every successful content update increments
+    // it, and clients must echo the revision they are editing from so that a
+    // concurrent save is reported as a conflict instead of overwriting.
+    revision: integer().notNull().default(1),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("article_draft_account_updated_idx").on(
+      table.accountId,
+      table.updated,
+    ),
+    index("article_draft_creator_id_idx").on(table.creatorId),
+  ],
+);
 
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
@@ -1462,10 +1484,19 @@ export const organizationPostAuthorTable = pgTable(
       .$type<Uuid>()
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
+    // The personal member to display as a co-author. When `attributionMode` is
+    // `acting_account_only` this stores the actual publisher instead, so it is
+    // always non-null.
     memberAccountId: uuid("member_account_id")
       .$type<Uuid>()
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
+    // The personal account that actually executed the publication. It may
+    // differ from `memberAccountId` when one member publishes another member's
+    // shared draft. `null` means the publisher's account was deleted.
+    publisherId: uuid("publisher_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
     attributionMode: postAttributionModeEnum("attribution_mode")
       .notNull()
       .default("acting_account_only"),
@@ -1478,6 +1509,7 @@ export const organizationPostAuthorTable = pgTable(
       table.organizationAccountId,
     ),
     index("organization_post_author_member_idx").on(table.memberAccountId),
+    index("organization_post_author_publisher_idx").on(table.publisherId),
     check(
       "organization_post_author_self_check",
       sql`${table.organizationAccountId} <> ${table.memberAccountId}`,

@@ -220,14 +220,15 @@ builder.drizzleObjectField(Article, "account", (t) =>
 export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   variant: "ArticleDraft",
   description:
-    "An unpublished article draft. Visible only to the owning account. " +
-    "Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.",
-  // The `articleDraft` query already scopes lookups to the owner, but a
-  // draft's global ID must not let anyone else read it via `node(id:)`.
-  // Owner-only, matching the query (drafts belong to personal accounts;
-  // not even moderators can read them).
-  authScopes: (draft, ctx) =>
-    ctx.account != null && draft.accountId === ctx.account.id,
+    "An unpublished article draft. A draft belongs to a workspace account: " +
+    "the owner's personal account, or an organization whose accepted members " +
+    "share it. Visible only to the owner and accepted organization members " +
+    "(not even moderators can read them), and promoted to an `Article` via " +
+    "the `publishArticleDraft` mutation.",
+  // The `articleDraft` query already scopes lookups, but a draft's global ID
+  // must not let anyone else read it via `node(id:)`. `canActAsAccount`
+  // accepts the owner itself and accepted members of the owning organization.
+  authScopes: (draft) => ({ canActAsAccount: draft.accountId }),
   runScopesOnType: true,
   id: {
     column: (draft) => draft.id,
@@ -238,7 +239,11 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
     content: t.expose("content", { type: "Markdown" }),
     contentHtml: t.field({
       type: "HTML",
-      description: "The rendered HTML of the draft's markdown content.",
+      description:
+        "The rendered HTML of the draft's markdown content. Draft media are " +
+        "resolved to their object storage URLs; note that those URLs are not " +
+        "access-controlled beyond being hard to guess, so a shared URL keeps " +
+        "working for anyone who already has it.",
       select: {
         columns: {
           content: true,
@@ -262,9 +267,54 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
       },
     }),
     tags: t.exposeStringList("tags"),
+    revision: t.exposeInt("revision", {
+      description:
+        "Optimistic concurrency token. Send it back as the `revision` input " +
+        "of `saveArticleDraft` (or `moveArticleDraftToOrganization` / " +
+        "`publishArticleDraft`) to update this exact version; a mismatch is " +
+        "reported as `ArticleDraftConflictError` instead of overwriting.",
+    }),
     created: t.expose("created", { type: "DateTime" }),
     updated: t.expose("updated", { type: "DateTime" }),
-    account: t.relation("account"),
+    account: t.relation("account", {
+      description:
+        "The workspace account that owns this draft: a personal account, or " +
+        "an organization whose accepted members can edit it.",
+    }),
+    creator: t.relation("creator", {
+      nullable: true,
+      description:
+        "The personal account that created the draft. This is an editing " +
+        "record, not an author credit, and it never changes. `null` for " +
+        "legacy drafts or after the creator's account was deleted.",
+    }),
+  }),
+});
+
+export class ArticleDraftConflictError extends Error {
+  public readonly currentRevision: number;
+
+  public constructor(currentRevision: number) {
+    super(
+      `The draft was modified by someone else (current revision: ${currentRevision}).`,
+    );
+    this.name = "ArticleDraftConflictError";
+    this.currentRevision = currentRevision;
+  }
+}
+
+builder.objectType(ArticleDraftConflictError, {
+  name: "ArticleDraftConflictError",
+  description:
+    "Returned when a save, delete, move, or publish targets a draft revision " +
+    "that no longer matches the stored one, e.g. because another member saved " +
+    "first. `currentRevision` is the revision the server currently holds; " +
+    "reload the draft or retry the operation against that revision. The client " +
+    "must not discard its local text automatically.",
+  fields: (t) => ({
+    currentRevision: t.exposeInt("currentRevision", {
+      description: "The revision currently stored on the server.",
+    }),
   }),
 });
 

@@ -136,6 +136,25 @@ async function viewerCanManageAccountSettings(
   return membership != null;
 }
 
+async function viewerCanActAsAccount(
+  ctx: UserContext,
+  accountId: Uuid,
+  accountKind: "personal" | "organization",
+  viewerAccountId: Uuid,
+): Promise<boolean> {
+  if (accountId === viewerAccountId) return accountKind === "personal";
+  if (accountKind !== "organization") return false;
+  const membership = await ctx.db.query.organizationMembershipTable.findFirst({
+    where: {
+      organizationAccountId: accountId,
+      memberAccountId: viewerAccountId,
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+  });
+  return membership != null;
+}
+
 async function viewerCanReadAccountNotifications(
   ctx: UserContext,
   accountId: Uuid,
@@ -520,6 +539,24 @@ export const Account = builder.drizzleNode("accountTable", {
         const session = await ctx.session;
         if (session == null) return false;
         return await viewerCanManageAccountSettings(
+          ctx,
+          account.id,
+          account.kind,
+          session.accountId,
+        );
+      },
+    }),
+    viewerCanActAs: t.boolean({
+      description:
+        "Whether the authenticated viewer may act as this `Account`: `true` " +
+        "for the personal account holder and for accepted members of an " +
+        "organization account (any role, not just admins). Use it to decide " +
+        "whether the viewer can access the account's shared article drafts.",
+      select: { columns: { id: true, kind: true } },
+      async resolve(account, _, ctx) {
+        const session = await ctx.session;
+        if (session == null) return false;
+        return await viewerCanActAsAccount(
           ctx,
           account.id,
           account.kind,

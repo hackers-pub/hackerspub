@@ -120,20 +120,22 @@ export const PostType = builder.enumType("PostType", {
 export const PostAttributionMode = builder.enumType("PostAttributionMode", {
   description:
     "How a post written through an organization account should display " +
-    "the personal member who created it.",
+    "the personal member credited with it.",
   values: {
     ACTING_ACCOUNT_ONLY: {
       value: "acting_account_only",
       description:
-        "Show only the acting account as the public author. For " +
-        "organization posts, the member remains recorded for audit and " +
-        "management but is not shown as a co-author.",
+        "Show only the organization account as the public author. The " +
+        "credited member (the publisher, or the shared draft's creator) is " +
+        "still recorded for audit and management but not shown as a co-author.",
     },
     ACTING_ACCOUNT_WITH_VIEWER: {
       value: "acting_account_with_viewer",
       description:
-        "Show the organization account as the primary author and the " +
-        "personal member as a co-author.",
+        "Show the organization account as the primary author and a specific " +
+        "personal member as a co-author. For shared article drafts the member " +
+        "defaults to the draft's creator unless an explicit " +
+        "`attributionAccountId` is given.",
     },
   } as const,
 });
@@ -193,14 +195,15 @@ OrganizationPostAuthor.implement({
   description:
     "Attribution metadata for a post written through an organization " +
     "account. The `Post.actor` remains the organization; this object " +
-    "records which personal member created it and whether that member " +
-    "should be shown as a co-author.",
+    "records which personal member is credited as a co-author and which " +
+    "personal account actually published it. The two differ when one member " +
+    "publishes a shared draft created by another.",
   fields: (t) => ({
     attributionMode: t.field({
       type: PostAttributionMode,
       description:
         "Whether clients should display only the organization or include " +
-        "the member as a co-author.",
+        "the credited member as a co-author.",
       resolve: (author) => author.attributionMode,
     }),
     organization: t.field({
@@ -229,6 +232,17 @@ OrganizationPostAuthor.implement({
         );
       },
     }),
+    publisher: t.field({
+      type: Account,
+      nullable: true,
+      description:
+        "The personal account that actually executed the publication. " +
+        "`null` when that account has been deleted.",
+      async resolve(author, _, ctx) {
+        if (author.publisherId == null) return null;
+        return await loadOrganizationPostAuthorAccount(ctx, author.publisherId);
+      },
+    }),
     created: t.expose("created", {
       type: "DateTime",
       description: "When this organization attribution record was created.",
@@ -248,6 +262,7 @@ export interface PostManagementActingAccountInput {
 export interface ResolvedPostActingAccount {
   account: schema.Account & { actor: schema.Actor };
   memberAccountId: Uuid;
+  publisherAccountId: Uuid;
   attributionMode: schema.PostAttributionMode | null;
 }
 
@@ -264,12 +279,14 @@ export async function resolvePostActingAccount(
     return {
       account,
       memberAccountId: ctx.account.id,
+      publisherAccountId: ctx.account.id,
       attributionMode: null,
     };
   }
   return {
     account,
     memberAccountId: ctx.account.id,
+    publisherAccountId: ctx.account.id,
     attributionMode: input.attributionMode ?? "acting_account_only",
   };
 }
@@ -285,6 +302,7 @@ export async function recordPostActingAccount(
     postId,
     resolved.account.id,
     resolved.memberAccountId,
+    resolved.publisherAccountId,
     resolved.attributionMode,
   );
 }

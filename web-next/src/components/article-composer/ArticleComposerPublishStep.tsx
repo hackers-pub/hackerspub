@@ -1,10 +1,6 @@
 import { createSignal, onMount, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
 import IconLoader2 from "~icons/lucide/loader-2";
-import {
-  ActingAccountSelect,
-  useComposeActingAccountOptions,
-} from "~/components/ActingAccountSelect.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
@@ -27,7 +23,6 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { getArticlePermalinkPreviewPrefix } from "./articlePermalinkPreview.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
 import { ComposerActionBar } from "./shared/ComposerActionBar.tsx";
 
@@ -35,21 +30,22 @@ export function ArticleComposerPublishStep() {
   const { t } = useLingui();
   const ctx = useArticleComposer();
   const params = useParams();
-  const composeActingAccountOptions = useComposeActingAccountOptions();
 
   // Initialise origin after mount so SSR and the first client render agree
   // (both produce "/@handle/year/"), then update to the full URL client-side.
   const [origin, setOrigin] = createSignal("");
   onMount(() => setOrigin(window.location.origin));
 
+  const workspaceHandle = () => {
+    const option = ctx
+      .workspaceOptions()
+      .find((candidate) => candidate.value === ctx.workspaceKey());
+    if (option?.username) return `@${option.username}`;
+    return params.handle ?? "";
+  };
+
   const urlPrefix = () =>
-    getArticlePermalinkPreviewPrefix({
-      origin: origin(),
-      routeHandle: params.handle ?? "",
-      year: new Date().getFullYear(),
-      actingAccountKey: ctx.publishActingAccountKey(),
-      actingAccountOptions: composeActingAccountOptions(),
-    });
+    `${origin()}/${workspaceHandle()}/${new Date().getFullYear()}/`;
 
   return (
     <>
@@ -96,14 +92,32 @@ export function ArticleComposerPublishStep() {
             </TextFieldDescription>
           </TextField>
 
-          <Show when={composeActingAccountOptions().length > 1}>
-            <div class="flex flex-col gap-1.5">
-              <Label>{t`Author`}</Label>
-              <ActingAccountSelect
-                class="w-full"
-                value={ctx.publishActingAccountKey()}
-                onChange={ctx.setPublishActingAccountKey}
+          <Show when={ctx.draft()?.accountKind === "organization"}>
+            <div class="flex items-start gap-2">
+              <input
+                id="show-personal-author"
+                type="checkbox"
+                checked={ctx.showPersonalAuthor()}
+                onChange={(e) =>
+                  ctx.setShowPersonalAuthor(e.currentTarget.checked)
+                }
+                aria-describedby="show-personal-author-description"
+                class="mt-0.5 cursor-pointer rounded border-input"
               />
+              <div class="grid gap-1.5 leading-none">
+                <label
+                  for="show-personal-author"
+                  class="cursor-pointer text-sm font-medium leading-none"
+                >
+                  {t`Show the personal author`}
+                </label>
+                <p
+                  id="show-personal-author-description"
+                  class="text-sm text-muted-foreground leading-6"
+                >
+                  {t`Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it.`}
+                </p>
+              </div>
             </div>
           </Show>
 
