@@ -287,6 +287,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
         return membership != null;
       },
       canActAsAccount: async (id) => {
+        if (id == null) return false;
         const viewerAccountId = ctx.session?.accountId;
         if (viewerAccountId == null) return false;
         if (id === viewerAccountId) return true;
