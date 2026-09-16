@@ -230,6 +230,7 @@ export interface ArticleDraftWorkspaceOption {
   value: string;
   accountId?: string;
   username?: string;
+  name?: string;
   label: string;
   avatarUrl?: string | null;
 }
@@ -446,6 +447,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       options.push({
         value: "personal",
         username: personal.username,
+        name: personal.name || personal.username,
         label: `${personal.name || personal.username} (@${personal.username})`,
         avatarUrl: personal.avatarUrl,
       });
@@ -456,6 +458,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         value: `organization:${organization.id}`,
         accountId: organization.id,
         username: organization.username,
+        name: organization.name || organization.username,
         label: `${organization.name || organization.username} (@${organization.username})`,
         avatarUrl: organization.avatarUrl,
       });

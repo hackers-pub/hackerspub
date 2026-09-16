@@ -177,9 +177,9 @@ function DraftWorkspaceBar() {
               aria-describedby={
                 organizationWorkspace() ? "draft-workspace-hint" : undefined
               }
-              class="w-full text-left sm:w-[340px]"
+              class="w-full overflow-hidden text-left sm:w-[340px]"
             >
-              <SelectValue<string>>
+              <SelectValue<string> class="min-w-0 flex-1 overflow-hidden">
                 {(state) => (
                   <WorkspaceOption
                     option={options().find(
@@ -250,14 +250,19 @@ function WorkspaceOption(props: { option?: ArticleDraftWorkspaceOption }) {
   return (
     <Show when={props.option} keyed>
       {(option) => (
-        <span class="flex min-w-0 items-center gap-2">
+        <span class="flex w-full min-w-0 items-center gap-2 overflow-hidden">
           <Avatar class="size-5 shrink-0">
             <AvatarImage src={option.avatarUrl ?? undefined} alt="" />
             <AvatarFallback class="text-[0.625rem] font-medium">
               {(option.username ?? option.label).charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span class="truncate">{option.label}</span>
+          <span class="block min-w-0 flex-1 truncate">
+            <span>{option.name ?? option.label}</span>{" "}
+            <Show when={option.username}>
+              <span class="text-muted-foreground">(@{option.username})</span>
+            </Show>
+          </span>
         </span>
       )}
     </Show>
