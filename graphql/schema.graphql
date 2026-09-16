@@ -2978,6 +2978,10 @@ input MoveArticleDraftToOrganizationInput {
 
 type MoveArticleDraftToOrganizationPayload {
   clientMutationId: ID
+
+  """
+  The moved draft, now owned by the destination organization with its `revision` incremented and `creator` unchanged.
+  """
   draft: ArticleDraft!
 }
 

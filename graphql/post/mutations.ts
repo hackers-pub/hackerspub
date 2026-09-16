@@ -1080,6 +1080,9 @@ builder.relayMutationField(
     outputFields: (t) => ({
       draft: t.field({
         type: ArticleDraft,
+        description:
+          "The moved draft, now owned by the destination organization with " +
+          "its `revision` incremented and `creator` unchanged.",
         resolve(result) {
           return result;
         },
