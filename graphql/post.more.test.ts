@@ -6241,3 +6241,77 @@ test("saveArticleDraft accepts a missing revision for legacy clients", async () 
     assert.equal(payload.saveArticleDraft.draft?.revision, 2);
   });
 });
+
+test("publishArticleDraft records the creator even when it is hidden", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "graphqlhiddencreator",
+      name: "GraphQL Hidden Creator",
+      email: "graphqlhiddencreator@example.com",
+    });
+    const publisher = await insertAccountWithActor(tx, {
+      username: "graphqlhiddenpublisher",
+      name: "GraphQL Hidden Publisher",
+      email: "graphqlhiddenpublisher@example.com",
+    });
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqlhiddenorg",
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      creator.account.id,
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      publisher.account.id,
+    );
+
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: organization.account.id,
+      creatorId: creator.account.id,
+      title: "Hidden creator article",
+      content: "Hidden creator body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAsOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "hidden-creator-article",
+          language: "en",
+          revision: 1,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, publisher.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      publishArticleDraft: {
+        __typename: "PublishArticleDraftPayload",
+        article: {
+          actor: { username: organization.account.username },
+          slug: "hidden-creator-article",
+          organizationAuthor: {
+            attributionMode: "ACTING_ACCOUNT_ONLY",
+            organization: { username: organization.account.username },
+            member: null,
+          },
+        },
+        deletedDraftId: encodeGlobalID("ArticleDraft", draftId),
+      },
+    });
+
+    const attribution = await tx.query.organizationPostAuthorTable.findFirst();
+    assert.equal(attribution?.memberAccountId, creator.account.id);
+    assert.equal(attribution?.publisherId, publisher.account.id);
+  });
+});

@@ -1459,30 +1459,34 @@ builder.relayMutationField(
           } else {
             attributionMode =
               args.input.attributionMode ?? "acting_account_only";
-            if (attributionMode === "acting_account_only") {
+            if (
+              attributionMode === "acting_account_only" &&
+              attributionAccountId != null
+            ) {
+              return { kind: "error", inputPath: "attributionAccountId" };
+            }
+            // Record the credited member independently of whether it is
+            // displayed: the `member` resolver hides it for
+            // `ACTING_ACCOUNT_ONLY`, but the draft creator should not be
+            // forgotten once the draft is deleted.
+            const candidate =
+              attributionAccountId ?? draft.creatorId ?? publisher.id;
+            if (candidate === workspace.id) {
+              // The publishing organization cannot be its own co-author.
+              return { kind: "error", inputPath: "attributionAccountId" };
+            }
+            const accepted = await canAccountActAs(
+              context.db,
+              { id: candidate, kind: "personal" },
+              workspace.id,
+            );
+            if (!accepted) {
               if (attributionAccountId != null) {
                 return { kind: "error", inputPath: "attributionAccountId" };
               }
+              memberAccountId = publisher.id;
             } else {
-              const candidate =
-                attributionAccountId ?? draft.creatorId ?? publisher.id;
-              if (candidate === workspace.id) {
-                // The publishing organization cannot be its own co-author.
-                return { kind: "error", inputPath: "attributionAccountId" };
-              }
-              const accepted = await canAccountActAs(
-                context.db,
-                { id: candidate, kind: "personal" },
-                workspace.id,
-              );
-              if (!accepted) {
-                if (attributionAccountId != null) {
-                  return { kind: "error", inputPath: "attributionAccountId" };
-                }
-                memberAccountId = publisher.id;
-              } else {
-                memberAccountId = candidate;
-              }
+              memberAccountId = candidate;
             }
           }
           await assertActingAccountNotSuspended(
