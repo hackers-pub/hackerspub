@@ -83,7 +83,7 @@ msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {투표자 #명}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:355
+#: src/routes/(root)/[handle]/drafts/index.tsx:390
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {외 #개}}"
 
@@ -113,7 +113,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {반응자 #명 더 불러오기} other {반응자 #명 더 불러오기}}"
 
 #. placeholder {0}: count()
-#: src/components/AppSidebar.tsx:761
+#: src/components/AppSidebar.tsx:782
 msgid "{0, plural, one {Notifications (# unread)} other {Notifications (# unread)}}"
 msgstr "{0, plural, other {알림 (읽지 않음 #개)}}"
 
@@ -572,7 +572,7 @@ msgid "Accepting…"
 msgstr "수락 중…"
 
 #: src/components/admin/AdminAccountsTable.tsx:293
-#: src/components/AppSidebar.tsx:814
+#: src/components/AppSidebar.tsx:835
 #: src/components/SettingsTabs.tsx:106
 msgid "Account"
 msgstr "계정"
@@ -615,8 +615,8 @@ msgstr "계정 정지됨"
 msgid "Accounts"
 msgstr "계정"
 
-#: src/components/AppSidebar.tsx:579
-#: src/components/AppSidebar.tsx:607
+#: src/components/AppSidebar.tsx:600
+#: src/components/AppSidebar.tsx:628
 msgid "Act as"
 msgstr "사용할 계정"
 
@@ -688,7 +688,7 @@ msgstr "추가 중…"
 msgid "Additional context (optional)"
 msgstr "추가 설명 (선택)"
 
-#: src/components/AppSidebar.tsx:970
+#: src/components/AppSidebar.tsx:991
 msgid "Admin"
 msgstr "관리"
 
@@ -810,7 +810,7 @@ msgstr "분석"
 
 #: src/components/article-composer/ArticleComposer.tsx:86
 msgid "Another member saved a newer revision while you were editing. Your changes are still here. Choose whether to overwrite the server version with your edits or discard your edits and load the latest version."
-msgstr ""
+msgstr "편집하는 동안 다른 멤버가 더 새로운 리비전을 저장했습니다. 변경 사항은 그대로 남아 있습니다. 내 편집 내용으로 서버 버전을 덮어쓸지, 편집 내용을 버리고 최신 버전을 불러올지 선택하세요."
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:62
 #: src/components/QuotePolicySelect.tsx:29
@@ -877,11 +877,11 @@ msgstr "이의 제기"
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "{0} 님({1})을 차단하시겠습니까? 상대방은 회원님을 팔로하거나 콘텐츠를 볼 수 없게 됩니다."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "「{draftTitle}」을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1340
+#: src/components/article-composer/ArticleComposerContext.tsx:1346
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "이 초고를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
@@ -915,12 +915,12 @@ msgstr "게시글"
 msgid "Article analytics"
 msgstr "게시글 분석"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:269
-#: src/routes/(root)/[handle]/drafts/index.tsx:271
+#: src/routes/(root)/[handle]/drafts/index.tsx:277
+#: src/routes/(root)/[handle]/drafts/index.tsx:279
 msgid "Article drafts"
 msgstr "게시글 초고"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1048
+#: src/components/article-composer/ArticleComposerContext.tsx:1054
 msgid "Article published"
 msgstr "게시글을 공개했습니다"
 
@@ -945,7 +945,7 @@ msgstr "게시글-url-슬러그"
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:349
+#: src/components/AppSidebar.tsx:370
 #: src/components/ProfileCard.tsx:237
 msgid "Articles only"
 msgstr "게시글만"
@@ -994,7 +994,7 @@ msgstr "프로필 사진"
 msgid "Avg. processing time"
 msgstr "평균 처리 시간"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:94
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:99
 msgid "Back"
 msgstr "돌아가기"
 
@@ -1058,7 +1058,7 @@ msgstr "굵게"
 msgid "Bookmark"
 msgstr "북마크"
 
-#: src/components/AppSidebar.tsx:890
+#: src/components/AppSidebar.tsx:911
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "북마크"
@@ -1109,7 +1109,7 @@ msgid "By {0}"
 msgstr "{0} 작성"
 
 #: src/components/AppealDialog.tsx:182
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:234
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:241
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
@@ -1261,7 +1261,7 @@ msgstr "닫힘"
 msgid "Code"
 msgstr "코드"
 
-#: src/components/AppSidebar.tsx:1198
+#: src/components/AppSidebar.tsx:1219
 #: src/routes/(root)/coc.tsx:38
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "Code of conduct"
@@ -1280,7 +1280,7 @@ msgstr "초대한 회원 접기"
 #~ msgid "Comments ({0})"
 #~ msgstr "댓글 ({0})"
 
-#: src/components/AppSidebar.tsx:1030
+#: src/components/AppSidebar.tsx:1051
 #: src/components/FloatingComposeButton.tsx:60
 msgid "Compose"
 msgstr "작성"
@@ -1450,7 +1450,7 @@ msgstr "이 설문에 투표할 수 없습니다"
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
 msgstr "아이디 네임스페이스를 공유하고 초대장 하나를 사용하는 조직 계정을 만듭니다."
 
-#: src/components/AppSidebar.tsx:1075
+#: src/components/AppSidebar.tsx:1096
 #: src/components/FloatingComposeButton.tsx:122
 msgid "Create article"
 msgstr "게시글 작성"
@@ -1459,7 +1459,7 @@ msgstr "게시글 작성"
 msgid "Create invitation link"
 msgstr "초대 링크 생성"
 
-#: src/components/AppSidebar.tsx:1051
+#: src/components/AppSidebar.tsx:1072
 #: src/components/FloatingComposeButton.tsx:98
 #: src/components/NoteComposeModal.tsx:84
 #: src/components/NoteComposer.tsx:1298
@@ -1558,7 +1558,7 @@ msgstr "기본 공유 공개 범위"
 
 #: src/components/PostActionMenu.tsx:408
 #: src/components/PostActionMenu.tsx:480
-#: src/routes/(root)/[handle]/drafts/index.tsx:380
+#: src/routes/(root)/[handle]/drafts/index.tsx:415
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
 msgstr "삭제"
@@ -1667,7 +1667,7 @@ msgstr "초고를 폐기할까요?"
 
 #: src/components/article-composer/ArticleComposer.tsx:91
 msgid "Discard my changes and load latest"
-msgstr ""
+msgstr "내 변경 사항 버리고 최신 불러오기"
 
 #: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
@@ -1700,7 +1700,7 @@ msgstr "이름"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:118
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
-msgstr ""
+msgstr "이 게시글의 공동 저자로 기록된 멤버를 조직 옆에 표시합니다. 기본적으로 발행한 사람이 아니라 초고를 만든 사람이 공동 저자로 기록됩니다."
 
 #: src/routes/(root)/sign/index.tsx:457
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
@@ -1710,16 +1710,16 @@ msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. �
 msgid "Do you want to quote this link?"
 msgstr "이 링크를 인용하시겠습니까?"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1362
-#: src/routes/(root)/[handle]/drafts/index.tsx:202
+#: src/components/article-composer/ArticleComposerContext.tsx:1368
+#: src/routes/(root)/[handle]/drafts/index.tsx:210
 msgid "Draft deleted"
 msgstr "초고를 삭제했습니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1273
+#: src/components/article-composer/ArticleComposerContext.tsx:1279
 msgid "Draft moved to the organization. Members can now view and edit it."
-msgstr ""
+msgstr "초고를 조직으로 이동했습니다. 이제 멤버들이 보고 편집할 수 있습니다."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:927
+#: src/components/article-composer/ArticleComposerContext.tsx:933
 msgid "Draft must be saved before publishing"
 msgstr "공개하기 전에 초고로 저장해야 합니다"
 
@@ -1727,24 +1727,24 @@ msgstr "공개하기 전에 초고로 저장해야 합니다"
 #~ msgid "Draft not found"
 #~ msgstr "초고를 찾을 수 없습니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:686
+#: src/components/article-composer/ArticleComposerContext.tsx:692
 #: src/components/note-composer/createSubmissionController.ts:468
 msgid "Draft saved"
 msgstr "초고로 저장했습니다"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:154
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:170
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:160
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:176
 msgid "Draft workspace"
-msgstr ""
+msgstr "초고 작업 공간"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:149
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:155
 msgid "Draft workspace:"
-msgstr ""
+msgstr "초고 작업 공간:"
 
 #. placeholder {0}: data()!.accountByUsername!.username
-#: src/routes/(root)/[handle]/drafts/index.tsx:275
+#: src/routes/(root)/[handle]/drafts/index.tsx:283
 msgid "Drafts owned by @{0}"
-msgstr ""
+msgstr "@{0} 님의 초고"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
@@ -1822,42 +1822,42 @@ msgstr "아래에 이메일 주소를 입력하여 시작하세요."
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:570
-#: src/components/article-composer/ArticleComposerContext.tsx:580
-#: src/components/article-composer/ArticleComposerContext.tsx:587
-#: src/components/article-composer/ArticleComposerContext.tsx:707
-#: src/components/article-composer/ArticleComposerContext.tsx:722
-#: src/components/article-composer/ArticleComposerContext.tsx:731
-#: src/components/article-composer/ArticleComposerContext.tsx:742
-#: src/components/article-composer/ArticleComposerContext.tsx:751
-#: src/components/article-composer/ArticleComposerContext.tsx:764
-#: src/components/article-composer/ArticleComposerContext.tsx:772
-#: src/components/article-composer/ArticleComposerContext.tsx:782
-#: src/components/article-composer/ArticleComposerContext.tsx:917
-#: src/components/article-composer/ArticleComposerContext.tsx:926
-#: src/components/article-composer/ArticleComposerContext.tsx:957
-#: src/components/article-composer/ArticleComposerContext.tsx:998
-#: src/components/article-composer/ArticleComposerContext.tsx:1057
-#: src/components/article-composer/ArticleComposerContext.tsx:1068
-#: src/components/article-composer/ArticleComposerContext.tsx:1076
-#: src/components/article-composer/ArticleComposerContext.tsx:1085
-#: src/components/article-composer/ArticleComposerContext.tsx:1093
-#: src/components/article-composer/ArticleComposerContext.tsx:1163
-#: src/components/article-composer/ArticleComposerContext.tsx:1175
-#: src/components/article-composer/ArticleComposerContext.tsx:1183
-#: src/components/article-composer/ArticleComposerContext.tsx:1191
-#: src/components/article-composer/ArticleComposerContext.tsx:1285
-#: src/components/article-composer/ArticleComposerContext.tsx:1294
-#: src/components/article-composer/ArticleComposerContext.tsx:1303
-#: src/components/article-composer/ArticleComposerContext.tsx:1312
-#: src/components/article-composer/ArticleComposerContext.tsx:1320
-#: src/components/article-composer/ArticleComposerContext.tsx:1331
-#: src/components/article-composer/ArticleComposerContext.tsx:1369
-#: src/components/article-composer/ArticleComposerContext.tsx:1379
-#: src/components/article-composer/ArticleComposerContext.tsx:1387
-#: src/components/article-composer/ArticleComposerContext.tsx:1395
-#: src/components/article-composer/ArticleComposerContext.tsx:1406
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:54
+#: src/components/article-composer/ArticleComposerContext.tsx:576
+#: src/components/article-composer/ArticleComposerContext.tsx:586
+#: src/components/article-composer/ArticleComposerContext.tsx:593
+#: src/components/article-composer/ArticleComposerContext.tsx:713
+#: src/components/article-composer/ArticleComposerContext.tsx:728
+#: src/components/article-composer/ArticleComposerContext.tsx:737
+#: src/components/article-composer/ArticleComposerContext.tsx:748
+#: src/components/article-composer/ArticleComposerContext.tsx:757
+#: src/components/article-composer/ArticleComposerContext.tsx:770
+#: src/components/article-composer/ArticleComposerContext.tsx:778
+#: src/components/article-composer/ArticleComposerContext.tsx:788
+#: src/components/article-composer/ArticleComposerContext.tsx:923
+#: src/components/article-composer/ArticleComposerContext.tsx:932
+#: src/components/article-composer/ArticleComposerContext.tsx:963
+#: src/components/article-composer/ArticleComposerContext.tsx:1004
+#: src/components/article-composer/ArticleComposerContext.tsx:1063
+#: src/components/article-composer/ArticleComposerContext.tsx:1074
+#: src/components/article-composer/ArticleComposerContext.tsx:1082
+#: src/components/article-composer/ArticleComposerContext.tsx:1091
+#: src/components/article-composer/ArticleComposerContext.tsx:1099
+#: src/components/article-composer/ArticleComposerContext.tsx:1169
+#: src/components/article-composer/ArticleComposerContext.tsx:1181
+#: src/components/article-composer/ArticleComposerContext.tsx:1189
+#: src/components/article-composer/ArticleComposerContext.tsx:1197
+#: src/components/article-composer/ArticleComposerContext.tsx:1291
+#: src/components/article-composer/ArticleComposerContext.tsx:1300
+#: src/components/article-composer/ArticleComposerContext.tsx:1309
+#: src/components/article-composer/ArticleComposerContext.tsx:1318
+#: src/components/article-composer/ArticleComposerContext.tsx:1326
+#: src/components/article-composer/ArticleComposerContext.tsx:1337
+#: src/components/article-composer/ArticleComposerContext.tsx:1375
+#: src/components/article-composer/ArticleComposerContext.tsx:1385
+#: src/components/article-composer/ArticleComposerContext.tsx:1393
+#: src/components/article-composer/ArticleComposerContext.tsx:1401
+#: src/components/article-composer/ArticleComposerContext.tsx:1412
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:59
 #: src/components/note-composer/createMediaController.ts:104
 #: src/components/note-composer/createMediaController.ts:142
 #: src/components/note-composer/createMediaController.ts:264
@@ -1883,9 +1883,9 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:633
-#: src/routes/(root)/[handle]/drafts/index.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:217
 #: src/routes/(root)/[handle]/drafts/index.tsx:225
+#: src/routes/(root)/[handle]/drafts/index.tsx:233
 #: src/routes/(root)/[handle]/invite/[id].tsx:214
 #: src/routes/(root)/sign/up/[token].tsx:274
 msgid "Error"
@@ -2035,7 +2035,7 @@ msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "북마크 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:405
+#: src/routes/(root)/[handle]/drafts/index.tsx:440
 msgid "Failed to load more drafts; click to retry"
 msgstr "초고 불러오기 실패, 클릭하여 재시도"
 
@@ -2115,9 +2115,9 @@ msgstr "인용을 불러오지 못했습니다. 클릭해서 다시 시도하세
 msgid "Failed to load replies; click to retry"
 msgstr "댓글을 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1164
+#: src/components/article-composer/ArticleComposerContext.tsx:1170
 msgid "Failed to load the latest draft."
-msgstr ""
+msgstr "최신 초고를 불러오지 못했습니다."
 
 #: src/routes/(root)/admin/news.tsx:450
 msgid "Failed to look up the actor."
@@ -2218,9 +2218,9 @@ msgstr "환경 설정 저장 실패"
 msgid "Failed to save settings"
 msgstr "설정 저장 실패"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:588
+#: src/components/article-composer/ArticleComposerContext.tsx:594
 msgid "Failed to save the draft."
-msgstr ""
+msgstr "초고를 저장하지 못했습니다."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:204
 msgid "Failed to send email"
@@ -2237,7 +2237,7 @@ msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:201
+#: src/components/AppSidebar.tsx:222
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
@@ -2301,9 +2301,9 @@ msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
 #~ msgid "Failed to update the note. Please try again."
 #~ msgstr "단문 수정에 실패했습니다. 다시 시도해 주세요."
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:41
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:45
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:56
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:46
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:50
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:61
 #: src/components/note-composer/createMediaController.ts:146
 #: src/components/note-composer/createSubmissionController.ts:242
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:417
@@ -2323,7 +2323,7 @@ msgstr "특정 계정이 공유한 링크를 우대합니다. 우대 공유자�
 msgid "Federation delivery"
 msgstr "페더레이션 전송"
 
-#: src/components/AppSidebar.tsx:405
+#: src/components/AppSidebar.tsx:426
 msgid "Fediverse"
 msgstr "연합우주"
 
@@ -2335,7 +2335,7 @@ msgstr "연합우주 핸들"
 msgid "Fediverse servers"
 msgstr "연합우주 서버"
 
-#: src/components/AppSidebar.tsx:278
+#: src/components/AppSidebar.tsx:299
 msgid "Feed"
 msgstr "피드"
 
@@ -2402,13 +2402,13 @@ msgstr "생성 중…"
 msgid "Get browser notifications"
 msgstr "브라우저 알림 받기"
 
-#: src/components/AppSidebar.tsx:1235
+#: src/components/AppSidebar.tsx:1256
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:119
-#: src/routes/(root)/[handle]/drafts/index.tsx:251
+#: src/routes/(root)/[handle]/drafts/index.tsx:259
 msgid "Go back"
 msgstr "돌아가기"
 
@@ -2425,7 +2425,7 @@ msgid "Go to my bookmarks"
 msgstr "내 북마크로"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:123
-#: src/routes/(root)/[handle]/drafts/index.tsx:256
+#: src/routes/(root)/[handle]/drafts/index.tsx:264
 msgid "Go to my drafts"
 msgstr "내 초고로"
 
@@ -2442,9 +2442,9 @@ msgstr "마지막 재발급 시점 이후 가장 활발한 계정(콘텐츠 수 
 msgid "Graph"
 msgstr "그래프"
 
-#: src/components/AppSidebar.tsx:369
-#: src/components/AppSidebar.tsx:495
-#: src/routes/(root).tsx:231
+#: src/components/AppSidebar.tsx:390
+#: src/components/AppSidebar.tsx:516
+#: src/routes/(root).tsx:232
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:346
 #: src/routes/(root)/coc.tsx:38
 #: src/routes/(root)/markdown.tsx:39
@@ -2453,7 +2453,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:20
-#: src/routes/(root).tsx:223
+#: src/routes/(root).tsx:224
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 홈"
 
@@ -2690,15 +2690,15 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.createQuestion.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
-#: src/components/article-composer/ArticleComposerContext.tsx:723
-#: src/components/article-composer/ArticleComposerContext.tsx:1058
-#: src/components/article-composer/ArticleComposerContext.tsx:1295
-#: src/components/article-composer/ArticleComposerContext.tsx:1370
+#: src/components/article-composer/ArticleComposerContext.tsx:729
+#: src/components/article-composer/ArticleComposerContext.tsx:1064
+#: src/components/article-composer/ArticleComposerContext.tsx:1301
+#: src/components/article-composer/ArticleComposerContext.tsx:1376
 #: src/components/note-composer/createSubmissionController.ts:285
 #: src/components/note-composer/createSubmissionController.ts:359
 #: src/components/note-composer/createSubmissionController.ts:404
 #: src/components/note-composer/createSubmissionController.ts:479
-#: src/routes/(root)/[handle]/drafts/index.tsx:210
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
 
@@ -2740,7 +2740,7 @@ msgstr "초대 링크"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:1193
+#: src/components/AppSidebar.tsx:1214
 #: src/routes/(root)/[handle]/settings/invite.tsx:887
 #: src/routes/(root)/tree/graph.tsx:81
 #: src/routes/(root)/tree/index.tsx:298
@@ -2756,7 +2756,7 @@ msgstr "초대"
 msgid "Invitations left"
 msgstr "남은 초대장"
 
-#: src/components/AppSidebar.tsx:917
+#: src/components/AppSidebar.tsx:938
 #: src/components/SettingsTabs.tsx:73
 #: src/routes/(root)/[handle]/settings/invite.tsx:308
 msgid "Invite"
@@ -2959,7 +2959,7 @@ msgstr "LLM 매칭 괴리율"
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
-#: src/routes/(root)/[handle]/drafts/index.tsx:408
+#: src/routes/(root)/[handle]/drafts/index.tsx:443
 msgid "Load more"
 msgstr "더 보기"
 
@@ -3133,7 +3133,7 @@ msgid "Loading search results…"
 msgstr "검색 결과를 불러오는 중…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/drafts/index.tsx:402
+#: src/routes/(root)/[handle]/drafts/index.tsx:437
 #: src/routes/(root)/sign/up/[token].tsx:466
 msgid "Loading…"
 msgstr "로딩 중…"
@@ -3143,12 +3143,12 @@ msgstr "로딩 중…"
 msgid "Local draft"
 msgstr "로컬 초고"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:999
+#: src/components/article-composer/ArticleComposerContext.tsx:1005
 #: src/components/NoteComposer.tsx:1226
 msgid "Local draft could not be saved"
 msgstr "로컬 초고를 저장할 수 없습니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1011
+#: src/components/article-composer/ArticleComposerContext.tsx:1017
 msgid "Local draft saved"
 msgstr "로컬 초고가 저장되었습니다"
 
@@ -3201,10 +3201,9 @@ msgstr "구성원을 제거했습니다"
 msgid "Members could not be loaded."
 msgstr "구성원을 불러올 수 없습니다."
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:186
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:204
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:210
 msgid "Members with posting permission can view and edit this draft."
-msgstr ""
+msgstr "게시 권한이 있는 멤버가 이 초고를 보고 편집할 수 있습니다."
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:55
 #: src/components/PostVisibilitySelect.tsx:83
@@ -3265,10 +3264,10 @@ msgstr "최다 인용 조항"
 msgid "Move down"
 msgstr "아래로 이동"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:198
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:210
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:202
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:217
 msgid "Move to organization"
-msgstr ""
+msgstr "조직으로 이동"
 
 #: src/components/LanguageList.tsx:192
 msgid "Move to the bottom"
@@ -3353,7 +3352,7 @@ msgid "New admin username"
 msgstr "새 관리자 아이디"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:132
-#: src/routes/(root)/[handle]/drafts/index.tsx:282
+#: src/routes/(root)/[handle]/drafts/index.tsx:290
 msgid "New article"
 msgstr "새 게시글"
 
@@ -3375,7 +3374,7 @@ msgid "Newest signups"
 msgstr "신규 가입순"
 
 #: src/components/AdminTabs.tsx:53
-#: src/components/AppSidebar.tsx:249
+#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/admin/news.tsx:558
 #: src/routes/(root)/news/index.tsx:47
 msgid "News"
@@ -3422,11 +3421,11 @@ msgstr "아직 북마크가 없습니다"
 msgid "No cases match these filters."
 msgstr "조건에 맞는 케이스가 없습니다."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1332
+#: src/components/article-composer/ArticleComposerContext.tsx:1338
 msgid "No draft to delete"
 msgstr "삭제할 초고가 없습니다"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:328
+#: src/routes/(root)/[handle]/drafts/index.tsx:363
 msgid "No drafts yet. Create your first article!"
 msgstr "아직 초고가 없습니다. 첫 게시글을 작성하세요!"
 
@@ -3645,10 +3644,10 @@ msgstr "알림 권한이 허용되지 않았습니다."
 msgid "Notification preview privacy"
 msgstr "알림 미리보기 개인정보"
 
-#: src/components/AppSidebar.tsx:766
-#: src/components/AppSidebar.tsx:768
-#: src/routes/(root).tsx:310
+#: src/components/AppSidebar.tsx:787
+#: src/components/AppSidebar.tsx:789
 #: src/routes/(root).tsx:311
+#: src/routes/(root).tsx:312
 msgid "Notifications"
 msgstr "알림"
 
@@ -3787,7 +3786,7 @@ msgstr "결과"
 
 #: src/components/article-composer/ArticleComposer.tsx:94
 msgid "Overwrite with my changes"
-msgstr ""
+msgstr "내 변경 사항으로 덮어쓰기"
 
 #: src/components/NotFoundPage.tsx:43
 msgid "Page not found"
@@ -3856,15 +3855,14 @@ msgstr "계정을 영구적으로 삭제하고 이 세션에서 로그아웃합�
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:110
-#: src/routes/(root)/[handle]/drafts/index.tsx:239
-#: src/routes/(root)/[handle]/drafts/index.tsx:242
+#: src/routes/(root)/[handle]/drafts/index.tsx:247
+#: src/routes/(root)/[handle]/drafts/index.tsx:250
 msgid "Permission denied"
 msgstr "권한이 거부되었습니다"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:137
-#: src/routes/(root)/[handle]/drafts/index.tsx:300
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:142
 msgid "Personal"
-msgstr ""
+msgstr "개인"
 
 #: src/components/ActingAccountSelect.tsx:58
 #: src/components/AppSidebar.tsx:497
@@ -3921,7 +3919,7 @@ msgid "Please sign in again before deleting your account."
 msgstr "계정을 삭제하기 전에 다시 로그인해 주세요."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:116
-#: src/routes/(root)/[handle]/drafts/index.tsx:246
+#: src/routes/(root)/[handle]/drafts/index.tsx:254
 msgid "Please sign in to access this page"
 msgstr "이 페이지에 접근하려면 로그인하세요"
 
@@ -4068,7 +4066,7 @@ msgstr "이전 위반 이력"
 msgid "Priority"
 msgstr "우선순위"
 
-#: src/components/AppSidebar.tsx:1202
+#: src/components/AppSidebar.tsx:1223
 #: src/routes/(root)/privacy.tsx:41
 msgid "Privacy policy"
 msgstr "개인정보 처리방침"
@@ -4112,7 +4110,7 @@ msgstr "공개"
 msgid "Public posts only"
 msgstr "공개 콘텐츠만"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:121
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:126
 msgid "Publish"
 msgstr "공개"
 
@@ -4252,7 +4250,7 @@ msgstr "이 브라우저로 알림을 즉시 받습니다. 이 탭을 닫아도 
 msgid "Recent activity may take a few minutes to appear."
 msgstr "최근 활동이 표시되기까지 몇 분 걸릴 수 있습니다."
 
-#: src/components/AppSidebar.tsx:1117
+#: src/components/AppSidebar.tsx:1138
 msgid "Recent drafts"
 msgstr "최근 초고"
 
@@ -4541,13 +4539,13 @@ msgstr "요청 중…"
 msgid "Resolve appeal"
 msgstr "이의 제기 처리"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1192
+#: src/components/article-composer/ArticleComposerContext.tsx:1198
 msgid "Resolve the conflicting changes before moving the draft."
-msgstr ""
+msgstr "초고를 이동하기 전에 충돌하는 변경 사항을 해결하세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:765
+#: src/components/article-composer/ArticleComposerContext.tsx:771
 msgid "Resolve the conflicting changes before saving."
-msgstr ""
+msgstr "저장하기 전에 충돌하는 변경 사항을 해결하세요."
 
 #: src/components/admin/ModerationCaseList.tsx:103
 #: src/components/ReportHistoryList.tsx:94
@@ -4642,7 +4640,7 @@ msgstr "단문 초고로 저장"
 msgid "Save changes"
 msgstr "변경사항 저장"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:110
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:115
 msgid "Save draft"
 msgstr "초고 저장"
 
@@ -4650,19 +4648,19 @@ msgstr "초고 저장"
 #~ msgid "Save draft to see preview"
 #~ msgstr "미리보기를 보려면 초고로 저장하세요"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1176
+#: src/components/article-composer/ArticleComposerContext.tsx:1182
 msgid "Save the draft before moving it."
-msgstr ""
+msgstr "이동하기 전에 초고를 저장하세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1184
+#: src/components/article-composer/ArticleComposerContext.tsx:1190
 msgid "Save your changes before moving the draft."
-msgstr ""
+msgstr "초고를 이동하기 전에 변경 사항을 저장하세요."
 
 #: src/components/NoteComposer.tsx:1228
 msgid "Saved locally"
 msgstr "로컬에 저장했습니다"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:110
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:115
 #: src/components/NoteComposer.tsx:1254
 #: src/components/NoteComposer.tsx:1306
 #: src/components/NoteComposer.tsx:1359
@@ -4676,7 +4674,7 @@ msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/admin/AdminAccountsTable.tsx:270
-#: src/components/AppSidebar.tsx:428
+#: src/components/AppSidebar.tsx:449
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:193
@@ -4771,7 +4769,7 @@ msgstr "새 콘텐츠의 기본 공개 범위와 인용 권한을 설정합니�
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:959
+#: src/components/AppSidebar.tsx:980
 msgid "Settings"
 msgstr "설정"
 
@@ -4855,7 +4853,7 @@ msgstr "민감한 콘텐츠 표시"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:112
 msgid "Show the personal author"
-msgstr ""
+msgstr "개인 저자 표시"
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:311
 msgid "Showing the 50 most recent appeals. Resolve some to see older ones."
@@ -4869,7 +4867,7 @@ msgstr "모더레이션 팀 명의로 신고된 사용자에게 표시됩니다.
 msgid "Shown to the user"
 msgstr "사용자에게 표시됨"
 
-#: src/components/AppSidebar.tsx:843
+#: src/components/AppSidebar.tsx:864
 #: src/routes/(root)/sign/index.tsx:428
 msgid "Sign in"
 msgstr "로그인"
@@ -4898,7 +4896,7 @@ msgstr "로그인 후 투표"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:1179
+#: src/components/AppSidebar.tsx:1200
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -4937,7 +4935,7 @@ msgstr "건너뛰기"
 msgid "Slug (URL)"
 msgstr "슬러그 (URL)"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:918
+#: src/components/article-composer/ArticleComposerContext.tsx:924
 msgid "Slug cannot be empty"
 msgstr "슬러그는 비워둘 수 없습니다"
 
@@ -4969,7 +4967,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 msgid "Sort invitation tree"
 msgstr "초대 족보 정렬"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:86
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:91
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:617
 msgid "Start writing to see a preview."
 msgstr "작성을 시작하면 미리보기가 표시됩니다."
@@ -5017,16 +5015,16 @@ msgstr "릴레이를 구독했습니다."
 msgid "Subscribing…"
 msgstr "구독 중…"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:685
-#: src/components/article-composer/ArticleComposerContext.tsx:1010
-#: src/components/article-composer/ArticleComposerContext.tsx:1272
-#: src/components/article-composer/ArticleComposerContext.tsx:1361
+#: src/components/article-composer/ArticleComposerContext.tsx:691
+#: src/components/article-composer/ArticleComposerContext.tsx:1016
+#: src/components/article-composer/ArticleComposerContext.tsx:1278
+#: src/components/article-composer/ArticleComposerContext.tsx:1367
 #: src/components/note-composer/createSubmissionController.ts:277
 #: src/components/note-composer/createSubmissionController.ts:349
 #: src/components/note-composer/createSubmissionController.ts:395
 #: src/components/note-composer/createSubmissionController.ts:467
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:201
+#: src/routes/(root)/[handle]/drafts/index.tsx:209
 msgid "Success"
 msgstr "성공"
 
@@ -5289,9 +5287,9 @@ msgstr "조직을 만들 수 없습니다. 다시 시도하세요."
 msgid "The organization could not be left. Please try again."
 msgstr "조직에서 탈퇴할 수 없습니다. 다시 시도하세요."
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:212
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:219
 msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
-msgstr ""
+msgstr "게시 권한이 있는 조직 멤버가 이 초고에 접근할 수 있게 됩니다. 이후 개인으로 되돌리는 이동은 지원되지 않습니다."
 
 #: src/components/NotFoundPage.tsx:46
 msgid "The page you're looking for doesn't exist or has been moved."
@@ -5330,7 +5328,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1226
+#: src/components/AppSidebar.tsx:1247
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -5428,34 +5426,34 @@ msgid "This conversion request could not be accepted."
 msgstr "이 전환 요청을 수락할 수 없습니다."
 
 #: src/components/article-composer/ArticleComposer.tsx:48
-#: src/components/article-composer/ArticleComposerContext.tsx:773
+#: src/components/article-composer/ArticleComposerContext.tsx:779
 msgid "This draft is no longer available or you no longer have access."
-msgstr ""
+msgstr "이 초고는 더 이상 사용할 수 없거나 접근 권한이 없습니다."
 
 #: src/components/article-composer/ArticleComposer.tsx:58
 msgid "This draft is no longer available or you no longer have access. Your local edits are preserved but cannot be saved."
-msgstr ""
+msgstr "이 초고는 더 이상 사용할 수 없거나 접근 권한이 없습니다. 로컬 편집 내용은 보존되지만 저장할 수 없습니다."
 
 #: src/components/article-composer/ArticleComposer.tsx:83
 msgid "This draft was changed by someone else"
-msgstr ""
+msgstr "다른 사람이 이 초고를 변경했습니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1380
+#: src/components/article-composer/ArticleComposerContext.tsx:1386
 msgid "This draft was changed by someone else. Reload it before deleting."
-msgstr ""
+msgstr "다른 사람이 이 초고를 변경했습니다. 삭제하기 전에 다시 불러오세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1286
+#: src/components/article-composer/ArticleComposerContext.tsx:1292
 msgid "This draft was changed by someone else. Reload it before moving it."
-msgstr ""
+msgstr "다른 사람이 이 초고를 변경했습니다. 이동하기 전에 다시 불러오세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1069
+#: src/components/article-composer/ArticleComposerContext.tsx:1075
 msgid "This draft was changed by someone else. Reload it before publishing."
-msgstr ""
+msgstr "다른 사람이 이 초고를 변경했습니다. 공개하기 전에 다시 불러오세요."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:571
-#: src/components/article-composer/ArticleComposerContext.tsx:708
+#: src/components/article-composer/ArticleComposerContext.tsx:577
+#: src/components/article-composer/ArticleComposerContext.tsx:714
 msgid "This draft was changed by someone else. Your edits are kept locally; choose how to resolve the conflict."
-msgstr ""
+msgstr "다른 사람이 이 초고를 변경했습니다. 편집 내용은 로컬에 보관되며, 충돌을 해결할 방법을 선택하세요."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:192
 #: src/routes/(root)/[handle]/invite/[id].tsx:196
@@ -5556,18 +5554,18 @@ msgstr "보통 1분 정도 소요됩니다. 번역이 완료되면 페이지가 
 msgid "This will be part of the article URL."
 msgstr "게시글 URL의 일부가 됩니다."
 
-#: src/components/AppSidebar.tsx:222
+#: src/components/AppSidebar.tsx:243
 msgid "Timeline"
 msgstr "타임라인"
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:76
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:81
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:607
 msgid "Title"
 msgstr "제목"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:783
-#: src/components/article-composer/ArticleComposerContext.tsx:1407
+#: src/components/article-composer/ArticleComposerContext.tsx:789
+#: src/components/article-composer/ArticleComposerContext.tsx:1413
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:634
 msgid "Title cannot be empty"
 msgstr "제목은 비워둘 수 없습니다"
@@ -5577,7 +5575,7 @@ msgstr "제목은 비워둘 수 없습니다"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}님을 팔로하려면 연합우주 핸들을 입력해 주세요."
 
-#: src/routes/(root).tsx:221
+#: src/routes/(root).tsx:222
 msgid "Toggle sidebar"
 msgstr "사이드바 전환"
 
@@ -5733,7 +5731,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
 
 #. placeholder {0}: new Date( edge.node.updated, ).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:364
+#: src/routes/(root)/[handle]/drafts/index.tsx:399
 msgid "Updated {0}"
 msgstr "{0}에 업데이트됨"
 
@@ -5832,11 +5830,11 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
-#: src/components/AppSidebar.tsx:1145
+#: src/components/AppSidebar.tsx:1166
 msgid "View all drafts →"
 msgstr "모든 초고 보기 →"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1049
+#: src/components/article-composer/ArticleComposerContext.tsx:1055
 msgid "View article analytics"
 msgstr "게시글 분석 보기"
 
@@ -6011,7 +6009,7 @@ msgstr "결정 철회"
 msgid "Withdrawn"
 msgstr "철회됨"
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:342
 msgid "Without shares"
 msgstr "공유 제외"
 
@@ -6036,7 +6034,7 @@ msgstr "이 글을 게시글로 쓸까요?"
 msgid "Write your article here."
 msgstr "여기에 게시글을 작성하세요."
 
-#: src/components/article-composer/ArticleComposerWriteStep.tsx:82
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:87
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 초고로 저장됩니다."
 
@@ -6115,19 +6113,19 @@ msgstr "이제 {0}으로 활동할 수 있습니다."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:114
 msgid "You can only create drafts for your own account or an organization you can post for"
-msgstr ""
+msgstr "자신의 계정이나 게시할 수 있는 조직의 초고만 만들 수 있습니다"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:115
 msgid "You can only edit drafts for your own account or an organization you can post for"
-msgstr ""
+msgstr "자신의 계정이나 게시할 수 있는 조직의 초고만 편집할 수 있습니다"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:107
 #~ msgid "You can only edit your own drafts"
 #~ msgstr "자신의 초고만 수정할 수 있습니다"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:245
+#: src/routes/(root)/[handle]/drafts/index.tsx:253
 msgid "You can only view drafts for your own account or an organization you can post for"
-msgstr ""
+msgstr "자신의 계정이나 게시할 수 있는 조직의 초고만 볼 수 있습니다"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:104
 msgid "You can only view your own bookmarks"
@@ -6193,8 +6191,8 @@ msgstr "단문을 작성하려면 로그인해야 합니다"
 msgid "You must be signed in to create a poll"
 msgstr "설문을 만들려면 로그인해야 합니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1388
-#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/components/article-composer/ArticleComposerContext.tsx:1394
+#: src/routes/(root)/[handle]/drafts/index.tsx:226
 msgid "You must be signed in to delete a draft"
 msgstr "초고를 삭제하려면 로그인해야 합니다"
 
@@ -6206,16 +6204,16 @@ msgstr "단문을 수정하려면 로그인해야 합니다."
 msgid "You must be signed in to edit an article"
 msgstr "게시글을 수정하려면 로그인해야 합니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1304
+#: src/components/article-composer/ArticleComposerContext.tsx:1310
 msgid "You must be signed in to move a draft"
-msgstr ""
+msgstr "초고를 이동하려면 로그인해야 합니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1077
+#: src/components/article-composer/ArticleComposerContext.tsx:1083
 msgid "You must be signed in to publish an article"
 msgstr "게시글을 공개하려면 로그인해야 합니다"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:732
-#: src/components/article-composer/ArticleComposerContext.tsx:958
+#: src/components/article-composer/ArticleComposerContext.tsx:738
+#: src/components/article-composer/ArticleComposerContext.tsx:964
 #: src/components/note-composer/createSubmissionController.ts:431
 #: src/components/note-composer/createSubmissionController.ts:487
 msgid "You must be signed in to save a draft"
@@ -6230,15 +6228,15 @@ msgstr "로그인이 필요합니다."
 msgid "You no longer belong to that organization."
 msgstr "더 이상 해당 조직에 속하지 않습니다."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:1313
+#: src/components/article-composer/ArticleComposerContext.tsx:1319
 msgid "You no longer have posting permission for that organization."
-msgstr ""
+msgstr "해당 조직에 대한 게시 권한이 더 이상 없습니다."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:581
-#: src/components/article-composer/ArticleComposerContext.tsx:743
-#: src/components/article-composer/ArticleComposerContext.tsx:1086
+#: src/components/article-composer/ArticleComposerContext.tsx:587
+#: src/components/article-composer/ArticleComposerContext.tsx:749
+#: src/components/article-composer/ArticleComposerContext.tsx:1092
 msgid "You no longer have posting permission for this draft's workspace."
-msgstr ""
+msgstr "이 초고의 작업 공간에 대한 게시 권한이 더 이상 없습니다."
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:275
 msgid "You took the original action. Consider letting another moderator review this appeal."
