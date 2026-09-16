@@ -11,6 +11,11 @@ import {
 } from "solid-relay";
 import IconFilePlus2 from "~icons/lucide/file-plus-2";
 import IconTrash2 from "~icons/lucide/trash-2";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
@@ -39,11 +44,14 @@ const DraftsQuery = graphql`
     viewer {
       id
       username
+      name
+      avatarUrl
       organizationMemberships {
         organization {
           id
           username
           name
+          avatarUrl
         }
       }
     }
@@ -296,8 +304,20 @@ export default function ArticleDraftsListPage() {
                       : "outline"
                   }
                   size="sm"
+                  class="gap-2"
                 >
-                  {t`Personal`}
+                  <Avatar class="size-4 shrink-0">
+                    <AvatarImage
+                      src={data()!.viewer!.avatarUrl ?? undefined}
+                      alt=""
+                    />
+                    <AvatarFallback class="text-[0.625rem] font-medium">
+                      {(data()!.viewer!.name || data()!.viewer!.username)
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {data()!.viewer!.name || data()!.viewer!.username}
                 </Button>
               </A>
               <For each={data()!.viewer!.organizationMemberships}>
@@ -310,7 +330,22 @@ export default function ArticleDraftsListPage() {
                           : "outline"
                       }
                       size="sm"
+                      class="gap-2"
                     >
+                      <Avatar class="size-4 shrink-0">
+                        <AvatarImage
+                          src={membership.organization.avatarUrl ?? undefined}
+                          alt=""
+                        />
+                        <AvatarFallback class="text-[0.625rem] font-medium">
+                          {(
+                            membership.organization.name ||
+                            membership.organization.username
+                          )
+                            .charAt(0)
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       {membership.organization.name ||
                         membership.organization.username}
                     </Button>
