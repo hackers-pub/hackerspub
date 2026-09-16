@@ -901,6 +901,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     { id: string; revision: number } | undefined
   > => {
     const outcome = await createDraftOnce();
+    if (outcome.status === "forbidden") {
+      // Nothing was created, so release the workspace lock and let the upload
+      // caller surface the error while the user picks another workspace.
+      setWorkspaceFrozen(false);
+      return undefined;
+    }
     return outcome.status === "ok"
       ? { id: outcome.id, revision: outcome.revision }
       : undefined;
