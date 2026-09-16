@@ -236,8 +236,11 @@ OrganizationPostAuthor.implement({
       type: Account,
       nullable: true,
       description:
-        "The personal account that actually executed the publication. " +
-        "`null` when that account has been deleted.",
+        "The personal account that actually executed the publication, for " +
+        "audit. Visible only to moderators, because `ACTING_ACCOUNT_ONLY` " +
+        "posts deliberately hide the personal member. `null` when that " +
+        "account has been deleted.",
+      authScopes: { moderator: true },
       async resolve(author, _, ctx) {
         if (author.publisherId == null) return null;
         return await loadOrganizationPostAuthorAccount(ctx, author.publisherId);

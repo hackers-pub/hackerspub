@@ -5410,7 +5410,6 @@ const publishArticleDraftAttributionMutation = parse(`
         article {
           slug
           organizationAuthor {
-            publisher { username }
             member { username }
           }
         }
@@ -5820,7 +5819,6 @@ test("publishArticleDraft credits the creator while recording the publisher", as
         article: {
           slug: "attributed-article",
           organizationAuthor: {
-            publisher: { username: "graphqlpubpublisher" },
             member: { username: "graphqlpubcreator" },
           },
         },
