@@ -201,7 +201,7 @@ function DraftWorkspaceBar() {
         <Show when={organizationWorkspace()}>
           <p
             id="draft-workspace-hint"
-            class="text-sm leading-6 text-muted-foreground"
+            class="hidden text-sm leading-6 text-muted-foreground sm:block"
           >
             {t`Members with posting permission can view and edit this draft.`}
           </p>
