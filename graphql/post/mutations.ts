@@ -1053,6 +1053,11 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Move a personally owned article draft to an organization you can post " +
+      "for, so its accepted members gain access and it publishes as the " +
+      "organization. The draft's creator record and attached media are " +
+      "preserved. Requires authentication.",
     errors: {
       types: [
         NotAuthenticatedError,
