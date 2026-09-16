@@ -9,6 +9,7 @@ import {
 } from "./article.ts";
 import {
   articleDraftMediumTable,
+  articleDraftTable,
   mediumTable,
   organizationMembershipTable,
 } from "./schema.ts";
@@ -394,5 +395,29 @@ test("deleteArticleDraft() enforces ownership and stale saves cannot resurrect",
       await tx.query.articleDraftTable.findFirst({ where: { id: draftId } }),
       undefined,
     );
+  });
+});
+
+test("article_draft creator_id defaults from the owner for legacy inserts", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "drafttriggerowner",
+      name: "Draft Trigger Owner",
+      email: "drafttriggerowner@example.com",
+    });
+    const draftId = generateUuidV7();
+    // The old writer does not know about `creator_id`, so the transition
+    // trigger must fill it from the owning account.
+    const rows = await tx
+      .insert(articleDraftTable)
+      .values({
+        id: draftId,
+        accountId: owner.account.id,
+        title: "Triggered draft",
+        content: "Triggered body",
+        tags: [],
+      })
+      .returning();
+    assert.equal(rows[0].creatorId, owner.account.id);
   });
 });
