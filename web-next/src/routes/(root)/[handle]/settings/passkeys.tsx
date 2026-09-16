@@ -175,7 +175,7 @@ export default function passkeysPage() {
   );
 
   const [registering, setRegistering] = createSignal(false);
-  let passkeyNameRef: HTMLInputElement | undefined;
+  const [passkeyName, setPasskeyName] = createSignal("");
   const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<{
     id: string;
     name: string;
@@ -205,7 +205,7 @@ export default function passkeysPage() {
 
   async function onRegisterPasskey() {
     const account = data()?.accountByUsername;
-    const name = passkeyNameRef?.value?.trim() ?? "";
+    const name = passkeyName().trim();
     if (!account || !name) return;
 
     setRegistering(true);
@@ -262,7 +262,7 @@ export default function passkeysPage() {
           description: t`Your passkey has been registered and can now be used for authentication.`,
           variant: "success",
         });
-        if (passkeyNameRef) passkeyNameRef.value = "";
+        setPasskeyName("");
         // No need to manually refresh - @appendNode automatically updates the connection
       } else {
         throw new Error("Passkey verification failed");
@@ -360,7 +360,11 @@ export default function passkeysPage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                          <TextField class="grid w-full items-center gap-1.5">
+                          <TextField
+                            class="grid w-full items-center gap-1.5"
+                            value={passkeyName()}
+                            onChange={setPasskeyName}
+                          >
                             <TextFieldLabel for="passkey-name">
                               {t`Passkey name`}
                             </TextFieldLabel>
@@ -369,13 +373,14 @@ export default function passkeysPage() {
                               id="passkey-name"
                               placeholder={t`My passkey`}
                               required
-                              ref={passkeyNameRef}
                             />
                           </TextField>
                           <Button
                             type="button"
                             onClick={onRegisterPasskey}
-                            disabled={registering()}
+                            disabled={
+                              registering() || passkeyName().trim() === ""
+                            }
                             class="w-full cursor-pointer"
                           >
                             {registering() ? t`Registering…` : t`Register`}
