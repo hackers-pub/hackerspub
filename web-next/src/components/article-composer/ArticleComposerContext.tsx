@@ -231,6 +231,7 @@ export interface ArticleDraftWorkspaceOption {
   accountId?: string;
   username?: string;
   label: string;
+  avatarUrl?: string | null;
 }
 
 export type ArticleDraftSaveStatus =
@@ -446,6 +447,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         value: "personal",
         username: personal.username,
         label: `${personal.name || personal.username} (@${personal.username})`,
+        avatarUrl: personal.avatarUrl,
       });
     }
     for (const membership of actingAccount.organizations()) {
@@ -455,6 +457,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         accountId: organization.id,
         username: organization.username,
         label: `${organization.name || organization.username} (@${organization.username})`,
+        avatarUrl: organization.avatarUrl,
       });
     }
     return options;

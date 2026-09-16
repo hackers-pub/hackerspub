@@ -4,6 +4,11 @@ import { useNavigate } from "@solidjs/router";
 import { Button } from "~/components/ui/button.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -25,6 +30,7 @@ import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
 import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
 import { attachArticleDraftMediumOnServer } from "~/lib/uploadImage.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
+import type { ArticleDraftWorkspaceOption } from "./ArticleComposerContext.tsx";
 import { ComposerActionBar } from "./shared/ComposerActionBar.tsx";
 import { ComposerEditorPanes } from "./shared/ComposerEditorPanes.tsx";
 import { ComposerTitleField } from "./shared/ComposerTitleField.tsx";
@@ -158,11 +164,11 @@ function DraftWorkspaceBar() {
             options={options().map((option) => option.value)}
             itemComponent={(itemProps) => (
               <SelectItem item={itemProps.item}>
-                {
-                  options().find(
+                <WorkspaceOption
+                  option={options().find(
                     (option) => option.value === itemProps.item.rawValue,
-                  )?.label
-                }
+                  )}
+                />
               </SelectItem>
             )}
           >
@@ -175,13 +181,11 @@ function DraftWorkspaceBar() {
             >
               <SelectValue<string>>
                 {(state) => (
-                  <span class="truncate">
-                    {
-                      options().find(
-                        (option) => option.value === state.selectedOption(),
-                      )?.label
-                    }
-                  </span>
+                  <WorkspaceOption
+                    option={options().find(
+                      (option) => option.value === state.selectedOption(),
+                    )}
+                  />
                 )}
               </SelectValue>
             </SelectTrigger>
@@ -239,5 +243,23 @@ function DraftWorkspaceBar() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+function WorkspaceOption(props: { option?: ArticleDraftWorkspaceOption }) {
+  return (
+    <Show when={props.option} keyed>
+      {(option) => (
+        <span class="flex min-w-0 items-center gap-2">
+          <Avatar class="size-5 shrink-0">
+            <AvatarImage src={option.avatarUrl ?? undefined} alt="" />
+            <AvatarFallback class="text-[0.625rem] font-medium">
+              {(option.username ?? option.label).charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span class="truncate">{option.label}</span>
+        </span>
+      )}
+    </Show>
   );
 }
