@@ -917,6 +917,11 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Create or update an article draft. Omit `id` and `uuid` to create a " +
+      "new draft. Pass `actingAccountId` to create it in an organization " +
+      "workspace you can post for, and `revision` to reject a concurrent " +
+      "edit with `ArticleDraftConflictError`. Requires authentication.",
     errors: {
       types: [
         NotAuthenticatedError,
@@ -992,6 +997,11 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Permanently delete an article draft. The draft's owner or an accepted " +
+      "member of its owning organization may delete it, and an optional " +
+      "`revision` guards against deleting a newer version. Requires " +
+      "authentication.",
     errors: {
       types: [
         NotAuthenticatedError,
@@ -1338,6 +1348,12 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Publish an article draft as its owning workspace account, deleting the " +
+      "draft and sending an ActivityPub `Create` activity. An optional " +
+      "`revision` rejects a concurrent edit, and `attributionMode` with " +
+      "`attributionAccountId` choose the credited co-author for an " +
+      "organization draft. Requires authentication.",
     errors: {
       types: [
         NotAuthenticatedError,

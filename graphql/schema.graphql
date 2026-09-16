@@ -3092,6 +3092,10 @@ type Mutation {
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
   createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
   deleteAccount(input: DeleteAccountInput!): DeleteAccountResult!
+
+  """
+  Permanently delete an article draft. The draft's owner or an accepted member of its owning organization may delete it, and an optional `revision` guards against deleting a newer version. Requires authentication.
+  """
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
 
   """
@@ -3209,6 +3213,10 @@ type Mutation {
   muteActor(input: MuteActorInput!): MuteActorResult!
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
+
+  """
+  Publish an article draft as its owning workspace account, deleting the draft and sending an ActivityPub `Create` activity. An optional `revision` rejects a concurrent edit, and `attributionMode` with `attributionAccountId` choose the credited co-author for an organization draft. Requires authentication.
+  """
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
 
   """
@@ -3343,6 +3351,10 @@ type Mutation {
     """The ID of the session to log out."""
     sessionId: UUID!
   ): Session
+
+  """
+  Create or update an article draft. Omit `id` and `uuid` to create a new draft. Pass `actingAccountId` to create it in an organization workspace you can post for, and `revision` to reject a concurrent edit with `ArticleDraftConflictError`. Requires authentication.
+  """
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
 
   """
