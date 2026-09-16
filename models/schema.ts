@@ -1485,12 +1485,13 @@ export const organizationPostAuthorTable = pgTable(
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
     // The personal member to display as a co-author. When `attributionMode` is
-    // `acting_account_only` this stores the actual publisher instead, so it is
-    // always non-null.
+    // `acting_account_only` this stores the credited member as well, so it is
+    // non-null for a live attribution. It is nullable so deleting the member's
+    // account keeps the row (and the separate publisher record) instead of
+    // cascading it away.
     memberAccountId: uuid("member_account_id")
       .$type<Uuid>()
-      .notNull()
-      .references(() => accountTable.id, { onDelete: "cascade" }),
+      .references(() => accountTable.id, { onDelete: "set null" }),
     // The personal account that actually executed the publication. It may
     // differ from `memberAccountId` when one member publishes another member's
     // shared draft. `null` means the publisher's account was deleted.

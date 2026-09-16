@@ -226,6 +226,7 @@ OrganizationPostAuthor.implement({
         if (author.attributionMode !== "acting_account_with_viewer") {
           return null;
         }
+        if (author.memberAccountId == null) return null;
         return await loadOrganizationPostAuthorAccount(
           ctx,
           author.memberAccountId,

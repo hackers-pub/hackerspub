@@ -127,7 +127,8 @@ export function getPostAttributionIds(
 ): URL[] {
   if (
     organizationAuthor?.attributionMode !== "acting_account_with_viewer" ||
-    organizationAuthor.organizationAccountId !== accountId
+    organizationAuthor.organizationAccountId !== accountId ||
+    organizationAuthor.memberAccountId == null
   ) {
     return [ctx.getActorUri(accountId)];
   }

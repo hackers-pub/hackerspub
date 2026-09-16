@@ -6315,3 +6315,66 @@ test("publishArticleDraft records the creator even when it is hidden", async () 
     assert.equal(attribution?.publisherId, publisher.account.id);
   });
 });
+
+test("organization attribution survives the credited member's deletion", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "graphqlcascadecreator",
+      name: "GraphQL Cascade Creator",
+      email: "graphqlcascadecreator@example.com",
+    });
+    const publisher = await insertAccountWithActor(tx, {
+      username: "graphqlcascadepublisher",
+      name: "GraphQL Cascade Publisher",
+      email: "graphqlcascadepublisher@example.com",
+    });
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqlcascadeorg",
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      creator.account.id,
+    );
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      publisher.account.id,
+    );
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: organization.account.id,
+      creatorId: creator.account.id,
+      title: "Cascade article",
+      content: "Cascade body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAttributionMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "cascade-article",
+          language: "en",
+          revision: 1,
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, publisher.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+
+    await tx
+      .delete(accountTable)
+      .where(eq(accountTable.id, creator.account.id));
+
+    const attribution = await tx.query.organizationPostAuthorTable.findFirst();
+    assert.equal(attribution?.memberAccountId, null);
+    assert.equal(attribution?.publisherId, publisher.account.id);
+  });
+});

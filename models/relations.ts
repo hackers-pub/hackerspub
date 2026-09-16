@@ -429,7 +429,7 @@ export const relations = defineRelations(schema, (r) => ({
       alias: "member",
       from: r.organizationPostAuthorTable.memberAccountId,
       to: r.accountTable.id,
-      optional: false,
+      optional: true,
     }),
     publisher: r.one.accountTable({
       alias: "publisher",
