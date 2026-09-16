@@ -879,10 +879,11 @@ builder.relayMutationField(
       "new draft (a UUID is generated). Pass `actingAccountId` to create it " +
       "in an organization workspace you can post for; it defaults to your " +
       "personal account, and once created the owning workspace can only be " +
-      "changed with `moveArticleDraftToOrganization`. Updates must echo the " +
-      "draft's `revision`; a stale revision returns " +
-      "`ArticleDraftConflictError` instead of overwriting another member's " +
-      "work. Requires authentication.",
+      "changed with `moveArticleDraftToOrganization`. Pass the draft's " +
+      "`revision` on an update so a concurrent edit returns " +
+      "`ArticleDraftConflictError` instead of being overwritten; omitting it " +
+      "writes unconditionally, a transition escape hatch for clients built " +
+      "before revision-based checks. Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: false }),
       uuid: t.field({
@@ -904,8 +905,11 @@ builder.relayMutationField(
       revision: t.int({
         required: false,
         description:
-          "The `ArticleDraft.revision` the client is editing from. Required " +
-          "when updating an existing draft; omit when creating one.",
+          "The `ArticleDraft.revision` the client is editing from. When " +
+          "provided on an update, a stale value returns " +
+          "`ArticleDraftConflictError`. When omitted, an update writes " +
+          "unconditionally (a transition path for clients built before " +
+          "revision-based checks) and a create ignores it.",
       }),
     }),
   },
@@ -1029,7 +1033,11 @@ builder.relayMutationField(
       "preserved. Organization-to-personal and organization-to-organization " +
       "moves are not supported. Requires authentication.",
     inputFields: (t) => ({
-      id: t.globalID({ for: [ArticleDraft], required: true }),
+      id: t.globalID({
+        for: [ArticleDraft],
+        required: true,
+        description: "Global ID of the personally owned draft to move.",
+      }),
       organizationAccountId: t.globalID({
         for: [Account],
         required: true,
@@ -3018,10 +3026,12 @@ builder.relayMutationField(
   "attachArticleDraftMedium",
   {
     description:
-      "Associate an uploaded `Medium` with an existing article draft so it " +
-      "can be referenced in the draft's Markdown as `hp-medium:{key}`. The " +
-      "draft must already exist (create it with `saveArticleDraft` first) and " +
-      "the viewer must own it or be an accepted member of its owning " +
+      "Associate an uploaded `Medium` with an article draft so it can be " +
+      "referenced in the draft's Markdown as `hp-medium:{key}`. For a draft " +
+      "whose ID is not yet stored, a blank draft owned by the viewer is " +
+      "created, which keeps pre-upgrade composers working during the rollout; " +
+      "new clients create the draft with `saveArticleDraft` first. The viewer " +
+      "must own the draft or be an accepted member of its owning " +
       "organization. Re-attaching the same key to the same medium is " +
       "idempotent; pointing an existing key at a different medium is " +
       "rejected. Requires authentication.",
@@ -3039,6 +3049,7 @@ builder.relayMutationField(
     errors: { types: [NotAuthenticatedError, InvalidInputError] },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
+      const viewer = ctx.account;
       const key = args.input.key?.trim() || args.input.mediumId;
       if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
         throw new InvalidInputError("key");
@@ -3051,11 +3062,28 @@ builder.relayMutationField(
           .from(articleDraftTable)
           .where(eq(articleDraftTable.id, args.input.draftId))
           .for("update");
-        const draft = draftRows[0];
-        if (draft == null) return "draft" as const;
-        if (!(await canAccountActAs(tx.db, ctx.account!, draft.accountId))) {
+        let draft = draftRows[0];
+        if (draft == null) {
+          // Transition path for pre-upgrade composers, which upload before the
+          // first save. New clients create the draft explicitly first.
+          const inserted = await tx.db
+            .insert(articleDraftTable)
+            .values({
+              id: args.input.draftId,
+              accountId: viewer.id,
+              creatorId: viewer.id,
+              title: "",
+              content: "",
+              tags: [],
+              revision: 1,
+            })
+            .onConflictDoNothing()
+            .returning();
+          draft = inserted[0];
+        } else if (!(await canAccountActAs(tx.db, viewer, draft.accountId))) {
           return "draft" as const;
         }
+        if (draft == null) return "draft" as const;
         const medium = await tx.db.query.mediumTable.findFirst({
           where: { id: args.input.mediumId },
         });

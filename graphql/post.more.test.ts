@@ -1219,12 +1219,14 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
     assert.equal(repeat.errors, undefined);
 
-    // Attaching to a missing draft no longer auto-creates it.
+    // Attaching to a missing draft creates a blank draft, so pre-upgrade
+    // composers that upload before the first save keep working.
+    const missingDraftId = generateUuidV7();
     const missing = await execute({
       schema,
       document: attachArticleDraftMediumMutation,
       variableValues: {
-        input: { draftId: generateUuidV7(), mediumId: medium.uuid },
+        input: { draftId: missingDraftId, mediumId: medium.uuid },
       },
       contextValue: makeUserContext(tx, account.account),
       onError: "NO_PROPAGATE",
@@ -1232,10 +1234,16 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     assert.equal(missing.errors, undefined);
     assert.deepEqual(toPlainJson(missing.data), {
       attachArticleDraftMedium: {
-        __typename: "InvalidInputError",
-        inputPath: "draftId",
+        __typename: "AttachArticleDraftMediumPayload",
+        key: medium.uuid,
+        medium: { uuid: medium.uuid },
       },
     });
+    const createdDraft = await tx.query.articleDraftTable.findFirst({
+      where: { id: missingDraftId },
+    });
+    assert.equal(createdDraft?.accountId, account.account.id);
+    assert.equal(createdDraft?.title, "");
   });
 });
 

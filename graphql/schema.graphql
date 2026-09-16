@@ -1694,7 +1694,7 @@ type ArticleDraftConflictError {
 union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedError
 
 """
-Associate an uploaded `Medium` with an existing article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. The draft must already exist (create it with `saveArticleDraft` first) and the viewer must own it or be an accepted member of its owning organization. Re-attaching the same key to the same medium is idempotent; pointing an existing key at a different medium is rejected. Requires authentication.
+Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. For a draft whose ID is not yet stored, a blank draft owned by the viewer is created, which keeps pre-upgrade composers working during the rollout; new clients create the draft with `saveArticleDraft` first. The viewer must own the draft or be an accepted member of its owning organization. Re-attaching the same key to the same medium is idempotent; pointing an existing key at a different medium is rejected. Requires authentication.
 """
 input AttachArticleDraftMediumInput {
   clientMutationId: ID
@@ -2967,6 +2967,8 @@ Move a personally owned article draft to an organization you can post for, so it
 """
 input MoveArticleDraftToOrganizationInput {
   clientMutationId: ID
+
+  """Global ID of the personally owned draft to move."""
   id: ID!
 
   """Organization `Account` to move the draft to."""
@@ -6454,7 +6456,7 @@ type Sanction {
 }
 
 """
-Create or update an article draft. Omit `id` and `uuid` to create a new draft (a UUID is generated). Pass `actingAccountId` to create it in an organization workspace you can post for; it defaults to your personal account, and once created the owning workspace can only be changed with `moveArticleDraftToOrganization`. Updates must echo the draft's `revision`; a stale revision returns `ArticleDraftConflictError` instead of overwriting another member's work. Requires authentication.
+Create or update an article draft. Omit `id` and `uuid` to create a new draft (a UUID is generated). Pass `actingAccountId` to create it in an organization workspace you can post for; it defaults to your personal account, and once created the owning workspace can only be changed with `moveArticleDraftToOrganization`. Pass the draft's `revision` on an update so a concurrent edit returns `ArticleDraftConflictError` instead of being overwritten; omitting it writes unconditionally, a transition escape hatch for clients built before revision-based checks. Requires authentication.
 """
 input SaveArticleDraftInput {
   """
@@ -6466,7 +6468,7 @@ input SaveArticleDraftInput {
   id: ID
 
   """
-  The `ArticleDraft.revision` the client is editing from. Required when updating an existing draft; omit when creating one.
+  The `ArticleDraft.revision` the client is editing from. When provided on an update, a stale value returns `ArticleDraftConflictError`. When omitted, an update writes unconditionally (a transition path for clients built before revision-based checks) and a create ignores it.
   """
   revision: Int
   tags: [String!]!
