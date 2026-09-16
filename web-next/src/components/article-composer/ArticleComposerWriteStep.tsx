@@ -6,7 +6,6 @@ import { Label } from "~/components/ui/label.tsx";
 import {
   Select,
   SelectContent,
-  SelectDescription,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -138,10 +137,11 @@ function DraftWorkspaceBar() {
   const canMove = () =>
     ctx.draft()?.accountKind === "personal" && ctx.moveTargets().length > 0;
   const options = () => ctx.workspaceOptions();
+  const organizationWorkspace = () => ctx.workspaceKey() !== "personal";
 
   return (
     <div class="shrink-0 border-b px-4 py-2 sm:px-6">
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Show
           when={!ctx.workspaceLocked() && options().length > 1}
           fallback={
@@ -168,6 +168,9 @@ function DraftWorkspaceBar() {
           >
             <SelectTrigger
               aria-label={t`Draft workspace`}
+              aria-describedby={
+                organizationWorkspace() ? "draft-workspace-hint" : undefined
+              }
               class="w-full text-left sm:w-[340px]"
             >
               <SelectValue<string>>
@@ -182,9 +185,6 @@ function DraftWorkspaceBar() {
                 )}
               </SelectValue>
             </SelectTrigger>
-            <SelectDescription>
-              {t`Members with posting permission can view and edit this draft.`}
-            </SelectDescription>
             <SelectContent />
           </Select>
         </Show>
@@ -198,12 +198,15 @@ function DraftWorkspaceBar() {
             {t`Move to organization`}
           </Button>
         </Show>
+        <Show when={organizationWorkspace()}>
+          <p
+            id="draft-workspace-hint"
+            class="text-sm leading-6 text-muted-foreground"
+          >
+            {t`Members with posting permission can view and edit this draft.`}
+          </p>
+        </Show>
       </div>
-      <Show when={!ctx.workspaceLocked() && ctx.workspaceKey() !== "personal"}>
-        <p class="mt-1 text-sm leading-6 text-muted-foreground">
-          {t`Members with posting permission can view and edit this draft.`}
-        </p>
-      </Show>
       <AlertDialog open={moveOpen()} onOpenChange={setMoveOpen}>
         <AlertDialogContent class="sm:max-w-md">
           <AlertDialogHeader>
