@@ -77,75 +77,67 @@ const AppSidebarSignOutMutation = graphql`
   }
 `;
 
-export interface AppSidebarProps {
-  $signedAccount?: AppSidebar_signedAccount$key | null;
-  // Keep this separate from $signedAccount. A null account means the viewer
-  // query finished and the visitor is anonymous; undefined means it has not
-  // resolved yet. The sidebar needs that distinction to show the sign-in link.
-  signedAccountLoaded?: boolean;
-  personalUnreadNotificationsCount?: number;
-}
-
-export function AppSidebar(props: AppSidebarProps) {
-  const { t } = useLingui();
-  const { open: openNoteCompose } = useNoteCompose();
-  const { isMobile: mobile, state } = useSidebar();
-  const activePath = useActivePath();
-  const signedAccount = createFragment(
-    graphql`
-      fragment AppSidebar_signedAccount on Account
-      @argumentDefinitions(
-        cursor: { type: "String" }
-        count: { type: "Int", defaultValue: 3 }
-      ) {
-        name
+const AppSidebarSignedAccountFragment = graphql`
+  fragment AppSidebar_signedAccount on Account
+  @argumentDefinitions(
+    cursor: { type: "String" }
+    count: { type: "Int", defaultValue: 3 }
+  ) {
+    id
+    username
+    name
+    avatarUrl
+    invitationsLeft
+    unreadNotificationsCount
+    unreadModerationNotificationCount
+    moderator
+    pinnedHashtags
+    organizationMemberships {
+      role
+      notificationBadge {
+        color
+        count
+      }
+      organization {
         id
+        name
         username
         avatarUrl
-        invitationsLeft
-        unreadNotificationsCount
-        unreadModerationNotificationCount
-        moderator
-        pinnedHashtags
-        organizationMemberships {
-          role
-          notificationBadge {
-            color
-            count
-          }
-          organization {
-            id
-            name
-            username
-            avatarUrl
-          }
-        }
-        articleDrafts(after: $cursor, first: $count)
-          @connection(key: "SignedAccount_articleDrafts") {
-          __id
-          edges {
-            node {
-              id
-              uuid
-              title
-              updated
-            }
-          }
-          pageInfo {
-            hasNextPage
-          }
+      }
+    }
+    articleDrafts(after: $cursor, first: $count)
+      @connection(key: "SignedAccount_articleDrafts") {
+      __id
+      edges {
+        node {
+          id
+          uuid
+          title
+          updated
         }
       }
-    `,
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+`;
+
+/**
+ * Feeds the signed account and its organization memberships into
+ * `ActingAccountContext`. It is rendered unconditionally by the root layout
+ * (not only inside `AppSidebar`) so the context is populated on the full-bleed
+ * compose routes, where the sidebar is unmounted but the composer still needs
+ * the list of eligible draft workspaces.
+ */
+export function ActingAccountSync(props: {
+  $signedAccount?: AppSidebar_signedAccount$key | null;
+}) {
+  const actingAccount = useActingAccount();
+  const signedAccount = createFragment(
+    AppSidebarSignedAccountFragment,
     () => props.$signedAccount,
   );
-
-  const [signOut] = createMutation<AppSidebarSignOutMutation>(
-    AppSidebarSignOutMutation,
-  );
-  const actingAccount = useActingAccount();
-  const organizationSelected = () =>
-    actingAccount.selectedOrganization() != null;
 
   createEffect(() => {
     const account = signedAccount();
@@ -163,6 +155,35 @@ export function AppSidebar(props: AppSidebarProps) {
     if (personalAccount == null || organizations == null) return;
     actingAccount.setAccounts(personalAccount, organizations);
   });
+
+  return null;
+}
+
+export interface AppSidebarProps {
+  $signedAccount?: AppSidebar_signedAccount$key | null;
+  // Keep this separate from $signedAccount. A null account means the viewer
+  // query finished and the visitor is anonymous; undefined means it has not
+  // resolved yet. The sidebar needs that distinction to show the sign-in link.
+  signedAccountLoaded?: boolean;
+  personalUnreadNotificationsCount?: number;
+}
+
+export function AppSidebar(props: AppSidebarProps) {
+  const { t } = useLingui();
+  const { open: openNoteCompose } = useNoteCompose();
+  const { isMobile: mobile, state } = useSidebar();
+  const activePath = useActivePath();
+  const signedAccount = createFragment(
+    AppSidebarSignedAccountFragment,
+    () => props.$signedAccount,
+  );
+
+  const [signOut] = createMutation<AppSidebarSignOutMutation>(
+    AppSidebarSignOutMutation,
+  );
+  const actingAccount = useActingAccount();
+  const organizationSelected = () =>
+    actingAccount.selectedOrganization() != null;
 
   const personalUnreadNotificationsCount = () => {
     const account = signedAccount();
