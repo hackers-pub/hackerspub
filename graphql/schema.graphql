@@ -1668,7 +1668,7 @@ type ArticleDraft implements Node {
   created: DateTime!
 
   """
-  The personal account that created the draft. This is an editing record, not an author credit, and it never changes. `null` for legacy drafts or after the creator's account was deleted.
+  The personal account that created the draft. This is an editing record, not an author credit, and it never changes. `null` only after the creator's account was deleted.
   """
   creator: Account
   id: ID!
@@ -4956,7 +4956,7 @@ input PublishArticleDraftInput {
   """
   Deprecated organization-publishing argument, kept for compatibility during the rollout. For a personally owned draft it behaves as before and publishes the article as that organization, which the viewer must be able to post for; new clients should move the draft with `moveArticleDraftToOrganization` instead. For an organization draft it must equal the draft's owning account.
   """
-  actingAccountId: ID
+  actingAccountId: ID @deprecated(reason: "Use `moveArticleDraftToOrganization` to publish a draft as an organization. This argument only keeps pre-upgrade clients working during the rollout.")
   allowLlmTranslation: Boolean
 
   """

@@ -1318,6 +1318,10 @@ builder.relayMutationField(
       actingAccountId: t.globalID({
         for: [Account],
         required: false,
+        deprecationReason:
+          "Use `moveArticleDraftToOrganization` to publish a draft as an " +
+          "organization. This argument only keeps pre-upgrade clients " +
+          "working during the rollout.",
         description:
           "Deprecated organization-publishing argument, kept for " +
           "compatibility during the rollout. For a personally owned draft it " +

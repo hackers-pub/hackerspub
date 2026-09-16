@@ -285,8 +285,8 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
       nullable: true,
       description:
         "The personal account that created the draft. This is an editing " +
-        "record, not an author credit, and it never changes. `null` for " +
-        "legacy drafts or after the creator's account was deleted.",
+        "record, not an author credit, and it never changes. `null` only " +
+        "after the creator's account was deleted.",
     }),
   }),
 });
