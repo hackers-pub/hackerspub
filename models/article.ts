@@ -266,10 +266,12 @@ export async function getAccessibleArticleDraft(
  * `accountId`; the individual who created it is stored separately in
  * `creatorId` and never changes. Updates are conditional on the caller's
  * `revision`: a mismatch returns `status: "conflict"` with the current
- * revision instead of overwriting another contributor's work. Updates never
- * insert, so a save racing a deletion cannot resurrect a draft, and creation
- * `ON CONFLICT DO NOTHING` collisions are classified after an authorization
- * check so another workspace's revision is never exposed.
+ * revision instead of overwriting another contributor's work. A missing
+ * `revision` on an update is accepted as an unconditional write, which keeps
+ * clients built before revision-based conflict checks working during the
+ * rollout. Updates never insert, so a save racing a deletion cannot resurrect a
+ * draft, and creation `ON CONFLICT DO NOTHING` collisions are classified after
+ * an authorization check so another workspace's revision is never exposed.
  */
 export async function saveArticleDraft(
   db: Database | Transaction,
@@ -285,9 +287,6 @@ export async function saveArticleDraft(
     return { status: "invalid", inputPath: "revision" };
   }
   const updateId = id ?? (revision != null ? (uuid ?? null) : null);
-  if (id != null && revision == null) {
-    return { status: "invalid", inputPath: "revision" };
-  }
   if (id == null && uuid == null && revision != null) {
     return { status: "invalid", inputPath: "revision" };
   }
@@ -305,7 +304,7 @@ export async function saveArticleDraft(
         if (actingAccountId != null && actingAccountId !== existing.accountId) {
           return { status: "invalid", inputPath: "actingAccountId" };
         }
-        if (revision !== existing.revision) {
+        if (revision != null && revision !== existing.revision) {
           return { status: "conflict", currentRevision: existing.revision };
         }
         const rows = await tx
@@ -320,7 +319,9 @@ export async function saveArticleDraft(
           .where(
             and(
               eq(articleDraftTable.id, updateId),
-              eq(articleDraftTable.revision, revision as number),
+              revision == null
+                ? undefined
+                : eq(articleDraftTable.revision, revision),
             ),
           )
           .returning();

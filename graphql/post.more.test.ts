@@ -6190,3 +6190,48 @@ test("publishArticleDraft keeps legacy organization publishing via actingAccount
     });
   });
 });
+
+test("saveArticleDraft accepts a missing revision for legacy clients", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqllegacysave",
+      name: "GraphQL Legacy Save",
+      email: "graphqllegacysave@example.com",
+    });
+    const draftId = generateUuidV7();
+    await saveArticleDraft(tx, account.account, {
+      uuid: draftId,
+      title: "Legacy save",
+      content: "Legacy save body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          title: "Legacy save v2",
+          content: "Legacy save body v2",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const payload = toPlainJson(result.data) as {
+      saveArticleDraft: {
+        __typename: string;
+        draft?: { revision: number; title: string };
+      };
+    };
+    assert.equal(
+      payload.saveArticleDraft.__typename,
+      "SaveArticleDraftPayload",
+    );
+    assert.equal(payload.saveArticleDraft.draft?.title, "Legacy save v2");
+    assert.equal(payload.saveArticleDraft.draft?.revision, 2);
+  });
+});

@@ -130,17 +130,17 @@ test("saveArticleDraft() rejects invalid input combinations", async () => {
       ).status,
       "invalid",
     );
-    assert.equal(
-      (
-        await saveArticleDraft(tx, owner.account, {
-          id: draftId,
-          title: "x",
-          content: "x",
-          tags: [],
-        })
-      ).status,
-      "invalid",
-    );
+    // A revision-less update is an unconditional write for legacy clients.
+    const revisionless = await saveArticleDraft(tx, owner.account, {
+      id: draftId,
+      title: "x",
+      content: "x",
+      tags: [],
+    });
+    assert.equal(revisionless.status, "ok");
+    if (revisionless.status === "ok") {
+      assert.equal(revisionless.draft.revision, 2);
+    }
     assert.equal(
       (
         await saveArticleDraft(tx, owner.account, {
