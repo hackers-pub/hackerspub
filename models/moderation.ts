@@ -107,7 +107,7 @@ export function assertActorNotSuspended(
  * separately).
  */
 export async function assertAccountActorNotSuspended(
-  db: Database,
+  db: Database | Transaction,
   accountId: Uuid,
   now: Date = new Date(),
 ): Promise<void> {

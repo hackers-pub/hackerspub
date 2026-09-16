@@ -311,7 +311,7 @@ export async function recordPostActingAccount(
 }
 
 export async function assertActingAccountNotSuspended(
-  db: Database,
+  db: Database | Transaction,
   authenticatedAccountId: Uuid,
   actingAccountId: Uuid,
 ): Promise<void> {
