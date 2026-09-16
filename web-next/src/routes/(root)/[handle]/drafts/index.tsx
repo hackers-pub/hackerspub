@@ -82,6 +82,7 @@ const DraftsPaginationFragment = graphql`
           title
           tags
           updated
+          revision
         }
       }
       pageInfo {
@@ -103,6 +104,9 @@ const DeleteDraftMutation = graphql`
       }
       ... on InvalidInputError {
         inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
       }
       ... on NotAuthenticatedError {
         notAuthenticated
@@ -185,7 +189,11 @@ export default function ArticleDraftsListPage() {
     return connections.filter((id): id is string => id != null);
   };
 
-  const handleDelete = (draftId: string, draftTitle: string) => {
+  const handleDelete = (
+    draftId: string,
+    draftTitle: string,
+    revision: number,
+  ) => {
     if (
       !confirm(
         t`Are you sure you want to delete "${draftTitle}"? This action cannot be undone.`,
@@ -198,6 +206,7 @@ export default function ArticleDraftsListPage() {
       variables: {
         input: {
           id: draftId,
+          revision,
         },
         connections: draftConnections(),
       },
@@ -216,6 +225,14 @@ export default function ArticleDraftsListPage() {
           showToast({
             title: t`Error`,
             description: t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.deleteArticleDraft.__typename === "ArticleDraftConflictError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Reload the list before deleting it.`,
             variant: "error",
           });
         } else if (
@@ -407,7 +424,11 @@ export default function ArticleDraftsListPage() {
                           class="gap-2"
                           onClick={(e) => {
                             e.preventDefault();
-                            handleDelete(edge.node.id, edge.node.title);
+                            handleDelete(
+                              edge.node.id,
+                              edge.node.title,
+                              edge.node.revision,
+                            );
                           }}
                           disabled={isDeleting()}
                         >

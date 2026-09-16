@@ -83,7 +83,7 @@ msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {# 位投票者}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:390
+#: src/routes/(root)/[handle]/drafts/index.tsx:407
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {还有#个}}"
 
@@ -877,7 +877,7 @@ msgstr "申诉"
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "确定要屏蔽 {0}（{1}）吗？该用户将无法关注你或查看你的内容。"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "您确定要删除\"{draftTitle}\"吗？此操作无法撤销。"
 
@@ -915,8 +915,8 @@ msgstr "文章"
 msgid "Article analytics"
 msgstr "文章分析"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:277
-#: src/routes/(root)/[handle]/drafts/index.tsx:279
+#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:296
 msgid "Article drafts"
 msgstr "文章草稿"
 
@@ -1558,7 +1558,7 @@ msgstr "默认转帖隐私设置"
 
 #: src/components/PostActionMenu.tsx:408
 #: src/components/PostActionMenu.tsx:480
-#: src/routes/(root)/[handle]/drafts/index.tsx:415
+#: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
 msgstr "删除"
@@ -1711,7 +1711,7 @@ msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1368
-#: src/routes/(root)/[handle]/drafts/index.tsx:210
+#: src/routes/(root)/[handle]/drafts/index.tsx:219
 msgid "Draft deleted"
 msgstr "草稿已删除"
 
@@ -1742,7 +1742,7 @@ msgid "Draft workspace:"
 msgstr "草稿工作区:"
 
 #. placeholder {0}: data()!.accountByUsername!.username
-#: src/routes/(root)/[handle]/drafts/index.tsx:283
+#: src/routes/(root)/[handle]/drafts/index.tsx:300
 msgid "Drafts owned by @{0}"
 msgstr "@{0} 的草稿"
 
@@ -1883,9 +1883,10 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:633
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/index.tsx:225
-#: src/routes/(root)/[handle]/drafts/index.tsx:233
+#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:234
+#: src/routes/(root)/[handle]/drafts/index.tsx:242
+#: src/routes/(root)/[handle]/drafts/index.tsx:250
 #: src/routes/(root)/[handle]/invite/[id].tsx:214
 #: src/routes/(root)/sign/up/[token].tsx:274
 msgid "Error"
@@ -2035,7 +2036,7 @@ msgstr "加载更多文章失败，点击重试"
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "加载更多收藏失败，点击重试"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:440
+#: src/routes/(root)/[handle]/drafts/index.tsx:461
 msgid "Failed to load more drafts; click to retry"
 msgstr "加载更多草稿失败，点击重试"
 
@@ -2408,7 +2409,7 @@ msgstr "GitHub 仓库"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:119
-#: src/routes/(root)/[handle]/drafts/index.tsx:259
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "Go back"
 msgstr "返回"
 
@@ -2425,7 +2426,7 @@ msgid "Go to my bookmarks"
 msgstr "前往我的收藏"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:123
-#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:281
 msgid "Go to my drafts"
 msgstr "前往我的草稿"
 
@@ -2698,7 +2699,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/note-composer/createSubmissionController.ts:359
 #: src/components/note-composer/createSubmissionController.ts:404
 #: src/components/note-composer/createSubmissionController.ts:479
-#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/routes/(root)/[handle]/drafts/index.tsx:227
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
 
@@ -2959,7 +2960,7 @@ msgstr "LLM 匹配乖离"
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
-#: src/routes/(root)/[handle]/drafts/index.tsx:443
+#: src/routes/(root)/[handle]/drafts/index.tsx:464
 msgid "Load more"
 msgstr "加载更多"
 
@@ -3133,7 +3134,7 @@ msgid "Loading search results…"
 msgstr "正在加载搜索结果…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/drafts/index.tsx:437
+#: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
 msgid "Loading…"
 msgstr "正在加载…"
@@ -3352,7 +3353,7 @@ msgid "New admin username"
 msgstr "新管理员用户名"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:132
-#: src/routes/(root)/[handle]/drafts/index.tsx:290
+#: src/routes/(root)/[handle]/drafts/index.tsx:307
 msgid "New article"
 msgstr "新建文章"
 
@@ -3425,7 +3426,7 @@ msgstr "没有符合这些筛选条件的案例。"
 msgid "No draft to delete"
 msgstr "没有要删除的草稿"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:363
+#: src/routes/(root)/[handle]/drafts/index.tsx:380
 msgid "No drafts yet. Create your first article!"
 msgstr "还没有草稿。创建您的第一篇文章！"
 
@@ -3855,8 +3856,8 @@ msgstr "永久删除你的账户，并退出当前会话。"
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:110
-#: src/routes/(root)/[handle]/drafts/index.tsx:247
-#: src/routes/(root)/[handle]/drafts/index.tsx:250
+#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:267
 msgid "Permission denied"
 msgstr "权限被拒绝"
 
@@ -3919,7 +3920,7 @@ msgid "Please sign in again before deleting your account."
 msgstr "删除账户前请重新登录。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:116
-#: src/routes/(root)/[handle]/drafts/index.tsx:254
+#: src/routes/(root)/[handle]/drafts/index.tsx:271
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
 
@@ -5024,7 +5025,7 @@ msgstr "正在订阅…"
 #: src/components/note-composer/createSubmissionController.ts:395
 #: src/components/note-composer/createSubmissionController.ts:467
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:209
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
 msgid "Success"
 msgstr "成功"
 
@@ -5288,7 +5289,11 @@ msgid "The organization could not be left. Please try again."
 msgstr "无法离开组织。请重试。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:219
-msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgstr "拥有发帖权限的组织成员将获得此草稿的访问权限。之后不支持移回。"
+
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:219
+msgid "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
 msgstr "拥有发帖权限的组织成员将获得此草稿的访问权限。之后不支持移回。"
 
 #: src/components/NotFoundPage.tsx:46
@@ -5449,6 +5454,10 @@ msgstr "其他人更改了此草稿。请在移动前重新加载。"
 #: src/components/article-composer/ArticleComposerContext.tsx:1075
 msgid "This draft was changed by someone else. Reload it before publishing."
 msgstr "其他人更改了此草稿。请在发布前重新加载。"
+
+#: src/routes/(root)/[handle]/drafts/index.tsx:235
+msgid "This draft was changed by someone else. Reload the list before deleting it."
+msgstr "其他人更改了此草稿。请在删除前重新加载列表。"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:577
 #: src/components/article-composer/ArticleComposerContext.tsx:714
@@ -5731,7 +5740,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个人简介和链接。"
 
 #. placeholder {0}: new Date( edge.node.updated, ).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:399
+#: src/routes/(root)/[handle]/drafts/index.tsx:416
 msgid "Updated {0}"
 msgstr "更新于 {0}"
 
@@ -6123,7 +6132,7 @@ msgstr "你只能编辑自己的账户或你有发帖权限的组织的草稿"
 #~ msgid "You can only edit your own drafts"
 #~ msgstr "您只能编辑自己的草稿"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:253
+#: src/routes/(root)/[handle]/drafts/index.tsx:270
 msgid "You can only view drafts for your own account or an organization you can post for"
 msgstr "你只能查看自己的账户或你有发帖权限的组织的草稿"
 
@@ -6192,7 +6201,7 @@ msgid "You must be signed in to create a poll"
 msgstr "你必须登录才能创建投票调查"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1394
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:243
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
 

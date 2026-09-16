@@ -83,7 +83,7 @@ msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {投票者 #人}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:390
+#: src/routes/(root)/[handle]/drafts/index.tsx:407
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {他#件}}"
 
@@ -877,7 +877,7 @@ msgstr "異議申し立て"
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "{0}さん（{1}）をブロックしますか？このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできなくなります。"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "「{draftTitle}」を削除してもよろしいですか？この操作は元に戻せません。"
 
@@ -915,8 +915,8 @@ msgstr "記事"
 msgid "Article analytics"
 msgstr "記事の分析"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:277
-#: src/routes/(root)/[handle]/drafts/index.tsx:279
+#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:296
 msgid "Article drafts"
 msgstr "記事の下書き"
 
@@ -1558,7 +1558,7 @@ msgstr "共有のデフォルト公開範囲"
 
 #: src/components/PostActionMenu.tsx:408
 #: src/components/PostActionMenu.tsx:480
-#: src/routes/(root)/[handle]/drafts/index.tsx:415
+#: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
 msgstr "削除"
@@ -1711,7 +1711,7 @@ msgid "Do you want to quote this link?"
 msgstr "このリンクを引用しますか？"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1368
-#: src/routes/(root)/[handle]/drafts/index.tsx:210
+#: src/routes/(root)/[handle]/drafts/index.tsx:219
 msgid "Draft deleted"
 msgstr "下書きを削除しました"
 
@@ -1742,7 +1742,7 @@ msgid "Draft workspace:"
 msgstr "下書きのワークスペース:"
 
 #. placeholder {0}: data()!.accountByUsername!.username
-#: src/routes/(root)/[handle]/drafts/index.tsx:283
+#: src/routes/(root)/[handle]/drafts/index.tsx:300
 msgid "Drafts owned by @{0}"
 msgstr "@{0}さんの下書き"
 
@@ -1883,9 +1883,10 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:633
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/index.tsx:225
-#: src/routes/(root)/[handle]/drafts/index.tsx:233
+#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:234
+#: src/routes/(root)/[handle]/drafts/index.tsx:242
+#: src/routes/(root)/[handle]/drafts/index.tsx:250
 #: src/routes/(root)/[handle]/invite/[id].tsx:214
 #: src/routes/(root)/sign/up/[token].tsx:274
 msgid "Error"
@@ -2035,7 +2036,7 @@ msgstr "記事の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "ブックマークの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:440
+#: src/routes/(root)/[handle]/drafts/index.tsx:461
 msgid "Failed to load more drafts; click to retry"
 msgstr "下書きの読み込みに失敗しました。クリックして再試行してください"
 
@@ -2408,7 +2409,7 @@ msgstr "GitHubリポジトリ"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:119
-#: src/routes/(root)/[handle]/drafts/index.tsx:259
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "Go back"
 msgstr "戻る"
 
@@ -2425,7 +2426,7 @@ msgid "Go to my bookmarks"
 msgstr "マイブックマークへ"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:123
-#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:281
 msgid "Go to my drafts"
 msgstr "マイ下書きへ"
 
@@ -2698,7 +2699,7 @@ msgstr "無効なフェディバースのハンドルの形式です。"
 #: src/components/note-composer/createSubmissionController.ts:359
 #: src/components/note-composer/createSubmissionController.ts:404
 #: src/components/note-composer/createSubmissionController.ts:479
-#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/routes/(root)/[handle]/drafts/index.tsx:227
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
 
@@ -2959,7 +2960,7 @@ msgstr "LLMマッチングの乖離"
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
-#: src/routes/(root)/[handle]/drafts/index.tsx:443
+#: src/routes/(root)/[handle]/drafts/index.tsx:464
 msgid "Load more"
 msgstr "さらに読み込む"
 
@@ -3133,7 +3134,7 @@ msgid "Loading search results…"
 msgstr "検索結果を読み込み中…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/drafts/index.tsx:437
+#: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
 msgid "Loading…"
 msgstr "読み込み中…"
@@ -3352,7 +3353,7 @@ msgid "New admin username"
 msgstr "新しい管理者のユーザー名"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:132
-#: src/routes/(root)/[handle]/drafts/index.tsx:290
+#: src/routes/(root)/[handle]/drafts/index.tsx:307
 msgid "New article"
 msgstr "新しい記事"
 
@@ -3425,7 +3426,7 @@ msgstr "条件に一致するケースはありません。"
 msgid "No draft to delete"
 msgstr "削除する下書きがありません"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:363
+#: src/routes/(root)/[handle]/drafts/index.tsx:380
 msgid "No drafts yet. Create your first article!"
 msgstr "まだ下書きがありません。最初の記事を作成しましょう！"
 
@@ -3855,8 +3856,8 @@ msgstr "アカウントを完全に削除し、このセッションからサイ
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:110
-#: src/routes/(root)/[handle]/drafts/index.tsx:247
-#: src/routes/(root)/[handle]/drafts/index.tsx:250
+#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:267
 msgid "Permission denied"
 msgstr "アクセスが拒否されました"
 
@@ -3919,7 +3920,7 @@ msgid "Please sign in again before deleting your account."
 msgstr "アカウントを削除する前に、もう一度サインインしてください。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:116
-#: src/routes/(root)/[handle]/drafts/index.tsx:254
+#: src/routes/(root)/[handle]/drafts/index.tsx:271
 msgid "Please sign in to access this page"
 msgstr "このページにアクセスするにはログインしてください"
 
@@ -5024,7 +5025,7 @@ msgstr "購読中…"
 #: src/components/note-composer/createSubmissionController.ts:395
 #: src/components/note-composer/createSubmissionController.ts:467
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:209
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
 msgid "Success"
 msgstr "成功"
 
@@ -5288,7 +5289,11 @@ msgid "The organization could not be left. Please try again."
 msgstr "組織から脱退できませんでした。もう一度お試しください。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:219
-msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgstr "投稿権限を持つ組織のメンバーがこの下書きにアクセスできるようになります。後から元に戻す移動はサポートされていません。"
+
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:219
+msgid "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
 msgstr "投稿権限を持つ組織のメンバーがこの下書きにアクセスできるようになります。後から元に戻す移動はサポートされていません。"
 
 #: src/components/NotFoundPage.tsx:46
@@ -5449,6 +5454,10 @@ msgstr "他の人がこの下書きを変更しました。移動する前に再
 #: src/components/article-composer/ArticleComposerContext.tsx:1075
 msgid "This draft was changed by someone else. Reload it before publishing."
 msgstr "他の人がこの下書きを変更しました。公開する前に再読み込みしてください。"
+
+#: src/routes/(root)/[handle]/drafts/index.tsx:235
+msgid "This draft was changed by someone else. Reload the list before deleting it."
+msgstr "他の人がこの下書きを変更しました。削除する前にリストを再読み込みしてください。"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:577
 #: src/components/article-composer/ArticleComposerContext.tsx:714
@@ -5731,7 +5740,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなどのプロフィール情報を更新してください。"
 
 #. placeholder {0}: new Date( edge.node.updated, ).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:399
+#: src/routes/(root)/[handle]/drafts/index.tsx:416
 msgid "Updated {0}"
 msgstr "{0}に更新"
 
@@ -6123,7 +6132,7 @@ msgstr "自分のアカウントまたは投稿できる組織の下書きのみ
 #~ msgid "You can only edit your own drafts"
 #~ msgstr "自分の下書きのみ編集できます"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:253
+#: src/routes/(root)/[handle]/drafts/index.tsx:270
 msgid "You can only view drafts for your own account or an organization you can post for"
 msgstr "自分のアカウントまたは投稿できる組織の下書きのみ閲覧できます"
 
@@ -6192,7 +6201,7 @@ msgid "You must be signed in to create a poll"
 msgstr "アンケートを作成するにはログインが必要です"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1394
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:243
 msgid "You must be signed in to delete a draft"
 msgstr "下書きを削除するにはログインする必要があります"
 

@@ -216,7 +216,7 @@ function DraftWorkspaceBar() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t`Move to organization`}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t`The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported.`}
+              {t`The organization's members with posting permission will gain access to this draft. Moving it back later is not supported.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div class="flex flex-col gap-2">

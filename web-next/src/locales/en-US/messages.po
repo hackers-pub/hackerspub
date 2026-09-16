@@ -83,7 +83,7 @@ msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, one {# voter} other {# voters}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:390
+#: src/routes/(root)/[handle]/drafts/index.tsx:407
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, one {+1 more} other {+# more}}"
 
@@ -877,7 +877,7 @@ msgstr "Appeals"
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 
@@ -915,8 +915,8 @@ msgstr "Article"
 msgid "Article analytics"
 msgstr "Article analytics"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:277
-#: src/routes/(root)/[handle]/drafts/index.tsx:279
+#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:296
 msgid "Article drafts"
 msgstr "Article drafts"
 
@@ -1558,7 +1558,7 @@ msgstr "Default share privacy"
 
 #: src/components/PostActionMenu.tsx:408
 #: src/components/PostActionMenu.tsx:480
-#: src/routes/(root)/[handle]/drafts/index.tsx:415
+#: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
 msgstr "Delete"
@@ -1711,7 +1711,7 @@ msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1368
-#: src/routes/(root)/[handle]/drafts/index.tsx:210
+#: src/routes/(root)/[handle]/drafts/index.tsx:219
 msgid "Draft deleted"
 msgstr "Draft deleted"
 
@@ -1742,7 +1742,7 @@ msgid "Draft workspace:"
 msgstr "Draft workspace:"
 
 #. placeholder {0}: data()!.accountByUsername!.username
-#: src/routes/(root)/[handle]/drafts/index.tsx:283
+#: src/routes/(root)/[handle]/drafts/index.tsx:300
 msgid "Drafts owned by @{0}"
 msgstr "Drafts owned by @{0}"
 
@@ -1887,9 +1887,10 @@ msgstr "Enter your email or username below to sign in."
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:633
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/index.tsx:225
-#: src/routes/(root)/[handle]/drafts/index.tsx:233
+#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:234
+#: src/routes/(root)/[handle]/drafts/index.tsx:242
+#: src/routes/(root)/[handle]/drafts/index.tsx:250
 #: src/routes/(root)/[handle]/invite/[id].tsx:214
 #: src/routes/(root)/sign/up/[token].tsx:274
 msgid "Error"
@@ -2039,7 +2040,7 @@ msgstr "Failed to load more articles; click to retry"
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "Failed to load more bookmarks; click to retry"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:440
+#: src/routes/(root)/[handle]/drafts/index.tsx:461
 msgid "Failed to load more drafts; click to retry"
 msgstr "Failed to load more drafts; click to retry"
 
@@ -2412,7 +2413,7 @@ msgstr "GitHub repository"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:119
-#: src/routes/(root)/[handle]/drafts/index.tsx:259
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "Go back"
 msgstr "Go back"
 
@@ -2429,7 +2430,7 @@ msgid "Go to my bookmarks"
 msgstr "Go to my bookmarks"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:123
-#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:281
 msgid "Go to my drafts"
 msgstr "Go to my drafts"
 
@@ -2702,7 +2703,7 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/note-composer/createSubmissionController.ts:359
 #: src/components/note-composer/createSubmissionController.ts:404
 #: src/components/note-composer/createSubmissionController.ts:479
-#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/routes/(root)/[handle]/drafts/index.tsx:227
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
 
@@ -2963,7 +2964,7 @@ msgstr "LLM matching divergence"
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
-#: src/routes/(root)/[handle]/drafts/index.tsx:443
+#: src/routes/(root)/[handle]/drafts/index.tsx:464
 msgid "Load more"
 msgstr "Load more"
 
@@ -3137,7 +3138,7 @@ msgid "Loading search results…"
 msgstr "Loading search results…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/drafts/index.tsx:437
+#: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
 msgid "Loading…"
 msgstr "Loading…"
@@ -3356,7 +3357,7 @@ msgid "New admin username"
 msgstr "New admin username"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:132
-#: src/routes/(root)/[handle]/drafts/index.tsx:290
+#: src/routes/(root)/[handle]/drafts/index.tsx:307
 msgid "New article"
 msgstr "New article"
 
@@ -3429,7 +3430,7 @@ msgstr "No cases match these filters."
 msgid "No draft to delete"
 msgstr "No draft to delete"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:363
+#: src/routes/(root)/[handle]/drafts/index.tsx:380
 msgid "No drafts yet. Create your first article!"
 msgstr "No drafts yet. Create your first article!"
 
@@ -3859,8 +3860,8 @@ msgstr "Permanently delete your account and sign out of this session."
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:110
-#: src/routes/(root)/[handle]/drafts/index.tsx:247
-#: src/routes/(root)/[handle]/drafts/index.tsx:250
+#: src/routes/(root)/[handle]/drafts/index.tsx:264
+#: src/routes/(root)/[handle]/drafts/index.tsx:267
 msgid "Permission denied"
 msgstr "Permission denied"
 
@@ -3923,7 +3924,7 @@ msgid "Please sign in again before deleting your account."
 msgstr "Please sign in again before deleting your account."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:116
-#: src/routes/(root)/[handle]/drafts/index.tsx:254
+#: src/routes/(root)/[handle]/drafts/index.tsx:271
 msgid "Please sign in to access this page"
 msgstr "Please sign in to access this page"
 
@@ -5028,7 +5029,7 @@ msgstr "Subscribing…"
 #: src/components/note-composer/createSubmissionController.ts:395
 #: src/components/note-composer/createSubmissionController.ts:467
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:209
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
 msgid "Success"
 msgstr "Success"
 
@@ -5292,8 +5293,12 @@ msgid "The organization could not be left. Please try again."
 msgstr "The organization could not be left. Please try again."
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:219
-msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
-msgstr "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgid "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+#~ msgstr "The organization's members with posting permission will gain access to this draft. Move it back afterward is not supported."
+
+#: src/components/article-composer/ArticleComposerWriteStep.tsx:219
+msgid "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
+msgstr "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
 
 #: src/components/NotFoundPage.tsx:46
 msgid "The page you're looking for doesn't exist or has been moved."
@@ -5453,6 +5458,10 @@ msgstr "This draft was changed by someone else. Reload it before moving it."
 #: src/components/article-composer/ArticleComposerContext.tsx:1075
 msgid "This draft was changed by someone else. Reload it before publishing."
 msgstr "This draft was changed by someone else. Reload it before publishing."
+
+#: src/routes/(root)/[handle]/drafts/index.tsx:235
+msgid "This draft was changed by someone else. Reload the list before deleting it."
+msgstr "This draft was changed by someone else. Reload the list before deleting it."
 
 #: src/components/article-composer/ArticleComposerContext.tsx:577
 #: src/components/article-composer/ArticleComposerContext.tsx:714
@@ -5735,7 +5744,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "Update your profile information, including your avatar, username, display name, bio, and links."
 
 #. placeholder {0}: new Date( edge.node.updated, ).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:399
+#: src/routes/(root)/[handle]/drafts/index.tsx:416
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
@@ -6127,7 +6136,7 @@ msgstr "You can only edit drafts for your own account or an organization you can
 #~ msgid "You can only edit your own drafts"
 #~ msgstr "You can only edit your own drafts"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:253
+#: src/routes/(root)/[handle]/drafts/index.tsx:270
 msgid "You can only view drafts for your own account or an organization you can post for"
 msgstr "You can only view drafts for your own account or an organization you can post for"
 
@@ -6196,7 +6205,7 @@ msgid "You must be signed in to create a poll"
 msgstr "You must be signed in to create a poll"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:1394
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
+#: src/routes/(root)/[handle]/drafts/index.tsx:243
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
