@@ -1264,9 +1264,9 @@ builder.relayMutationField(
       "an account the viewer can post for. For an organization draft, " +
       "`attributionMode` and `attributionAccountId` choose which personal " +
       "member is credited as co-author (defaulting to the draft's creator). " +
-      "Pass the draft's current `revision`; a stale one returns " +
-      "`ArticleDraftConflictError`. Sends an ActivityPub `Create` activity. " +
-      "Requires authentication.",
+      "Pass the draft's current `revision` to reject a concurrent edit with " +
+      "`ArticleDraftConflictError`; omitting it publishes the current content. " +
+      "Sends an ActivityPub `Create` activity. Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: true }),
       slug: t.string({ required: true }),
@@ -1274,10 +1274,14 @@ builder.relayMutationField(
       allowLlmTranslation: t.boolean({ required: false }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
       revision: t.int({
-        required: true,
+        required: false,
         description:
-          "The `ArticleDraft.revision` being published. Guards against " +
-          "publishing a draft that another member changed concurrently.",
+          "The `ArticleDraft.revision` being published. When provided, a " +
+          "stale value returns `ArticleDraftConflictError` so a concurrent " +
+          "edit is not lost. Omit it to publish whatever is currently " +
+          "stored; this is a transition escape hatch for clients built " +
+          "before revision-based conflict checks and will be required in a " +
+          "later release.",
       }),
       attributionMode: t.field({
         type: PostAttributionMode,
@@ -1301,9 +1305,12 @@ builder.relayMutationField(
         for: [Account],
         required: false,
         description:
-          "Deprecated compatibility argument. When provided it must equal " +
-          "the draft's owning account; the published author is always the " +
-          "draft's workspace, never this argument.",
+          "Deprecated organization-publishing argument, kept for " +
+          "compatibility during the rollout. For a personally owned draft it " +
+          "behaves as before and publishes the article as that organization, " +
+          "which the viewer must be able to post for; new clients should " +
+          "move the draft with `moveArticleDraftToOrganization` instead. For " +
+          "an organization draft it must equal the draft's owning account.",
       }),
     }),
   },
@@ -1372,17 +1379,43 @@ builder.relayMutationField(
           if (draft.articleSourceId != null) {
             return { kind: "error", inputPath: "id" };
           }
-          if (
-            args.input.actingAccountId != null &&
-            args.input.actingAccountId.id !== draft.accountId
-          ) {
-            return { kind: "error", inputPath: "actingAccountId" };
-          }
-          if (revision !== draft.revision) {
+          if (revision != null && revision !== draft.revision) {
             return { kind: "conflict", currentRevision: draft.revision };
           }
+          // The draft's owner is the publishing account by default. The
+          // deprecated `actingAccountId` keeps the pre-revision flow: a
+          // personally owned draft may still be published as an organization
+          // the viewer can post for, without moving the draft first.
+          let workspaceId = draft.accountId;
+          const requestedActingAccountId =
+            args.input.actingAccountId?.id ?? null;
+          if (
+            requestedActingAccountId != null &&
+            requestedActingAccountId !== draft.accountId
+          ) {
+            if (draft.accountId !== publisher.id) {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            const requested = await context.db.query.accountTable.findFirst({
+              where: { id: requestedActingAccountId },
+              columns: { kind: true },
+            });
+            if (requested?.kind !== "organization") {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            if (
+              !(await canAccountActAs(
+                context.db,
+                publisher,
+                requestedActingAccountId,
+              ))
+            ) {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            workspaceId = requestedActingAccountId;
+          }
           const workspace = await context.db.query.accountTable.findFirst({
-            where: { id: draft.accountId },
+            where: { id: workspaceId },
             with: { actor: true },
           });
           if (workspace == null || workspace.actor == null) {
@@ -1410,14 +1443,14 @@ builder.relayMutationField(
             } else {
               const candidate =
                 attributionAccountId ?? draft.creatorId ?? publisher.id;
-              if (candidate === draft.accountId) {
-                // The owning organization cannot be its own co-author.
+              if (candidate === workspace.id) {
+                // The publishing organization cannot be its own co-author.
                 return { kind: "error", inputPath: "attributionAccountId" };
               }
               const accepted = await canAccountActAs(
                 context.db,
                 { id: candidate, kind: "personal" },
-                draft.accountId,
+                workspace.id,
               );
               if (!accepted) {
                 if (attributionAccountId != null) {

@@ -6081,3 +6081,112 @@ test("publishArticleDraft and deleteArticleDraft reject stale revisions", async 
     assert.equal(stillStored?.revision, 2);
   });
 });
+
+test("publishArticleDraft accepts a missing revision for legacy clients", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqllegacypublish",
+      name: "GraphQL Legacy Publish",
+      email: "graphqllegacypublish@example.com",
+    });
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: account.account.id,
+      creatorId: account.account.id,
+      title: "Legacy publish",
+      content: "Legacy body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "legacy-publish",
+          language: "en",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const payload = (
+      toPlainJson(result.data) as {
+        publishArticleDraft: {
+          __typename: string;
+          article: { id: string; slug: string };
+          deletedDraftId: string;
+        };
+      }
+    ).publishArticleDraft;
+    assert.equal(payload.__typename, "PublishArticleDraftPayload");
+    assert.equal(payload.article.slug, "legacy-publish");
+    assert.equal(
+      payload.deletedDraftId,
+      encodeGlobalID("ArticleDraft", draftId),
+    );
+  });
+});
+
+test("publishArticleDraft keeps legacy organization publishing via actingAccountId", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertOrganizationForDrafts(
+      tx,
+      "graphqllegacyorg",
+    );
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqllegacyorgmember",
+      name: "GraphQL Legacy Org Member",
+      email: "graphqllegacyorgmember@example.com",
+    });
+    await addDraftOrganizationMember(
+      tx,
+      organization.account.id,
+      member.account.id,
+    );
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: member.account.id,
+      creatorId: member.account.id,
+      title: "Legacy organization article",
+      content: "Legacy organization body",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAsOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "legacy-organization-article",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.account.id),
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      publishArticleDraft: {
+        __typename: "PublishArticleDraftPayload",
+        article: {
+          actor: { username: organization.account.username },
+          slug: "legacy-organization-article",
+          organizationAuthor: {
+            attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+            organization: { username: organization.account.username },
+            member: { username: member.account.username },
+          },
+        },
+        deletedDraftId: encodeGlobalID("ArticleDraft", draftId),
+      },
+    });
+  });
+});

@@ -4944,11 +4944,11 @@ enum PostVisibility {
 }
 
 """
-Publish an article draft, converting it to a live `Article` post and deleting the draft. The article is published as the draft's owning workspace account (personal or organization), which therefore must be an account the viewer can post for. For an organization draft, `attributionMode` and `attributionAccountId` choose which personal member is credited as co-author (defaulting to the draft's creator). Pass the draft's current `revision`; a stale one returns `ArticleDraftConflictError`. Sends an ActivityPub `Create` activity. Requires authentication.
+Publish an article draft, converting it to a live `Article` post and deleting the draft. The article is published as the draft's owning workspace account (personal or organization), which therefore must be an account the viewer can post for. For an organization draft, `attributionMode` and `attributionAccountId` choose which personal member is credited as co-author (defaulting to the draft's creator). Pass the draft's current `revision` to reject a concurrent edit with `ArticleDraftConflictError`; omitting it publishes the current content. Sends an ActivityPub `Create` activity. Requires authentication.
 """
 input PublishArticleDraftInput {
   """
-  Deprecated compatibility argument. When provided it must equal the draft's owning account; the published author is always the draft's workspace, never this argument.
+  Deprecated organization-publishing argument, kept for compatibility during the rollout. For a personally owned draft it behaves as before and publishes the article as that organization, which the viewer must be able to post for; new clients should move the draft with `moveArticleDraftToOrganization` instead. For an organization draft it must equal the draft's owning account.
   """
   actingAccountId: ID
   allowLlmTranslation: Boolean
@@ -4968,9 +4968,9 @@ input PublishArticleDraftInput {
   quotePolicy: QuotePolicy
 
   """
-  The `ArticleDraft.revision` being published. Guards against publishing a draft that another member changed concurrently.
+  The `ArticleDraft.revision` being published. When provided, a stale value returns `ArticleDraftConflictError` so a concurrent edit is not lost. Omit it to publish whatever is currently stored; this is a transition escape hatch for clients built before revision-based conflict checks and will be required in a later release.
   """
-  revision: Int!
+  revision: Int
   slug: String!
 }
 
