@@ -147,7 +147,7 @@ export async function attachArticleDraftMediumOnServer(
         }
       }
     `,
-    { input: { draftId, mediumId } },
+    { input: { draftId, mediumId, createIfMissing: false } },
   );
 
   const data = result.data?.attachArticleDraftMedium;

@@ -3059,14 +3059,13 @@ builder.relayMutationField(
   {
     description:
       "Associate an uploaded `Medium` with an article draft so it can be " +
-      "referenced in the draft's Markdown as `hp-medium:{key}`. For a draft " +
-      "whose ID is not yet stored, a blank draft owned by the viewer is " +
-      "created, which keeps pre-upgrade composers working during the rollout; " +
-      "new clients create the draft with `saveArticleDraft` first. The viewer " +
-      "must own the draft or be an accepted member of its owning " +
-      "organization. Re-attaching the same key to the same medium is " +
-      "idempotent; pointing an existing key at a different medium is " +
-      "rejected. Requires authentication.",
+      "referenced in the draft's Markdown as `hp-medium:{key}`. A missing " +
+      "draft is created unless `createIfMissing` is `false`, which keeps " +
+      "pre-upgrade composers working while the current composer requires the " +
+      "draft it already created. The viewer must own the draft or be an " +
+      "accepted member of its owning organization. Re-attaching the same key " +
+      "to the same medium is idempotent; pointing an existing key at a " +
+      "different medium is rejected. Requires authentication.",
     inputFields: (t) => ({
       draftId: t.field({ type: "UUID", required: true }),
       mediumId: t.field({ type: "UUID", required: true }),
@@ -3074,6 +3073,14 @@ builder.relayMutationField(
         required: false,
         description:
           "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
+      }),
+      createIfMissing: t.boolean({
+        required: false,
+        description:
+          "When `true` (the default), a missing draft is created, which keeps " +
+          "pre-upgrade composers working during the rollout. Set `false` to " +
+          "require the draft to already exist, so a publish or delete racing " +
+          "an attachment cannot recreate it.",
       }),
     }),
   },
@@ -3096,8 +3103,10 @@ builder.relayMutationField(
           .for("update");
         let draft = draftRows[0];
         if (draft == null) {
+          if (args.input.createIfMissing === false) return "draft" as const;
           // Transition path for pre-upgrade composers, which upload before the
-          // first save. New clients create the draft explicitly first.
+          // first save. New clients create the draft explicitly first and pass
+          // `createIfMissing: false`.
           const inserted = await tx.db
             .insert(articleDraftTable)
             .values({

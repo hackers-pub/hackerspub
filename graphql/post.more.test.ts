@@ -1244,6 +1244,29 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
     assert.equal(createdDraft?.accountId, account.account.id);
     assert.equal(createdDraft?.title, "");
+
+    // The current composer already created its draft, so it opts out of the
+    // fallback: a draft deleted or published mid-upload must not reappear.
+    const strictMissing = await execute({
+      schema,
+      document: attachArticleDraftMediumMutation,
+      variableValues: {
+        input: {
+          draftId: generateUuidV7(),
+          mediumId: medium.uuid,
+          createIfMissing: false,
+        },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(strictMissing.errors, undefined);
+    assert.deepEqual(toPlainJson(strictMissing.data), {
+      attachArticleDraftMedium: {
+        __typename: "InvalidInputError",
+        inputPath: "draftId",
+      },
+    });
   });
 });
 
