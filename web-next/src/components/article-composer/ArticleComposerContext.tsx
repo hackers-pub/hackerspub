@@ -661,10 +661,14 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             title: submittedDraft.title,
             content: submittedDraft.content,
             tags: submittedDraft.tags,
-            // Once a draft has a stored language, keep sending it so an edit
-            // that changes the auto-detected language cannot silently propose
-            // a forbidden change while translations exist.
-            language: current.language ?? language()?.baseName ?? null,
+            // Persist a language the user picked, but otherwise keep the
+            // stored language so the auto-detect effect cannot silently
+            // propose a forbidden change while translations exist (the server
+            // rejects an original-language change in that case).
+            language:
+              manualLanguageChange() && language() != null
+                ? language()!.baseName
+                : (current.language ?? language()?.baseName ?? null),
           }
         : options.revision != null
           ? {
@@ -1231,6 +1235,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           tags: raw.tags,
           contentHtml: raw.contentHtml,
           revision: raw.revision,
+          language: raw.language ?? null,
+          translationDrafts: raw.translationDrafts.map((draft) => ({
+            uuid: draft.uuid,
+            language: draft.language,
+            revision: draft.revision,
+            title: draft.title,
+          })),
           accountId: raw.account.id,
           accountKind:
             raw.account.kind === "ORGANIZATION" ? "organization" : "personal",
