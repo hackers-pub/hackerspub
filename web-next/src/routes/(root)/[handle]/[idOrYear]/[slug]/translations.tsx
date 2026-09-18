@@ -3,6 +3,7 @@ import { HttpStatusCode } from "@solidjs/start";
 import { createSignal, onMount, Show } from "solid-js";
 import { fetchQuery, graphql, type GraphQLTaggedNode } from "relay-runtime";
 import { useRelayEnvironment } from "solid-relay";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import {
   ArticleTranslationManager,
   type ArticleTranslationView,
@@ -69,6 +70,7 @@ export default function ArticleTranslationsPage() {
   const { t } = useLingui();
   const params = useParams();
   const env = useRelayEnvironment();
+  const actingAccount = useActingAccount();
   const [data, setData] = createSignal<ManagerData | null | undefined>(
     undefined,
   );
@@ -81,7 +83,7 @@ export default function ArticleTranslationsPage() {
         handle: decodeRouteParam(params.handle!),
         idOrYear: params.idOrYear!,
         slug: params.slug!,
-        actingAccountId: null,
+        actingAccountId: actingAccount.selectedActingAccountId() ?? null,
       },
     ).toPromise();
     const article = result?.articleByYearAndSlug;
