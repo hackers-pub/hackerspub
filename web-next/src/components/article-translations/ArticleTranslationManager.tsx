@@ -2,6 +2,7 @@ import { createEffect, createSignal, For, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { graphql } from "relay-runtime";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
+import { LanguageName } from "~/components/LanguageName.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
@@ -110,7 +111,7 @@ export interface ArticleTranslationManagerProps {
 export function ArticleTranslationManager(
   props: ArticleTranslationManagerProps,
 ) {
-  const { t, i18n } = useLingui();
+  const { t } = useLingui();
   const [saveMutation, saving] =
     createMutation<ArticleTranslationManagerSaveMutation>(SaveMutation);
   const [deleteMutation, deleting] =
@@ -139,22 +140,6 @@ export function ArticleTranslationManager(
       codes.add(new Intl.Locale(translation.language).baseName);
     }
     return [...codes].map((code) => new Intl.Locale(code));
-  };
-
-  const displayNames = new Intl.DisplayNames(i18n.locale, { type: "language" });
-  const localeLanguage = new Intl.Locale(i18n.locale).language;
-  // The language name in the current UI locale, with the native name in
-  // parentheses unless the language is the UI locale's own language.
-  const languageLabel = (code: string) => {
-    const locale = new Intl.Locale(code);
-    const name = displayNames.of(code) ?? code;
-    const nativeName =
-      new Intl.DisplayNames(code, { type: "language" }).of(code) ?? code;
-    return {
-      name,
-      nativeName,
-      showNative: locale.language !== localeLanguage && name !== nativeName,
-    };
   };
 
   const selected = () =>
@@ -327,12 +312,7 @@ export function ArticleTranslationManager(
                   onClick={() => setSelectedUuid(translation.uuid)}
                 >
                   <span class="font-medium">
-                    {languageLabel(translation.language).name}
-                    <Show when={languageLabel(translation.language).showNative}>
-                      <span class="ml-1 text-xs text-muted-foreground">
-                        ({languageLabel(translation.language).nativeName})
-                      </span>
-                    </Show>
+                    <LanguageName code={translation.language} />
                   </span>
                   <span class="text-xs text-muted-foreground">
                     <Show

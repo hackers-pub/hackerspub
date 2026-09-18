@@ -1,6 +1,7 @@
 import { createSignal, For, onMount, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
 import IconLoader2 from "~icons/lucide/loader-2";
+import { LanguageName } from "~/components/LanguageName.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
@@ -222,7 +223,7 @@ export function ArticleComposerPublishStep() {
                       }}
                     />
                     <span>
-                      {translation.language}
+                      <LanguageName code={translation.language} />
                       <Show when={translation.title.trim() !== ""}>
                         {" · "}
                         {translation.title}
