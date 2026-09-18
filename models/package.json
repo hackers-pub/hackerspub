@@ -9,6 +9,8 @@
     "./apns": "./apns.ts",
     "./article": "./article.ts",
     "./article-analytics": "./article-analytics.ts",
+    "./article-revision": "./article-revision.ts",
+    "./article-translation": "./article-translation.ts",
     "./avatar": "./avatar.ts",
     "./blocking": "./blocking.ts",
     "./bookmark": "./bookmark.ts",

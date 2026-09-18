@@ -763,6 +763,7 @@ test("startArticleContentSummary() skips rows that are still being translated", 
       beingTranslated: true,
       originalLanguage: "en",
       translationRequesterId: requester.account.id,
+      provenance: "llm",
       published,
       updated: published,
     });

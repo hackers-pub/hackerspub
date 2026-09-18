@@ -250,6 +250,25 @@ export function normalizeLocale(value: string): Locale | undefined {
 }
 
 /**
+ * Canonicalizes a BCP 47 tag to the application's supported content-language
+ * policy for article content versions.
+ *
+ * This is the single canonicalizer used by draft save, translation creation,
+ * and publication. It shares {@link normalizeLocale}'s alias handling so that
+ * `zh-Hans`/`zh-Hant` are stored as the existing `zh-CN`/`zh-TW` route keys
+ * while Simplified and Traditional Chinese remain distinct. Unlike the
+ * interface locale negotiation, it accepts the full supported content-locale
+ * list rather than only the five interface locales.
+ *
+ * @param value The locale tag submitted by a client.
+ * @returns The canonical content-language key, or `undefined` when the tag is
+ *          not one of the supported content locales.
+ */
+export function normalizeContentLanguage(value: string): string | undefined {
+  return normalizeLocale(value);
+}
+
+/**
  * Finds the nearest locale from a list of available locales.
  *
  * @example

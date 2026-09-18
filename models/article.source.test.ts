@@ -79,6 +79,9 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
     originalLanguage: null,
     translatorId: null,
     translationRequesterId: null,
+    provenance: null,
+    sourceRevisionId: null,
+    translationJobToken: null,
     beingTranslated: false,
     updated: new Date("2026-04-15T00:00:00.000Z"),
     published: new Date("2026-04-15T00:00:00.000Z"),
@@ -95,6 +98,7 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
     title: "Translated",
     originalLanguage: "en",
     translationRequesterId: generateUuidV7(),
+    provenance: "llm" as const,
   };
 
   const selected = getOriginalArticleContent({
@@ -149,6 +153,7 @@ test("updateArticleSource() flags originalContentChanged when the body changes a
         content: "Translated content",
         originalLanguage: "en",
         translationRequesterId: author.account.id,
+        provenance: "llm",
         beingTranslated: false,
         published: new Date("2026-04-15T01:00:00.000Z"),
         updated: new Date("2026-04-15T01:00:00.000Z"),
@@ -264,6 +269,8 @@ test("getArticleSource() resolves renamed usernames and returns ordered contents
         language: "ko",
         title: "Second title",
         content: "Second body",
+        originalLanguage: "en",
+        provenance: "llm",
         published: new Date("2026-04-15T01:00:00.000Z"),
         updated: new Date("2026-04-15T01:00:00.000Z"),
       },

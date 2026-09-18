@@ -731,6 +731,7 @@ test("deleteAccount() clears article translation attributions", async () => {
         content: "Requested translated content",
         originalLanguage: "en",
         translationRequesterId: target.account.id,
+        provenance: "llm",
         beingTranslated: false,
         published,
         updated: published,
@@ -742,6 +743,7 @@ test("deleteAccount() clears article translation attributions", async () => {
         content: "Human translated content",
         originalLanguage: "en",
         translatorId: target.account.id,
+        provenance: "human",
         beingTranslated: false,
         published,
         updated: published,
@@ -761,6 +763,7 @@ test("deleteAccount() clears article translation attributions", async () => {
         language: content.language,
         originalLanguage: content.originalLanguage,
         translationRequesterId: content.translationRequesterId,
+        provenance: content.provenance,
         translatorId: content.translatorId,
       })),
       [
@@ -769,6 +772,7 @@ test("deleteAccount() clears article translation attributions", async () => {
           language: "en",
           originalLanguage: null,
           translationRequesterId: null,
+          provenance: null,
           translatorId: null,
         },
         {
@@ -776,6 +780,7 @@ test("deleteAccount() clears article translation attributions", async () => {
           language: "ja",
           originalLanguage: "en",
           translationRequesterId: null,
+          provenance: "human",
           translatorId: null,
         },
         {
@@ -783,6 +788,7 @@ test("deleteAccount() clears article translation attributions", async () => {
           language: "ko",
           originalLanguage: "en",
           translationRequesterId: null,
+          provenance: "llm",
           translatorId: null,
         },
       ],

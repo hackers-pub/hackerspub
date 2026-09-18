@@ -76,6 +76,13 @@ const SaveArticleDraftMutation = graphql`
           tags
           updated
           revision
+          language
+          translationDrafts {
+            uuid
+            language
+            revision
+            title
+          }
           account {
             id
             kind
@@ -198,6 +205,13 @@ const ArticleComposerDraftQuery = graphql`
       contentHtml
       tags
       revision
+      language
+      translationDrafts {
+        uuid
+        language
+        revision
+        title
+      }
       account {
         id
         kind
@@ -255,6 +269,13 @@ export interface ArticleComposerContextValue {
         tags: readonly string[];
         contentHtml?: string | null;
         revision: number;
+        language?: string | null;
+        translationDrafts?: readonly {
+          uuid: `${string}-${string}-${string}-${string}-${string}`;
+          language: string;
+          revision: number;
+          title: string;
+        }[];
         accountId: string;
         accountKind: "personal" | "organization";
         creatorId?: string | null;
@@ -275,6 +296,26 @@ export interface ArticleComposerContextValue {
   isPublishing: Accessor<boolean>;
   showPreview: Accessor<boolean>;
   previewHtml: Accessor<string>;
+  translationDrafts: Accessor<
+    readonly {
+      uuid: `${string}-${string}-${string}-${string}-${string}`;
+      language: string;
+      revision: number;
+      title: string;
+    }[]
+  >;
+  selectedTranslations: Accessor<
+    readonly {
+      uuid: `${string}-${string}-${string}-${string}-${string}`;
+      revision: number;
+    }[]
+  >;
+  setSelectedTranslations: (
+    value: readonly {
+      uuid: `${string}-${string}-${string}-${string}-${string}`;
+      revision: number;
+    }[],
+  ) => void;
 
   // Draft workspace state
   workspaceKey: Accessor<string>;
@@ -377,6 +418,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       tags: raw.tags,
       contentHtml: raw.contentHtml,
       revision: raw.revision,
+      language: raw.language ?? null,
+      translationDrafts: raw.translationDrafts.map((draft) => ({
+        uuid: draft.uuid,
+        language: draft.language,
+        revision: draft.revision,
+        title: draft.title,
+      })),
       accountId: raw.account.id,
       accountKind:
         raw.account.kind === "ORGANIZATION" ? "organization" : "personal",
@@ -385,6 +433,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   });
   const [savedDraft, setSavedDraft] = createSignal<DraftState | undefined>();
   const draft = createMemo(() => savedDraft() ?? loadedDraft());
+  const translationDrafts = createMemo(() => draft()?.translationDrafts ?? []);
+  const [selectedTranslations, setSelectedTranslations] = createSignal<
+    readonly {
+      uuid: `${string}-${string}-${string}-${string}-${string}`;
+      revision: number;
+    }[]
+  >([]);
 
   const draftDataLoaded = createMemo(() => {
     // When editing an existing draft the Relay store starts empty on the
@@ -606,6 +661,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             title: submittedDraft.title,
             content: submittedDraft.content,
             tags: submittedDraft.tags,
+            // Once a draft has a stored language, keep sending it so an edit
+            // that changes the auto-detected language cannot silently propose
+            // a forbidden change while translations exist.
+            language: current.language ?? language()?.baseName ?? null,
           }
         : options.revision != null
           ? {
@@ -616,6 +675,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
               title: submittedDraft.title,
               content: submittedDraft.content,
               tags: submittedDraft.tags,
+              language: language()?.baseName ?? null,
             }
           : {
               uuid: draftUuid,
@@ -623,6 +683,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
               title: submittedDraft.title,
               content: submittedDraft.content,
               tags: submittedDraft.tags,
+              language: language()?.baseName ?? null,
             };
 
     setSaveStatus("saving");
@@ -660,6 +721,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             tags: [...baseline.tags],
             contentHtml: saved.contentHtml,
             revision: saved.revision,
+            language: saved.language ?? null,
+            translationDrafts: saved.translationDrafts.map((draft) => ({
+              uuid: draft.uuid,
+              language: draft.language,
+              revision: draft.revision,
+              title: draft.title,
+            })),
             accountId: saved.account.id,
             accountKind:
               saved.account.kind === "ORGANIZATION"
@@ -840,6 +908,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             title: submitted.title,
             content: stripUploadingPlaceholders(submitted.content),
             tags: submitted.tags,
+            language: untrack(() => language()?.baseName ?? null),
           },
           connections: untrack(() => draftConnections()),
         },
@@ -856,6 +925,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
               tags: [...submitted.tags],
               contentHtml: saved.contentHtml,
               revision: saved.revision,
+              language: saved.language ?? null,
+              translationDrafts: saved.translationDrafts.map((draft) => ({
+                uuid: draft.uuid,
+                language: draft.language,
+                revision: draft.revision,
+                title: draft.title,
+              })),
               accountId: saved.account.id,
               accountKind:
                 saved.account.kind === "ORGANIZATION"
@@ -1035,6 +1111,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           ? { attributionMode: "ACTING_ACCOUNT_WITH_VIEWER" as const }
           : { attributionMode: "ACTING_ACCOUNT_ONLY" as const }
         : {};
+    const translationSelection = selectedTranslations().map((selection) => ({
+      id: selection.uuid,
+      revision: selection.revision,
+    }));
     publishDraft({
       variables: {
         input: {
@@ -1044,6 +1124,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           allowLlmTranslation: allowLlmTranslation(),
           quotePolicy: quotePolicy(),
           revision: current.revision,
+          translations: translationSelection,
           ...attribution,
         },
       },
@@ -1561,6 +1642,9 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     isPublishing,
     showPreview,
     previewHtml,
+    translationDrafts,
+    selectedTranslations,
+    setSelectedTranslations,
 
     workspaceKey,
     setWorkspaceKey,

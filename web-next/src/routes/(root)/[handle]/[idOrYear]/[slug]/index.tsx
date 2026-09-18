@@ -379,6 +379,7 @@ interface ArticleBodyProps {
 }
 
 function ArticleBody(props: ArticleBodyProps) {
+  const { t } = useLingui();
   const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -542,6 +543,22 @@ function ArticleBody(props: ArticleBodyProps) {
                     />
                   );
                 })()}
+                <Show
+                  when={
+                    article.actor.isViewer === true &&
+                    article.publishedYear != null &&
+                    article.slug != null
+                  }
+                >
+                  <A
+                    href={`/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(
+                      article.slug!,
+                    )}/translations`}
+                    class="mt-2 inline-block text-sm text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {t`Manage translations`}
+                  </A>
+                </Show>
                 <ArticleReplies $article={article} $viewer={props.$viewer} />
               </article>
 

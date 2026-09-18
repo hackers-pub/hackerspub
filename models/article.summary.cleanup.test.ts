@@ -249,6 +249,7 @@ test("0097 cleanup does not clear post summaries for translated content", async 
       summaryStarted: published,
       originalLanguage: "en",
       translationRequesterId: author.account.id,
+      provenance: "llm",
       beingTranslated: false,
       published,
       updated: published,

@@ -399,6 +399,7 @@ test("getArticle() preserves article content titles when rendered body has no he
         content: "The body has no separate H1 heading.",
         originalLanguage: "ko",
         translationRequesterId: author.account.id,
+        provenance: "llm",
         published: new Date("2026-04-15T00:01:00.000Z"),
         updated: new Date("2026-04-15T00:01:00.000Z"),
       },

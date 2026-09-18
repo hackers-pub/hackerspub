@@ -302,6 +302,7 @@ test("recordArticleView() deduplicates and records aggregate dimensions", async 
         title: "분석",
         content: "번역",
         originalLanguage: "en",
+        provenance: "llm",
         published,
         updated: published,
       },
