@@ -1,9 +1,10 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { graphql } from "relay-runtime";
+import { HtmlContent } from "~/components/HtmlContent.tsx";
+import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
-import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ArticleTranslationManagerSaveMutation } from "./__generated__/ArticleTranslationManagerSaveMutation.graphql.ts";
 import type { ArticleTranslationManagerDeleteMutation } from "./__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
@@ -106,25 +107,6 @@ export interface ArticleTranslationManagerProps {
   onChanged: () => void | Promise<void>;
 }
 
-const SOURCE_LOCALES = [
-  "en",
-  "en-US",
-  "en-GB",
-  "ko",
-  "ja",
-  "zh-CN",
-  "zh-TW",
-  "fr",
-  "de",
-  "es",
-  "pt",
-  "pt-BR",
-  "ru",
-  "it",
-  "ar",
-  "hi",
-];
-
 export function ArticleTranslationManager(
   props: ArticleTranslationManagerProps,
 ) {
@@ -138,13 +120,26 @@ export function ArticleTranslationManager(
   const [selectedUuid, setSelectedUuid] = createSignal<
     TranslationUuid | undefined
   >();
-  const [newLanguage, setNewLanguage] = createSignal("");
+  const [newLanguage, setNewLanguage] = createSignal<Intl.Locale | undefined>();
   const [title, setTitle] = createSignal("");
   const [content, setContent] = createSignal("");
   const [error, setError] = createSignal<string | undefined>();
   // True while a mutation's follow-up reload is in flight, so the editor is
   // not reset under the user's fingers between the save echo and the refetch.
   const [reloading, setReloading] = createSignal(false);
+  const newLanguageCode = () => newLanguage()?.baseName;
+  // The original language and every language that already has a draft cannot
+  // be added again: existing drafts are opened from the list instead.
+  const unavailableLanguages = () => {
+    const codes = new Set<string>();
+    if (props.originalLanguage != null) {
+      codes.add(new Intl.Locale(props.originalLanguage).baseName);
+    }
+    for (const translation of props.translations) {
+      codes.add(new Intl.Locale(translation.language).baseName);
+    }
+    return [...codes].map((code) => new Intl.Locale(code));
+  };
 
   const selected = () =>
     props.translations.find((t) => t.uuid === selectedUuid());
@@ -179,6 +174,8 @@ export function ArticleTranslationManager(
     revision?: number,
     afterSave?: (draft: { uuid: TranslationUuid; revision: number }) => void,
   ) => {
+    const language = selected()?.language ?? newLanguageCode();
+    if (language == null) return;
     setError(undefined);
     saveMutation({
       variables: {
@@ -187,7 +184,7 @@ export function ArticleTranslationManager(
           ...(revision != null && selectedUuid() != null
             ? { id: selectedUuid(), revision }
             : {}),
-          language: selected()?.language ?? newLanguage(),
+          language,
           title: title(),
           content: content(),
         },
@@ -196,7 +193,7 @@ export function ArticleTranslationManager(
         const payload = response.saveArticleTranslationDraft;
         if (payload.__typename === "SaveArticleTranslationDraftPayload") {
           setSelectedUuid(payload.draft.uuid);
-          setNewLanguage("");
+          setNewLanguage(undefined);
           if (afterSave != null) {
             afterSave({
               uuid: payload.draft.uuid,
@@ -345,22 +342,16 @@ export function ArticleTranslationManager(
         </ul>
 
         <h3 class="mt-6 mb-2 text-sm font-semibold">{t`Add translation`}</h3>
-        <div class="flex gap-2">
-          <input
-            class="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm"
-            list="article-translation-languages"
-            placeholder={t`Language code`}
+        <div class="flex flex-col gap-2">
+          <LanguageSelect
+            class="w-full"
             value={newLanguage()}
-            onInput={(event) => setNewLanguage(event.currentTarget.value)}
+            onChange={setNewLanguage}
+            exclude={unavailableLanguages()}
           />
-          <datalist id="article-translation-languages">
-            <For each={SOURCE_LOCALES}>
-              {(locale) => <option value={locale} />}
-            </For>
-          </datalist>
           <Button
             size="sm"
-            disabled={newLanguage().trim() === "" || saving()}
+            disabled={newLanguage() == null || busy()}
             onClick={() => {
               setSelectedUuid(undefined);
               handleSave();
@@ -376,7 +367,7 @@ export function ArticleTranslationManager(
 
       <section class="min-w-0 flex-1">
         <Show
-          when={selected() != null || newLanguage().trim() !== ""}
+          when={selected() != null || newLanguage() != null}
           fallback={
             <p class="text-sm text-muted-foreground">
               {t`Select a language to edit its translation.`}
@@ -385,7 +376,7 @@ export function ArticleTranslationManager(
         >
           <div class="mb-2 flex items-center justify-between gap-2">
             <h2 class="text-lg font-semibold">
-              {selected()?.language ?? newLanguage()}
+              {selected()?.language ?? newLanguageCode()}
             </h2>
             <Show when={selected()?.sourceChanged}>
               <span class="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
