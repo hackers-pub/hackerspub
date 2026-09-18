@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.totalCount ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1088
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1097
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 条评论}}"
 
@@ -751,7 +751,7 @@ msgstr "全部时间"
 msgid "All-time"
 msgstr "全部时间"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:168
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:562
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
@@ -809,7 +809,7 @@ msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请
 msgid "An unexpected error occurred. Please try again later."
 msgstr "发生了意外错误。请稍后再试。"
 
-#: src/components/PostActionMenu.tsx:381
+#: src/components/PostActionMenu.tsx:391
 msgid "Analytics"
 msgstr "分析"
 
@@ -916,7 +916,7 @@ msgstr "文章"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:362
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:370
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:767
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:765
 msgid "Article analytics"
 msgstr "文章分析"
 
@@ -941,7 +941,7 @@ msgstr "文章翻译失败"
 msgid "Article updated"
 msgstr "文章已更新"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:86
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:87
 msgid "article-url-slug"
 msgstr "文章网址别名"
 
@@ -1012,7 +1012,7 @@ msgstr "返回文章"
 msgid "Back to cases"
 msgstr "返回案例列表"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:260
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:261
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:583
 msgid "Back to editing"
 msgstr "返回编辑"
@@ -1123,7 +1123,7 @@ msgstr "由 {0} 发布"
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
-#: src/components/PostActionMenu.tsx:474
+#: src/components/PostActionMenu.tsx:484
 #: src/components/ProfileActionMenu.tsx:542
 #: src/components/ProfileActionMenu.tsx:543
 #: src/components/ProfileActionMenu.tsx:575
@@ -1216,7 +1216,7 @@ msgstr "请选择处理方式。"
 msgid "Choose an outcome."
 msgstr "请选择处理结果。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:57
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:58
 msgid "Choose how this article appears and who can interact with it."
 msgstr "选择这篇文章的显示方式，以及谁可以与之互动。"
 
@@ -1321,7 +1321,7 @@ msgstr "继续查看该讨论"
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "控制你在展示谁邀请了谁的公开邀请树中的显示方式。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:146
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:147
 msgid "Controls who can quote this article on their timeline."
 msgstr "设置谁可以在时间线上引用这篇文章。"
 
@@ -1566,8 +1566,8 @@ msgstr "默认引用权限"
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
-#: src/components/PostActionMenu.tsx:408
-#: src/components/PostActionMenu.tsx:480
+#: src/components/PostActionMenu.tsx:418
+#: src/components/PostActionMenu.tsx:490
 #: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
@@ -1583,8 +1583,8 @@ msgstr "删除账户"
 msgid "Delete account permanently?"
 msgstr "要永久删除账户吗？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:249
-#: src/components/article-translations/ArticleTranslationManager.tsx:459
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:250
+#: src/components/article-translations/ArticleTranslationManager.tsx:456
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "删除草稿"
@@ -1612,11 +1612,11 @@ msgstr "要永久删除组织吗？"
 msgid "Delete orphan media"
 msgstr "删除孤立媒体"
 
-#: src/components/PostActionMenu.tsx:468
+#: src/components/PostActionMenu.tsx:478
 msgid "Delete post?"
 msgstr "删除内容？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:249
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:250
 #: src/routes/(root)/[handle]/settings/account.tsx:2058
 #: src/routes/(root)/[handle]/settings/invite.tsx:729
 #: src/routes/(root)/admin/media.tsx:185
@@ -1709,7 +1709,7 @@ msgstr "已驳回"
 msgid "Display name"
 msgstr "昵称"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:118
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:119
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "将此文章的共同作者显示在组织旁边。默认情况下，记录的是草稿的创建者，而不是发布者。"
 
@@ -1765,7 +1765,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:375
+#: src/components/PostActionMenu.tsx:378
 msgid "Edit"
 msgstr "编辑"
 
@@ -2005,13 +2005,13 @@ msgstr "删除邀请链接失败"
 msgid "Failed to delete orphan media."
 msgstr "删除孤立媒体失败。"
 
-#: src/components/PostActionMenu.tsx:337
-#: src/components/PostActionMenu.tsx:344
+#: src/components/PostActionMenu.tsx:340
+#: src/components/PostActionMenu.tsx:347
 msgid "Failed to delete post"
 msgstr "删除内容失败"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:242
-#: src/components/article-translations/ArticleTranslationManager.tsx:248
+#: src/components/article-translations/ArticleTranslationManager.tsx:243
+#: src/components/article-translations/ArticleTranslationManager.tsx:249
 msgid "Failed to delete the translation draft."
 msgstr "无法删除翻译草稿。"
 
@@ -2149,13 +2149,13 @@ msgstr "查找用户失败。"
 msgid "Failed to mute this user"
 msgstr "未能隐藏此用户"
 
-#: src/components/PostActionMenu.tsx:302
-#: src/components/PostActionMenu.tsx:309
+#: src/components/PostActionMenu.tsx:305
+#: src/components/PostActionMenu.tsx:312
 msgid "Failed to pin post"
 msgstr "无法置顶内容"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:264
-#: src/components/article-translations/ArticleTranslationManager.tsx:271
+#: src/components/article-translations/ArticleTranslationManager.tsx:265
+#: src/components/article-translations/ArticleTranslationManager.tsx:272
 msgid "Failed to publish the translation."
 msgstr "无法发布翻译。"
 
@@ -2244,7 +2244,7 @@ msgstr "保存设置失败"
 msgid "Failed to save the draft."
 msgstr "无法保存草稿。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:218
+#: src/components/article-translations/ArticleTranslationManager.tsx:219
 msgid "Failed to save the translation."
 msgstr "无法保存翻译。"
 
@@ -2257,8 +2257,8 @@ msgstr "发送邮件失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
-#: src/components/PostEngagementBar.tsx:380
-#: src/components/PostEngagementBar.tsx:387
+#: src/components/PostEngagementBar.tsx:367
+#: src/components/PostEngagementBar.tsx:374
 msgid "Failed to share post"
 msgstr "转帖失败"
 
@@ -2296,13 +2296,13 @@ msgstr "取消关注失败"
 msgid "Failed to unmute this user"
 msgstr "未能取消隐藏此用户"
 
-#: src/components/PostActionMenu.tsx:277
-#: src/components/PostActionMenu.tsx:284
+#: src/components/PostActionMenu.tsx:280
+#: src/components/PostActionMenu.tsx:287
 msgid "Failed to unpin post"
 msgstr "无法取消置顶内容"
 
-#: src/components/PostEngagementBar.tsx:362
-#: src/components/PostEngagementBar.tsx:369
+#: src/components/PostEngagementBar.tsx:349
+#: src/components/PostEngagementBar.tsx:356
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
@@ -2432,7 +2432,7 @@ msgstr "接收浏览器通知"
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:146
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:144
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:120
@@ -2671,7 +2671,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1113
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1122
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:555
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
@@ -2857,7 +2857,7 @@ msgstr "保留草稿"
 msgid "Keep editing"
 msgstr "继续编辑"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:310
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:311
 msgid "Keep existing draft"
 msgstr "保留现有草稿"
 
@@ -2865,9 +2865,9 @@ msgstr "保留现有草稿"
 msgid "Keep writing note"
 msgstr "继续写帖子"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:127
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:128
 #: src/components/LanguageList.tsx:33
-#: src/components/LanguageSelect.tsx:95
+#: src/components/LanguageSelect.tsx:104
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:535
 msgid "Language"
 msgstr "语言"
@@ -2884,7 +2884,7 @@ msgstr "语言设置"
 msgid "Language shown when the view was counted."
 msgstr "统计查看次数时显示的语言。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:295
+#: src/components/article-translations/ArticleTranslationManager.tsx:296
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 msgid "Languages"
@@ -3166,7 +3166,7 @@ msgid "Loading search results…"
 msgstr "正在加载搜索结果…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:134
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:132
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:108
 #: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
@@ -3204,11 +3204,12 @@ msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the r
 msgstr "让此实例 actor 关注一个 ActivityPub 中继。接受后，中继可以将联邦宇宙各处的公开内容转发到此处，并接收此实例新发布的公开文章。请输入中继 actor 的 URL（例如 https://relay.example/actor）。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:120
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:131
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:152
+#: src/components/PostActionMenu.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:993
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:129
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:157
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:105
-#: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:126
+#: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:133
 msgid "Manage translations"
 msgstr "管理翻译"
 
@@ -3776,8 +3777,8 @@ msgid "Option {0}"
 msgstr "选项 {0}"
 
 #: src/components/note-composer/PollEditor.tsx:82
-#: src/components/PostActionMenu.tsx:360
-#: src/components/PostActionMenu.tsx:361
+#: src/components/PostActionMenu.tsx:363
+#: src/components/PostActionMenu.tsx:364
 msgid "Options"
 msgstr "选项"
 
@@ -3820,19 +3821,19 @@ msgstr "组织邀请"
 msgid "Organization members"
 msgstr "组织成员"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:408
+#: src/components/article-translations/ArticleTranslationManager.tsx:405
 msgid "Original"
 msgstr "原文"
 
 #: src/components/article-translations/ArticleTranslationManager.tsx:297
-msgid "Original:"
-msgstr "原文："
+#~ msgid "Original:"
+#~ msgstr "原文："
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:523
 msgid "Other external websites"
 msgstr "其他外部网站"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:950
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:949
 msgid "Other languages"
 msgstr "其他语言"
 
@@ -3915,7 +3916,7 @@ msgstr "永久删除此组织账号及其内容。"
 msgid "Permanently delete your account and sign out of this session."
 msgstr "永久删除你的账户，并退出当前会话。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:141
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:139
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:109
@@ -3939,7 +3940,7 @@ msgstr "个人"
 msgid "Personal accounts"
 msgstr "个人账户"
 
-#: src/components/PostActionMenu.tsx:397
+#: src/components/PostActionMenu.tsx:407
 msgid "Pin to profile"
 msgstr "置顶到个人资料"
 
@@ -4048,7 +4049,7 @@ msgstr "{0} 的内容"
 msgid "Post censored"
 msgstr "内容已屏蔽"
 
-#: src/components/PostActionMenu.tsx:333
+#: src/components/PostActionMenu.tsx:336
 msgid "Post deleted"
 msgstr "内容已删除"
 
@@ -4056,11 +4057,11 @@ msgstr "内容已删除"
 msgid "Post hidden"
 msgstr "内容已隐藏"
 
-#: src/components/PostActionMenu.tsx:299
+#: src/components/PostActionMenu.tsx:302
 msgid "Post pinned"
 msgstr "内容已置顶"
 
-#: src/components/PostActionMenu.tsx:274
+#: src/components/PostActionMenu.tsx:277
 msgid "Post unpinned"
 msgstr "已取消置顶内容"
 
@@ -4104,7 +4105,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "将此账户准备为 Mastodon 式迁移的目标账户。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:418
+#: src/components/article-translations/ArticleTranslationManager.tsx:415
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "预览"
@@ -4181,27 +4182,27 @@ msgstr "仅公开内容"
 msgid "Publish"
 msgstr "发布"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:289
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:290
 msgid "Publish article"
 msgstr "发布文章"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:450
+#: src/components/article-translations/ArticleTranslationManager.tsx:447
 msgid "Publish changes"
 msgstr "发布更改"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:270
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:271
 msgid "Publish now"
 msgstr "立即发布"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:54
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:55
 msgid "Publish settings"
 msgstr "发布设置"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:282
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:283
 msgid "Publish this as a note?"
 msgstr "要将其作为帖子发布吗？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:449
+#: src/components/article-translations/ArticleTranslationManager.tsx:446
 msgid "Publish translation"
 msgstr "发布翻译"
 
@@ -4214,7 +4215,7 @@ msgstr "发布时间"
 msgid "Published; unpublished changes"
 msgstr "已发布，有未发布的更改"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:270
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:271
 msgid "Publishing…"
 msgstr "发布中…"
 
@@ -4238,12 +4239,12 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:707
+#: src/components/PostEngagementBar.tsx:708
 #: src/components/ui/markdown-editor.tsx:298
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:139
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:140
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用权限"
@@ -4267,7 +4268,7 @@ msgstr "引用内容已隐藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:707
+#: src/components/PostEngagementBar.tsx:708
 msgid "Quoting is not available for this post"
 msgstr "无法引用此内容。"
 
@@ -4275,8 +4276,8 @@ msgstr "无法引用此内容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "从来源服务器重新获取远程账户或内容，并覆盖缓存的副本。请输入联邦宇宙用户名、个人资料 URL 或 ActivityPub IRI。"
 
-#: src/components/PostEngagementBar.tsx:488
-#: src/components/PostEngagementBar.tsx:489
+#: src/components/PostEngagementBar.tsx:475
+#: src/components/PostEngagementBar.tsx:476
 msgid "React"
 msgstr "反应"
 
@@ -4526,11 +4527,11 @@ msgstr "正在移除…"
 msgid "Rendering…"
 msgstr "渲染中…"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:312
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:313
 msgid "Replace draft"
 msgstr "替换草稿"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:304
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:305
 msgid "Replace local note draft?"
 msgstr "替换本地帖子草稿？"
 
@@ -4547,11 +4548,11 @@ msgid "Replies"
 msgstr "回复"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:454
+#: src/components/PostEngagementBar.tsx:441
 msgid "Reply"
 msgstr "回复"
 
-#: src/components/PostEngagementBar.tsx:455
+#: src/components/PostEngagementBar.tsx:442
 msgid "Replying is not available for this post"
 msgstr "无法回复此内容"
 
@@ -4559,7 +4560,7 @@ msgstr "无法回复此内容"
 msgid "Replying to"
 msgstr "回复给"
 
-#: src/components/PostActionMenu.tsx:417
+#: src/components/PostActionMenu.tsx:427
 msgid "Report"
 msgstr "举报"
 
@@ -4711,7 +4712,7 @@ msgstr "保存"
 msgid "Save as article draft"
 msgstr "保存为文章草稿"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:292
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:293
 msgid "Save as note draft"
 msgstr "保存为帖子草稿"
 
@@ -4721,7 +4722,7 @@ msgid "Save changes"
 msgstr "保存更改"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:438
+#: src/components/article-translations/ArticleTranslationManager.tsx:435
 msgid "Save draft"
 msgstr "保存草稿"
 
@@ -4762,7 +4763,7 @@ msgstr "保存中…"
 msgid "Search"
 msgstr "搜索"
 
-#: src/components/LanguageSelect.tsx:64
+#: src/components/LanguageSelect.tsx:69
 msgid "Search a language…"
 msgstr "搜索语言…"
 
@@ -4816,7 +4817,7 @@ msgstr "请选择选项"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "按偏好顺序选择您的偏好语言。这将有助于根据您的偏好定制内容。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:184
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:185
 msgid "Selected translations are published together with the original. Unselected drafts stay private and can be published later."
 msgstr "选中的翻译会与原文一起发布。未选中的草稿保持私密，可以稍后发布。"
 
@@ -4845,7 +4846,7 @@ msgstr "发送中…"
 msgid "Sensitive content"
 msgstr "敏感内容"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:72
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:73
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:530
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "标签之间用空格分隔。标签有助于读者发现您的文章。"
@@ -4866,11 +4867,11 @@ msgstr "设置"
 msgid "Settings saved"
 msgstr "设置已保存"
 
-#: src/components/PostEngagementBar.tsx:694
+#: src/components/PostEngagementBar.tsx:695
 msgid "Share"
 msgstr "转帖"
 
-#: src/components/PostEngagementBar.tsx:686
+#: src/components/PostEngagementBar.tsx:687
 msgid "Share or quote"
 msgstr "转帖或引用"
 
@@ -4896,15 +4897,15 @@ msgstr "分享你对这个话题的看法…"
 msgid "Shares"
 msgstr "转帖"
 
-#: src/components/PostEngagementBar.tsx:685
+#: src/components/PostEngagementBar.tsx:686
 msgid "Sharing and quoting are not available for this post"
 msgstr "无法转帖或引用此内容。"
 
-#: src/components/PostEngagementBar.tsx:693
+#: src/components/PostEngagementBar.tsx:694
 msgid "Sharing is not available for this post"
 msgstr "无法转帖此内容。"
 
-#: src/components/PostEngagementBar.tsx:680
+#: src/components/PostEngagementBar.tsx:681
 msgid "Sharing…"
 msgstr "正在转帖…"
 
@@ -4940,7 +4941,7 @@ msgstr "显示更多转帖内容"
 msgid "Show sensitive content"
 msgstr "显示敏感内容"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:112
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:113
 msgid "Show the personal author"
 msgstr "显示个人作者"
 
@@ -5020,7 +5021,7 @@ msgstr "单选"
 msgid "Skip"
 msgstr "跳过"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:78
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:79
 msgid "Slug (URL)"
 msgstr "URL 别名"
 
@@ -5044,9 +5045,9 @@ msgstr "部分本地保存的图片已不可用，已从草稿中移除。"
 msgid "Some posts in this thread cannot be shown."
 msgstr "该讨论中的部分内容无法显示。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:211
-#: src/components/article-translations/ArticleTranslationManager.tsx:239
-#: src/components/article-translations/ArticleTranslationManager.tsx:261
+#: src/components/article-translations/ArticleTranslationManager.tsx:212
+#: src/components/article-translations/ArticleTranslationManager.tsx:240
+#: src/components/article-translations/ArticleTranslationManager.tsx:262
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "其他人保存了此翻译。请重新加载后重试。"
 
@@ -5182,9 +5183,9 @@ msgid "Switch to article"
 msgstr "切换为文章"
 
 #: src/components/DocumentView.tsx:39
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:791
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:799
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1155
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:789
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:797
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1164
 msgid "Table of contents"
 msgstr "目录"
 
@@ -5192,9 +5193,9 @@ msgstr "目录"
 #~ msgid "Tag"
 #~ msgstr "标签"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:65
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:66
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1164
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1173
 msgid "Tags"
 msgstr "标签"
 
@@ -5242,7 +5243,7 @@ msgstr "这不是有效的中继 actor URL。"
 msgid "That is not a valid URL pattern."
 msgstr "这不是有效的 URL 模式。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:208
+#: src/components/article-translations/ArticleTranslationManager.tsx:209
 msgid "That language is not available or the input is invalid."
 msgstr "该语言不可用，或输入无效。"
 
@@ -5394,7 +5395,7 @@ msgstr "无法离开组织。请重试。"
 msgid "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
 msgstr "拥有发帖权限的组织成员将获得此草稿的访问权限。之后不支持移回。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:383
+#: src/components/article-translations/ArticleTranslationManager.tsx:380
 msgid "The original changed; this translation may be out of date."
 msgstr "原文已更改；此翻译可能已过时。"
 
@@ -5415,7 +5416,7 @@ msgstr "无法添加旧账户。请重试。"
 msgid "The previous account could not be removed. Please try again."
 msgstr "无法移除旧账户。请重试。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:134
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:135
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:542
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
@@ -5484,7 +5485,7 @@ msgstr "此账户不再使用。"
 msgid "This account is suspended."
 msgstr "此账户已被封停。"
 
-#: src/components/PostActionMenu.tsx:470
+#: src/components/PostActionMenu.tsx:480
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
 
@@ -5494,11 +5495,11 @@ msgstr "此操作无法撤销。这将永久删除该内容。"
 msgid "This action is permanent."
 msgstr "此操作无法撤销。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:284
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:285
 msgid "This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug."
 msgstr "这篇文章较短，也适合作为帖子发布。帖子会直接显示在时间线中，不需要标题或URL别名。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:306
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:307
 msgid "This browser already has a local note draft. Replacing it will overwrite that saved note draft."
 msgstr "此浏览器中已有本地帖子草稿。替换后将覆盖已保存的帖子草稿。"
 
@@ -5653,7 +5654,7 @@ msgstr "此服务器尚未配置 Web Push。"
 msgid "This service does not support remote follow."
 msgstr "该服务不支持远程关注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:653
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:651
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 
@@ -5661,7 +5662,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 #~ msgid "This will be part of the article URL"
 #~ msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:91
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:92
 msgid "This will be part of the article URL."
 msgstr "这将成为文章 URL 的一部分。"
 
@@ -5699,7 +5700,7 @@ msgstr "举报总数"
 msgid "Total: {0}"
 msgstr "共 {0} 个"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:401
+#: src/components/article-translations/ArticleTranslationManager.tsx:398
 msgid "Translated body"
 msgstr "翻译正文"
 
@@ -5709,11 +5710,11 @@ msgstr "译者:"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:328
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:934
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:933
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:390
+#: src/components/article-translations/ArticleTranslationManager.tsx:387
 msgid "Translated title"
 msgstr "翻译标题"
 
@@ -5725,18 +5726,18 @@ msgstr "正在翻译文章"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻译为{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:649
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:647
 msgid "Translating to {name}…"
 msgstr "正在翻译为{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:646
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:644
 msgid "Translating…"
 msgstr "正在翻译…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:418
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:441
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:450
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:692
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:690
 msgid "Translation request failed"
 msgstr "翻译请求失败"
 
@@ -5744,11 +5745,11 @@ msgstr "翻译请求失败"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻译请求失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:697
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:182
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:183
 msgid "Translations to publish"
 msgstr "要发布的翻译"
 
@@ -5758,7 +5759,7 @@ msgid "Tree"
 msgstr "树状图"
 
 #: src/app.tsx:119
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:705
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:703
 msgid "Try again"
 msgstr "重试"
 
@@ -5781,7 +5782,7 @@ msgstr "输入 {0} 以确认转换。"
 msgid "Type {0} to confirm organization deletion."
 msgstr "输入 {0} 以确认删除组织。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:69
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:70
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
@@ -5825,7 +5826,7 @@ msgstr "取消关注"
 msgid "Unmute"
 msgstr "取消隐藏"
 
-#: src/components/PostActionMenu.tsx:398
+#: src/components/PostActionMenu.tsx:408
 msgid "Unpin from profile"
 msgstr "从个人资料取消置顶"
 
@@ -5833,11 +5834,11 @@ msgstr "从个人资料取消置顶"
 msgid "Unread"
 msgstr "未读"
 
-#: src/components/PostEngagementBar.tsx:691
+#: src/components/PostEngagementBar.tsx:692
 msgid "Unshare"
 msgstr "取消转帖"
 
-#: src/components/PostEngagementBar.tsx:680
+#: src/components/PostEngagementBar.tsx:681
 msgid "Unsharing…"
 msgstr "正在取消转帖…"
 
@@ -5977,18 +5978,18 @@ msgstr "查看图片"
 msgid "View organization"
 msgstr "查看组织"
 
-#: src/components/PostActionMenu.tsx:440
-#: src/components/PostEngagementBar.tsx:752
+#: src/components/PostActionMenu.tsx:450
+#: src/components/PostEngagementBar.tsx:753
 msgid "View quotes"
 msgstr "查看引用"
 
-#: src/components/PostActionMenu.tsx:446
-#: src/components/PostEngagementBar.tsx:548
+#: src/components/PostActionMenu.tsx:456
+#: src/components/PostEngagementBar.tsx:535
 msgid "View reactions"
 msgstr "查看反应"
 
-#: src/components/PostActionMenu.tsx:426
-#: src/components/PostEngagementBar.tsx:456
+#: src/components/PostActionMenu.tsx:436
+#: src/components/PostEngagementBar.tsx:443
 msgid "View replies"
 msgstr "查看回复"
 
@@ -5996,8 +5997,8 @@ msgstr "查看回复"
 msgid "View request"
 msgstr "查看请求"
 
-#: src/components/PostActionMenu.tsx:434
-#: src/components/PostEngagementBar.tsx:751
+#: src/components/PostActionMenu.tsx:444
+#: src/components/PostEngagementBar.tsx:752
 msgid "View shares"
 msgstr "查看转帖"
 
@@ -6078,7 +6079,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "无法连接到服务器"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:700
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 
@@ -6111,7 +6112,7 @@ msgstr "你想让大家决定什么？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:174
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:175
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:568
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "启用后，AI 可能会自动将这篇文章翻译成其他语言。"
@@ -6146,7 +6147,7 @@ msgid "Write"
 msgstr "撰写"
 
 #: src/components/NoteComposeModal.tsx:125
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1099
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1108
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:368
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:458
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:546
@@ -6254,7 +6255,7 @@ msgstr "你只能编辑自己的账户或你有发帖权限的组织的草稿"
 msgid "You can only manage translations for a draft you can edit."
 msgstr "你只能管理你有权编辑的草稿的翻译。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:143
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:141
 msgid "You can only manage translations for an article you can edit."
 msgstr "你只能管理你有权编辑的文章的翻译。"
 
@@ -6309,15 +6310,15 @@ msgstr "你还没有隐藏任何账户。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "你可能已经申诉过，或申诉期限已结束。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:244
+#: src/components/article-translations/ArticleTranslationManager.tsx:245
 msgid "You may not have permission to delete this translation."
 msgstr "你可能没有删除此翻译的权限。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:266
+#: src/components/article-translations/ArticleTranslationManager.tsx:267
 msgid "You may not have permission to publish this translation."
 msgstr "你可能没有发布此翻译的权限。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:214
+#: src/components/article-translations/ArticleTranslationManager.tsx:215
 msgid "You may not have permission to save this translation."
 msgstr "你可能没有保存此翻译的权限。"
 

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.totalCount ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1088
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1097
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {#コメント}}"
 
@@ -751,7 +751,7 @@ msgstr "全期間"
 msgid "All-time"
 msgstr "全期間"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:168
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:562
 msgid "Allow automatic translation by AI"
 msgstr "AIによる自動翻訳を許可"
@@ -809,7 +809,7 @@ msgstr "設定の保存中にエラーが発生しました。再度お試しい
 msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
-#: src/components/PostActionMenu.tsx:381
+#: src/components/PostActionMenu.tsx:391
 msgid "Analytics"
 msgstr "分析"
 
@@ -916,7 +916,7 @@ msgstr "記事"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:362
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:370
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:767
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:765
 msgid "Article analytics"
 msgstr "記事の分析"
 
@@ -941,7 +941,7 @@ msgstr "記事の翻訳に失敗"
 msgid "Article updated"
 msgstr "記事を更新しました"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:86
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:87
 msgid "article-url-slug"
 msgstr "記事URLスラッグ"
 
@@ -1012,7 +1012,7 @@ msgstr "記事に戻る"
 msgid "Back to cases"
 msgstr "ケース一覧へ戻る"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:260
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:261
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:583
 msgid "Back to editing"
 msgstr "編集に戻る"
@@ -1123,7 +1123,7 @@ msgstr "{0}さんによる記事"
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
-#: src/components/PostActionMenu.tsx:474
+#: src/components/PostActionMenu.tsx:484
 #: src/components/ProfileActionMenu.tsx:542
 #: src/components/ProfileActionMenu.tsx:543
 #: src/components/ProfileActionMenu.tsx:575
@@ -1216,7 +1216,7 @@ msgstr "対応を選択してください。"
 msgid "Choose an outcome."
 msgstr "結果を選択してください。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:57
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:58
 msgid "Choose how this article appears and who can interact with it."
 msgstr "この記事の表示方法と、誰が操作できるかを選択します。"
 
@@ -1321,7 +1321,7 @@ msgstr "このスレッドの続きを見る"
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "誰が誰を招待したかを示す公開の招待ツリーでの表示のされ方を設定します。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:146
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:147
 msgid "Controls who can quote this article on their timeline."
 msgstr "タイムラインでこの記事を引用できる相手を設定します。"
 
@@ -1566,8 +1566,8 @@ msgstr "引用のデフォルト許可設定"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/components/PostActionMenu.tsx:408
-#: src/components/PostActionMenu.tsx:480
+#: src/components/PostActionMenu.tsx:418
+#: src/components/PostActionMenu.tsx:490
 #: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
@@ -1583,8 +1583,8 @@ msgstr "アカウントを削除"
 msgid "Delete account permanently?"
 msgstr "アカウントを完全に削除しますか？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:249
-#: src/components/article-translations/ArticleTranslationManager.tsx:459
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:250
+#: src/components/article-translations/ArticleTranslationManager.tsx:456
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "下書きを削除"
@@ -1612,11 +1612,11 @@ msgstr "組織を完全に削除しますか？"
 msgid "Delete orphan media"
 msgstr "孤立したメディアを削除"
 
-#: src/components/PostActionMenu.tsx:468
+#: src/components/PostActionMenu.tsx:478
 msgid "Delete post?"
 msgstr "コンテンツを削除しますか？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:249
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:250
 #: src/routes/(root)/[handle]/settings/account.tsx:2058
 #: src/routes/(root)/[handle]/settings/invite.tsx:729
 #: src/routes/(root)/admin/media.tsx:185
@@ -1709,7 +1709,7 @@ msgstr "却下"
 msgid "Display name"
 msgstr "名前"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:118
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:119
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "この記事の共同著者として記録されたメンバーを組織の隣に表示します。既定では、公開した人ではなく下書きの作成者が共同著者として記録されます。"
 
@@ -1765,7 +1765,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:375
+#: src/components/PostActionMenu.tsx:378
 msgid "Edit"
 msgstr "編集"
 
@@ -2005,13 +2005,13 @@ msgstr "招待リンクの削除に失敗しました"
 msgid "Failed to delete orphan media."
 msgstr "孤立したメディアの削除に失敗しました。"
 
-#: src/components/PostActionMenu.tsx:337
-#: src/components/PostActionMenu.tsx:344
+#: src/components/PostActionMenu.tsx:340
+#: src/components/PostActionMenu.tsx:347
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:242
-#: src/components/article-translations/ArticleTranslationManager.tsx:248
+#: src/components/article-translations/ArticleTranslationManager.tsx:243
+#: src/components/article-translations/ArticleTranslationManager.tsx:249
 msgid "Failed to delete the translation draft."
 msgstr "翻訳の下書きを削除できませんでした。"
 
@@ -2149,13 +2149,13 @@ msgstr "ユーザーの検索に失敗しました。"
 msgid "Failed to mute this user"
 msgstr "このユーザーをミュートできませんでした"
 
-#: src/components/PostActionMenu.tsx:302
-#: src/components/PostActionMenu.tsx:309
+#: src/components/PostActionMenu.tsx:305
+#: src/components/PostActionMenu.tsx:312
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:264
-#: src/components/article-translations/ArticleTranslationManager.tsx:271
+#: src/components/article-translations/ArticleTranslationManager.tsx:265
+#: src/components/article-translations/ArticleTranslationManager.tsx:272
 msgid "Failed to publish the translation."
 msgstr "翻訳を公開できませんでした。"
 
@@ -2244,7 +2244,7 @@ msgstr "設定の保存に失敗しました"
 msgid "Failed to save the draft."
 msgstr "下書きを保存できませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:218
+#: src/components/article-translations/ArticleTranslationManager.tsx:219
 msgid "Failed to save the translation."
 msgstr "翻訳を保存できませんでした。"
 
@@ -2257,8 +2257,8 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostEngagementBar.tsx:380
-#: src/components/PostEngagementBar.tsx:387
+#: src/components/PostEngagementBar.tsx:367
+#: src/components/PostEngagementBar.tsx:374
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -2296,13 +2296,13 @@ msgstr "フォロー解除に失敗しました"
 msgid "Failed to unmute this user"
 msgstr "このユーザーのミュートを解除できませんでした"
 
-#: src/components/PostActionMenu.tsx:277
-#: src/components/PostActionMenu.tsx:284
+#: src/components/PostActionMenu.tsx:280
+#: src/components/PostActionMenu.tsx:287
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
-#: src/components/PostEngagementBar.tsx:362
-#: src/components/PostEngagementBar.tsx:369
+#: src/components/PostEngagementBar.tsx:349
+#: src/components/PostEngagementBar.tsx:356
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -2432,7 +2432,7 @@ msgstr "ブラウザー通知を受け取る"
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:146
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:144
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:120
@@ -2671,7 +2671,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1113
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1122
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:555
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
@@ -2857,7 +2857,7 @@ msgstr "下書きを残す"
 msgid "Keep editing"
 msgstr "編集を続ける"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:310
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:311
 msgid "Keep existing draft"
 msgstr "既存の下書きを残す"
 
@@ -2865,9 +2865,9 @@ msgstr "既存の下書きを残す"
 msgid "Keep writing note"
 msgstr "投稿を書き続ける"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:127
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:128
 #: src/components/LanguageList.tsx:33
-#: src/components/LanguageSelect.tsx:95
+#: src/components/LanguageSelect.tsx:104
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:535
 msgid "Language"
 msgstr "言語"
@@ -2884,7 +2884,7 @@ msgstr "言語設定"
 msgid "Language shown when the view was counted."
 msgstr "閲覧が集計された時点で表示されていた言語です。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:295
+#: src/components/article-translations/ArticleTranslationManager.tsx:296
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 msgid "Languages"
@@ -3166,7 +3166,7 @@ msgid "Loading search results…"
 msgstr "検索結果を読み込み中…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:134
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:132
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:108
 #: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
@@ -3204,11 +3204,12 @@ msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the r
 msgstr "インスタンスアクターでActivityPubリレーをフォローします。承認されると、リレーはフェディバース全体の公開コンテンツをこのインスタンスに転送でき、このインスタンスで新たに公開された記事を受け取ります。リレーアクターのURL（例: https://relay.example/actor）を入力してください。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:120
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:131
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:152
+#: src/components/PostActionMenu.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:993
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:129
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:157
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:105
-#: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:126
+#: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:133
 msgid "Manage translations"
 msgstr "翻訳を管理"
 
@@ -3776,8 +3777,8 @@ msgid "Option {0}"
 msgstr "選択肢 {0}"
 
 #: src/components/note-composer/PollEditor.tsx:82
-#: src/components/PostActionMenu.tsx:360
-#: src/components/PostActionMenu.tsx:361
+#: src/components/PostActionMenu.tsx:363
+#: src/components/PostActionMenu.tsx:364
 msgid "Options"
 msgstr "選択肢"
 
@@ -3820,19 +3821,19 @@ msgstr "組織の招待"
 msgid "Organization members"
 msgstr "組織メンバー"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:408
+#: src/components/article-translations/ArticleTranslationManager.tsx:405
 msgid "Original"
 msgstr "原文"
 
 #: src/components/article-translations/ArticleTranslationManager.tsx:297
-msgid "Original:"
-msgstr "原文："
+#~ msgid "Original:"
+#~ msgstr "原文："
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:523
 msgid "Other external websites"
 msgstr "その他の外部ウェブサイト"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:950
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:949
 msgid "Other languages"
 msgstr "他の言語"
 
@@ -3915,7 +3916,7 @@ msgstr "この組織アカウントとそのコンテンツを完全に削除し
 msgid "Permanently delete your account and sign out of this session."
 msgstr "アカウントを完全に削除し、このセッションからサインアウトします。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:141
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:139
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:109
@@ -3939,7 +3940,7 @@ msgstr "個人"
 msgid "Personal accounts"
 msgstr "個人アカウント"
 
-#: src/components/PostActionMenu.tsx:397
+#: src/components/PostActionMenu.tsx:407
 msgid "Pin to profile"
 msgstr "プロフィールに固定"
 
@@ -4048,7 +4049,7 @@ msgstr "{0}さんのコンテンツ"
 msgid "Post censored"
 msgstr "コンテンツ検閲済み"
 
-#: src/components/PostActionMenu.tsx:333
+#: src/components/PostActionMenu.tsx:336
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
 
@@ -4056,11 +4057,11 @@ msgstr "コンテンツを削除しました"
 msgid "Post hidden"
 msgstr "コンテンツ非表示"
 
-#: src/components/PostActionMenu.tsx:299
+#: src/components/PostActionMenu.tsx:302
 msgid "Post pinned"
 msgstr "コンテンツを固定しました"
 
-#: src/components/PostActionMenu.tsx:274
+#: src/components/PostActionMenu.tsx:277
 msgid "Post unpinned"
 msgstr "コンテンツの固定を解除しました"
 
@@ -4104,7 +4105,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "このアカウントをMastodon式の移行先として準備します。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:418
+#: src/components/article-translations/ArticleTranslationManager.tsx:415
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "プレビュー"
@@ -4181,27 +4182,27 @@ msgstr "公開コンテンツのみ"
 msgid "Publish"
 msgstr "公開"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:289
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:290
 msgid "Publish article"
 msgstr "記事を公開"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:450
+#: src/components/article-translations/ArticleTranslationManager.tsx:447
 msgid "Publish changes"
 msgstr "変更を公開"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:270
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:271
 msgid "Publish now"
 msgstr "今すぐ公開"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:54
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:55
 msgid "Publish settings"
 msgstr "公開設定"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:282
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:283
 msgid "Publish this as a note?"
 msgstr "これを投稿として公開しますか？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:449
+#: src/components/article-translations/ArticleTranslationManager.tsx:446
 msgid "Publish translation"
 msgstr "翻訳を公開"
 
@@ -4214,7 +4215,7 @@ msgstr "公開日時"
 msgid "Published; unpublished changes"
 msgstr "公開済み、未公開の変更あり"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:270
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:271
 msgid "Publishing…"
 msgstr "公開中…"
 
@@ -4238,12 +4239,12 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:707
+#: src/components/PostEngagementBar.tsx:708
 #: src/components/ui/markdown-editor.tsx:298
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:139
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:140
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用権限"
@@ -4267,7 +4268,7 @@ msgstr "引用元は非表示です"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:707
+#: src/components/PostEngagementBar.tsx:708
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
@@ -4275,8 +4276,8 @@ msgstr "このコンテンツは引用できません。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "リモートのアカウントまたはコンテンツを配信元サーバーから再取得し、キャッシュされたコピーを上書きします。フェディバースのハンドル、プロフィールURL、またはActivityPub IRIを入力してください。"
 
-#: src/components/PostEngagementBar.tsx:488
-#: src/components/PostEngagementBar.tsx:489
+#: src/components/PostEngagementBar.tsx:475
+#: src/components/PostEngagementBar.tsx:476
 msgid "React"
 msgstr "リアクション"
 
@@ -4526,11 +4527,11 @@ msgstr "削除中…"
 msgid "Rendering…"
 msgstr "レンダリング中…"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:312
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:313
 msgid "Replace draft"
 msgstr "下書きを置き換える"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:304
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:305
 msgid "Replace local note draft?"
 msgstr "ローカル投稿下書きを置き換えますか？"
 
@@ -4547,11 +4548,11 @@ msgid "Replies"
 msgstr "返信"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:454
+#: src/components/PostEngagementBar.tsx:441
 msgid "Reply"
 msgstr "返信"
 
-#: src/components/PostEngagementBar.tsx:455
+#: src/components/PostEngagementBar.tsx:442
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
@@ -4559,7 +4560,7 @@ msgstr "このコンテンツには返信できません"
 msgid "Replying to"
 msgstr "返信先"
 
-#: src/components/PostActionMenu.tsx:417
+#: src/components/PostActionMenu.tsx:427
 msgid "Report"
 msgstr "通報"
 
@@ -4711,7 +4712,7 @@ msgstr "保存"
 msgid "Save as article draft"
 msgstr "記事の下書きとして保存"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:292
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:293
 msgid "Save as note draft"
 msgstr "投稿の下書きとして保存"
 
@@ -4721,7 +4722,7 @@ msgid "Save changes"
 msgstr "変更を保存"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:438
+#: src/components/article-translations/ArticleTranslationManager.tsx:435
 msgid "Save draft"
 msgstr "下書きを保存"
 
@@ -4762,7 +4763,7 @@ msgstr "保存中…"
 msgid "Search"
 msgstr "検索"
 
-#: src/components/LanguageSelect.tsx:64
+#: src/components/LanguageSelect.tsx:69
 msgid "Search a language…"
 msgstr "言語を検索…"
 
@@ -4816,7 +4817,7 @@ msgstr "選択肢を選んでください"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "優先度の高い順に言語を選択してください。コンテンツをあなたの好みに合わせて調整するのに役立ちます。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:184
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:185
 msgid "Selected translations are published together with the original. Unselected drafts stay private and can be published later."
 msgstr "選択した翻訳は原文と一緒に公開されます。選択しなかった下書きは非公開のまま残り、後から公開できます。"
 
@@ -4845,7 +4846,7 @@ msgstr "送信中…"
 msgid "Sensitive content"
 msgstr "センシティブなコンテンツ"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:72
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:73
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:530
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "タグはスペースで区切ります。タグを付けると読者が記事を見つけやすくなります。"
@@ -4866,11 +4867,11 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定を保存しました"
 
-#: src/components/PostEngagementBar.tsx:694
+#: src/components/PostEngagementBar.tsx:695
 msgid "Share"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:686
+#: src/components/PostEngagementBar.tsx:687
 msgid "Share or quote"
 msgstr "共有または引用"
 
@@ -4896,15 +4897,15 @@ msgstr "この話題について意見を投稿しましょう…"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:685
+#: src/components/PostEngagementBar.tsx:686
 msgid "Sharing and quoting are not available for this post"
 msgstr "このコンテンツは共有も引用もできません。"
 
-#: src/components/PostEngagementBar.tsx:693
+#: src/components/PostEngagementBar.tsx:694
 msgid "Sharing is not available for this post"
 msgstr "このコンテンツは共有できません。"
 
-#: src/components/PostEngagementBar.tsx:680
+#: src/components/PostEngagementBar.tsx:681
 msgid "Sharing…"
 msgstr "共有中…"
 
@@ -4940,7 +4941,7 @@ msgstr "共有コンテンツをもっと表示"
 msgid "Show sensitive content"
 msgstr "センシティブなコンテンツを表示"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:112
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:113
 msgid "Show the personal author"
 msgstr "個人著者を表示"
 
@@ -5020,7 +5021,7 @@ msgstr "単一選択"
 msgid "Skip"
 msgstr "スキップ"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:78
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:79
 msgid "Slug (URL)"
 msgstr "スラッグ（URL）"
 
@@ -5044,9 +5045,9 @@ msgstr "ローカルに保存された一部の画像は利用できなくなっ
 msgid "Some posts in this thread cannot be shown."
 msgstr "このスレッドの一部のコンテンツは表示できません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:211
-#: src/components/article-translations/ArticleTranslationManager.tsx:239
-#: src/components/article-translations/ArticleTranslationManager.tsx:261
+#: src/components/article-translations/ArticleTranslationManager.tsx:212
+#: src/components/article-translations/ArticleTranslationManager.tsx:240
+#: src/components/article-translations/ArticleTranslationManager.tsx:262
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "他のユーザーがこの翻訳を保存しました。再読み込みしてやり直してください。"
 
@@ -5182,9 +5183,9 @@ msgid "Switch to article"
 msgstr "記事に切り替え"
 
 #: src/components/DocumentView.tsx:39
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:791
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:799
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1155
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:789
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:797
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1164
 msgid "Table of contents"
 msgstr "目次"
 
@@ -5192,9 +5193,9 @@ msgstr "目次"
 #~ msgid "Tag"
 #~ msgstr "タグ"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:65
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:66
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1164
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1173
 msgid "Tags"
 msgstr "タグ"
 
@@ -5242,7 +5243,7 @@ msgstr "有効なリレーアクターのURLではありません。"
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:208
+#: src/components/article-translations/ArticleTranslationManager.tsx:209
 msgid "That language is not available or the input is invalid."
 msgstr "この言語は利用できないか、入力が正しくありません。"
 
@@ -5394,7 +5395,7 @@ msgstr "組織から脱退できませんでした。もう一度お試しくだ
 msgid "The organization's members with posting permission will gain access to this draft. Moving it back later is not supported."
 msgstr "投稿権限を持つ組織のメンバーがこの下書きにアクセスできるようになります。後から元に戻す移動はサポートされていません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:383
+#: src/components/article-translations/ArticleTranslationManager.tsx:380
 msgid "The original changed; this translation may be out of date."
 msgstr "原文が変更されました。この翻訳は古い可能性があります。"
 
@@ -5415,7 +5416,7 @@ msgstr "古いアカウントを追加できませんでした。もう一度お
 msgid "The previous account could not be removed. Please try again."
 msgstr "古いアカウントを削除できませんでした。もう一度お試しください。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:134
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:135
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:542
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "記事の主言語です。アクセシビリティや検索に使用されます。"
@@ -5484,7 +5485,7 @@ msgstr "このアカウントは使用されていません。"
 msgid "This account is suspended."
 msgstr "このアカウントは停止されています。"
 
-#: src/components/PostActionMenu.tsx:470
+#: src/components/PostActionMenu.tsx:480
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
@@ -5494,11 +5495,11 @@ msgstr "この操作は取り消せません。このコンテンツは完全に
 msgid "This action is permanent."
 msgstr "この操作は永続的です。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:284
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:285
 msgid "This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug."
 msgstr "この記事は短いため、投稿としても適しています。投稿はタイムラインに直接表示され、タイトルやURLスラッグは不要です。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:306
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:307
 msgid "This browser already has a local note draft. Replacing it will overwrite that saved note draft."
 msgstr "このブラウザーにはすでにローカル投稿下書きがあります。置き換えると保存済みの投稿下書きが上書きされます。"
 
@@ -5653,7 +5654,7 @@ msgstr "このサーバーではまだWeb Pushが設定されていません。"
 msgid "This service does not support remote follow."
 msgstr "このサービスはリモートフォローに対応していません。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:653
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:651
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常1分ほどかかります。翻訳が完了するとページが自動的に更新されます。"
 
@@ -5661,7 +5662,7 @@ msgstr "通常1分ほどかかります。翻訳が完了するとページが�
 #~ msgid "This will be part of the article URL"
 #~ msgstr "これは記事のURLの一部になります"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:91
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:92
 msgid "This will be part of the article URL."
 msgstr "これは記事のURLの一部になります。"
 
@@ -5699,7 +5700,7 @@ msgstr "通報総数"
 msgid "Total: {0}"
 msgstr "合計：{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:401
+#: src/components/article-translations/ArticleTranslationManager.tsx:398
 msgid "Translated body"
 msgstr "翻訳本文"
 
@@ -5709,11 +5710,11 @@ msgstr "翻訳者:"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:328
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:934
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:933
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:390
+#: src/components/article-translations/ArticleTranslationManager.tsx:387
 msgid "Translated title"
 msgstr "翻訳タイトル"
 
@@ -5725,18 +5726,18 @@ msgstr "記事を翻訳中"
 #~ msgid "Translating to {0}…"
 #~ msgstr "{0}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:649
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:647
 msgid "Translating to {name}…"
 msgstr "{name}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:646
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:644
 msgid "Translating…"
 msgstr "翻訳中…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:418
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:441
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:450
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:692
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:690
 msgid "Translation request failed"
 msgstr "翻訳のリクエストに失敗しました"
 
@@ -5744,11 +5745,11 @@ msgstr "翻訳のリクエストに失敗しました"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "{0}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:697
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
 msgid "Translation request failed for {name}"
 msgstr "{name}への翻訳リクエストに失敗しました"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:182
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:183
 msgid "Translations to publish"
 msgstr "公開する翻訳"
 
@@ -5758,7 +5759,7 @@ msgid "Tree"
 msgstr "ツリー"
 
 #: src/app.tsx:119
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:705
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:703
 msgid "Try again"
 msgstr "再試行"
 
@@ -5781,7 +5782,7 @@ msgstr "{0}と入力して変換を確認してください。"
 msgid "Type {0} to confirm organization deletion."
 msgstr "組織の削除を確認するには {0} と入力してください。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:69
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:70
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
@@ -5825,7 +5826,7 @@ msgstr "フォロー解除"
 msgid "Unmute"
 msgstr "ミュート解除"
 
-#: src/components/PostActionMenu.tsx:398
+#: src/components/PostActionMenu.tsx:408
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
@@ -5833,11 +5834,11 @@ msgstr "プロフィールから固定解除"
 msgid "Unread"
 msgstr "未読"
 
-#: src/components/PostEngagementBar.tsx:691
+#: src/components/PostEngagementBar.tsx:692
 msgid "Unshare"
 msgstr "共有を取り消す"
 
-#: src/components/PostEngagementBar.tsx:680
+#: src/components/PostEngagementBar.tsx:681
 msgid "Unsharing…"
 msgstr "共有を取り消し中…"
 
@@ -5977,18 +5978,18 @@ msgstr "画像を表示"
 msgid "View organization"
 msgstr "組織を表示"
 
-#: src/components/PostActionMenu.tsx:440
-#: src/components/PostEngagementBar.tsx:752
+#: src/components/PostActionMenu.tsx:450
+#: src/components/PostEngagementBar.tsx:753
 msgid "View quotes"
 msgstr "引用を見る"
 
-#: src/components/PostActionMenu.tsx:446
-#: src/components/PostEngagementBar.tsx:548
+#: src/components/PostActionMenu.tsx:456
+#: src/components/PostEngagementBar.tsx:535
 msgid "View reactions"
 msgstr "リアクションを見る"
 
-#: src/components/PostActionMenu.tsx:426
-#: src/components/PostEngagementBar.tsx:456
+#: src/components/PostActionMenu.tsx:436
+#: src/components/PostEngagementBar.tsx:443
 msgid "View replies"
 msgstr "返信を見る"
 
@@ -5996,8 +5997,8 @@ msgstr "返信を見る"
 msgid "View request"
 msgstr "リクエストを表示"
 
-#: src/components/PostActionMenu.tsx:434
-#: src/components/PostEngagementBar.tsx:751
+#: src/components/PostActionMenu.tsx:444
+#: src/components/PostEngagementBar.tsx:752
 msgid "View shares"
 msgstr "共有を見る"
 
@@ -6078,7 +6079,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "サーバーに接続できませんでした"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:700
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "翻訳サービスに接続できませんでした。再試行するか、数分後に再度お試しください。"
 
@@ -6111,7 +6112,7 @@ msgstr "何を決めてもらいますか？"
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:174
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:175
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:568
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "有効にすると、AIがこの記事を他の言語に自動翻訳することがあります。"
@@ -6146,7 +6147,7 @@ msgid "Write"
 msgstr "編集"
 
 #: src/components/NoteComposeModal.tsx:125
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1099
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1108
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:368
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:458
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:546
@@ -6254,7 +6255,7 @@ msgstr "自分のアカウントまたは投稿できる組織の下書きのみ
 msgid "You can only manage translations for a draft you can edit."
 msgstr "翻訳を管理できるのは、編集権限のある下書きのみです。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:143
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:141
 msgid "You can only manage translations for an article you can edit."
 msgstr "編集権限のある記事の翻訳のみ管理できます。"
 
@@ -6309,15 +6310,15 @@ msgstr "ミュートしているアカウントはありません。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "すでに異議を申し立てたか、異議申し立て期間が終了している可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:244
+#: src/components/article-translations/ArticleTranslationManager.tsx:245
 msgid "You may not have permission to delete this translation."
 msgstr "この翻訳を削除する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:266
+#: src/components/article-translations/ArticleTranslationManager.tsx:267
 msgid "You may not have permission to publish this translation."
 msgstr "この翻訳を公開する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:214
+#: src/components/article-translations/ArticleTranslationManager.tsx:215
 msgid "You may not have permission to save this translation."
 msgstr "この翻訳を保存する権限がない可能性があります。"
 

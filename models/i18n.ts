@@ -264,8 +264,41 @@ export function normalizeLocale(value: string): Locale | undefined {
  * @returns The canonical content-language key, or `undefined` when the tag is
  *          not one of the supported content locales.
  */
+/**
+ * Canonical BCP 47 form to supported content-language key, for the supported
+ * keys whose tag `Intl.Locale` canonicalizes to a different (unsupported) tag.
+ * The GraphQL `Locale` scalar round-trips through `Intl.Locale`, so a selected
+ * supported key such as `tl` or `bh` can arrive as `fil` or `bho`.
+ *
+ * A canonical form that is itself a supported key (`tw` -> `ak`) is left out:
+ * the direct lookup in {@link normalizeContentLanguage} already resolves it.
+ */
+const canonicalContentLanguageAliases: ReadonlyMap<string, string> = new Map(
+  (() => {
+    const supported = new Set<string>(POSSIBLE_LOCALES);
+    const aliases: (readonly [string, string])[] = [];
+    for (const code of POSSIBLE_LOCALES) {
+      try {
+        const baseName = new Intl.Locale(code).baseName;
+        if (baseName !== code && !supported.has(baseName)) {
+          aliases.push([baseName, code]);
+        }
+      } catch {
+        // Ignore tags `Intl.Locale` cannot parse.
+      }
+    }
+    return aliases;
+  })(),
+);
+
 export function normalizeContentLanguage(value: string): string | undefined {
-  return normalizeLocale(value);
+  const direct = normalizeLocale(value);
+  if (direct != null) return direct;
+  try {
+    return canonicalContentLanguageAliases.get(new Intl.Locale(value).baseName);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
