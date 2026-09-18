@@ -379,7 +379,6 @@ interface ArticleBodyProps {
 }
 
 function ArticleBody(props: ArticleBodyProps) {
-  const { t } = useLingui();
   const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -396,6 +395,7 @@ function ArticleBody(props: ArticleBodyProps) {
       ) {
         sourceId
         viewerCanViewAnalytics
+        viewerCanManageTranslations
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -463,6 +463,12 @@ function ArticleBody(props: ArticleBodyProps) {
             ? null
             : `${base}/analytics`;
         });
+        const manageTranslationsHref = createMemo(() => {
+          const base = articleBase();
+          return base == null || !article.viewerCanManageTranslations
+            ? null
+            : `${base}/translations`;
+        });
 
         return (
           <>
@@ -491,6 +497,7 @@ function ArticleBody(props: ArticleBodyProps) {
                   currentLanguage={content()?.language ?? undefined}
                   currentOriginalLanguage={content()?.originalLanguage}
                   viewerLocales={props.viewerLocales}
+                  manageTranslationsHref={manageTranslationsHref()}
                 />
 
                 <Show when={content()?.beingTranslated}>
@@ -527,6 +534,7 @@ function ArticleBody(props: ArticleBodyProps) {
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
                       analyticsHref={analyticsHref()}
+                      manageTranslationsHref={manageTranslationsHref()}
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&
@@ -543,22 +551,6 @@ function ArticleBody(props: ArticleBodyProps) {
                     />
                   );
                 })()}
-                <Show
-                  when={
-                    article.actor.isViewer === true &&
-                    article.publishedYear != null &&
-                    article.slug != null
-                  }
-                >
-                  <A
-                    href={`/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(
-                      article.slug!,
-                    )}/translations`}
-                    class="mt-2 inline-block text-sm text-muted-foreground hover:text-foreground hover:underline"
-                  >
-                    {t`Manage translations`}
-                  </A>
-                </Show>
                 <ArticleReplies $article={article} $viewer={props.$viewer} />
               </article>
 
@@ -809,6 +801,7 @@ interface ArticleLanguageSwitcherProps {
   currentLanguage?: string;
   currentOriginalLanguage?: string | null;
   viewerLocales?: readonly string[] | null;
+  manageTranslationsHref?: string | null;
 }
 
 function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
@@ -985,6 +978,16 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                     )}
                   </For>
                 </nav>
+                <Show when={props.manageTranslationsHref != null}>
+                  <p class="mt-3">
+                    <A
+                      href={props.manageTranslationsHref!}
+                      class="text-sm text-stone-900 underline dark:text-stone-100"
+                    >
+                      {t`Manage translations`}
+                    </A>
+                  </p>
+                </Show>
               </div>
             </aside>
           </Show>

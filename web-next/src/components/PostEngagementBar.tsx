@@ -59,6 +59,8 @@ export interface PostEngagementBarProps {
   engagementBase?: string | null;
   /** Private analytics page for a source-backed local article. */
   analyticsHref?: string | null;
+  /** Translation management page for a source-backed local article. */
+  manageTranslationsHref?: string | null;
   connections?: string[];
   pinConnections?: string[];
   bookmarkListConnections?: string[];
@@ -563,6 +565,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             repliesHref={props.repliesHref ?? null}
             engagementBase={props.engagementBase ?? null}
             analyticsHref={props.analyticsHref ?? null}
+            manageTranslationsHref={props.manageTranslationsHref ?? null}
             onDeleted={props.onDeleted}
             onEdit={props.onEdit}
           />

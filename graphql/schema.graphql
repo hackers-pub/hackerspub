@@ -1263,6 +1263,11 @@ type Article implements Node & Post & Reactable {
   uuid: UUID!
 
   """
+  Whether the authenticated viewer may manage this local article's translations (the `translationDrafts` field and the translation mutations). This is `true` for the personal author and accepted members of the organization author; moderators, unauthenticated viewers, and remote articles receive `false`.
+  """
+  viewerCanManageTranslations: Boolean!
+
+  """
   Whether the selected viewer account is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
   viewerCanQuote(

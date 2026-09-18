@@ -151,6 +151,22 @@ export const Article = builder.drizzleNode("postTable", {
       },
       resolve: (post) => post.id,
     }),
+    viewerCanManageTranslations: t.boolean({
+      description:
+        "Whether the authenticated viewer may manage this local article's " +
+        "translations (the `translationDrafts` field and the translation " +
+        "mutations). This is `true` for the personal author and accepted " +
+        "members of the organization author; moderators, unauthenticated " +
+        "viewers, and remote articles receive `false`.",
+      select: {
+        with: { articleSource: { columns: { accountId: true } } },
+      },
+      async resolve(post, _, ctx) {
+        const accountId = post.articleSource?.accountId;
+        if (ctx.account == null || accountId == null) return false;
+        return await canAccountActAs(ctx.db, ctx.account, accountId);
+      },
+    }),
     publishedYear: t.int({
       nullable: true,
       description:
