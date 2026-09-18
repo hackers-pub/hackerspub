@@ -358,6 +358,12 @@ export function ArticleTranslationManager(
             disabled={newLanguage() == null || busy()}
             onClick={() => {
               setSelectedUuid(undefined);
+              // Clear synchronously: the createEffect that reloads the editor
+              // from `selected()` runs after this handler, so handleSave would
+              // otherwise create the new language with the previous
+              // translation's title and body.
+              setTitle("");
+              setContent("");
               handleSave();
             }}
           >
