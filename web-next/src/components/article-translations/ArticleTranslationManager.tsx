@@ -110,7 +110,7 @@ export interface ArticleTranslationManagerProps {
 export function ArticleTranslationManager(
   props: ArticleTranslationManagerProps,
 ) {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
   const [saveMutation, saving] =
     createMutation<ArticleTranslationManagerSaveMutation>(SaveMutation);
   const [deleteMutation, deleting] =
@@ -139,6 +139,22 @@ export function ArticleTranslationManager(
       codes.add(new Intl.Locale(translation.language).baseName);
     }
     return [...codes].map((code) => new Intl.Locale(code));
+  };
+
+  const displayNames = new Intl.DisplayNames(i18n.locale, { type: "language" });
+  const localeLanguage = new Intl.Locale(i18n.locale).language;
+  // The language name in the current UI locale, with the native name in
+  // parentheses unless the language is the UI locale's own language.
+  const languageLabel = (code: string) => {
+    const locale = new Intl.Locale(code);
+    const name = displayNames.of(code) ?? code;
+    const nativeName =
+      new Intl.DisplayNames(code, { type: "language" }).of(code) ?? code;
+    return {
+      name,
+      nativeName,
+      showNative: locale.language !== localeLanguage && name !== nativeName,
+    };
   };
 
   const selected = () =>
@@ -310,7 +326,14 @@ export function ArticleTranslationManager(
                   }}
                   onClick={() => setSelectedUuid(translation.uuid)}
                 >
-                  <span class="font-medium">{translation.language}</span>
+                  <span class="font-medium">
+                    {languageLabel(translation.language).name}
+                    <Show when={languageLabel(translation.language).showNative}>
+                      <span class="ml-1 text-xs text-muted-foreground">
+                        ({languageLabel(translation.language).nativeName})
+                      </span>
+                    </Show>
+                  </span>
                   <span class="text-xs text-muted-foreground">
                     <Show
                       when={translation.translatorUsername}
@@ -374,16 +397,13 @@ export function ArticleTranslationManager(
             </p>
           }
         >
-          <div class="mb-2 flex items-center justify-between gap-2">
-            <h2 class="text-lg font-semibold">
-              {selected()?.language ?? newLanguageCode()}
-            </h2>
-            <Show when={selected()?.sourceChanged}>
+          <Show when={selected()?.sourceChanged}>
+            <div class="mb-2 flex items-center justify-end gap-2">
               <span class="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                 {t`The original changed; this translation may be out of date.`}
               </span>
-            </Show>
-          </div>
+            </div>
+          </Show>
 
           <input
             class="mb-3 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
