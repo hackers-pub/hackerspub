@@ -469,6 +469,12 @@ function ArticleBody(props: ArticleBodyProps) {
             ? null
             : `${base}/translations`;
         });
+        // Freeze the first-read value through hydration so a fragment
+        // republish cannot toggle the manage-translations link in the language
+        // box and mismatch the server HTML.
+        const stableManageTranslationsHref = createHydrationStableMemo(
+          manageTranslationsHref,
+        );
 
         return (
           <>
@@ -497,7 +503,7 @@ function ArticleBody(props: ArticleBodyProps) {
                   currentLanguage={content()?.language ?? undefined}
                   currentOriginalLanguage={content()?.originalLanguage}
                   viewerLocales={props.viewerLocales}
-                  manageTranslationsHref={manageTranslationsHref()}
+                  manageTranslationsHref={stableManageTranslationsHref()}
                 />
 
                 <Show when={content()?.beingTranslated}>
@@ -534,7 +540,7 @@ function ArticleBody(props: ArticleBodyProps) {
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
                       analyticsHref={analyticsHref()}
-                      manageTranslationsHref={manageTranslationsHref()}
+                      manageTranslationsHref={stableManageTranslationsHref()}
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&

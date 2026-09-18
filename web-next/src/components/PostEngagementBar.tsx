@@ -189,7 +189,16 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   } | null>((previous) => {
     const value = liveNote();
     const key = value?.id ?? value?.__id ?? fragmentKey();
-    if (value != null && key != null) return { key, value };
+    if (value != null && key != null) {
+      // Keep the same wrapper (and therefore the same `Show keyed` value) when
+      // the fragment republishes for the same record.  A new wrapper on every
+      // republish remounts the subtree; if that happens while hydrating, the
+      // client-only Kobalte popovers mount before hydration finishes and crash
+      // with a hydration mismatch.  The Relay store proxy stays live, so
+      // reusing the previous value does not stale the data.
+      if (previous?.key === key) return previous;
+      return { key, value };
+    }
     return previous?.key === key ? previous : null;
   });
   const note = () => stableNote()?.value ?? null;
