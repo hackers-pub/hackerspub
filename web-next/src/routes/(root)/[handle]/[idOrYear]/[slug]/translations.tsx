@@ -33,9 +33,7 @@ const translationsArticleQueryNode = graphql`
       name
       publishedYear
       slug
-      actor {
-        isViewer
-      }
+      viewerCanManageTranslations
       contents {
         language
         originalLanguage
@@ -91,7 +89,7 @@ export default function ArticleTranslationsPage() {
     if (
       sourceId == null ||
       article?.translationDrafts == null ||
-      article.actor.isViewer !== true
+      article.viewerCanManageTranslations !== true
     ) {
       setData(null);
       return;
