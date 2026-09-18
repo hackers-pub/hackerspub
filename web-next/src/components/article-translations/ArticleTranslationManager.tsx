@@ -121,14 +121,16 @@ export function ArticleTranslationManager(
   const [selectedUuid, setSelectedUuid] = createSignal<
     TranslationUuid | undefined
   >();
-  const [newLanguage, setNewLanguage] = createSignal<Intl.Locale | undefined>();
+  const [newLanguage, setNewLanguage] = createSignal<
+    { locale: Intl.Locale; code: string } | undefined
+  >();
   const [title, setTitle] = createSignal("");
   const [content, setContent] = createSignal("");
   const [error, setError] = createSignal<string | undefined>();
   // True while a mutation's follow-up reload is in flight, so the editor is
   // not reset under the user's fingers between the save echo and the refetch.
   const [reloading, setReloading] = createSignal(false);
-  const newLanguageCode = () => newLanguage()?.baseName;
+  const newLanguageCode = () => newLanguage()?.code;
   // The original language and every language that already has a draft cannot
   // be added again: existing drafts are opened from the list instead.
   const unavailableLanguages = () => {
@@ -345,8 +347,12 @@ export function ArticleTranslationManager(
         <div class="flex flex-col gap-2">
           <LanguageSelect
             class="w-full"
-            value={newLanguage()}
-            onChange={setNewLanguage}
+            value={newLanguage()?.locale ?? null}
+            onChange={(locale, code) =>
+              setNewLanguage(
+                locale == null || code == null ? undefined : { locale, code },
+              )
+            }
             exclude={unavailableLanguages()}
           />
           <Button

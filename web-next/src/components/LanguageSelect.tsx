@@ -17,7 +17,13 @@ export interface LanguageSelectProps {
   readonly classList?: { [k: string]: boolean | undefined };
   readonly exclude?: readonly Intl.Locale[];
   readonly value?: Intl.Locale | null;
-  onChange?(value?: Intl.Locale): void;
+  /**
+   * Called with the selected locale. The second argument is the raw supported
+   * locale code, which can differ from `locale.baseName` because `Intl.Locale`
+   * canonicalizes some deprecated subtags (`tl` -> `fil`, `bh` -> `bho`); use
+   * the code when the exact supported key matters.
+   */
+  onChange?(value?: Intl.Locale, code?: string): void;
 }
 
 interface LocaleInfo {
@@ -89,6 +95,7 @@ export function LanguageSelect(props: LanguageSelectProps) {
       onChange={(value) =>
         props.onChange?.(
           value == null ? undefined : new Intl.Locale(value?.code),
+          value?.code,
         )
       }
     >
