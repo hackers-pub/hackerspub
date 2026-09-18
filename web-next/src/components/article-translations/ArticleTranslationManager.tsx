@@ -257,6 +257,10 @@ export function ArticleTranslationManager(
       variables: { input: { id, revision } },
       onCompleted(response) {
         const payload = response.publishArticleTranslation;
+        if (payload.__typename === "PublishArticleTranslationPayload") {
+          void refresh();
+          return;
+        }
         if (payload.__typename === "ArticleDraftConflictError") {
           setError(
             t`Someone else saved this translation. Reload and try again.`,
