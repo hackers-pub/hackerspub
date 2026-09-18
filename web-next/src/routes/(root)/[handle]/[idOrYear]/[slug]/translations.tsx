@@ -125,7 +125,7 @@ export default function ArticleTranslationsPage() {
     `/@${decodeRouteParam(params.handle!).substring(1)}/${params.idOrYear}/${encodeURIComponent(params.slug!)}`;
 
   return (
-    <WideContainer class="py-6">
+    <WideContainer class="px-4 py-6 sm:py-8">
       <Title>{t`Manage translations`}</Title>
       <Show
         when={data() !== undefined}
@@ -146,12 +146,18 @@ export default function ArticleTranslationsPage() {
             </>
           }
         >
-          <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-2xl font-bold">{t`Manage translations`}</h1>
-            <A href={articleBase()}>
-              <Button variant="outline">{t`Back to article`}</Button>
+          <header class="mb-6 space-y-2">
+            <A
+              href={articleBase()}
+              class="text-sm text-muted-foreground hover:text-foreground hover:underline"
+            >
+              {t`Back to article`}
             </A>
-          </div>
+            <h1 class="text-3xl font-bold tracking-tight">
+              {t`Manage translations`}
+            </h1>
+            <p class="text-muted-foreground">{data()!.originalTitle}</p>
+          </header>
           <ArticleTranslationManager
             scope={{ sourceId: data()!.sourceId }}
             originalTitle={data()!.originalTitle}

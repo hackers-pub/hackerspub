@@ -294,9 +294,6 @@ export function ArticleTranslationManager(
     <div class="flex flex-col gap-6 lg:flex-row">
       <aside class="lg:w-80 shrink-0">
         <h2 class="mb-2 text-lg font-semibold">{t`Languages`}</h2>
-        <p class="mb-3 text-sm text-muted-foreground">
-          {t`Original:`} {props.originalTitle}
-        </p>
         <ul class="flex flex-col gap-1">
           <For each={props.translations}>
             {(translation) => (

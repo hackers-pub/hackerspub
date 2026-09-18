@@ -101,7 +101,7 @@ export default function ArticleDraftTranslationsPage() {
   });
 
   return (
-    <WideContainer class="py-6">
+    <WideContainer class="px-4 py-6 sm:py-8">
       <Title>{t`Manage translations`}</Title>
       <Show
         when={data() !== undefined}
@@ -122,14 +122,18 @@ export default function ArticleDraftTranslationsPage() {
             </>
           }
         >
-          <div class="mb-6 flex items-center justify-between">
-            <h1 class="text-2xl font-bold">{t`Manage translations`}</h1>
+          <header class="mb-6 space-y-2">
             <A
               href={`/@${decodeRouteParam(params.handle!).substring(1)}/drafts/${params.id}`}
+              class="text-sm text-muted-foreground hover:text-foreground hover:underline"
             >
-              <Button variant="outline">{t`Back to editor`}</Button>
+              {t`Back to editor`}
             </A>
-          </div>
+            <h1 class="text-3xl font-bold tracking-tight">
+              {t`Manage translations`}
+            </h1>
+            <p class="text-muted-foreground">{data()!.originalTitle}</p>
+          </header>
           <ArticleTranslationManager
             scope={{ articleDraftId: params.id as TranslationUuid }}
             originalTitle={data()!.originalTitle}
