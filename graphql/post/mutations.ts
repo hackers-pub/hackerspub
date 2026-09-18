@@ -1,15 +1,17 @@
 // Mutation and query registration for posts.
 import { assertNever } from "@std/assert/unstable-never";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import {
   createArticle,
   deleteArticleDraft,
+  getAccessibleArticleDraft,
   getOriginalArticleContent,
   LanguageChangeWithTranslationsError,
+  moveArticleDraftToOrganization,
+  saveArticleDraft,
   startArticleContentTranslation,
   updateArticle,
-  updateArticleDraft,
 } from "@hackerspub/models/article";
 import {
   arePostsBookmarkedBy,
@@ -30,7 +32,10 @@ import {
   QuotePolicyDeniedError,
   updateNote,
 } from "@hackerspub/models/note";
-import { OrganizationPermissionError } from "@hackerspub/models/organization";
+import {
+  canAccountActAs,
+  OrganizationPermissionError,
+} from "@hackerspub/models/organization";
 import {
   pinPost as pinPostModel,
   unpinPost as unpinPostModel,
@@ -54,11 +59,7 @@ import {
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
-import {
-  generateUuidV7,
-  type Uuid,
-  validateUuid,
-} from "@hackerspub/models/uuid";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Account } from "../account.ts";
 import {
   resolveActingAccountForGlobalIdArg,
@@ -101,10 +102,11 @@ import {
   recordPostActingAccount,
   resolvePostActingAccount,
   resolvePostManagementActingAccount,
+  type ResolvedPostActingAccount,
   SharedPostDeletionNotAllowedError,
 } from "./core.ts";
 import { Note, Question } from "./note.ts";
-import { Article, ArticleDraft } from "./article.ts";
+import { Article, ArticleDraft, ArticleDraftConflictError } from "./article.ts";
 
 export {
   hidePostRelationWithoutActor,
@@ -873,8 +875,15 @@ builder.relayMutationField(
   "saveArticleDraft",
   {
     description:
-      "Create or update an article draft. Omit `id` to create a new draft. " +
-      "Requires authentication.",
+      "Create or update an article draft. Omit `id` and `uuid` to create a " +
+      "new draft (a UUID is generated). Pass `actingAccountId` to create it " +
+      "in an organization workspace you can post for; it defaults to your " +
+      "personal account, and once created the owning workspace can only be " +
+      "changed with `moveArticleDraftToOrganization`. Pass the draft's " +
+      "`revision` on an update so a concurrent edit returns " +
+      "`ArticleDraftConflictError` instead of being overwritten; omitting it " +
+      "writes unconditionally, a transition escape hatch for clients built " +
+      "before revision-based checks. Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: false }),
       uuid: t.field({
@@ -882,37 +891,79 @@ builder.relayMutationField(
         required: false,
         description: "Draft UUID to use when creating a new draft.",
       }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description:
+          "Workspace `Account` to create the draft in: your personal " +
+          "account or an organization you can post for. Only used when " +
+          "creating; when updating it must match the stored owner.",
+      }),
       title: t.string({ required: true }),
       content: t.field({ type: "Markdown", required: true }),
       tags: t.stringList({ required: true }),
+      revision: t.int({
+        required: false,
+        description:
+          "The `ArticleDraft.revision` the client is editing from. With `id`, " +
+          "a matching revision updates the draft and a stale one returns " +
+          "`ArticleDraftConflictError`; omitting it writes unconditionally. " +
+          "With `uuid` and a revision the call updates an existing draft and " +
+          "fails if it is missing. With `uuid` and no revision the call " +
+          "creates the draft or updates it if it already exists (the " +
+          "pre-upgrade composer's path). Supplying `revision` without an " +
+          "identifier is invalid.",
+      }),
     }),
   },
   {
+    description:
+      "Create or update an article draft. Omit `id` and `uuid` to create a " +
+      "new draft. Pass `actingAccountId` to create it in an organization " +
+      "workspace you can post for, and `revision` to reject a concurrent " +
+      "edit with `ArticleDraftConflictError`. Requires authentication.",
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
-        throw new NotAuthenticatedError();
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const { id, uuid, actingAccountId, title, content, tags, revision } =
+        args.input;
+      if (actingAccountId != null) {
+        if (
+          actingAccountId.typename != null &&
+          actingAccountId.typename !== "Account"
+        ) {
+          throw new InvalidInputError("actingAccountId");
+        }
+        if (!validateUuid(actingAccountId.id)) {
+          throw new InvalidInputError("actingAccountId");
+        }
       }
-      const { id, title, content, tags } = args.input;
-      if (id != null && args.input.uuid != null) {
-        throw new InvalidInputError("uuid");
-      }
-
-      const draft = await updateArticleDraft(ctx.db, {
-        id: id?.id ?? args.input.uuid ?? generateUuidV7(),
-        accountId: session.accountId,
+      const result = await saveArticleDraft(ctx.db, ctx.account, {
+        id: id?.id,
+        uuid,
+        actingAccountId: actingAccountId?.id,
         title,
         content,
         tags,
+        revision,
       });
-      if (draft == null) {
-        throw new InvalidInputError(args.input.uuid == null ? "id" : "uuid");
+      switch (result.status) {
+        case "ok":
+          return result.draft;
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
       }
-
-      return draft;
     },
   },
   {
@@ -931,33 +982,47 @@ builder.relayMutationField(
   "deleteArticleDraft",
   {
     description:
-      "Permanently delete an article draft. Only the draft's owner may " +
-      "delete it. Requires authentication.",
+      "Permanently delete an article draft. The draft's owner (or an " +
+      "accepted member of its owning organization) may delete it. Pass " +
+      "`revision` to delete only the exact version the client saw. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: true }),
+      revision: t.int({
+        required: false,
+        description:
+          "Optional `ArticleDraft.revision`. When given, the delete is " +
+          "rejected with `ArticleDraftConflictError` if the draft changed.",
+      }),
     }),
   },
   {
+    description:
+      "Permanently delete an article draft. The draft's owner or an accepted " +
+      "member of its owning organization may delete it, and an optional " +
+      "`revision` guards against deleting a newer version. Requires " +
+      "authentication.",
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        ArticleDraftConflictError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
-        throw new NotAuthenticatedError();
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const result = await deleteArticleDraft(ctx.db, ctx.account, {
+        id: args.input.id.id,
+        revision: args.input.revision,
+      });
+      switch (result.status) {
+        case "ok":
+          return { deletedDraftId: result.draftId };
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "invalid":
+          throw new InvalidInputError("id");
       }
-
-      const deleted = await deleteArticleDraft(
-        ctx.db,
-        session.accountId,
-        args.input.id.id,
-      );
-
-      if (!deleted) {
-        throw new InvalidInputError("id");
-      }
-
-      return { deletedDraftId: args.input.id.id };
     },
   },
   {
@@ -965,6 +1030,87 @@ builder.relayMutationField(
       deletedDraftId: t.globalID({
         resolve(result) {
           return { type: "ArticleDraft", id: result.deletedDraftId };
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "moveArticleDraftToOrganization",
+  {
+    description:
+      "Move a personally owned article draft to an organization you can post " +
+      "for, so its accepted members gain access and it publishes as the " +
+      "organization. The draft's creator record and attached media are " +
+      "preserved. Organization-to-personal and organization-to-organization " +
+      "moves are not supported. Requires authentication.",
+    inputFields: (t) => ({
+      id: t.globalID({
+        for: [ArticleDraft],
+        required: true,
+        description: "Global ID of the personally owned draft to move.",
+      }),
+      organizationAccountId: t.globalID({
+        for: [Account],
+        required: true,
+        description: "Organization `Account` to move the draft to.",
+      }),
+      revision: t.int({
+        required: true,
+        description: "The `ArticleDraft.revision` the client is editing from.",
+      }),
+    }),
+  },
+  {
+    description:
+      "Move a personally owned article draft to an organization you can post " +
+      "for, so its accepted members gain access and it publishes as the " +
+      "organization. The draft's creator record and attached media are " +
+      "preserved. Requires authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const destination = args.input.organizationAccountId;
+      if (destination.typename != null && destination.typename !== "Account") {
+        throw new InvalidInputError("organizationAccountId");
+      }
+      if (!validateUuid(destination.id)) {
+        throw new InvalidInputError("organizationAccountId");
+      }
+      const result = await moveArticleDraftToOrganization(ctx.db, ctx.account, {
+        id: args.input.id.id,
+        organizationAccountId: destination.id,
+        revision: args.input.revision,
+      });
+      switch (result.status) {
+        case "ok":
+          return result.draft;
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      draft: t.field({
+        type: ArticleDraft,
+        description:
+          "The moved draft, now owned by the destination organization with " +
+          "its `revision` incremented and `creator` unchanged.",
+        resolve(result) {
+          return result;
         },
       }),
     }),
@@ -1141,113 +1287,286 @@ builder.relayMutationField(
   "publishArticleDraft",
   {
     description:
-      "Publish an article draft, converting it to a live `Article` post " +
-      "and deleting the draft. Sends an ActivityPub `Create` activity. " +
-      "Requires authentication.",
+      "Publish an article draft, converting it to a live `Article` post and " +
+      "deleting the draft. The article is published as the draft's owning " +
+      "workspace account (personal or organization), which therefore must be " +
+      "an account the viewer can post for. For an organization draft, " +
+      "`attributionMode` and `attributionAccountId` choose which personal " +
+      "member is credited as co-author (defaulting to the draft's creator). " +
+      "Pass the draft's current `revision` to reject a concurrent edit with " +
+      "`ArticleDraftConflictError`; omitting it publishes the current content. " +
+      "Sends an ActivityPub `Create` activity. Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: true }),
       slug: t.string({ required: true }),
       language: t.field({ type: "Locale", required: true }),
       allowLlmTranslation: t.boolean({ required: false }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
-      actingAccountId: t.globalID({
-        for: Account,
+      revision: t.int({
         required: false,
         description:
-          "Optional `Account` id to publish as. The draft must still be " +
-          "owned by the authenticated personal account; this only changes " +
-          "the published article's author.",
+          "The `ArticleDraft.revision` being published. When provided, a " +
+          "stale value returns `ArticleDraftConflictError` so a concurrent " +
+          "edit is not lost. Omit it to publish whatever is currently " +
+          "stored; this is a transition escape hatch for clients built " +
+          "before revision-based conflict checks and will be required in a " +
+          "later release.",
       }),
       attributionMode: t.field({
         type: PostAttributionMode,
         required: false,
         description:
-          "How to display the personal member when `actingAccountId` is " +
-          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
-          "when publishing as a personal account.",
+          "How to display the credited personal member when the draft is " +
+          "owned by an organization. Defaults to `ACTING_ACCOUNT_ONLY`; " +
+          "invalid when the draft is personally owned.",
+      }),
+      attributionAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description:
+          "Personal member `Account` to credit as co-author of an " +
+          "organization draft. Defaults to the draft's creator when the " +
+          "creator is still an accepted member, otherwise the publisher. " +
+          "Must be an accepted member of the owning organization, and is " +
+          "invalid together with `ACTING_ACCOUNT_ONLY` or a personal draft.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        deprecationReason:
+          "Use `moveArticleDraftToOrganization` to publish a draft as an " +
+          "organization. This argument only keeps pre-upgrade clients " +
+          "working during the rollout.",
+        description:
+          "Deprecated organization-publishing argument, kept for " +
+          "compatibility during the rollout. For a personally owned draft it " +
+          "behaves as before and publishes the article as that organization, " +
+          "which the viewer must be able to post for; new clients should " +
+          "move the draft with `moveArticleDraftToOrganization` instead. For " +
+          "an organization draft it must equal the draft's owning account.",
       }),
     }),
   },
   {
+    description:
+      "Publish an article draft as its owning workspace account, deleting the " +
+      "draft and sending an ActivityPub `Create` activity. An optional " +
+      "`revision` rejects a concurrent edit, and `attributionMode` with " +
+      "`attributionAccountId` choose the credited co-author for an " +
+      "organization draft. Requires authentication.",
     errors: {
       types: [
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
         OrganizationPermissionError,
+        ArticleDraftConflictError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const publisher = ctx.account;
+      const { slug, language, allowLlmTranslation, quotePolicy, revision } =
+        args.input;
+      for (const arg of [
+        args.input.actingAccountId,
+        args.input.attributionAccountId,
+      ]) {
+        if (arg == null) continue;
+        if (arg.typename != null && arg.typename !== "Account") {
+          throw new InvalidInputError(
+            arg === args.input.actingAccountId
+              ? "actingAccountId"
+              : "attributionAccountId",
+          );
+        }
+        if (!validateUuid(arg.id)) {
+          throw new InvalidInputError(
+            arg === args.input.actingAccountId
+              ? "actingAccountId"
+              : "attributionAccountId",
+          );
+        }
       }
-      const authenticatedAccountId = ctx.account.id;
-      const actingAccount = await resolvePostActingAccount(ctx, args.input);
+      const attributionAccountId = args.input.attributionAccountId?.id ?? null;
 
-      // Get draft
-      const drafts = await ctx.db
-        .select()
-        .from(articleDraftTable)
-        .where(
-          and(
-            eq(articleDraftTable.id, args.input.id.id),
-            eq(articleDraftTable.accountId, session.accountId),
-          ),
-        )
-        .limit(1);
-      const draft = drafts[0];
+      type PublishOutcome =
+        | { kind: "error"; inputPath: string }
+        | { kind: "conflict"; currentRevision: number }
+        | { kind: "failed" }
+        | {
+            kind: "ok";
+            article: NonNullable<Awaited<ReturnType<typeof createArticle>>>;
+            deletedDraftId: Uuid;
+          };
 
-      if (!draft) {
-        throw new InvalidInputError("id");
-      }
-
-      const { slug, language, allowLlmTranslation, quotePolicy } = args.input;
-
-      await assertActingAccountNotSuspended(
-        ctx.db,
-        authenticatedAccountId,
-        actingAccount.account.id,
+      const outcome = await withTransaction<PublishOutcome>(
+        ctx.fedCtx,
+        async (context): Promise<PublishOutcome> => {
+          const draftRows = await context.db
+            .select()
+            .from(articleDraftTable)
+            .where(eq(articleDraftTable.id, args.input.id.id))
+            .for("update");
+          const draft = draftRows[0];
+          if (draft == null) return { kind: "error", inputPath: "id" };
+          if (
+            !(await canAccountActAs(context.db, publisher, draft.accountId))
+          ) {
+            return { kind: "error", inputPath: "id" };
+          }
+          if (draft.articleSourceId != null) {
+            return { kind: "error", inputPath: "id" };
+          }
+          if (revision != null && revision !== draft.revision) {
+            return { kind: "conflict", currentRevision: draft.revision };
+          }
+          // The draft's owner is the publishing account by default. The
+          // deprecated `actingAccountId` keeps the pre-revision flow: a
+          // personally owned draft may still be published as an organization
+          // the viewer can post for, without moving the draft first.
+          let workspaceId = draft.accountId;
+          const requestedActingAccountId =
+            args.input.actingAccountId?.id ?? null;
+          if (
+            requestedActingAccountId != null &&
+            requestedActingAccountId !== draft.accountId
+          ) {
+            if (draft.accountId !== publisher.id) {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            const requested = await context.db.query.accountTable.findFirst({
+              where: { id: requestedActingAccountId },
+              columns: { kind: true },
+            });
+            if (requested?.kind !== "organization") {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            if (
+              !(await canAccountActAs(
+                context.db,
+                publisher,
+                requestedActingAccountId,
+              ))
+            ) {
+              return { kind: "error", inputPath: "actingAccountId" };
+            }
+            workspaceId = requestedActingAccountId;
+          }
+          const workspace = await context.db.query.accountTable.findFirst({
+            where: { id: workspaceId },
+            with: { actor: true },
+          });
+          if (workspace == null || workspace.actor == null) {
+            return { kind: "error", inputPath: "id" };
+          }
+          let attributionMode:
+            | "acting_account_only"
+            | "acting_account_with_viewer"
+            | null = null;
+          let memberAccountId = publisher.id;
+          if (workspace.kind === "personal") {
+            if (
+              args.input.attributionMode != null ||
+              attributionAccountId != null
+            ) {
+              return { kind: "error", inputPath: "attributionMode" };
+            }
+          } else {
+            attributionMode =
+              args.input.attributionMode ?? "acting_account_only";
+            if (
+              attributionMode === "acting_account_only" &&
+              attributionAccountId != null
+            ) {
+              return { kind: "error", inputPath: "attributionAccountId" };
+            }
+            // Record the credited member independently of whether it is
+            // displayed: the `member` resolver hides it for
+            // `ACTING_ACCOUNT_ONLY`, but the draft creator should not be
+            // forgotten once the draft is deleted.
+            const candidate =
+              attributionAccountId ?? draft.creatorId ?? publisher.id;
+            if (candidate === workspace.id) {
+              // The publishing organization cannot be its own co-author.
+              return { kind: "error", inputPath: "attributionAccountId" };
+            }
+            const accepted = await canAccountActAs(
+              context.db,
+              { id: candidate, kind: "personal" },
+              workspace.id,
+            );
+            if (!accepted) {
+              if (attributionAccountId != null) {
+                return { kind: "error", inputPath: "attributionAccountId" };
+              }
+              memberAccountId = publisher.id;
+            } else {
+              memberAccountId = candidate;
+            }
+          }
+          await assertActingAccountNotSuspended(
+            context.db,
+            publisher.id,
+            workspace.id,
+          );
+          const media = await context.db.query.articleDraftMediumTable.findMany(
+            { where: { articleDraftId: draft.id } },
+          );
+          const resolved: ResolvedPostActingAccount = {
+            account: workspace,
+            memberAccountId,
+            publisherAccountId: publisher.id,
+            attributionMode,
+          };
+          const created = await createArticle(
+            context,
+            {
+              accountId: workspace.id,
+              publishedYear: new Date().getFullYear(),
+              slug,
+              tags: draft.tags,
+              allowLlmTranslation: allowLlmTranslation ?? true,
+              quotePolicy:
+                quotePolicy == null ? "everyone" : fromQuotePolicy(quotePolicy),
+              title: draft.title,
+              content: draft.content,
+              language: language.baseName,
+              media,
+            },
+            {
+              afterPostCreated: (post, db) =>
+                recordPostActingAccount(db, post.id, resolved),
+            },
+          );
+          if (created == null) return { kind: "failed" };
+          await context.db
+            .delete(articleDraftTable)
+            .where(eq(articleDraftTable.id, draft.id));
+          return {
+            kind: "ok",
+            article: created,
+            deletedDraftId: draft.id,
+          };
+        },
       );
 
-      // Create article from draft
-      const article = await withTransaction(ctx.fedCtx, async (context) => {
-        const media = await context.db.query.articleDraftMediumTable.findMany({
-          where: { articleDraftId: draft.id },
-        });
-        const created = await createArticle(
-          context,
-          {
-            accountId: actingAccount.account.id,
-            publishedYear: new Date().getFullYear(),
-            slug,
-            tags: draft.tags,
-            allowLlmTranslation: allowLlmTranslation ?? true,
-            quotePolicy:
-              quotePolicy == null ? "everyone" : fromQuotePolicy(quotePolicy),
-            title: draft.title,
-            content: draft.content,
-            language: language.baseName,
-            media,
-          },
-          {
-            afterPostCreated: (post, db) =>
-              recordPostActingAccount(db, post.id, actingAccount),
-          },
-        );
-        return created;
-      });
-
-      if (!article) {
-        throw createGraphQLError("Failed to publish article.", {
-          originalError: new Error("Failed to publish article."),
-          extensions: { code: "INTERNAL_SERVER_ERROR" },
-        });
+      switch (outcome.kind) {
+        case "error":
+          throw new InvalidInputError(outcome.inputPath);
+        case "conflict":
+          throw new ArticleDraftConflictError(outcome.currentRevision);
+        case "failed":
+          throw createGraphQLError("Failed to publish article.", {
+            originalError: new Error("Failed to publish article."),
+            extensions: { code: "INTERNAL_SERVER_ERROR" },
+          });
+        case "ok":
+          return {
+            article: outcome.article,
+            deletedDraftId: outcome.deletedDraftId,
+          };
       }
-      // Delete draft after successful publish
-      await deleteArticleDraft(ctx.db, session.accountId, draft.id);
-
-      return { article, deletedDraftId: draft.id };
     },
   },
   {
@@ -2064,9 +2383,11 @@ builder.queryField("articleDraft", (t) =>
     type: ArticleDraft,
     nullable: true,
     description:
-      "Look up an article draft by its global `id` or its `uuid`. " +
-      "Requires authentication; only returns drafts owned by the " +
-      "authenticated viewer.",
+      "Look up an article draft by its global `id` or its `uuid`. Requires " +
+      "authentication; returns the draft only when the viewer owns it or is " +
+      "an accepted member of its owning organization. Returns `null` for " +
+      "missing and inaccessible drafts alike, so it never leaks the " +
+      "existence of another workspace's draft.",
     args: {
       id: t.arg.globalID({ for: [ArticleDraft], required: false }),
       uuid: t.arg({ type: "UUID", required: false }),
@@ -2084,18 +2405,9 @@ builder.queryField("articleDraft", (t) =>
       // Use uuid if provided, otherwise use id
       const draftId = args.uuid ?? args.id!.id;
 
-      const drafts = await ctx.db
-        .select()
-        .from(articleDraftTable)
-        .where(
-          and(
-            eq(articleDraftTable.id, draftId),
-            eq(articleDraftTable.accountId, ctx.account.id),
-          ),
-        )
-        .limit(1);
-
-      return drafts[0] ?? null;
+      return (
+        (await getAccessibleArticleDraft(ctx.db, ctx.account, draftId)) ?? null
+      );
     },
   }),
 );
@@ -2747,9 +3059,13 @@ builder.relayMutationField(
   {
     description:
       "Associate an uploaded `Medium` with an article draft so it can be " +
-      "referenced in the draft's Markdown as `hp-medium:{key}`. Must be " +
-      "called before publishing if the draft's content uses `hp-medium:` " +
-      "references. Requires authentication.",
+      "referenced in the draft's Markdown as `hp-medium:{key}`. A missing " +
+      "draft is created unless `createIfMissing` is `false`, which keeps " +
+      "pre-upgrade composers working while the current composer requires the " +
+      "draft it already created. The viewer must own the draft or be an " +
+      "accepted member of its owning organization. Re-attaching the same key " +
+      "to the same medium is idempotent; pointing an existing key at a " +
+      "different medium is rejected. Requires authentication.",
     inputFields: (t) => ({
       draftId: t.field({ type: "UUID", required: true }),
       mediumId: t.field({ type: "UUID", required: true }),
@@ -2758,57 +3074,80 @@ builder.relayMutationField(
         description:
           "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
       }),
+      createIfMissing: t.boolean({
+        required: false,
+        description:
+          "When `true` (the default), a missing draft is created, which keeps " +
+          "pre-upgrade composers working during the rollout. Set `false` to " +
+          "require the draft to already exist, so a publish or delete racing " +
+          "an attachment cannot recreate it.",
+      }),
     }),
   },
   {
     errors: { types: [NotAuthenticatedError, InvalidInputError] },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) throw new NotAuthenticatedError();
-      let draft = await ctx.db.query.articleDraftTable.findFirst({
-        where: {
-          id: args.input.draftId,
-          accountId: session.accountId,
-        },
-      });
-      if (draft == null) {
-        const inserted = await ctx.db
-          .insert(articleDraftTable)
-          .values({
-            id: args.input.draftId,
-            accountId: session.accountId,
-            title: "",
-            content: "",
-            tags: [],
-          })
-          .onConflictDoNothing()
-          .returning();
-        draft = inserted[0];
-      }
-      if (draft == null) throw new InvalidInputError("draftId");
-      const medium = await ctx.db.query.mediumTable.findFirst({
-        where: { id: args.input.mediumId },
-      });
-      if (medium == null) throw new InvalidInputError("mediumId");
-      const key = args.input.key?.trim() || medium.id;
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const viewer = ctx.account;
+      const key = args.input.key?.trim() || args.input.mediumId;
       if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
         throw new InvalidInputError("key");
       }
-      await ctx.db
-        .insert(articleDraftMediumTable)
-        .values({
-          articleDraftId: draft.id,
-          key,
-          mediumId: medium.id,
-        })
-        .onConflictDoUpdate({
-          target: [
-            articleDraftMediumTable.articleDraftId,
-            articleDraftMediumTable.key,
-          ],
-          set: { mediumId: medium.id },
+      const result = await withTransaction(ctx.fedCtx, async (tx) => {
+        // Lock the draft so a concurrent publish cannot delete it between the
+        // access check and the attachment insert.
+        const draftRows = await tx.db
+          .select()
+          .from(articleDraftTable)
+          .where(eq(articleDraftTable.id, args.input.draftId))
+          .for("update");
+        let draft = draftRows[0];
+        if (draft == null) {
+          if (args.input.createIfMissing === false) return "draft" as const;
+          // Transition path for pre-upgrade composers, which upload before the
+          // first save. New clients create the draft explicitly first and pass
+          // `createIfMissing: false`.
+          const inserted = await tx.db
+            .insert(articleDraftTable)
+            .values({
+              id: args.input.draftId,
+              accountId: viewer.id,
+              creatorId: viewer.id,
+              title: "",
+              content: "",
+              tags: [],
+              revision: 1,
+            })
+            .onConflictDoNothing()
+            .returning();
+          draft = inserted[0];
+        } else if (!(await canAccountActAs(tx.db, viewer, draft.accountId))) {
+          return "draft" as const;
+        }
+        if (draft == null) return "draft" as const;
+        const medium = await tx.db.query.mediumTable.findFirst({
+          where: { id: args.input.mediumId },
         });
-      return { key, medium } satisfies AttachedArticleDraftMedium;
+        if (medium == null) return "medium" as const;
+        const existing = await tx.db.query.articleDraftMediumTable.findFirst({
+          where: { articleDraftId: draft.id, key },
+        });
+        if (existing != null && existing.mediumId !== medium.id) {
+          return "key" as const;
+        }
+        if (existing == null) {
+          await tx.db.insert(articleDraftMediumTable).values({
+            articleDraftId: draft.id,
+            key,
+            mediumId: medium.id,
+          });
+        }
+        return { key, medium };
+      });
+      if (result === "draft") throw new InvalidInputError("draftId");
+      if (result === "medium") throw new InvalidInputError("mediumId");
+      if (result === "key") throw new InvalidInputError("key");
+      return result satisfies AttachedArticleDraftMedium;
     },
   },
   {

@@ -21,7 +21,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { AppSidebar } from "~/components/AppSidebar.tsx";
+import { ActingAccountSync, AppSidebar } from "~/components/AppSidebar.tsx";
 import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { FloatingComposeButton } from "~/components/FloatingComposeButton.tsx";
@@ -206,6 +206,7 @@ export default function RootLayout(props: RouteSectionProps) {
       preferAiSummary={() => signedAccount()?.viewer?.preferAiSummary ?? true}
     >
       <ActingAccountProvider>
+        <ActingAccountSync $signedAccount={chromeSignedAccount()} />
         <NoteComposeProvider>
           <SidebarProvider>
             <Show when={!isComposeRoute()}>

@@ -185,8 +185,11 @@ Nothing automated covers the rest, so walk through it by hand:
 Rollback
 --------
 
-Roll back by redeploying the previously recorded image tag, in the same
-worker → API → web UI order, then rerunning the post-deploy checks.
+Roll back by redeploying the previously recorded image tag, in reverse
+cutover order: **web UI → API → worker**, then rerunning the post-deploy
+checks.  The web UI goes first because the newer composer queries fields such
+as `Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
+not expose, while the older web UI keeps working against the newer API.
 
 The `idx_post_url_hash` index added for [#390] is additive and can remain in
 place during an image rollback.  If its concurrent build fails before cutover,

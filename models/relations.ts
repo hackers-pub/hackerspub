@@ -12,7 +12,8 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.actorTable.accountId,
       optional: false,
     }),
-    articleDrafts: r.many.articleDraftTable(),
+    articleDrafts: r.many.articleDraftTable({ alias: "owner" }),
+    createdArticleDrafts: r.many.articleDraftTable({ alias: "creator" }),
     articleSources: r.many.articleSourceTable(),
     inviter: r.one.accountTable({
       from: r.accountTable.inviterId,
@@ -54,6 +55,9 @@ export const relations = defineRelations(schema, (r) => ({
       }),
     authoredOrganizationPosts: r.many.organizationPostAuthorTable({
       alias: "member",
+    }),
+    publishedOrganizationPosts: r.many.organizationPostAuthorTable({
+      alias: "publisher",
     }),
     organizationPostAuthors: r.many.organizationPostAuthorTable({
       alias: "organization",
@@ -223,9 +227,16 @@ export const relations = defineRelations(schema, (r) => ({
   },
   articleDraftTable: {
     account: r.one.accountTable({
+      alias: "owner",
       from: r.articleDraftTable.accountId,
       to: r.accountTable.id,
       optional: false,
+    }),
+    creator: r.one.accountTable({
+      alias: "creator",
+      from: r.articleDraftTable.creatorId,
+      to: r.accountTable.id,
+      optional: true,
     }),
     media: r.many.articleDraftMediumTable(),
   },
@@ -418,7 +429,13 @@ export const relations = defineRelations(schema, (r) => ({
       alias: "member",
       from: r.organizationPostAuthorTable.memberAccountId,
       to: r.accountTable.id,
-      optional: false,
+      optional: true,
+    }),
+    publisher: r.one.accountTable({
+      alias: "publisher",
+      from: r.organizationPostAuthorTable.publisherId,
+      to: r.accountTable.id,
+      optional: true,
     }),
   },
   quoteAuthorizationTable: {

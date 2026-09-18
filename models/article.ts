@@ -19,8 +19,9 @@ export {
 } from "./article-source.ts";
 import { getOriginalArticleContent } from "./article-source.ts";
 import type { ApplicationContext, Models } from "./context.ts";
-import type { Database, Transaction } from "./db.ts";
+import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
+import { canAccountActAs } from "./organization.ts";
 import { recordArticlePublication } from "./article-analytics.ts";
 import { transactional, withTransaction } from "./tx.ts";
 import { syncPostFromArticleSource } from "./post/source.ts";
@@ -40,7 +41,6 @@ import {
   type Following,
   type Instance,
   type Mention,
-  type NewArticleDraft,
   type NewArticleSource,
   type Post,
   postTable,
@@ -178,51 +178,306 @@ export class LanguageChangeWithTranslationsError extends Error {
   }
 }
 
-export async function updateArticleDraft(
-  db: Database,
-  draft: NewArticleDraft,
-): Promise<ArticleDraft> {
-  if (draft.tags != null) {
-    let tags = draft.tags
-      .map((tag) => tag.trim().replace(/^#\s*/, ""))
-      .filter((tag) => tag !== "" && !tag.includes(","));
-    tags = tags.filter((tag, index) => tags.indexOf(tag) === index);
-    draft = { ...draft, tags };
-  }
-  const rows = await db
-    .insert(articleDraftTable)
-    .values(draft)
-    .onConflictDoUpdate({
-      target: [articleDraftTable.id],
-      set: {
-        ...draft,
-        updated: sql`CURRENT_TIMESTAMP`,
-        created: undefined,
-      },
-      setWhere: and(
-        eq(articleDraftTable.id, draft.id),
-        eq(articleDraftTable.accountId, draft.accountId),
-      ),
-    })
-    .returning();
-  return rows[0];
+export type ArticleDraftViewer = Pick<Account, "id" | "kind">;
+
+export interface ArticleDraftSaveInput {
+  id?: Uuid | null;
+  uuid?: Uuid | null;
+  actingAccountId?: Uuid | null;
+  title: string;
+  content: string;
+  tags: readonly string[];
+  revision?: number | null;
 }
 
-export async function deleteArticleDraft(
-  db: Database,
-  accountId: Uuid,
+export type ArticleDraftSaveResult =
+  | { status: "ok"; draft: ArticleDraft }
+  | { status: "conflict"; currentRevision: number }
+  | { status: "invalid"; inputPath: string }
+  | { status: "forbidden" };
+
+export interface ArticleDraftDeleteInput {
+  id: Uuid;
+  revision?: number | null;
+}
+
+export type ArticleDraftDeleteResult =
+  | { status: "ok"; draftId: Uuid }
+  | { status: "conflict"; currentRevision: number }
+  | { status: "invalid" };
+
+export interface MoveArticleDraftInput {
+  id: Uuid;
+  organizationAccountId: Uuid;
+  revision: number;
+}
+
+export type MoveArticleDraftResult =
+  | { status: "ok"; draft: ArticleDraft }
+  | { status: "conflict"; currentRevision: number }
+  | { status: "invalid"; inputPath: string }
+  | { status: "forbidden" };
+
+function normalizeArticleDraftTags(tags: readonly string[]): string[] {
+  let normalized = tags
+    .map((tag) => tag.trim().replace(/^#\s*/, ""))
+    .filter((tag) => tag !== "" && !tag.includes(","));
+  normalized = normalized.filter(
+    (tag, index) => normalized.indexOf(tag) === index,
+  );
+  return normalized;
+}
+
+async function lockArticleDraft(
+  db: Database | Transaction,
   draftId: Uuid,
 ): Promise<ArticleDraft | undefined> {
   const rows = await db
-    .delete(articleDraftTable)
-    .where(
-      and(
-        eq(articleDraftTable.accountId, accountId),
-        eq(articleDraftTable.id, draftId),
-      ),
-    )
-    .returning();
+    .select()
+    .from(articleDraftTable)
+    .where(eq(articleDraftTable.id, draftId))
+    .for("update");
   return rows[0];
+}
+
+/**
+ * Look up a draft the viewer may access without locking it: the owner itself
+ * (personal) or an accepted member of the owning organization. Returns
+ * `undefined` both when the draft does not exist and when it is not accessible,
+ * so callers never leak the existence of another workspace's draft.
+ */
+export async function getAccessibleArticleDraft(
+  db: Database | Transaction,
+  viewer: ArticleDraftViewer,
+  draftId: Uuid,
+): Promise<ArticleDraft | undefined> {
+  const draft = await db.query.articleDraftTable.findFirst({
+    where: { id: draftId },
+  });
+  if (draft == null) return undefined;
+  if (!(await canAccountActAs(db, viewer, draft.accountId))) return undefined;
+  return draft;
+}
+
+/**
+ * Create or update an article draft with optimistic concurrency control.
+ *
+ * A draft belongs to a workspace account (personal or organization) recorded in
+ * `accountId`; the individual who created it is stored separately in
+ * `creatorId` and never changes. Updates are conditional on the caller's
+ * `revision`: a mismatch returns `status: "conflict"` with the current
+ * revision instead of overwriting another contributor's work. A missing
+ * `revision` on an update is accepted as an unconditional write, and a
+ * revision-less save by `uuid` creates the draft or updates it if it already
+ * exists, which keeps clients built before revision-based conflict checks
+ * working during the rollout. Updates never insert, so a save racing a deletion
+ * cannot resurrect a draft, and creation `ON CONFLICT DO NOTHING` collisions
+ * are classified after an authorization check so another workspace's revision
+ * is never exposed.
+ */
+export async function saveArticleDraft(
+  db: Database | Transaction,
+  viewer: ArticleDraftViewer,
+  input: ArticleDraftSaveInput,
+): Promise<ArticleDraftSaveResult> {
+  const { id, uuid, actingAccountId, title, content, tags } = input;
+  const revision = input.revision ?? null;
+  if (id != null && uuid != null) {
+    return { status: "invalid", inputPath: "uuid" };
+  }
+  if (revision != null && (!Number.isInteger(revision) || revision < 1)) {
+    return { status: "invalid", inputPath: "revision" };
+  }
+  const updateId = id ?? (revision != null ? (uuid ?? null) : null);
+  if (id == null && uuid == null && revision != null) {
+    return { status: "invalid", inputPath: "revision" };
+  }
+  const normalizedTags = normalizeArticleDraftTags(tags);
+  return await runInTransaction(
+    db,
+    async (tx): Promise<ArticleDraftSaveResult> => {
+      if (updateId != null) {
+        const inputPath = id != null ? "id" : "uuid";
+        const existing = await lockArticleDraft(tx, updateId);
+        if (existing == null) return { status: "invalid", inputPath };
+        if (!(await canAccountActAs(tx, viewer, existing.accountId))) {
+          return { status: "invalid", inputPath };
+        }
+        if (actingAccountId != null && actingAccountId !== existing.accountId) {
+          return { status: "invalid", inputPath: "actingAccountId" };
+        }
+        if (revision != null && revision !== existing.revision) {
+          return { status: "conflict", currentRevision: existing.revision };
+        }
+        const rows = await tx
+          .update(articleDraftTable)
+          .set({
+            title,
+            content,
+            tags: normalizedTags,
+            revision: sql`${articleDraftTable.revision} + 1`,
+            updated: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(
+            and(
+              eq(articleDraftTable.id, updateId),
+              revision == null
+                ? undefined
+                : eq(articleDraftTable.revision, revision),
+            ),
+          )
+          .returning();
+        if (rows[0] == null) {
+          return { status: "conflict", currentRevision: existing.revision };
+        }
+        return { status: "ok", draft: rows[0] };
+      }
+      const draftId = uuid ?? generateUuidV7();
+      let workspaceId: Uuid;
+      if (actingAccountId == null) {
+        if (viewer.kind !== "personal") return { status: "forbidden" };
+        workspaceId = viewer.id;
+      } else {
+        if (!(await canAccountActAs(tx, viewer, actingAccountId))) {
+          return { status: "forbidden" };
+        }
+        workspaceId = actingAccountId;
+      }
+      const inserted = await tx
+        .insert(articleDraftTable)
+        .values({
+          id: draftId,
+          accountId: workspaceId,
+          creatorId: viewer.id,
+          title,
+          content,
+          tags: normalizedTags,
+          revision: 1,
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (inserted[0] != null) return { status: "ok", draft: inserted[0] };
+      const existing = await lockArticleDraft(tx, draftId);
+      if (existing == null || existing.accountId !== workspaceId) {
+        return { status: "invalid", inputPath: "uuid" };
+      }
+      if (!(await canAccountActAs(tx, viewer, existing.accountId))) {
+        return { status: "invalid", inputPath: "uuid" };
+      }
+      // A revision-less `uuid` save is the pre-upgrade composer's upsert: the
+      // row may already exist from a media attachment, so update it instead of
+      // returning a conflict the old client cannot handle.
+      const rows = await tx
+        .update(articleDraftTable)
+        .set({
+          title,
+          content,
+          tags: normalizedTags,
+          revision: sql`${articleDraftTable.revision} + 1`,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(articleDraftTable.id, draftId))
+        .returning();
+      if (rows[0] == null) {
+        return { status: "conflict", currentRevision: existing.revision };
+      }
+      return { status: "ok", draft: rows[0] };
+    },
+  );
+}
+
+export async function deleteArticleDraft(
+  db: Database | Transaction,
+  viewer: ArticleDraftViewer,
+  input: ArticleDraftDeleteInput,
+): Promise<ArticleDraftDeleteResult> {
+  const revision = input.revision ?? null;
+  if (revision != null && (!Number.isInteger(revision) || revision < 1)) {
+    return { status: "invalid" };
+  }
+  return await runInTransaction(
+    db,
+    async (tx): Promise<ArticleDraftDeleteResult> => {
+      const existing = await lockArticleDraft(tx, input.id);
+      if (existing == null) return { status: "invalid" };
+      if (!(await canAccountActAs(tx, viewer, existing.accountId))) {
+        return { status: "invalid" };
+      }
+      if (revision != null && revision !== existing.revision) {
+        return { status: "conflict", currentRevision: existing.revision };
+      }
+      await tx
+        .delete(articleDraftTable)
+        .where(eq(articleDraftTable.id, input.id));
+      return { status: "ok", draftId: input.id };
+    },
+  );
+}
+
+/**
+ * Move a personally owned draft to an organization the viewer can post for.
+ * The operation is the only way a draft's owner changes; the creator record and
+ * all attached media are preserved. Organization-to-personal and
+ * organization-to-organization moves are intentionally unsupported.
+ */
+export async function moveArticleDraftToOrganization(
+  db: Database | Transaction,
+  viewer: ArticleDraftViewer,
+  input: MoveArticleDraftInput,
+): Promise<MoveArticleDraftResult> {
+  if (!Number.isInteger(input.revision) || input.revision < 1) {
+    return { status: "invalid", inputPath: "revision" };
+  }
+  return await runInTransaction(
+    db,
+    async (tx): Promise<MoveArticleDraftResult> => {
+      const existing = await lockArticleDraft(tx, input.id);
+      if (existing == null) return { status: "invalid", inputPath: "id" };
+      if (viewer.kind !== "personal" || existing.accountId !== viewer.id) {
+        return { status: "invalid", inputPath: "id" };
+      }
+      // `articleSourceId` is currently unused, but moving a draft linked to an
+      // existing source would leave its ownership inconsistent, so reject it.
+      if (existing.articleSourceId != null) {
+        return { status: "invalid", inputPath: "id" };
+      }
+      if (input.organizationAccountId === viewer.id) {
+        return { status: "forbidden" };
+      }
+      const destination = await tx.query.accountTable.findFirst({
+        where: { id: input.organizationAccountId },
+        columns: { kind: true },
+      });
+      if (destination?.kind !== "organization") {
+        return { status: "forbidden" };
+      }
+      if (!(await canAccountActAs(tx, viewer, input.organizationAccountId))) {
+        return { status: "forbidden" };
+      }
+      if (existing.revision !== input.revision) {
+        return { status: "conflict", currentRevision: existing.revision };
+      }
+      const rows = await tx
+        .update(articleDraftTable)
+        .set({
+          accountId: input.organizationAccountId,
+          revision: sql`${articleDraftTable.revision} + 1`,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(
+          and(
+            eq(articleDraftTable.id, input.id),
+            eq(articleDraftTable.accountId, viewer.id),
+            eq(articleDraftTable.revision, input.revision),
+          ),
+        )
+        .returning();
+      if (rows[0] == null) {
+        return { status: "conflict", currentRevision: existing.revision };
+      }
+      return { status: "ok", draft: rows[0] };
+    },
+  );
 }
 
 export async function getArticleSource(

@@ -1,5 +1,10 @@
 import { detectLanguage } from "~/lib/langdet.ts";
-import { ConnectionHandler, graphql } from "relay-runtime";
+import {
+  commitLocalUpdate,
+  ConnectionHandler,
+  fetchQuery,
+  graphql,
+} from "relay-runtime";
 import {
   type Accessor,
   createContext,
@@ -37,6 +42,7 @@ import { useNavigate, useParams } from "@solidjs/router";
 import {
   createDraftFormSnapshot,
   createDraftSaveInput,
+  type DraftFormSnapshot,
   reconcileDraftSaveResponse,
 } from "./draftSaveSnapshot.ts";
 import { useAutoSave } from "./useAutoSave.ts";
@@ -44,6 +50,7 @@ import { useUnsavedGuard } from "./useUnsavedGuard.ts";
 import type { ArticleComposerContextSaveMutation } from "./__generated__/ArticleComposerContextSaveMutation.graphql.ts";
 import type { ArticleComposerContextPublishMutation } from "./__generated__/ArticleComposerContextPublishMutation.graphql.ts";
 import type { ArticleComposerContextDeleteMutation } from "./__generated__/ArticleComposerContextDeleteMutation.graphql.ts";
+import type { ArticleComposerContextMoveMutation } from "./__generated__/ArticleComposerContextMoveMutation.graphql.ts";
 import type { ArticleComposerContextDraftQuery as ArticleComposerContextDraftQueryType } from "./__generated__/ArticleComposerContextDraftQuery.graphql.ts";
 
 // --- GraphQL definitions ---
@@ -68,10 +75,25 @@ const SaveArticleDraftMutation = graphql`
           contentHtml
           tags
           updated
+          revision
+          account {
+            id
+            kind
+            username
+          }
+          creator {
+            id
+          }
         }
       }
       ... on InvalidInputError {
         inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+      ... on OrganizationPermissionError {
+        message
       }
       ... on NotAuthenticatedError {
         notAuthenticated
@@ -96,6 +118,46 @@ const PublishArticleDraftMutation = graphql`
       ... on InvalidInputError {
         inputPath
       }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const MoveArticleDraftToOrganizationMutation = graphql`
+  mutation ArticleComposerContextMoveMutation(
+    $input: MoveArticleDraftToOrganizationInput!
+  ) {
+    moveArticleDraftToOrganization(input: $input) {
+      __typename
+      ... on MoveArticleDraftToOrganizationPayload {
+        draft {
+          id
+          uuid
+          revision
+          account {
+            id
+            kind
+            username
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
       ... on NotAuthenticatedError {
         notAuthenticated
       }
@@ -116,6 +178,9 @@ const DeleteArticleDraftMutation = graphql`
       ... on InvalidInputError {
         inputPath
       }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
       ... on NotAuthenticatedError {
         notAuthenticated
       }
@@ -132,6 +197,15 @@ const ArticleComposerDraftQuery = graphql`
       content
       contentHtml
       tags
+      revision
+      account {
+        id
+        kind
+        username
+      }
+      creator {
+        id
+      }
     }
   }
 `;
@@ -140,10 +214,32 @@ const ArticleComposerDraftQuery = graphql`
 
 export interface ArticleComposerProps {
   draftUuid?: string;
-  onSaved?: (draftId: string, draftUuid: string) => void;
+  onSaved?: (
+    draftId: string,
+    draftUuid: string,
+    workspaceUsername: string,
+  ) => void;
   onPublished?: (articleUrl: string) => void;
   viewerId?: string;
+  workspaceAccountId?: string;
+  workspaceUsername?: string;
+  workspaceKind?: "personal" | "organization";
 }
+
+export interface ArticleDraftWorkspaceOption {
+  value: string;
+  accountId?: string;
+  username?: string;
+  name?: string;
+  label: string;
+  avatarUrl?: string | null;
+}
+
+export type ArticleDraftSaveStatus =
+  | "idle"
+  | "saving"
+  | "conflict"
+  | "unavailable";
 
 export interface ArticleComposerContextValue {
   // Draft data
@@ -157,6 +253,11 @@ export interface ArticleComposerContextValue {
         title: string;
         content: string;
         tags: readonly string[];
+        contentHtml?: string | null;
+        revision: number;
+        accountId: string;
+        accountKind: "personal" | "organization";
+        creatorId?: string | null;
       }
     | undefined
   >;
@@ -174,6 +275,27 @@ export interface ArticleComposerContextValue {
   isPublishing: Accessor<boolean>;
   showPreview: Accessor<boolean>;
   previewHtml: Accessor<string>;
+
+  // Draft workspace state
+  workspaceKey: Accessor<string>;
+  setWorkspaceKey: (value: string) => void;
+  workspaceOptions: Accessor<ArticleDraftWorkspaceOption[]>;
+  workspaceLocked: Accessor<boolean>;
+  moveTargets: Accessor<
+    readonly { id: string; username: string; name: string }[]
+  >;
+  moveToOrganization: (organizationAccountId: string) => void;
+
+  // Concurrency state
+  saveStatus: Accessor<ArticleDraftSaveStatus>;
+  conflictRevision: Accessor<number | undefined>;
+  overwriteWithLocal: () => void;
+  discardAndReload: () => void;
+  ensureDraft: () => Promise<{ id: string; revision: number } | undefined>;
+
+  // Attribution (organization workspaces)
+  showPersonalAuthor: Accessor<boolean>;
+  setShowPersonalAuthor: (value: boolean) => void;
 
   // Form state (write)
   setTitle: (v: string) => void;
@@ -203,6 +325,7 @@ export interface ArticleComposerContextValue {
   isSaving: Accessor<boolean>;
   isPublishingMutation: Accessor<boolean>;
   isDeleting: Accessor<boolean>;
+  isMoving: Accessor<boolean>;
   showShortArticleSuggestion: Accessor<boolean>;
   setShowShortArticleSuggestion: (v: boolean) => void;
   showReplaceNoteDraftConfirm: Accessor<boolean>;
@@ -242,9 +365,23 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       )
     : undefined;
 
-  const loadedDraft = createMemo(() => {
+  const loadedDraft = createMemo<DraftState | undefined>(() => {
     if (!initialExistingDraftUuid || !draftData) return undefined;
-    return draftData()?.articleDraft ?? undefined;
+    const raw = draftData()?.articleDraft;
+    if (!raw) return undefined;
+    return {
+      id: raw.id,
+      uuid: raw.uuid,
+      title: raw.title,
+      content: raw.content,
+      tags: raw.tags,
+      contentHtml: raw.contentHtml,
+      revision: raw.revision,
+      accountId: raw.account.id,
+      accountKind:
+        raw.account.kind === "ORGANIZATION" ? "organization" : "personal",
+      creatorId: raw.creator?.id ?? null,
+    };
   });
   const [savedDraft, setSavedDraft] = createSignal<DraftState | undefined>();
   const draft = createMemo(() => savedDraft() ?? loadedDraft());
@@ -285,17 +422,100 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const [showPreview, setShowPreview] = createSignal(false);
   const [previewHtml, setPreviewHtml] = createSignal("");
 
-  const draftConnections = () => {
-    const viewerId = props.viewerId;
-    if (viewerId == null) return [];
+  // Draft workspace state. The workspace is chosen before the first save and
+  // frozen once a draft exists; ownership only changes through an explicit
+  // move to an organization.
+  const initialWorkspaceKey = untrack(() =>
+    props.workspaceKind === "organization" && props.workspaceAccountId != null
+      ? `organization:${props.workspaceAccountId}`
+      : "personal",
+  );
+  const [workspaceKey, setWorkspaceKeySignal] =
+    createSignal(initialWorkspaceKey);
+  const [workspaceFrozen, setWorkspaceFrozen] = createSignal(
+    initialExistingDraftUuid != null,
+  );
+  const [saveStatus, setSaveStatus] =
+    createSignal<ArticleDraftSaveStatus>("idle");
+  const [conflictRevision, setConflictRevision] = createSignal<number>();
+  const [showPersonalAuthor, setShowPersonalAuthor] = createSignal(false);
 
-    return [
-      "SignedAccount_articleDrafts",
-      "draftsPaginationFragment_articleDrafts",
-      "FloatingComposeButton_articleDrafts",
-    ].map((connectionKey) =>
-      ConnectionHandler.getConnectionID(viewerId, connectionKey),
-    );
+  const workspaceOptions = createMemo<ArticleDraftWorkspaceOption[]>(() => {
+    const options: ArticleDraftWorkspaceOption[] = [];
+    const personal = actingAccount.personalAccount();
+    if (personal != null) {
+      options.push({
+        value: "personal",
+        username: personal.username,
+        name: personal.name || personal.username,
+        label: `${personal.name || personal.username} (@${personal.username})`,
+        avatarUrl: personal.avatarUrl,
+      });
+    }
+    for (const membership of actingAccount.organizations()) {
+      const organization = membership.organization;
+      options.push({
+        value: `organization:${organization.id}`,
+        accountId: organization.id,
+        username: organization.username,
+        name: organization.name || organization.username,
+        label: `${organization.name || organization.username} (@${organization.username})`,
+        avatarUrl: organization.avatarUrl,
+      });
+    }
+    return options;
+  });
+
+  const workspaceAccountId = createMemo<string | undefined>(() => {
+    const match = /^organization:(.+)$/.exec(workspaceKey());
+    return match?.[1];
+  });
+
+  const workspaceLocked = createMemo(
+    () => workspaceFrozen() || draft() != null,
+  );
+
+  const setWorkspaceKey = (value: string) => {
+    if (workspaceLocked()) return;
+    setWorkspaceKeySignal(value);
+  };
+
+  const moveTargets = createMemo(() =>
+    actingAccount.organizations().map((membership) => ({
+      id: membership.organization.id,
+      username: membership.organization.username,
+      name: membership.organization.name || membership.organization.username,
+    })),
+  );
+
+  const ownerConnectionAccountId = () => {
+    const current = draft();
+    if (current != null) return current.accountId;
+    return workspaceAccountId() ?? props.viewerId;
+  };
+
+  const draftConnections = () => {
+    const ownerId = ownerConnectionAccountId();
+    if (ownerId == null) return [];
+    const connections = [
+      ConnectionHandler.getConnectionID(
+        ownerId,
+        "draftsPaginationFragment_articleDrafts",
+      ),
+    ];
+    if (workspaceKey() === "personal" && props.viewerId != null) {
+      connections.push(
+        ConnectionHandler.getConnectionID(
+          props.viewerId,
+          "SignedAccount_articleDrafts",
+        ),
+        ConnectionHandler.getConnectionID(
+          props.viewerId,
+          "FloatingComposeButton_articleDrafts",
+        ),
+      );
+    }
+    return connections;
   };
 
   // Mutations
@@ -311,11 +531,256 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     createMutation<ArticleComposerContextDeleteMutation>(
       DeleteArticleDraftMutation,
     );
+  const [moveDraft, isMoving] =
+    createMutation<ArticleComposerContextMoveMutation>(
+      MoveArticleDraftToOrganizationMutation,
+    );
+
+  const markUnavailable = () => {
+    if (saveStatus() !== "conflict") setSaveStatus("unavailable");
+  };
+
+  // Assigned once `createDraftOnce` is defined below. It keeps `submitSave` and
+  // image uploads on one shared creation path, so the first autosave and a
+  // concurrent upload cannot both try to create the same draft.
+  let ensureDraftImpl: (() => Promise<CreateDraftOutcome>) | undefined;
 
   // --- Handlers ---
 
+  const stripUploadingPlaceholders = (value: string) =>
+    value.replace(/!\[Uploading [^\]]*\]\(uploading\)/g, "");
+
+  const submitSave = (
+    submittedDraft: DraftFormSnapshot,
+    initialSubmittedForm: DraftFormSnapshot,
+    options: { silent: boolean; afterSave?: () => void; revision?: number },
+  ) => {
+    const current = draft();
+    if (current == null && options.revision == null) {
+      // Freeze the workspace before dispatching, so the selection cannot change
+      // under the in-flight creation, and funnel through the single creation
+      // path shared with image uploads.
+      setWorkspaceFrozen(true);
+      void (
+        ensureDraftImpl?.() ?? Promise.resolve({ status: "failed" } as const)
+      ).then((outcome) => {
+        if (outcome.status === "ok") {
+          submitSave(submittedDraft, initialSubmittedForm, options);
+        } else if (outcome.status === "conflict") {
+          // The create committed but its response was lost: keep local text
+          // and let the user resolve it like any other conflict.
+          setConflictRevision(outcome.currentRevision);
+          setSaveStatus("conflict");
+          setIsDirty(true);
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Your edits are kept locally; choose how to resolve the conflict.`,
+            variant: "error",
+          });
+        } else if (outcome.status === "forbidden") {
+          // Nothing was created, so release the lock and let the user pick
+          // another workspace.
+          setWorkspaceFrozen(false);
+          setSaveStatus("idle");
+          showToast({
+            title: t`Error`,
+            description: t`You no longer have posting permission for this draft's workspace.`,
+            variant: "error",
+          });
+        } else {
+          setSaveStatus("idle");
+          showToast({
+            title: t`Error`,
+            description: t`Failed to save the draft.`,
+            variant: "error",
+          });
+        }
+      });
+      return;
+    }
+    const input =
+      current != null
+        ? {
+            id: current.id,
+            revision: options.revision ?? current.revision,
+            title: submittedDraft.title,
+            content: submittedDraft.content,
+            tags: submittedDraft.tags,
+          }
+        : options.revision != null
+          ? {
+              // A create whose response was lost: retry as an update of the
+              // known revision so the existing row is adopted, not duplicated.
+              uuid: draftUuid,
+              revision: options.revision,
+              title: submittedDraft.title,
+              content: submittedDraft.content,
+              tags: submittedDraft.tags,
+            }
+          : {
+              uuid: draftUuid,
+              actingAccountId: workspaceAccountId(),
+              title: submittedDraft.title,
+              content: submittedDraft.content,
+              tags: submittedDraft.tags,
+            };
+
+    setSaveStatus("saving");
+    saveDraft({
+      variables: {
+        input,
+        connections: draftConnections(),
+      },
+      onCompleted(response) {
+        if (
+          response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
+        ) {
+          const saved = response.saveArticleDraft.draft;
+          const currentForm = createDraftFormSnapshot(
+            title(),
+            content(),
+            tags(),
+          );
+          const savedForm = createDraftFormSnapshot(
+            saved.title,
+            saved.content,
+            saved.tags,
+          );
+          const { formReconciled, baseline } = reconcileDraftSaveResponse(
+            currentForm,
+            initialSubmittedForm,
+            savedForm,
+          );
+
+          setSavedDraft({
+            id: saved.id,
+            uuid: saved.uuid,
+            title: baseline.title,
+            content: baseline.content,
+            tags: [...baseline.tags],
+            contentHtml: saved.contentHtml,
+            revision: saved.revision,
+            accountId: saved.account.id,
+            accountKind:
+              saved.account.kind === "ORGANIZATION"
+                ? "organization"
+                : "personal",
+            creatorId: saved.creator?.id ?? null,
+          });
+          setWorkspaceFrozen(true);
+          setWorkspaceKeySignal(
+            saved.account.kind === "ORGANIZATION"
+              ? `organization:${saved.account.id}`
+              : "personal",
+          );
+          setConflictRevision(undefined);
+          setSaveStatus("idle");
+
+          if (formReconciled) {
+            setIsDirty(false);
+          } else {
+            setIsDirty(true);
+          }
+
+          if (saved.contentHtml) {
+            setPreviewHtml(saved.contentHtml);
+          }
+
+          if (!options.silent) {
+            showToast({
+              title: t`Success`,
+              description: t`Draft saved`,
+              variant: "success",
+            });
+          }
+          if (formReconciled) {
+            props.onSaved?.(saved.id, saved.uuid, saved.account.username);
+            // Only continue (e.g. advance to publish, or publish now) when the
+            // form still matches what was submitted or has converged to the
+            // saved response. Otherwise the user has newer unsaved changes,
+            // so skip the follow-up rather than acting on a stale draft.
+            options.afterSave?.();
+          }
+        } else if (
+          response.saveArticleDraft.__typename === "ArticleDraftConflictError"
+        ) {
+          // Keep the local text and require an explicit resolution; autosave is
+          // paused while the save status is `conflict`.
+          setConflictRevision(response.saveArticleDraft.currentRevision);
+          setSaveStatus("conflict");
+          setIsDirty(true);
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Your edits are kept locally; choose how to resolve the conflict.`,
+            variant: "error",
+          });
+        } else if (
+          response.saveArticleDraft.__typename === "InvalidInputError"
+        ) {
+          setSaveStatus("idle");
+          if (
+            response.saveArticleDraft.inputPath === "id" ||
+            response.saveArticleDraft.inputPath === "uuid"
+          ) {
+            markUnavailable();
+          }
+          showToast({
+            title: t`Error`,
+            description: t`Invalid input: ${response.saveArticleDraft.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.saveArticleDraft.__typename === "NotAuthenticatedError"
+        ) {
+          setSaveStatus("idle");
+          showToast({
+            title: t`Error`,
+            description: t`You must be signed in to save a draft`,
+            variant: "error",
+          });
+        } else if (
+          response.saveArticleDraft.__typename === "OrganizationPermissionError"
+        ) {
+          // Reachable only from the create path: no draft exists yet, so leave
+          // the editor editable and let the user pick another workspace.
+          setSaveStatus("idle");
+          showToast({
+            title: t`Error`,
+            description: t`You no longer have posting permission for this draft's workspace.`,
+            variant: "error",
+          });
+        }
+      },
+      onError(error) {
+        setSaveStatus("idle");
+        showToast({
+          title: t`Error`,
+          description: error.message,
+          variant: "error",
+        });
+      },
+    });
+  };
+
   const handleSave = (e?: Event, silent?: boolean, afterSave?: () => void) => {
     e?.preventDefault();
+
+    if (saveStatus() === "conflict") {
+      showToast({
+        title: t`Error`,
+        description: t`Resolve the conflicting changes before saving.`,
+        variant: "error",
+      });
+      return;
+    }
+    if (saveStatus() === "unavailable") {
+      showToast({
+        title: t`Error`,
+        description: t`This draft is no longer available or you no longer have access.`,
+        variant: "error",
+      });
+      return;
+    }
 
     if (!title().trim()) {
       if (!silent) {
@@ -334,98 +799,117 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       tags(),
     );
     const submittedDraft = createDraftSaveInput(initialSubmittedForm);
+    submitSave(
+      {
+        ...submittedDraft,
+        content: stripUploadingPlaceholders(submittedDraft.content),
+      },
+      initialSubmittedForm,
+      { silent: silent ?? false, afterSave },
+    );
+  };
 
-    saveDraft({
-      variables: {
-        input: {
-          id: draft()?.id,
-          uuid: draft()?.id == null ? draftUuid : undefined,
-          title: submittedDraft.title,
-          content: submittedDraft.content,
-          tags: submittedDraft.tags,
+  // Create the draft on demand so every first-save path (manual save,
+  // autosave, image upload, publish) funnels through one operation. The
+  // workspace and UUID are frozen first, and an ambiguous failure keeps them
+  // frozen instead of blindly retrying, which could resurrect a deleted draft.
+  type CreateDraftOutcome =
+    | { status: "ok"; id: string; revision: number }
+    | { status: "conflict"; currentRevision: number }
+    | { status: "forbidden" }
+    | { status: "failed" };
+
+  let createDraftPromise: Promise<CreateDraftOutcome> | undefined;
+  const createDraftOnce = async (): Promise<CreateDraftOutcome> => {
+    const existing = draft();
+    if (existing != null) {
+      return { status: "ok", id: existing.id, revision: existing.revision };
+    }
+    if (createDraftPromise != null) return await createDraftPromise;
+    setWorkspaceFrozen(true);
+    createDraftPromise = new Promise<CreateDraftOutcome>((resolve) => {
+      const initialForm = untrack(() =>
+        createDraftFormSnapshot(title(), content(), tags()),
+      );
+      const submitted = createDraftSaveInput(initialForm);
+      saveDraft({
+        variables: {
+          input: {
+            uuid: draftUuid,
+            actingAccountId: untrack(() => workspaceAccountId()),
+            title: submitted.title,
+            content: stripUploadingPlaceholders(submitted.content),
+            tags: submitted.tags,
+          },
+          connections: untrack(() => draftConnections()),
         },
-        connections: draftConnections(),
-      },
-      onCompleted(response) {
-        if (
-          response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
-        ) {
-          const savedDraft = response.saveArticleDraft.draft;
-          const currentForm = createDraftFormSnapshot(
-            title(),
-            content(),
-            tags(),
-          );
-          const savedForm = createDraftFormSnapshot(
-            savedDraft.title,
-            savedDraft.content,
-            savedDraft.tags,
-          );
-          const { formReconciled, baseline } = reconcileDraftSaveResponse(
-            currentForm,
-            initialSubmittedForm,
-            savedForm,
-          );
-
-          setSavedDraft({
-            id: savedDraft.id,
-            uuid: savedDraft.uuid,
-            title: baseline.title,
-            content: baseline.content,
-            tags: [...baseline.tags],
-          });
-
-          if (formReconciled) {
-            setIsDirty(false);
-          } else {
-            setIsDirty(true);
-          }
-
-          if (savedDraft.contentHtml) {
-            setPreviewHtml(savedDraft.contentHtml);
-          }
-
-          if (!silent) {
-            showToast({
-              title: t`Success`,
-              description: t`Draft saved`,
-              variant: "success",
+        onCompleted(response) {
+          if (
+            response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
+          ) {
+            const saved = response.saveArticleDraft.draft;
+            setSavedDraft({
+              id: saved.id,
+              uuid: saved.uuid,
+              title: submitted.title,
+              content: submitted.content,
+              tags: [...submitted.tags],
+              contentHtml: saved.contentHtml,
+              revision: saved.revision,
+              accountId: saved.account.id,
+              accountKind:
+                saved.account.kind === "ORGANIZATION"
+                  ? "organization"
+                  : "personal",
+              creatorId: saved.creator?.id ?? null,
             });
+            setWorkspaceFrozen(true);
+            setWorkspaceKeySignal(
+              saved.account.kind === "ORGANIZATION"
+                ? `organization:${saved.account.id}`
+                : "personal",
+            );
+            resolve({ status: "ok", id: saved.id, revision: saved.revision });
+          } else if (
+            response.saveArticleDraft.__typename === "ArticleDraftConflictError"
+          ) {
+            resolve({
+              status: "conflict",
+              currentRevision: response.saveArticleDraft.currentRevision,
+            });
+          } else if (
+            response.saveArticleDraft.__typename ===
+            "OrganizationPermissionError"
+          ) {
+            resolve({ status: "forbidden" });
+          } else {
+            resolve({ status: "failed" });
           }
-          if (formReconciled) {
-            props.onSaved?.(savedDraft.id, savedDraft.uuid);
-            // Only continue (e.g. advance to publish, or publish now) when the
-            // form still matches what was submitted or has converged to the
-            // saved response. Otherwise the user has newer unsaved changes,
-            // so skip the follow-up rather than acting on a stale draft.
-            afterSave?.();
-          }
-        } else if (
-          response.saveArticleDraft.__typename === "InvalidInputError"
-        ) {
-          showToast({
-            title: t`Error`,
-            description: t`Invalid input: ${response.saveArticleDraft.inputPath}`,
-            variant: "error",
-          });
-        } else if (
-          response.saveArticleDraft.__typename === "NotAuthenticatedError"
-        ) {
-          showToast({
-            title: t`Error`,
-            description: t`You must be signed in to save a draft`,
-            variant: "error",
-          });
-        }
-      },
-      onError(error) {
-        showToast({
-          title: t`Error`,
-          description: error.message,
-          variant: "error",
-        });
-      },
+        },
+        onError() {
+          resolve({ status: "failed" });
+        },
+      });
     });
+    const outcome = await createDraftPromise;
+    if (outcome.status !== "ok") createDraftPromise = undefined;
+    return outcome;
+  };
+  ensureDraftImpl = createDraftOnce;
+
+  const ensureDraft = async (): Promise<
+    { id: string; revision: number } | undefined
+  > => {
+    const outcome = await createDraftOnce();
+    if (outcome.status === "forbidden") {
+      // Nothing was created, so release the workspace lock and let the upload
+      // caller surface the error while the user picks another workspace.
+      setWorkspaceFrozen(false);
+      return undefined;
+    }
+    return outcome.status === "ok"
+      ? { id: outcome.id, revision: outcome.revision }
+      : undefined;
   };
 
   const handlePublish = (e?: Event) => {
@@ -476,7 +960,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   };
 
   const saveAsNoteDraft = (replaceExisting = false) => {
-    const username = getRouteUsername();
+    // Note drafts are stored under the signed-in personal account, even when
+    // the article belongs to an organization workspace.
+    const username =
+      actingAccount.personalAccount()?.username ?? getRouteUsername();
     if (username == null) {
       showToast({
         title: t`Error`,
@@ -500,7 +987,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       language: language()?.baseName,
       visibility: "PUBLIC",
       quotePolicy: quotePolicy(),
-      actingAccountKey: publishActingAccountKey(),
+      actingAccountKey:
+        workspaceKey() === "personal"
+          ? PERSONAL_COMPOSE_ACCOUNT_KEY
+          : `${workspaceKey()}:only`,
       media: [],
       poll: {
         enabled: false,
@@ -537,15 +1027,24 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   };
 
   const publishNow = () => {
+    const current = draft();
+    if (current == null) return;
+    const attribution =
+      current.accountKind === "organization"
+        ? showPersonalAuthor()
+          ? { attributionMode: "ACTING_ACCOUNT_WITH_VIEWER" as const }
+          : { attributionMode: "ACTING_ACCOUNT_ONLY" as const }
+        : {};
     publishDraft({
       variables: {
         input: {
-          id: draft()!.id,
+          id: current.id,
           slug: slug().trim(),
           language: language()?.baseName ?? i18n.locale,
           allowLlmTranslation: allowLlmTranslation(),
           quotePolicy: quotePolicy(),
-          ...actingAccount.composeInputForKey(publishActingAccountKey()),
+          revision: current.revision,
+          ...attribution,
         },
       },
       onCompleted(response) {
@@ -572,11 +1071,258 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             variant: "error",
           });
         } else if (
+          response.publishArticleDraft.__typename ===
+          "ArticleDraftConflictError"
+        ) {
+          setConflictRevision(response.publishArticleDraft.currentRevision);
+          setSaveStatus("conflict");
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Reload it before publishing.`,
+            variant: "error",
+          });
+        } else if (
           response.publishArticleDraft.__typename === "NotAuthenticatedError"
         ) {
           showToast({
             title: t`Error`,
             description: t`You must be signed in to publish an article`,
+            variant: "error",
+          });
+        } else if (
+          response.publishArticleDraft.__typename ===
+          "OrganizationPermissionError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`You no longer have posting permission for this draft's workspace.`,
+            variant: "error",
+          });
+        }
+      },
+      onError(error) {
+        showToast({
+          title: t`Error`,
+          description: error.message,
+          variant: "error",
+        });
+      },
+    });
+  };
+
+  const overwriteWithLocal = () => {
+    const revision = conflictRevision();
+    if (revision == null) return;
+    const form = createDraftFormSnapshot(title(), content(), tags());
+    const submitted = createDraftSaveInput(form);
+    submitSave(
+      {
+        ...submitted,
+        content: stripUploadingPlaceholders(submitted.content),
+      },
+      form,
+      { silent: false, revision },
+    );
+  };
+
+  const discardAndReload = () => {
+    const current = draft();
+    const uuidToLoad = current?.uuid ?? draftUuid;
+    setSaveStatus("saving");
+    fetchQuery<ArticleComposerContextDraftQueryType>(
+      env(),
+      ArticleComposerDraftQuery,
+      {
+        uuid: uuidToLoad as `${string}-${string}-${string}-${string}-${string}`,
+      },
+    ).subscribe({
+      next(value) {
+        const raw = value.articleDraft;
+        if (raw == null) {
+          setSaveStatus("unavailable");
+          return;
+        }
+        setSavedDraft({
+          id: raw.id,
+          uuid: raw.uuid,
+          title: raw.title,
+          content: raw.content,
+          tags: raw.tags,
+          contentHtml: raw.contentHtml,
+          revision: raw.revision,
+          accountId: raw.account.id,
+          accountKind:
+            raw.account.kind === "ORGANIZATION" ? "organization" : "personal",
+          creatorId: raw.creator?.id ?? null,
+        });
+        setTitle(raw.title);
+        setContent(raw.content);
+        setTags([...raw.tags]);
+        if (raw.contentHtml) setPreviewHtml(raw.contentHtml);
+        setWorkspaceKeySignal(
+          raw.account.kind === "ORGANIZATION"
+            ? `organization:${raw.account.id}`
+            : "personal",
+        );
+        setWorkspaceFrozen(true);
+        setIsDirty(false);
+        setConflictRevision(undefined);
+        setSaveStatus("idle");
+      },
+      error() {
+        setSaveStatus("conflict");
+        showToast({
+          title: t`Error`,
+          description: t`Failed to load the latest draft.`,
+          variant: "error",
+        });
+      },
+    });
+  };
+
+  const moveToOrganization = (organizationAccountId: string) => {
+    const initialDraft = draft();
+    if (initialDraft == null) {
+      showToast({
+        title: t`Error`,
+        description: t`Save the draft before moving it.`,
+        variant: "error",
+      });
+      return;
+    }
+    if (isDirty()) {
+      showToast({
+        title: t`Error`,
+        description: t`Save your changes before moving the draft.`,
+        variant: "error",
+      });
+      return;
+    }
+    if (saveStatus() !== "idle") {
+      showToast({
+        title: t`Error`,
+        description: t`Resolve the conflicting changes before moving the draft.`,
+        variant: "error",
+      });
+      return;
+    }
+    moveDraft({
+      variables: {
+        input: {
+          id: initialDraft.id,
+          organizationAccountId,
+          revision: initialDraft.revision,
+        },
+      },
+      onCompleted(response) {
+        if (
+          response.moveArticleDraftToOrganization.__typename ===
+          "MoveArticleDraftToOrganizationPayload"
+        ) {
+          const moved = response.moveArticleDraftToOrganization.draft;
+          setSavedDraft({
+            ...initialDraft,
+            accountId: moved.account.id,
+            accountKind: "organization",
+            revision: moved.revision,
+          });
+          setWorkspaceKeySignal(`organization:${moved.account.id}`);
+          setWorkspaceFrozen(true);
+          // Relay does not relocate a normalized node between connections, so
+          // move the edge explicitly: drop it from the personal lists and add
+          // it to the organization list if that connection is loaded.
+          const viewerId = untrack(() => props.viewerId);
+          commitLocalUpdate(env(), (store) => {
+            const sourceConnections = [
+              ConnectionHandler.getConnectionID(
+                initialDraft.accountId,
+                "draftsPaginationFragment_articleDrafts",
+              ),
+            ];
+            if (viewerId != null && initialDraft.accountId === viewerId) {
+              sourceConnections.push(
+                ConnectionHandler.getConnectionID(
+                  viewerId,
+                  "SignedAccount_articleDrafts",
+                ),
+                ConnectionHandler.getConnectionID(
+                  viewerId,
+                  "FloatingComposeButton_articleDrafts",
+                ),
+              );
+            }
+            for (const connectionId of sourceConnections) {
+              const connection = store.get(connectionId);
+              if (connection != null) {
+                ConnectionHandler.deleteNode(connection, initialDraft.id);
+              }
+            }
+            const destination = store.get(
+              ConnectionHandler.getConnectionID(
+                moved.account.id,
+                "draftsPaginationFragment_articleDrafts",
+              ),
+            );
+            const node = store.get(initialDraft.id);
+            if (destination != null && node != null) {
+              const edge = ConnectionHandler.createEdge(
+                store,
+                destination,
+                node,
+                "AccountArticleDraftsConnectionEdge",
+              );
+              ConnectionHandler.insertEdgeAfter(destination, edge);
+            }
+          });
+          const target = moveTargets().find((o) => o.id === moved.account.id);
+          if (target != null) {
+            navigate(`/@${target.username}/drafts/${initialDraft.uuid}`, {
+              replace: true,
+            });
+          }
+          showToast({
+            title: t`Success`,
+            description: t`Draft moved to the organization. Members can now view and edit it.`,
+            variant: "success",
+          });
+        } else if (
+          response.moveArticleDraftToOrganization.__typename ===
+          "ArticleDraftConflictError"
+        ) {
+          setConflictRevision(
+            response.moveArticleDraftToOrganization.currentRevision,
+          );
+          setSaveStatus("conflict");
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Reload it before moving it.`,
+            variant: "error",
+          });
+        } else if (
+          response.moveArticleDraftToOrganization.__typename ===
+          "InvalidInputError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`Invalid input: ${response.moveArticleDraftToOrganization.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.moveArticleDraftToOrganization.__typename ===
+          "NotAuthenticatedError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`You must be signed in to move a draft`,
+            variant: "error",
+          });
+        } else if (
+          response.moveArticleDraftToOrganization.__typename ===
+          "OrganizationPermissionError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`You no longer have posting permission for that organization.`,
             variant: "error",
           });
         }
@@ -613,6 +1359,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       variables: {
         input: {
           id: draft()!.id,
+          revision: draft()!.revision,
         },
         connections: draftConnections(),
       },
@@ -633,6 +1380,16 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           showToast({
             title: t`Error`,
             description: t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.deleteArticleDraft.__typename === "ArticleDraftConflictError"
+        ) {
+          setConflictRevision(response.deleteArticleDraft.currentRevision);
+          setSaveStatus("conflict");
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Reload it before deleting.`,
             variant: "error",
           });
         } else if (
@@ -690,7 +1447,26 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       // immediately (the desktop side-by-side preview otherwise stays empty
       // until the first autosave).
       if (currentDraft.contentHtml) setPreviewHtml(currentDraft.contentHtml);
+      setWorkspaceKeySignal(
+        currentDraft.accountKind === "organization"
+          ? `organization:${currentDraft.accountId}`
+          : "personal",
+      );
+      setWorkspaceFrozen(true);
       setHydratedDraft(true);
+    }
+  });
+
+  // An existing draft that fails to load (deleted, or access revoked while the
+  // editor was open) becomes unavailable. It must not be treated as a new
+  // draft, or a later save could recreate it.
+  createEffect(() => {
+    if (
+      initialExistingDraftUuid != null &&
+      draftDataLoaded() &&
+      draft() == null
+    ) {
+      setSaveStatus("unavailable");
     }
   });
 
@@ -759,6 +1535,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     save: (silent) => handleSave(undefined, silent),
     isSaving,
     isPublishing,
+    saveBlocked: () => saveStatus() !== "idle",
   });
 
   // Navigation guards
@@ -785,6 +1562,22 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     showPreview,
     previewHtml,
 
+    workspaceKey,
+    setWorkspaceKey,
+    workspaceOptions,
+    workspaceLocked,
+    moveTargets,
+    moveToOrganization,
+
+    saveStatus,
+    conflictRevision,
+    overwriteWithLocal,
+    discardAndReload,
+    ensureDraft,
+
+    showPersonalAuthor,
+    setShowPersonalAuthor,
+
     setTitle,
     setContent,
     setTags,
@@ -806,6 +1599,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     isSaving,
     isPublishingMutation,
     isDeleting,
+    isMoving,
     showShortArticleSuggestion,
     setShowShortArticleSuggestion,
     showReplaceNoteDraftConfirm,

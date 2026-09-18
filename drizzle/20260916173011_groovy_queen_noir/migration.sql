@@ -1,0 +1,2 @@
+ALTER TABLE "organization_post_author" ALTER COLUMN "member_account_id" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "organization_post_author" DROP CONSTRAINT "organization_post_author_member_account_id_account_id_fkey", ADD CONSTRAINT "organization_post_author_member_account_id_account_id_fkey" FOREIGN KEY ("member_account_id") REFERENCES "account"("id") ON DELETE SET NULL;

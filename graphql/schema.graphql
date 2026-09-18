@@ -51,7 +51,7 @@ type Account implements Node {
   actor: Actor!
 
   """
-  Unpublished article drafts belonging to this account, most recently updated first. Only visible to the account holder.
+  Unpublished article drafts owned by this workspace account, most recently updated first. This is the account's own personal drafts or, for an organization, the drafts shared with its accepted members. Visible only to the account holder and accepted organization members.
   """
   articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
 
@@ -239,6 +239,11 @@ type Account implements Node {
   """
   usernameChanged: DateTime
   uuid: UUID!
+
+  """
+  Whether the authenticated viewer may act as this `Account`: `true` for the personal account holder and for accepted members of an organization account (any role, not just admins). Use it to decide whether the viewer can access the account's shared article drafts.
+  """
+  viewerCanActAs: Boolean!
 
   """
   Whether the authenticated viewer may open settings for this `Account`. This is `true` for the personal account holder and for accepted administrators of an organization account.
@@ -1647,29 +1652,57 @@ type ArticleContent implements Node {
 }
 
 """
-An unpublished article draft. Visible only to the owning account. Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.
+An unpublished article draft. A draft belongs to a workspace account: the owner's personal account, or an organization whose accepted members share it. Visible only to the owner and accepted organization members (not even moderators can read them), and promoted to an `Article` via the `publishArticleDraft` mutation.
 """
 type ArticleDraft implements Node {
+  """
+  The workspace account that owns this draft: a personal account, or an organization whose accepted members can edit it.
+  """
   account: Account!
   content: Markdown!
 
-  """The rendered HTML of the draft's markdown content."""
+  """
+  The rendered HTML of the draft's markdown content. Draft media are resolved to their object storage URLs; note that those URLs are not access-controlled beyond being hard to guess, so a shared URL keeps working for anyone who already has it.
+  """
   contentHtml: HTML!
   created: DateTime!
+
+  """
+  The personal account that created the draft. This is an editing record, not an author credit, and it never changes. `null` only after the creator's account was deleted.
+  """
+  creator: Account
   id: ID!
+
+  """
+  Optimistic concurrency token. Send it back as the `revision` input of `saveArticleDraft` (or `moveArticleDraftToOrganization` / `publishArticleDraft`) to update this exact version; a mismatch is reported as `ArticleDraftConflictError` instead of overwriting.
+  """
+  revision: Int!
   tags: [String!]!
   title: String!
   updated: DateTime!
   uuid: UUID!
 }
 
+"""
+Returned when a save, delete, move, or publish targets a draft revision that no longer matches the stored one, e.g. because another member saved first. `currentRevision` is the revision the server currently holds; reload the draft or retry the operation against that revision. The client must not discard its local text automatically.
+"""
+type ArticleDraftConflictError {
+  """The revision currently stored on the server."""
+  currentRevision: Int!
+}
+
 union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedError
 
 """
-Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. Must be called before publishing if the draft's content uses `hp-medium:` references. Requires authentication.
+Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. A missing draft is created unless `createIfMissing` is `false`, which keeps pre-upgrade composers working while the current composer requires the draft it already created. The viewer must own the draft or be an accepted member of its owning organization. Re-attaching the same key to the same medium is idempotent; pointing an existing key at a different medium is rejected. Requires authentication.
 """
 input AttachArticleDraftMediumInput {
   clientMutationId: ID
+
+  """
+  When `true` (the default), a missing draft is created, which keeps pre-upgrade composers working during the rollout. Set `false` to require the draft to already exist, so a publish or delete racing an attachment cannot recreate it.
+  """
+  createIfMissing: Boolean
   draftId: UUID!
 
   """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
@@ -2036,11 +2069,16 @@ type DeleteAccountPayload {
 union DeleteAccountResult = AccountDeletionUnavailableError | DeleteAccountPayload | InvalidInputError | LastOrganizationAdminError | LastOrganizationMemberError | NotAuthenticatedError | NotAuthorizedError
 
 """
-Permanently delete an article draft. Only the draft's owner may delete it. Requires authentication.
+Permanently delete an article draft. The draft's owner (or an accepted member of its owning organization) may delete it. Pass `revision` to delete only the exact version the client saw. Requires authentication.
 """
 input DeleteArticleDraftInput {
   clientMutationId: ID
   id: ID!
+
+  """
+  Optional `ArticleDraft.revision`. When given, the delete is rejected with `ArticleDraftConflictError` if the draft changed.
+  """
+  revision: Int
 }
 
 type DeleteArticleDraftPayload {
@@ -2048,7 +2086,7 @@ type DeleteArticleDraftPayload {
   deletedDraftId: ID!
 }
 
-union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
+union DeleteArticleDraftResult = ArticleDraftConflictError | DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
 union DeleteInvitationLinkResult = InvitationLinkNotFoundError | InvitationLinkPayload | NotAuthenticatedError
 
@@ -2929,6 +2967,33 @@ type ModerationStatistics {
   totalReports: Int!
 }
 
+"""
+Move a personally owned article draft to an organization you can post for, so its accepted members gain access and it publishes as the organization. The draft's creator record and attached media are preserved. Organization-to-personal and organization-to-organization moves are not supported. Requires authentication.
+"""
+input MoveArticleDraftToOrganizationInput {
+  clientMutationId: ID
+
+  """Global ID of the personally owned draft to move."""
+  id: ID!
+
+  """Organization `Account` to move the draft to."""
+  organizationAccountId: ID!
+
+  """The `ArticleDraft.revision` the client is editing from."""
+  revision: Int!
+}
+
+type MoveArticleDraftToOrganizationPayload {
+  clientMutationId: ID
+
+  """
+  The moved draft, now owned by the destination organization with its `revision` incremented and `creator` unchanged.
+  """
+  draft: ArticleDraft!
+}
+
+union MoveArticleDraftToOrganizationResult = ArticleDraftConflictError | InvalidInputError | MoveArticleDraftToOrganizationPayload | NotAuthenticatedError | OrganizationPermissionError
+
 type Mutation {
   acceptOrganizationConversion(input: AcceptOrganizationConversionInput!): AcceptOrganizationConversionResult!
   acceptOrganizationInvitation(input: AcceptOrganizationInvitationInput!): AcceptOrganizationInvitationResult!
@@ -3032,6 +3097,10 @@ type Mutation {
   createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
   createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
   deleteAccount(input: DeleteAccountInput!): DeleteAccountResult!
+
+  """
+  Permanently delete an article draft. The draft's owner or an accepted member of its owning organization may delete it, and an optional `revision` guards against deleting a newer version. Requires authentication.
+  """
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
 
   """
@@ -3139,11 +3208,20 @@ type Mutation {
   markOrganizationNotificationsAsRead(input: MarkOrganizationNotificationsAsReadInput!): MarkOrganizationNotificationsAsReadResult!
 
   """
+  Move a personally owned article draft to an organization you can post for, so its accepted members gain access and it publishes as the organization. The draft's creator record and attached media are preserved. Requires authentication.
+  """
+  moveArticleDraftToOrganization(input: MoveArticleDraftToOrganizationInput!): MoveArticleDraftToOrganizationResult!
+
+  """
   Mutes an actor on behalf of the selected viewer account. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
   """
   muteActor(input: MuteActorInput!): MuteActorResult!
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
+
+  """
+  Publish an article draft as its owning workspace account, deleting the draft and sending an ActivityPub `Create` activity. An optional `revision` rejects a concurrent edit, and `attributionMode` with `attributionAccountId` choose the credited co-author for an organization draft. Requires authentication.
+  """
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
 
   """
@@ -3278,6 +3356,10 @@ type Mutation {
     """The ID of the session to log out."""
     sessionId: UUID!
   ): Session
+
+  """
+  Create or update an article draft. Omit `id` and `uuid` to create a new draft. Pass `actingAccountId` to create it in an organization workspace you can post for, and `revision` to reject a concurrent edit with `ArticleDraftConflictError`. Requires authentication.
+  """
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
 
   """
@@ -4080,11 +4162,11 @@ type OrganizationPermissionError {
 }
 
 """
-Attribution metadata for a post written through an organization account. The `Post.actor` remains the organization; this object records which personal member created it and whether that member should be shown as a co-author.
+Attribution metadata for a post written through an organization account. The `Post.actor` remains the organization; this object records which personal member is credited as a co-author and which personal account actually published it. The two differ when one member publishes a shared draft created by another.
 """
 type OrganizationPostAuthor {
   """
-  Whether clients should display only the organization or include the member as a co-author.
+  Whether clients should display only the organization or include the credited member as a co-author.
   """
   attributionMode: PostAttributionMode!
 
@@ -4098,6 +4180,11 @@ type OrganizationPostAuthor {
 
   """The organization account that authored the post."""
   organization: Account!
+
+  """
+  The personal account that actually executed the publication, for audit. Visible only to moderators, because `ACTING_ACCOUNT_ONLY` posts deliberately hide the personal member. `null` when that account has been deleted.
+  """
+  publisher: Account
 }
 
 """
@@ -4635,16 +4722,16 @@ type PostAncestorsConnectionEdge {
 }
 
 """
-How a post written through an organization account should display the personal member who created it.
+How a post written through an organization account should display the personal member credited with it.
 """
 enum PostAttributionMode {
   """
-  Show only the acting account as the public author. For organization posts, the member remains recorded for audit and management but is not shown as a co-author.
+  Show only the organization account as the public author. The credited member (the publisher, or the shared draft's creator) is still recorded for audit and management but not shown as a co-author.
   """
   ACTING_ACCOUNT_ONLY
 
   """
-  Show the organization account as the primary author and the personal member as a co-author.
+  Show the organization account as the primary author and a specific personal member as a co-author. For shared article drafts the member defaults to the draft's creator unless an explicit `attributionAccountId` is given.
   """
   ACTING_ACCOUNT_WITH_VIEWER
 }
@@ -4884,23 +4971,33 @@ enum PostVisibility {
 }
 
 """
-Publish an article draft, converting it to a live `Article` post and deleting the draft. Sends an ActivityPub `Create` activity. Requires authentication.
+Publish an article draft, converting it to a live `Article` post and deleting the draft. The article is published as the draft's owning workspace account (personal or organization), which therefore must be an account the viewer can post for. For an organization draft, `attributionMode` and `attributionAccountId` choose which personal member is credited as co-author (defaulting to the draft's creator). Pass the draft's current `revision` to reject a concurrent edit with `ArticleDraftConflictError`; omitting it publishes the current content. Sends an ActivityPub `Create` activity. Requires authentication.
 """
 input PublishArticleDraftInput {
   """
-  Optional `Account` id to publish as. The draft must still be owned by the authenticated personal account; this only changes the published article's author.
+  Deprecated organization-publishing argument, kept for compatibility during the rollout. For a personally owned draft it behaves as before and publishes the article as that organization, which the viewer must be able to post for; new clients should move the draft with `moveArticleDraftToOrganization` instead. For an organization draft it must equal the draft's owning account.
   """
-  actingAccountId: ID
+  actingAccountId: ID @deprecated(reason: "Use `moveArticleDraftToOrganization` to publish a draft as an organization. This argument only keeps pre-upgrade clients working during the rollout.")
   allowLlmTranslation: Boolean
 
   """
-  How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
+  Personal member `Account` to credit as co-author of an organization draft. Defaults to the draft's creator when the creator is still an accepted member, otherwise the publisher. Must be an accepted member of the owning organization, and is invalid together with `ACTING_ACCOUNT_ONLY` or a personal draft.
+  """
+  attributionAccountId: ID
+
+  """
+  How to display the credited personal member when the draft is owned by an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when the draft is personally owned.
   """
   attributionMode: PostAttributionMode
   clientMutationId: ID
   id: ID!
   language: Locale!
   quotePolicy: QuotePolicy
+
+  """
+  The `ArticleDraft.revision` being published. When provided, a stale value returns `ArticleDraftConflictError` so a concurrent edit is not lost. Omit it to publish whatever is currently stored; this is a transition escape hatch for clients built before revision-based conflict checks and will be required in a later release.
+  """
+  revision: Int
   slug: String!
 }
 
@@ -4910,7 +5007,7 @@ type PublishArticleDraftPayload {
   deletedDraftId: ID!
 }
 
-union PublishArticleDraftResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | PublishArticleDraftPayload
+union PublishArticleDraftResult = ActorSuspendedError | ArticleDraftConflictError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | PublishArticleDraftPayload
 
 """
 Controls how much post content may be included in push notification payloads. Payloads can be displayed on a lock screen and pass through third-party push services.
@@ -5019,7 +5116,7 @@ type Query {
   ): Article
 
   """
-  Look up an article draft by its global `id` or its `uuid`. Requires authentication; only returns drafts owned by the authenticated viewer.
+  Look up an article draft by its global `id` or its `uuid`. Requires authentication; returns the draft only when the viewer owns it or is an accepted member of its owning organization. Returns `null` for missing and inaccessible drafts alike, so it never leaks the existence of another workspace's draft.
   """
   articleDraft(id: ID, uuid: UUID): ArticleDraft
   availableLocales: [Locale!]!
@@ -6380,12 +6477,21 @@ type Sanction {
 }
 
 """
-Create or update an article draft. Omit `id` to create a new draft. Requires authentication.
+Create or update an article draft. Omit `id` and `uuid` to create a new draft (a UUID is generated). Pass `actingAccountId` to create it in an organization workspace you can post for; it defaults to your personal account, and once created the owning workspace can only be changed with `moveArticleDraftToOrganization`. Pass the draft's `revision` on an update so a concurrent edit returns `ArticleDraftConflictError` instead of being overwritten; omitting it writes unconditionally, a transition escape hatch for clients built before revision-based checks. Requires authentication.
 """
 input SaveArticleDraftInput {
+  """
+  Workspace `Account` to create the draft in: your personal account or an organization you can post for. Only used when creating; when updating it must match the stored owner.
+  """
+  actingAccountId: ID
   clientMutationId: ID
   content: Markdown!
   id: ID
+
+  """
+  The `ArticleDraft.revision` the client is editing from. With `id`, a matching revision updates the draft and a stale one returns `ArticleDraftConflictError`; omitting it writes unconditionally. With `uuid` and a revision the call updates an existing draft and fails if it is missing. With `uuid` and no revision the call creates the draft or updates it if it already exists (the pre-upgrade composer's path). Supplying `revision` without an identifier is invalid.
+  """
+  revision: Int
   tags: [String!]!
   title: String!
 
@@ -6398,7 +6504,7 @@ type SaveArticleDraftPayload {
   draft: ArticleDraft!
 }
 
-union SaveArticleDraftResult = InvalidInputError | NotAuthenticatedError | SaveArticleDraftPayload
+union SaveArticleDraftResult = ArticleDraftConflictError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | SaveArticleDraftPayload
 
 union SearchObjectResult = EmptySearchQueryError | SearchedObject
 

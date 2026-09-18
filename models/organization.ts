@@ -1022,6 +1022,32 @@ export const acceptOrganizationConversion = transactional(
   acceptOrganizationConversionOperation,
 );
 
+/**
+ * Whether the viewer is allowed to act as the given account: the account
+ * itself (only for personal accounts, matching `resolveActingAccount`) or an
+ * organization the viewer has been accepted into. Pending invitations
+ * (`accepted IS NULL`) never grant access, and membership is re-read from the
+ * database on every call, so a removed member loses access immediately.
+ */
+export async function canAccountActAs(
+  db: Database | Transaction,
+  viewer: Pick<Account, "id" | "kind">,
+  actingAccountId: Uuid,
+): Promise<boolean> {
+  if (viewer.id === actingAccountId) return viewer.kind === "personal";
+  const account = await db.query.accountTable.findFirst({
+    where: { id: actingAccountId },
+    columns: { kind: true },
+  });
+  if (account?.kind !== "organization") return false;
+  const membership = await getAcceptedMembership(
+    db,
+    actingAccountId,
+    viewer.id,
+  );
+  return membership != null;
+}
+
 export async function resolveActingAccount(
   db: Database | Transaction,
   viewer: AccountWithActor,
@@ -1051,6 +1077,7 @@ export async function recordOrganizationPostAuthor(
   postId: Uuid,
   organizationAccountId: Uuid,
   memberAccountId: Uuid,
+  publisherAccountId: Uuid | null,
   attributionMode: "acting_account_only" | "acting_account_with_viewer",
 ): Promise<void> {
   const membership = await getAcceptedMembership(
@@ -1065,6 +1092,7 @@ export async function recordOrganizationPostAuthor(
       postId,
       organizationAccountId,
       memberAccountId,
+      publisherId: publisherAccountId,
       attributionMode,
     })
     .onConflictDoUpdate({
@@ -1072,6 +1100,7 @@ export async function recordOrganizationPostAuthor(
       set: {
         organizationAccountId,
         memberAccountId,
+        publisherId: publisherAccountId,
         attributionMode,
       },
     });

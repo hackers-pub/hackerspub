@@ -11,6 +11,11 @@ import {
 } from "solid-relay";
 import IconFilePlus2 from "~icons/lucide/file-plus-2";
 import IconTrash2 from "~icons/lucide/trash-2";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
@@ -35,10 +40,26 @@ import {
 const DRAFTS_PAGE_SIZE = 50 as const;
 
 const DraftsQuery = graphql`
-  query draftsQuery($first: Int, $after: String) {
+  query draftsQuery($username: String!, $first: Int, $after: String) {
     viewer {
       id
       username
+      name
+      avatarUrl
+      organizationMemberships {
+        organization {
+          id
+          username
+          name
+          avatarUrl
+        }
+      }
+    }
+    accountByUsername(username: $username) {
+      id
+      username
+      kind
+      viewerCanActAs
       ...draftsPaginationFragment @arguments(first: $first, after: $after)
     }
   }
@@ -61,6 +82,7 @@ const DraftsPaginationFragment = graphql`
           title
           tags
           updated
+          revision
         }
       }
       pageInfo {
@@ -83,6 +105,9 @@ const DeleteDraftMutation = graphql`
       ... on InvalidInputError {
         inputPath
       }
+      ... on ArticleDraftConflictError {
+        currentRevision
+      }
       ... on NotAuthenticatedError {
         notAuthenticated
       }
@@ -91,8 +116,13 @@ const DeleteDraftMutation = graphql`
 `;
 
 const loadDraftsQuery = routePreloadedQuery(
-  (first: number = DRAFTS_PAGE_SIZE, after: string | null = null) =>
+  (
+    username: string,
+    first: number = DRAFTS_PAGE_SIZE,
+    after: string | null = null,
+  ) =>
     loadQuery<draftsQuery>(useRelayEnvironment()(), DraftsQuery, {
+      username,
       first,
       after,
     }),
@@ -103,13 +133,15 @@ export default function ArticleDraftsListPage() {
   const { t, i18n } = useLingui();
   const params = useParams();
 
+  const routeUsername = () => decodeRouteParam(params.handle!).substring(1);
+
   const data = createStablePreloadedQuery<draftsQuery>(DraftsQuery, () =>
-    loadDraftsQuery(),
+    loadDraftsQuery(routeUsername()),
   );
 
   const draftData = createPaginationFragment(
     DraftsPaginationFragment,
-    () => data()?.viewer as draftsPaginationFragment$key,
+    () => data()?.accountByUsername as draftsPaginationFragment$key,
   );
   const draftEdges = () =>
     draftData()?.articleDrafts?.edges?.filter((edge) => edge?.node != null) ??
@@ -135,23 +167,33 @@ export default function ArticleDraftsListPage() {
   const [deleteDraft, isDeleting] =
     createMutation<draftsDeleteMutation>(DeleteDraftMutation);
   const draftConnections = () => {
+    const ownerId = data()?.accountByUsername?.id;
     const viewerId = data()?.viewer?.id;
-    if (viewerId == null) return [];
+    if (ownerId == null) return [];
 
-    return [
-      ConnectionHandler.getConnectionID(
-        viewerId,
-        "SignedAccount_articleDrafts",
-      ),
+    const connections: (string | null | undefined)[] = [
       draftData()?.articleDrafts?.__id,
-      ConnectionHandler.getConnectionID(
-        viewerId,
-        "FloatingComposeButton_articleDrafts",
-      ),
-    ].filter((id): id is string => id != null);
+    ];
+    if (viewerId != null && ownerId === viewerId) {
+      connections.push(
+        ConnectionHandler.getConnectionID(
+          viewerId,
+          "SignedAccount_articleDrafts",
+        ),
+        ConnectionHandler.getConnectionID(
+          viewerId,
+          "FloatingComposeButton_articleDrafts",
+        ),
+      );
+    }
+    return connections.filter((id): id is string => id != null);
   };
 
-  const handleDelete = (draftId: string, draftTitle: string) => {
+  const handleDelete = (
+    draftId: string,
+    draftTitle: string,
+    revision: number,
+  ) => {
     if (
       !confirm(
         t`Are you sure you want to delete "${draftTitle}"? This action cannot be undone.`,
@@ -164,6 +206,7 @@ export default function ArticleDraftsListPage() {
       variables: {
         input: {
           id: draftId,
+          revision,
         },
         connections: draftConnections(),
       },
@@ -182,6 +225,14 @@ export default function ArticleDraftsListPage() {
           showToast({
             title: t`Error`,
             description: t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.deleteArticleDraft.__typename === "ArticleDraftConflictError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`This draft was changed by someone else. Reload the list before deleting it.`,
             variant: "error",
           });
         } else if (
@@ -206,10 +257,7 @@ export default function ArticleDraftsListPage() {
 
   return (
     <Show
-      when={
-        data()?.viewer?.username ===
-        decodeRouteParam(params.handle!).substring(1)
-      }
+      when={data()?.accountByUsername?.viewerCanActAs === true}
       fallback={
         <WideContainer class="px-4 py-6 sm:px-6 lg:py-8">
           <HttpStatusCode code={403} />
@@ -219,7 +267,7 @@ export default function ArticleDraftsListPage() {
               <UICardTitle>{t`Permission denied`}</UICardTitle>
               <CardDescription>
                 {data()?.viewer
-                  ? t`You can only view your own drafts`
+                  ? t`You can only view drafts for your own account or an organization you can post for`
                   : t`Please sign in to access this page`}
               </CardDescription>
             </CardHeader>
@@ -247,6 +295,11 @@ export default function ArticleDraftsListPage() {
               <h1 class="text-2xl font-semibold tracking-tight">
                 {t`Article drafts`}
               </h1>
+              <p class="mt-1 text-sm text-muted-foreground">
+                {data()?.accountByUsername?.username
+                  ? t`Drafts owned by @${data()!.accountByUsername!.username}`
+                  : ""}
+              </p>
             </div>
             <A href={`/@${params.handle!.substring(1)}/drafts/new`}>
               <Button class="gap-2">
@@ -255,6 +308,69 @@ export default function ArticleDraftsListPage() {
               </Button>
             </A>
           </div>
+
+          <Show
+            when={(data()?.viewer?.organizationMemberships?.length ?? 0) > 0}
+          >
+            <div class="mb-4 flex flex-wrap gap-2">
+              <A href={`/@${data()!.viewer!.username}/drafts`}>
+                <Button
+                  variant={
+                    routeUsername() === data()!.viewer!.username
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                  class="gap-2"
+                >
+                  <Avatar class="size-4 shrink-0">
+                    <AvatarImage
+                      src={data()!.viewer!.avatarUrl ?? undefined}
+                      alt=""
+                    />
+                    <AvatarFallback class="text-[0.625rem] font-medium">
+                      {(data()!.viewer!.name || data()!.viewer!.username)
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {data()!.viewer!.name || data()!.viewer!.username}
+                </Button>
+              </A>
+              <For each={data()!.viewer!.organizationMemberships}>
+                {(membership) => (
+                  <A href={`/@${membership.organization.username}/drafts`}>
+                    <Button
+                      variant={
+                        routeUsername() === membership.organization.username
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                      class="gap-2"
+                    >
+                      <Avatar class="size-4 shrink-0">
+                        <AvatarImage
+                          src={membership.organization.avatarUrl ?? undefined}
+                          alt=""
+                        />
+                        <AvatarFallback class="text-[0.625rem] font-medium">
+                          {(
+                            membership.organization.name ||
+                            membership.organization.username
+                          )
+                            .charAt(0)
+                            .toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {membership.organization.name ||
+                        membership.organization.username}
+                    </Button>
+                  </A>
+                )}
+              </For>
+            </div>
+          </Show>
 
           <Show
             when={draftEdges().length > 0}
@@ -308,7 +424,11 @@ export default function ArticleDraftsListPage() {
                           class="gap-2"
                           onClick={(e) => {
                             e.preventDefault();
-                            handleDelete(edge.node.id, edge.node.title);
+                            handleDelete(
+                              edge.node.id,
+                              edge.node.title,
+                              edge.node.revision,
+                            );
                           }}
                           disabled={isDeleting()}
                         >

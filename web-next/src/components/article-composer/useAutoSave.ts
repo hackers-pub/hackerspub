@@ -17,6 +17,12 @@ export interface UseAutoSaveOptions {
   save: (silent?: boolean) => void;
   isSaving: Accessor<boolean>;
   isPublishing: Accessor<boolean>;
+  /**
+   * When this returns `true`, autosave is suspended. Used while a draft is
+   * unavailable or has an unresolved save conflict, so autosave cannot turn a
+   * conflict into a sequence of overwrites.
+   */
+  saveBlocked?: Accessor<boolean>;
 }
 
 export interface UseAutoSaveReturn {
@@ -41,7 +47,12 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
   // Debounced auto-save (1.5 second interval)
   const debouncedAutoSave = debounce(() => {
     untrack(() => {
-      if (!options.isSaving() && options.title().trim() && isDirty()) {
+      if (
+        !options.isSaving() &&
+        !(options.saveBlocked?.() ?? false) &&
+        options.title().trim() &&
+        isDirty()
+      ) {
         options.save(true);
       }
     });
@@ -49,6 +60,10 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
 
   // Auto-save effect
   createEffect(() => {
+    if (options.saveBlocked?.() ?? false) {
+      debouncedAutoSave.cancel();
+      return;
+    }
     if (isDirty() && !options.isPublishing()) {
       debouncedAutoSave();
     }
