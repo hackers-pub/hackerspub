@@ -345,7 +345,7 @@ export function ArticleTranslationManager(
         <div class="flex flex-col gap-2">
           <LanguageSelect
             class="w-full"
-            value={newLanguage()}
+            value={newLanguage() ?? null}
             onChange={setNewLanguage}
             exclude={unavailableLanguages()}
           />
