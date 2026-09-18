@@ -3,23 +3,34 @@ import { assertNever } from "@std/assert/unstable-never";
 import { eq } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import {
+  type ArticleAdditionalContent,
   createArticle,
   deleteArticleDraft,
   getAccessibleArticleDraft,
   getOriginalArticleContent,
   LanguageChangeWithTranslationsError,
   moveArticleDraftToOrganization,
+  promoteArticleTranslationDrafts,
+  publishArticleTranslation,
   saveArticleDraft,
   startArticleContentTranslation,
   updateArticle,
 } from "@hackerspub/models/article";
+import { getDraftRevision } from "@hackerspub/models/article-revision";
+import {
+  deleteArticleTranslationDraft,
+  saveArticleTranslationDraft,
+} from "@hackerspub/models/article-translation";
 import {
   arePostsBookmarkedBy,
   createBookmark,
   deleteBookmark,
 } from "@hackerspub/models/bookmark";
 import { isReactionEmoji, type ReactionEmoji } from "@hackerspub/models/emoji";
-import { normalizeLocale } from "@hackerspub/models/i18n";
+import {
+  normalizeContentLanguage,
+  normalizeLocale,
+} from "@hackerspub/models/i18n";
 import {
   createMediumFromBytes,
   createMediumFromUrl,
@@ -106,7 +117,13 @@ import {
   SharedPostDeletionNotAllowedError,
 } from "./core.ts";
 import { Note, Question } from "./note.ts";
-import { Article, ArticleDraft, ArticleDraftConflictError } from "./article.ts";
+import {
+  Article,
+  ArticleDraft,
+  ArticleDraftConflictError,
+  ArticleTranslationDraft,
+  ArticleTranslationProvenance,
+} from "./article.ts";
 
 export {
   hidePostRelationWithoutActor,
@@ -901,6 +918,16 @@ builder.relayMutationField(
       }),
       title: t.string({ required: true }),
       content: t.field({ type: "Markdown", required: true }),
+      language: t.field({
+        type: "Locale",
+        required: false,
+        description:
+          "Original language of the draft. Record it early so translation " +
+          "drafts can be added before publication; once translations exist " +
+          "the language can no longer be changed. Omit it to leave the stored " +
+          "language unchanged (a legacy draft keeps `null` until a save sets " +
+          "it). It must be one of the supported content locales.",
+      }),
       tags: t.stringList({ required: true }),
       revision: t.int({
         required: false,
@@ -932,8 +959,16 @@ builder.relayMutationField(
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
-      const { id, uuid, actingAccountId, title, content, tags, revision } =
-        args.input;
+      const {
+        id,
+        uuid,
+        actingAccountId,
+        title,
+        content,
+        language,
+        tags,
+        revision,
+      } = args.input;
       if (actingAccountId != null) {
         if (
           actingAccountId.typename != null &&
@@ -951,6 +986,7 @@ builder.relayMutationField(
         actingAccountId: actingAccountId?.id,
         title,
         content,
+        language: language?.baseName ?? null,
         tags,
         revision,
       });
@@ -1283,6 +1319,21 @@ builder.relayMutationField(
   },
 );
 
+const PublishArticleTranslationSelection = builder.inputType(
+  "PublishArticleTranslationSelection",
+  {
+    description:
+      "One private translation draft selected for initial publication. The " +
+      "`revision` is checked inside the publication transaction so a " +
+      "translation another member saved after the checklist loaded makes the " +
+      "whole publication fail instead of publishing unreviewed text.",
+    fields: (t) => ({
+      id: t.field({ type: "UUID", required: true }),
+      revision: t.int({ required: true }),
+    }),
+  },
+);
+
 builder.relayMutationField(
   "publishArticleDraft",
   {
@@ -1302,6 +1353,16 @@ builder.relayMutationField(
       language: t.field({ type: "Locale", required: true }),
       allowLlmTranslation: t.boolean({ required: false }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
+      translations: t.field({
+        type: [PublishArticleTranslationSelection],
+        required: false,
+        description:
+          "Private translation drafts to publish together with the original, " +
+          "each with the exact revision the publisher reviewed. Unlisted " +
+          "translation drafts stay private under the published article. Any " +
+          "stale revision, foreign draft, empty translation, or duplicate " +
+          "language aborts the whole publication without partial writes.",
+      }),
       revision: t.int({
         required: false,
         description:
@@ -1389,6 +1450,11 @@ builder.relayMutationField(
         }
       }
       const attributionAccountId = args.input.attributionAccountId?.id ?? null;
+      // Canonicalize the publication language with the same policy translation
+      // drafts use, so a `zh-Hans` publication is recognized as the same
+      // language as a `zh-CN` draft and cannot produce a same-language pair.
+      const publicationLanguage =
+        normalizeContentLanguage(language.baseName) ?? language.baseName;
 
       type PublishOutcome =
         | { kind: "error"; inputPath: string }
@@ -1420,6 +1486,49 @@ builder.relayMutationField(
           }
           if (revision != null && revision !== draft.revision) {
             return { kind: "conflict", currentRevision: draft.revision };
+          }
+          // Validate every selected translation before any write. A stale
+          // revision, a foreign draft, an empty translation, or a duplicate or
+          // original language aborts the whole publication so no partial
+          // subset can escape.
+          const selectedTranslationDrafts: schema.ArticleTranslationDraft[] =
+            [];
+          const seenLanguages = new Set<string>();
+          for (const selection of args.input.translations ?? []) {
+            const translationDraft =
+              await context.db.query.articleTranslationDraftTable.findFirst({
+                where: { id: selection.id },
+              });
+            if (
+              translationDraft == null ||
+              translationDraft.articleDraftId !== draft.id ||
+              translationDraft.revision !== selection.revision ||
+              translationDraft.language === publicationLanguage ||
+              translationDraft.title.trim() === "" ||
+              translationDraft.content.trim() === "" ||
+              seenLanguages.has(translationDraft.language)
+            ) {
+              return { kind: "error", inputPath: "translations" };
+            }
+            seenLanguages.add(translationDraft.language);
+            selectedTranslationDrafts.push(translationDraft);
+          }
+          // The original language must not collide with any surviving
+          // translation draft, selected or not: promotion keeps unselected
+          // drafts under the published article, and a same-language draft
+          // could never be published afterwards.
+          const draftLanguages =
+            await context.db.query.articleTranslationDraftTable.findMany({
+              where: { articleDraftId: draft.id },
+              columns: { language: true },
+            });
+          if (
+            draftLanguages.some(
+              (translationDraft) =>
+                translationDraft.language === publicationLanguage,
+            )
+          ) {
+            return { kind: "error", inputPath: "language" };
           }
           // The draft's owner is the publishing account by default. The
           // deprecated `actingAccountId` keeps the pre-revision flow: a
@@ -1513,12 +1622,60 @@ builder.relayMutationField(
           const media = await context.db.query.articleDraftMediumTable.findMany(
             { where: { articleDraftId: draft.id } },
           );
+          const additionalContents: ArticleAdditionalContent[] = [];
+          for (const translationDraft of selectedTranslationDrafts) {
+            const translationMedia =
+              await context.db.query.articleTranslationDraftMediumTable.findMany(
+                {
+                  where: {
+                    articleTranslationDraftId: translationDraft.id,
+                  },
+                },
+              );
+            additionalContents.push({
+              language: translationDraft.language,
+              title: translationDraft.title,
+              content: translationDraft.content,
+              originalLanguage: publicationLanguage,
+              translatorId: translationDraft.translatorId,
+              provenance:
+                translationDraft.provenance === "llm"
+                  ? "llm_reviewed"
+                  : translationDraft.provenance === "unknown"
+                    ? "unknown"
+                    : "human",
+              sourceRevisionId: translationDraft.sourceRevisionId,
+              // Include the parent draft's attachments too: a translation may
+              // reference an original image that the original body no longer
+              // does, and the parent draft is deleted at publication.
+              media: [
+                ...translationMedia.map((m) => ({
+                  key: m.key,
+                  mediumId: m.mediumId,
+                })),
+                ...media.map((m) => ({ key: m.key, mediumId: m.mediumId })),
+              ],
+            });
+          }
           const resolved: ResolvedPostActingAccount = {
             account: workspace,
             memberAccountId,
             publisherAccountId: publisher.id,
             attributionMode,
           };
+          // Reuse the draft's current snapshot as the published original's
+          // revision only when it actually matches the published title, body
+          // and language, so a translation baselined on it is not immediately
+          // considered stale (and a language change at publish time records a
+          // fresh snapshot under the right language).
+          const draftRevision = await getDraftRevision(context.db, draft.id);
+          const reusableRevision =
+            draftRevision != null &&
+            draftRevision.language === publicationLanguage &&
+            draftRevision.title === draft.title &&
+            draftRevision.content === draft.content
+              ? draftRevision.id
+              : undefined;
           const created = await createArticle(
             context,
             {
@@ -1531,8 +1688,10 @@ builder.relayMutationField(
                 quotePolicy == null ? "everyone" : fromQuotePolicy(quotePolicy),
               title: draft.title,
               content: draft.content,
-              language: language.baseName,
+              language: publicationLanguage,
               media,
+              additionalContents,
+              originalRevisionId: reusableRevision,
             },
             {
               afterPostCreated: (post, db) =>
@@ -1540,6 +1699,18 @@ builder.relayMutationField(
             },
           );
           if (created == null) return { kind: "failed" };
+          // Re-point every translation draft and revision (selected or not) to
+          // the new source before deleting the original draft, so unselected
+          // drafts survive and keep their UUIDs, revisions, and media.
+          await promoteArticleTranslationDrafts(
+            context.db,
+            draft.id,
+            created.articleSource.id,
+            selectedTranslationDrafts.map((translationDraft) => ({
+              id: translationDraft.id,
+              revision: translationDraft.revision,
+            })),
+          );
           await context.db
             .delete(articleDraftTable)
             .where(eq(articleDraftTable.id, draft.id));
@@ -1588,6 +1759,217 @@ builder.relayMutationField(
 
 builder.drizzleObjectField(Reaction, "post", (t) =>
   t.relation("post", { type: Post }),
+);
+
+builder.relayMutationField(
+  "saveArticleTranslationDraft",
+  {
+    description:
+      "Create or update a private translation draft attached to an article " +
+      "draft (`articleDraftId`) or a published article (`sourceId`). Omit the " +
+      "identifier to create one for a language; if that language already has a " +
+      "draft, the existing draft is returned unchanged instead of creating a " +
+      "duplicate. The credited translator defaults to the original's author " +
+      "(personal) or the authenticated individual (organization) and is not " +
+      "changed by an editor's save. Pass `revision` on update to reject a " +
+      "concurrent edit with `ArticleDraftConflictError`. Requires " +
+      "authentication.",
+    inputFields: (t) => ({
+      id: t.field({ type: "UUID", required: false }),
+      uuid: t.field({ type: "UUID", required: false }),
+      articleDraftId: t.field({ type: "UUID", required: false }),
+      sourceId: t.field({ type: "UUID", required: false }),
+      language: t.field({ type: "Locale", required: true }),
+      title: t.field({ type: "String", required: true }),
+      content: t.field({ type: "Markdown", required: true }),
+      translatorId: t.field({ type: "UUID", required: false }),
+      provenance: t.field({
+        type: ArticleTranslationProvenance,
+        required: false,
+        description:
+          "Where the starting text came from. Fixed at creation; omitting it " +
+          "defaults to `HUMAN`. `LLM` is accepted only when the language " +
+          "already has a completed automatic or AI-reviewed version to seed " +
+          "from.",
+      }),
+      revision: t.int({ required: false }),
+    }),
+  },
+  {
+    description:
+      "Create or update a private translation draft, returning it and the " +
+      "existing draft for its language when one is already present. Requires " +
+      "authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const result = await saveArticleTranslationDraft(ctx.db, ctx.account, {
+        id: args.input.id,
+        uuid: args.input.uuid,
+        articleDraftId: args.input.articleDraftId,
+        sourceId: args.input.sourceId,
+        language: args.input.language.baseName,
+        title: args.input.title,
+        content: args.input.content,
+        translatorId: args.input.translatorId ?? undefined,
+        provenance: args.input.provenance ?? undefined,
+        revision: args.input.revision,
+      });
+      switch (result.status) {
+        case "ok":
+          return result.draft;
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      draft: t.field({
+        type: ArticleTranslationDraft,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "deleteArticleTranslationDraft",
+  {
+    description:
+      "Delete a private translation draft. This never removes an already " +
+      "published translation: the public version stays until it is explicitly " +
+      "replaced or withdrawn. Requires authentication.",
+    inputFields: (t) => ({
+      id: t.field({ type: "UUID", required: true }),
+      revision: t.int({ required: false }),
+    }),
+  },
+  {
+    description:
+      "Delete a private translation draft without touching any published " +
+      "version. Requires authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const result = await deleteArticleTranslationDraft(ctx.db, ctx.account, {
+        id: args.input.id,
+        revision: args.input.revision,
+      });
+      switch (result.status) {
+        case "ok":
+          return { deletedDraftId: result.draftId };
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError("id");
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      deletedDraftId: t.field({
+        type: "UUID",
+        resolve(result) {
+          return result.deletedDraftId;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "publishArticleTranslation",
+  {
+    description:
+      "Publish one private translation draft into an already-published " +
+      "article's public content, replacing the language version that readers " +
+      "currently see. The stored revision is checked so a concurrent edit " +
+      "returns `ArticleDraftConflictError`. The credited translator, " +
+      "provenance and reviewed baseline come from the draft; the original " +
+      "post's title, body and summary are untouched. Requires authentication.",
+    inputFields: (t) => ({
+      id: t.field({ type: "UUID", required: true }),
+      revision: t.int({
+        required: true,
+        description: "The `ArticleTranslationDraft.revision` being published.",
+      }),
+    }),
+  },
+  {
+    description:
+      "Publish a private translation draft to the article's public content " +
+      "and send an ActivityPub `Update`. Requires authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        ActorSuspendedError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const result = await publishArticleTranslation(ctx.fedCtx, ctx.account, {
+        translationDraftId: args.input.id,
+        revision: args.input.revision,
+      });
+      switch (result.status) {
+        case "ok": {
+          const post = await ctx.db.query.postTable.findFirst({
+            where: { articleSourceId: result.sourceId },
+          });
+          if (post == null) throw new InvalidInputError("id");
+          return { article: post, language: result.language };
+        }
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      article: t.field({
+        type: Article,
+        resolve(result) {
+          return result.article;
+        },
+      }),
+      language: t.field({
+        type: "Locale",
+        resolve(result) {
+          return result.language;
+        },
+      }),
+    }),
+  },
 );
 
 builder.relayMutationField(

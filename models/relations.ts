@@ -15,6 +15,9 @@ export const relations = defineRelations(schema, (r) => ({
     articleDrafts: r.many.articleDraftTable({ alias: "owner" }),
     createdArticleDrafts: r.many.articleDraftTable({ alias: "creator" }),
     articleSources: r.many.articleSourceTable(),
+    articleTranslationDrafts: r.many.articleTranslationDraftTable({
+      alias: "translator",
+    }),
     inviter: r.one.accountTable({
       from: r.accountTable.inviterId,
       to: r.accountTable.id,
@@ -239,6 +242,8 @@ export const relations = defineRelations(schema, (r) => ({
       optional: true,
     }),
     media: r.many.articleDraftMediumTable(),
+    revisions: r.many.articleSourceRevisionTable(),
+    translationDrafts: r.many.articleTranslationDraftTable(),
   },
   articleSourceTable: {
     account: r.one.accountTable({
@@ -253,6 +258,8 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     contents: r.many.articleContentTable(),
     media: r.many.articleSourceMediumTable(),
+    revisions: r.many.articleSourceRevisionTable(),
+    translationDrafts: r.many.articleTranslationDraftTable(),
     viewDeduplications: r.many.articleViewDeduplicationTable(),
     dailyViews: r.many.articleViewDailyTable(),
     dailyLanguageViews: r.many.articleViewLanguageDailyTable(),
@@ -288,6 +295,48 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.accountTable.id,
       optional: true,
     }),
+    sourceRevision: r.one.articleSourceRevisionTable({
+      from: r.articleContentTable.sourceRevisionId,
+      to: r.articleSourceRevisionTable.id,
+      optional: true,
+    }),
+  },
+  articleSourceRevisionTable: {
+    articleDraft: r.one.articleDraftTable({
+      from: r.articleSourceRevisionTable.articleDraftId,
+      to: r.articleDraftTable.id,
+      optional: true,
+    }),
+    source: r.one.articleSourceTable({
+      from: r.articleSourceRevisionTable.sourceId,
+      to: r.articleSourceTable.id,
+      optional: true,
+    }),
+    contents: r.many.articleContentTable(),
+  },
+  articleTranslationDraftTable: {
+    articleDraft: r.one.articleDraftTable({
+      from: r.articleTranslationDraftTable.articleDraftId,
+      to: r.articleDraftTable.id,
+      optional: true,
+    }),
+    source: r.one.articleSourceTable({
+      from: r.articleTranslationDraftTable.sourceId,
+      to: r.articleSourceTable.id,
+      optional: true,
+    }),
+    translator: r.one.accountTable({
+      alias: "translator",
+      from: r.articleTranslationDraftTable.translatorId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
+    sourceRevision: r.one.articleSourceRevisionTable({
+      from: r.articleTranslationDraftTable.sourceRevisionId,
+      to: r.articleSourceRevisionTable.id,
+      optional: true,
+    }),
+    media: r.many.articleTranslationDraftMediumTable(),
   },
   articleViewDeduplicationTable: {
     articleSource: r.one.articleSourceTable({
@@ -648,6 +697,18 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     medium: r.one.mediumTable({
       from: r.articleDraftMediumTable.mediumId,
+      to: r.mediumTable.id,
+      optional: false,
+    }),
+  },
+  articleTranslationDraftMediumTable: {
+    translationDraft: r.one.articleTranslationDraftTable({
+      from: r.articleTranslationDraftMediumTable.articleTranslationDraftId,
+      to: r.articleTranslationDraftTable.id,
+      optional: false,
+    }),
+    medium: r.one.mediumTable({
+      from: r.articleTranslationDraftMediumTable.mediumId,
       to: r.mediumTable.id,
       optional: false,
     }),

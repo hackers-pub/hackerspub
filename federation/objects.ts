@@ -217,14 +217,24 @@ export async function getArticle(
     }),
   );
   const hashtags = contents.flatMap((c) => c.hashtags);
-  contents.sort((a, b) => a.published.valueOf() - b.published.valueOf());
+  contents.sort(
+    (a, b) =>
+      a.published.valueOf() - b.published.valueOf() ||
+      a.language.localeCompare(b.language),
+  );
+  // The original-language version is selected explicitly by its marker rather
+  // than by publication order: atomic first publication gives every language
+  // the same timestamp, and a translation must never become the fallback body.
+  const original =
+    contents.find((c) => c.originalLanguage == null) ?? contents[0];
   let content: string | null = null;
   if (contents.length > 1) {
     content = "<nav><ul>";
-    const displayNames = new Intl.DisplayNames(contents[0].language, {
+    const displayNames = new Intl.DisplayNames(original.language, {
       type: "language",
     });
-    for (const c of contents.slice(1)) {
+    for (const c of contents) {
+      if (c === original) continue;
       const nativeLangName =
         new Intl.DisplayNames(c.language, { type: "language" }).of(
           c.language,
@@ -236,9 +246,9 @@ export async function getArticle(
         encodeURIComponent(c.language),
       )}">${escape(c.title)}</a></li>\n`;
     }
-    content += `</ul></nav>\n<hr>\n${contents[0].html}`;
+    content += `</ul></nav>\n<hr>\n${original.html}`;
   } else if (contents.length > 0) {
-    content = contents[0].html;
+    content = original.html;
   }
   return new vocab.Article({
     id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
@@ -251,7 +261,7 @@ export async function getArticle(
       articleSource.quotePolicy,
     ),
     names: [
-      ...(contents.length > 0 ? [contents[0].title] : []),
+      ...(contents.length > 0 ? [original.title] : []),
       ...contents.map((c) => new LanguageString(c.title, c.language)),
     ],
     contents: [
@@ -261,7 +271,7 @@ export async function getArticle(
     source:
       contents.length > 0
         ? new vocab.Source({
-            content: contents[0].content,
+            content: original.content,
             mediaType: "text/markdown",
           })
         : null,

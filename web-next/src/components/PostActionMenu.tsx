@@ -119,6 +119,7 @@ export interface PostActionMenuProps {
   repliesHref?: string | null;
   engagementBase?: string | null;
   analyticsHref?: string | null;
+  manageTranslationsHref?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -180,6 +181,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
       repliesHref={props.repliesHref}
       engagementBase={props.engagementBase}
       analyticsHref={props.analyticsHref}
+      manageTranslationsHref={props.manageTranslationsHref}
       onDeleted={props.onDeleted}
       onEdit={props.onEdit}
     />
@@ -193,6 +195,7 @@ interface PostActionMenuContentProps {
   repliesHref?: string | null;
   engagementBase?: string | null;
   analyticsHref?: string | null;
+  manageTranslationsHref?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -374,6 +377,13 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               <IconPencil class="size-4" />
               {t`Edit`}
             </DropdownMenuItem>
+          </Show>
+          <Show when={props.manageTranslationsHref != null}>
+            <PostActionMenuLink
+              href={props.manageTranslationsHref!}
+              label={t`Manage translations`}
+              navigate={navigate}
+            />
           </Show>
           <Show when={props.analyticsHref != null}>
             <PostActionMenuLink

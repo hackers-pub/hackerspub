@@ -250,6 +250,58 @@ export function normalizeLocale(value: string): Locale | undefined {
 }
 
 /**
+ * Canonicalizes a BCP 47 tag to the application's supported content-language
+ * policy for article content versions.
+ *
+ * This is the single canonicalizer used by draft save, translation creation,
+ * and publication. It shares {@link normalizeLocale}'s alias handling so that
+ * `zh-Hans`/`zh-Hant` are stored as the existing `zh-CN`/`zh-TW` route keys
+ * while Simplified and Traditional Chinese remain distinct. Unlike the
+ * interface locale negotiation, it accepts the full supported content-locale
+ * list rather than only the five interface locales.
+ *
+ * @param value The locale tag submitted by a client.
+ * @returns The canonical content-language key, or `undefined` when the tag is
+ *          not one of the supported content locales.
+ */
+/**
+ * Canonical BCP 47 form to supported content-language key, for the supported
+ * keys whose tag `Intl.Locale` canonicalizes to a different (unsupported) tag.
+ * The GraphQL `Locale` scalar round-trips through `Intl.Locale`, so a selected
+ * supported key such as `tl` or `bh` can arrive as `fil` or `bho`.
+ *
+ * A canonical form that is itself a supported key (`tw` -> `ak`) is left out:
+ * the direct lookup in {@link normalizeContentLanguage} already resolves it.
+ */
+const canonicalContentLanguageAliases: ReadonlyMap<string, string> = new Map(
+  (() => {
+    const supported = new Set<string>(POSSIBLE_LOCALES);
+    const aliases: (readonly [string, string])[] = [];
+    for (const code of POSSIBLE_LOCALES) {
+      try {
+        const baseName = new Intl.Locale(code).baseName;
+        if (baseName !== code && !supported.has(baseName)) {
+          aliases.push([baseName, code]);
+        }
+      } catch {
+        // Ignore tags `Intl.Locale` cannot parse.
+      }
+    }
+    return aliases;
+  })(),
+);
+
+export function normalizeContentLanguage(value: string): string | undefined {
+  const direct = normalizeLocale(value);
+  if (direct != null) return direct;
+  try {
+    return canonicalContentLanguageAliases.get(new Intl.Locale(value).baseName);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Finds the nearest locale from a list of available locales.
  *
  * @example

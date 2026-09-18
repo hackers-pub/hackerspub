@@ -1,6 +1,6 @@
 import IconLoader2 from "~icons/lucide/loader-2";
 import { createSignal, For, Show } from "solid-js";
-import { useNavigate } from "@solidjs/router";
+import { useNavigate, useParams } from "@solidjs/router";
 import { Button } from "~/components/ui/button.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
@@ -39,6 +39,7 @@ export function ArticleComposerWriteStep() {
   const { t } = useLingui();
   const ctx = useArticleComposer();
   const navigate = useNavigate();
+  const params = useParams();
 
   const handleImageUpload = async (file: File): Promise<{ url: string }> => {
     try {
@@ -95,9 +96,31 @@ export function ArticleComposerWriteStep() {
 
       <ComposerActionBar
         start={
-          <Button type="button" variant="ghost" onClick={() => navigate("..")}>
-            {t`Back`}
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate("..")}
+            >
+              {t`Back`}
+            </Button>
+            <Show when={ctx.draft()?.id}>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={ctx.isSaving() || ctx.saveStatus() !== "idle"}
+                onClick={() => {
+                  ctx.handleSave(undefined, undefined, () => {
+                    navigate(
+                      `/${params.handle}/drafts/${ctx.draftUuid}/translations`,
+                    );
+                  });
+                }}
+              >
+                {t`Manage translations`}
+              </Button>
+            </Show>
+          </>
         }
         end={
           <>

@@ -3,7 +3,6 @@ import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import {
   createEffect,
-  createMemo,
   createSignal,
   onCleanup,
   onMount,
@@ -29,6 +28,7 @@ import {
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
+import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { getViewportPopoverPosition } from "~/lib/popoverPosition.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
@@ -59,6 +59,8 @@ export interface PostEngagementBarProps {
   engagementBase?: string | null;
   /** Private analytics page for a source-backed local article. */
   analyticsHref?: string | null;
+  /** Translation management page for a source-backed local article. */
+  manageTranslationsHref?: string | null;
   connections?: string[];
   pinConnections?: string[];
   bookmarkListConnections?: string[];
@@ -171,26 +173,11 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     `,
     () => props.$post,
   );
-  const fragmentKey = () => {
-    const post = props.$post as
-      | {
-          readonly __id?: string;
-          readonly id?: string;
-        }
-      | null
-      | undefined;
-    return post?.id ?? post?.__id ?? null;
-  };
-  const stableNote = createMemo<{
-    key: string;
-    value: NonNullable<ReturnType<typeof liveNote>>;
-  } | null>((previous) => {
-    const value = liveNote();
-    const key = value?.id ?? value?.__id ?? fragmentKey();
-    if (value != null && key != null) return { key, value };
-    return previous?.key === key ? previous : null;
-  });
-  const note = () => stableNote()?.value ?? null;
+  // Hold the fragment's first-read value through hydration so a Relay
+  // republish cannot give the `<Show keyed when={note()}>` subtree a new
+  // value and remount it (which would mount its client-only Kobalte popovers
+  // before hydration finishes).  After mount the live value is tracked again.
+  const note = createHydrationStableMemo(() => liveNote() ?? null);
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
   const [focusEmojiPopover, setFocusEmojiPopover] = createSignal(false);
@@ -563,6 +550,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             repliesHref={props.repliesHref ?? null}
             engagementBase={props.engagementBase ?? null}
             analyticsHref={props.analyticsHref ?? null}
+            manageTranslationsHref={props.manageTranslationsHref ?? null}
             onDeleted={props.onDeleted}
             onEdit={props.onEdit}
           />
@@ -592,7 +580,7 @@ function ReplyControl(props: {
   // than just another action button, mirroring `CountAffordance`.
   const linkClasses = `${buttonClasses} hover:underline focus-visible:underline`;
 
-  const icon = (
+  const icon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
@@ -616,48 +604,61 @@ function ReplyControl(props: {
   // under the same rules as the post.  Only the legacy compose-fallback
   // branch (no repliesHref) honours `viewerCanReply`, because that branch
   // can only invoke the composer and has nowhere else to take the viewer.
-  return (
-    <Tooltip>
-      <TooltipTrigger as="span" class="inline-flex">
-        <Show
-          when={props.repliesHref}
-          fallback={
-            <button
-              type="button"
-              class={buttonClasses}
-              disabled={props.disabled}
-              aria-label={tooltip()}
-              onClick={() => {
-                const v = props.visibility;
-                const vis: PostVisibility =
-                  v === "PUBLIC" ||
-                  v === "UNLISTED" ||
-                  v === "FOLLOWERS" ||
-                  v === "DIRECT"
-                    ? v
-                    : "PUBLIC";
-                props.openWithReply(props.postId, vis);
-              }}
-            >
-              {icon}
-              <span class="text-xs">{props.replies}</span>
-            </button>
-          }
+  const control = () => (
+    <Show
+      when={props.repliesHref}
+      fallback={
+        <button
+          type="button"
+          class={buttonClasses}
+          disabled={props.disabled}
+          aria-label={tooltip()}
+          onClick={() => {
+            const v = props.visibility;
+            const vis: PostVisibility =
+              v === "PUBLIC" ||
+              v === "UNLISTED" ||
+              v === "FOLLOWERS" ||
+              v === "DIRECT"
+                ? v
+                : "PUBLIC";
+            props.openWithReply(props.postId, vis);
+          }}
         >
-          <A
-            href={props.repliesHref!}
-            class={linkClasses}
-            aria-label={props.viewLabel}
-          >
-            {icon}
-            <span class="text-xs">{props.replies}</span>
-          </A>
-        </Show>
-      </TooltipTrigger>
-      <TooltipContent>
-        {props.repliesHref ? props.viewLabel : tooltip()}
-      </TooltipContent>
-    </Tooltip>
+          {icon()}
+          <span class="text-xs">{props.replies}</span>
+        </button>
+      }
+    >
+      <A
+        href={props.repliesHref!}
+        class={linkClasses}
+        aria-label={props.viewLabel}
+      >
+        {icon()}
+        <span class="text-xs">{props.replies}</span>
+      </A>
+    </Show>
+  );
+
+  // The control itself is rendered identically on the server and during
+  // hydration; only the Kobalte tooltip wrapper (which cannot render on the
+  // server) is added after mount.  Gating the whole control on `mounted` made
+  // the server HTML omit the reply node, so a subtree remount during hydration
+  // produced "Unable to find DOM nodes for hydration key" on the reply icon.
+  const [mounted, setMounted] = createSignal(false);
+  onMount(() => setMounted(true));
+  return (
+    <Show when={mounted()} fallback={control()}>
+      <Tooltip>
+        <TooltipTrigger as="span" class="inline-flex">
+          {control()}
+        </TooltipTrigger>
+        <TooltipContent>
+          {props.repliesHref ? props.viewLabel : tooltip()}
+        </TooltipContent>
+      </Tooltip>
+    </Show>
   );
 }
 

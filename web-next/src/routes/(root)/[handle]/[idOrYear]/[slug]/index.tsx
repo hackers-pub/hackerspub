@@ -395,6 +395,7 @@ function ArticleBody(props: ArticleBodyProps) {
       ) {
         sourceId
         viewerCanViewAnalytics
+        viewerCanManageTranslations
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -462,6 +463,18 @@ function ArticleBody(props: ArticleBodyProps) {
             ? null
             : `${base}/analytics`;
         });
+        const manageTranslationsHref = createMemo(() => {
+          const base = articleBase();
+          return base == null || !article.viewerCanManageTranslations
+            ? null
+            : `${base}/translations`;
+        });
+        // Freeze the first-read value through hydration so a fragment
+        // republish cannot toggle the manage-translations link in the language
+        // box and mismatch the server HTML.
+        const stableManageTranslationsHref = createHydrationStableMemo(
+          manageTranslationsHref,
+        );
 
         return (
           <>
@@ -490,6 +503,7 @@ function ArticleBody(props: ArticleBodyProps) {
                   currentLanguage={content()?.language ?? undefined}
                   currentOriginalLanguage={content()?.originalLanguage}
                   viewerLocales={props.viewerLocales}
+                  manageTranslationsHref={stableManageTranslationsHref()}
                 />
 
                 <Show when={content()?.beingTranslated}>
@@ -526,6 +540,7 @@ function ArticleBody(props: ArticleBodyProps) {
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
                       analyticsHref={analyticsHref()}
+                      manageTranslationsHref={stableManageTranslationsHref()}
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&
@@ -792,6 +807,7 @@ interface ArticleLanguageSwitcherProps {
   currentLanguage?: string;
   currentOriginalLanguage?: string | null;
   viewerLocales?: readonly string[] | null;
+  manageTranslationsHref?: string | null;
 }
 
 function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
@@ -968,6 +984,16 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                     )}
                   </For>
                 </nav>
+                <Show when={props.manageTranslationsHref != null}>
+                  <p class="mt-3">
+                    <A
+                      href={props.manageTranslationsHref!}
+                      class="text-sm text-stone-900 underline dark:text-stone-100"
+                    >
+                      {t`Manage translations`}
+                    </A>
+                  </p>
+                </Show>
               </div>
             </aside>
           </Show>

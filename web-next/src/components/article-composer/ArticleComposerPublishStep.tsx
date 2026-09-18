@@ -1,6 +1,7 @@
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
 import IconLoader2 from "~icons/lucide/loader-2";
+import { LanguageName } from "~/components/LanguageName.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
@@ -175,6 +176,64 @@ export function ArticleComposerPublishStep() {
               </p>
             </div>
           </div>
+
+          {/* Translation checklist */}
+          <Show when={ctx.translationDrafts().length > 0}>
+            <div class="flex flex-col gap-2">
+              <Label>{t`Translations to publish`}</Label>
+              <p class="text-sm text-muted-foreground leading-6">
+                {t`Selected translations are published together with the original. Unselected drafts stay private and can be published later.`}
+              </p>
+              <For each={ctx.translationDrafts()}>
+                {(translation) => (
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      class="cursor-pointer rounded border-input"
+                      checked={ctx
+                        .selectedTranslations()
+                        .some(
+                          (selection) => selection.uuid === translation.uuid,
+                        )}
+                      onChange={(event) => {
+                        const current = ctx.selectedTranslations();
+                        if (event.currentTarget.checked) {
+                          if (
+                            !current.some(
+                              (selection) =>
+                                selection.uuid === translation.uuid,
+                            )
+                          ) {
+                            ctx.setSelectedTranslations([
+                              ...current,
+                              {
+                                uuid: translation.uuid,
+                                revision: translation.revision,
+                              },
+                            ]);
+                          }
+                        } else {
+                          ctx.setSelectedTranslations(
+                            current.filter(
+                              (selection) =>
+                                selection.uuid !== translation.uuid,
+                            ),
+                          );
+                        }
+                      }}
+                    />
+                    <span>
+                      <LanguageName code={translation.language} />
+                      <Show when={translation.title.trim() !== ""}>
+                        {" · "}
+                        {translation.title}
+                      </Show>
+                    </span>
+                  </label>
+                )}
+              </For>
+            </div>
+          </Show>
         </div>
       </div>
 

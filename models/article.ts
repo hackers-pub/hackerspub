@@ -31,12 +31,17 @@ import {
   type AccountLink,
   type Actor,
   type ArticleContent,
+  type ArticleContentProvenance,
   articleContentTable,
   type ArticleDraft,
   articleDraftTable,
   type ArticleSource,
   articleSourceMediumTable,
+  articleSourceRevisionTable,
   articleSourceTable,
+  type ArticleTranslationDraft,
+  articleTranslationDraftMediumTable,
+  articleTranslationDraftTable,
   type Blocking,
   type Following,
   type Instance,
@@ -51,6 +56,11 @@ import { removeDetailsFromSummaryInput } from "./summary.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import {
+  createSourceRevision,
+  recordDraftRevision,
+} from "./article-revision.ts";
+import { normalizeContentLanguage } from "./i18n.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
 const articleMediumReferencePattern = /hp-medium:([A-Za-z0-9._:/-]+)/g;
@@ -83,9 +93,21 @@ async function updateArticleSourceMedia(
   db: Database | Transaction,
   articleSourceId: Uuid,
   content: string,
+  retainedContents: readonly string[],
   sourceMedia: readonly ArticleMediumInput[] | undefined,
 ): Promise<boolean> {
+  // Only the original body is *validated*: it is the surface the caller
+  // controls and whose missing media should fail the update. `retainedContents`
+  // (published translations and live private drafts) only widen the delete
+  // filter, so a key that survives there is never pruned, but a stray key a
+  // translator typed does not block the original from being edited.
   const referencedMediumKeys = extractArticleMediumKeys(content);
+  const retainedMediumKeys = new Set(referencedMediumKeys);
+  for (const retained of retainedContents) {
+    for (const key of extractArticleMediumKeys(retained)) {
+      retainedMediumKeys.add(key);
+    }
+  }
   const existingMedia = await db.query.articleSourceMediumTable.findMany({
     where: { articleSourceId },
   });
@@ -114,7 +136,7 @@ async function updateArticleSourceMedia(
     });
     if (storedMedia.length !== referencedMediumIds.length) return false;
   }
-  if (referencedMediumKeys.size < 1) {
+  if (retainedMediumKeys.size < 1) {
     await db
       .delete(articleSourceMediumTable)
       .where(eq(articleSourceMediumTable.articleSourceId, articleSourceId));
@@ -124,7 +146,7 @@ async function updateArticleSourceMedia(
       .where(
         and(
           eq(articleSourceMediumTable.articleSourceId, articleSourceId),
-          notInArray(articleSourceMediumTable.key, [...referencedMediumKeys]),
+          notInArray(articleSourceMediumTable.key, [...retainedMediumKeys]),
         ),
       );
   }
@@ -138,13 +160,10 @@ async function updateArticleSourceMedia(
           mediumId: medium.mediumId,
         })),
       )
-      .onConflictDoUpdate({
-        target: [
-          articleSourceMediumTable.articleSourceId,
-          articleSourceMediumTable.key,
-        ],
-        set: { mediumId: sql`excluded.medium_id` },
-      });
+      // A published key-to-medium mapping is immutable: a later private edit
+      // that reuses the same key with a different medium must not rebind the
+      // already-public image.
+      .onConflictDoNothing();
   }
   return true;
 }
@@ -186,6 +205,7 @@ export interface ArticleDraftSaveInput {
   actingAccountId?: Uuid | null;
   title: string;
   content: string;
+  language?: string | null;
   tags: readonly string[];
   revision?: number | null;
 }
@@ -293,6 +313,13 @@ export async function saveArticleDraft(
     return { status: "invalid", inputPath: "revision" };
   }
   const normalizedTags = normalizeArticleDraftTags(tags);
+  const requestedLanguage =
+    input.language == null
+      ? undefined
+      : normalizeContentLanguage(input.language);
+  if (input.language != null && requestedLanguage == null) {
+    return { status: "invalid", inputPath: "language" };
+  }
   return await runInTransaction(
     db,
     async (tx): Promise<ArticleDraftSaveResult> => {
@@ -309,12 +336,31 @@ export async function saveArticleDraft(
         if (revision != null && revision !== existing.revision) {
           return { status: "conflict", currentRevision: existing.revision };
         }
+        const effectiveLanguage = requestedLanguage ?? existing.language;
+        if (
+          existing.language != null &&
+          requestedLanguage != null &&
+          requestedLanguage !== existing.language
+        ) {
+          // Changing the original language after translations exist would
+          // silently reinterpret every translation's baseline, so it is
+          // rejected rather than applied.
+          const translations = await tx
+            .select({ id: articleTranslationDraftTable.id })
+            .from(articleTranslationDraftTable)
+            .where(eq(articleTranslationDraftTable.articleDraftId, updateId))
+            .limit(1);
+          if (translations.length > 0) {
+            return { status: "invalid", inputPath: "language" };
+          }
+        }
         const rows = await tx
           .update(articleDraftTable)
           .set({
             title,
             content,
             tags: normalizedTags,
+            language: effectiveLanguage,
             revision: sql`${articleDraftTable.revision} + 1`,
             updated: sql`CURRENT_TIMESTAMP`,
           })
@@ -329,6 +375,15 @@ export async function saveArticleDraft(
           .returning();
         if (rows[0] == null) {
           return { status: "conflict", currentRevision: existing.revision };
+        }
+        if (effectiveLanguage != null) {
+          await recordDraftRevision(
+            tx,
+            updateId,
+            title,
+            content,
+            effectiveLanguage,
+          );
         }
         return { status: "ok", draft: rows[0] };
       }
@@ -352,11 +407,23 @@ export async function saveArticleDraft(
           title,
           content,
           tags: normalizedTags,
+          language: requestedLanguage ?? null,
           revision: 1,
         })
         .onConflictDoNothing()
         .returning();
-      if (inserted[0] != null) return { status: "ok", draft: inserted[0] };
+      if (inserted[0] != null) {
+        if (requestedLanguage != null) {
+          await recordDraftRevision(
+            tx,
+            draftId,
+            title,
+            content,
+            requestedLanguage,
+          );
+        }
+        return { status: "ok", draft: inserted[0] };
+      }
       const existing = await lockArticleDraft(tx, draftId);
       if (existing == null || existing.accountId !== workspaceId) {
         return { status: "invalid", inputPath: "uuid" };
@@ -367,12 +434,28 @@ export async function saveArticleDraft(
       // A revision-less `uuid` save is the pre-upgrade composer's upsert: the
       // row may already exist from a media attachment, so update it instead of
       // returning a conflict the old client cannot handle.
+      const upsertLanguage = requestedLanguage ?? existing.language;
+      if (
+        existing.language != null &&
+        requestedLanguage != null &&
+        requestedLanguage !== existing.language
+      ) {
+        const translations = await tx
+          .select({ id: articleTranslationDraftTable.id })
+          .from(articleTranslationDraftTable)
+          .where(eq(articleTranslationDraftTable.articleDraftId, draftId))
+          .limit(1);
+        if (translations.length > 0) {
+          return { status: "invalid", inputPath: "language" };
+        }
+      }
       const rows = await tx
         .update(articleDraftTable)
         .set({
           title,
           content,
           tags: normalizedTags,
+          language: upsertLanguage,
           revision: sql`${articleDraftTable.revision} + 1`,
           updated: sql`CURRENT_TIMESTAMP`,
         })
@@ -380,6 +463,9 @@ export async function saveArticleDraft(
         .returning();
       if (rows[0] == null) {
         return { status: "conflict", currentRevision: existing.revision };
+      }
+      if (upsertLanguage != null) {
+        await recordDraftRevision(tx, draftId, title, content, upsertLanguage);
       }
       return { status: "ok", draft: rows[0] };
     },
@@ -566,6 +652,17 @@ export async function getArticleSource(
   });
 }
 
+export interface ArticleAdditionalContent {
+  language: string;
+  title: string;
+  content: string;
+  originalLanguage: string;
+  translatorId: Uuid | null;
+  provenance: ArticleContentProvenance;
+  sourceRevisionId: Uuid | null;
+  media?: readonly ArticleMediumInput[];
+}
+
 export async function createArticleSource(
   db: Database,
   models: Models,
@@ -575,23 +672,75 @@ export async function createArticleSource(
     title: string;
     content: string;
     language: string;
+    additionalContents?: readonly ArticleAdditionalContent[];
+    originalRevisionId?: Uuid;
   },
   options: CreateArticleSourceOptions = {},
 ): Promise<(ArticleSource & { contents: ArticleContent[] }) | undefined> {
+  const {
+    additionalContents = [],
+    originalRevisionId,
+    ...articleSourceFields
+  } = source;
   const sources = await db
     .insert(articleSourceTable)
-    .values({ id: generateUuidV7(), ...source })
+    .values({ id: generateUuidV7(), ...articleSourceFields })
     .onConflictDoNothing()
     .returning();
   if (sources.length < 1) return undefined;
+  // The original snapshot is created before the content rows so that the
+  // original can point at it; selected translations keep the baseline they
+  // were authored against.
+  //
+  // When the publisher already had a draft-owned snapshot with the same
+  // content (the normal first-publication path), reuse it by re-parenting the
+  // row to the new source instead of inserting a duplicate. Reusing the same
+  // id keeps every translation draft's baseline equal to the published
+  // original, so a translation published together with the original does not
+  // look stale immediately.
+  let originalRevisionIdToUse: Uuid | undefined;
+  if (originalRevisionId != null) {
+    const repointed = await db
+      .update(articleSourceRevisionTable)
+      .set({ sourceId: sources[0].id, articleDraftId: null })
+      .where(eq(articleSourceRevisionTable.id, originalRevisionId))
+      .returning();
+    originalRevisionIdToUse = repointed[0]?.id;
+  }
+  if (originalRevisionIdToUse == null) {
+    const inserted = await db
+      .insert(articleSourceRevisionTable)
+      .values({
+        id: generateUuidV7(),
+        sourceId: sources[0].id,
+        language: source.language,
+        title: source.title,
+        content: source.content,
+      })
+      .returning();
+    originalRevisionIdToUse = inserted[0].id;
+  }
   const contents = await db
     .insert(articleContentTable)
-    .values({
-      sourceId: sources[0].id,
-      language: source.language,
-      title: source.title,
-      content: source.content,
-    })
+    .values([
+      {
+        sourceId: sources[0].id,
+        language: source.language,
+        title: source.title,
+        content: source.content,
+        sourceRevisionId: originalRevisionIdToUse,
+      },
+      ...additionalContents.map((content) => ({
+        sourceId: sources[0].id,
+        language: content.language,
+        title: content.title,
+        content: content.content,
+        originalLanguage: content.originalLanguage,
+        translatorId: content.translatorId,
+        provenance: content.provenance,
+        sourceRevisionId: content.sourceRevisionId,
+      })),
+    ])
     .returning();
   if (options.summarize ?? true) {
     await startArticleContentSummary(
@@ -625,6 +774,8 @@ async function createArticleOperation(
     title: string;
     content: string;
     language: string;
+    additionalContents?: readonly ArticleAdditionalContent[];
+    originalRevisionId?: Uuid;
     media?: readonly {
       key: string;
       mediumId: Uuid;
@@ -673,6 +824,21 @@ async function createArticleOperation(
         key: medium.key,
         mediumId: medium.mediumId,
       })) ?? [];
+  // Selected translations may reference media that the original body does not,
+  // so their attachments are promoted alongside the original's. A key that is
+  // already mapped keeps its original medium (mappings are immutable).
+  for (const content of articleSourceInput.additionalContents ?? []) {
+    const keys = extractArticleMediumKeys(content.content);
+    for (const medium of content.media ?? []) {
+      if (keys.has(medium.key)) {
+        media.push({
+          articleSourceId: articleSource.id,
+          key: medium.key,
+          mediumId: medium.mediumId,
+        });
+      }
+    }
+  }
   if (media.length > 0) {
     await db
       .insert(articleSourceMediumTable)
@@ -783,6 +949,9 @@ export async function updateArticleSource(
   // enqueue fresh summarization after their enclosing transaction commits.
   let resummarizeTarget: ArticleContent | undefined;
   let originalContentChanged = false;
+  // The original content row whose title/body/language changed, so a new
+  // snapshot can be recorded after the update.
+  let revisionTarget: ArticleContent | undefined;
   let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
   try {
     result = await db.transaction(async (tx) => {
@@ -801,23 +970,29 @@ export async function updateArticleSource(
         ) {
           throw new Error("Missing required fields for new article content");
         }
-        await tx.insert(articleContentTable).values({
-          sourceId: id,
-          language: sourceFields.language,
-          title: sourceFields.title,
-          content: sourceFields.content,
-        });
+        const inserted = await tx
+          .insert(articleContentTable)
+          .values({
+            sourceId: id,
+            language: sourceFields.language,
+            title: sourceFields.title,
+            content: sourceFields.content,
+          })
+          .returning();
+        revisionTarget = inserted[0];
       } else {
         const newContent = sourceFields.content ?? originalContent.content;
         const newLanguage = sourceFields.language ?? originalContent.language;
+        const newTitle = sourceFields.title ?? originalContent.title;
         const contentChanged = newContent !== originalContent.content;
+        const titleChanged = newTitle !== originalContent.title;
         const languageChanged = newLanguage !== originalContent.language;
         try {
           const updatedRows = await tx
             .update(articleContentTable)
             .set({
               language: newLanguage,
-              title: sourceFields.title ?? originalContent.title,
+              title: newTitle,
               content: newContent,
               updated: sql`CURRENT_TIMESTAMP`,
               // When the body or language actually changes, clear the
@@ -846,6 +1021,12 @@ export async function updateArticleSource(
           if (contentChanged && updatedRows.length > 0) {
             originalContentChanged = true;
           }
+          if (
+            (contentChanged || titleChanged || languageChanged) &&
+            updatedRows.length > 0
+          ) {
+            revisionTarget = updatedRows[0];
+          }
         } catch (error) {
           if (
             error instanceof postgres.PostgresError &&
@@ -855,6 +1036,9 @@ export async function updateArticleSource(
           }
           throw error;
         }
+      }
+      if (revisionTarget != null) {
+        await createSourceRevision(tx, id, revisionTarget);
       }
       const contents = await tx.query.articleContentTable.findMany({
         where: { sourceId: id },
@@ -870,10 +1054,23 @@ export async function updateArticleSource(
         if (originalContent == null) {
           throw new Error("Missing original article content");
         }
+        // Retain media referenced by live private translation drafts too: a
+        // draft may rely on a source image the original body just dropped, and
+        // pruning its mapping would break the draft's preview and its later
+        // publication.
+        const translationDrafts =
+          await tx.query.articleTranslationDraftTable.findMany({
+            where: { sourceId: id },
+            columns: { content: true },
+          });
         const mediaUpdated = await updateArticleSourceMedia(
           tx,
           id,
           originalContent.content,
+          [
+            ...contents.map((content) => content.content),
+            ...translationDrafts.map((draft) => draft.content),
+          ],
           sourceMedia,
         );
         if (!mediaUpdated) throw new InvalidArticleSourceMediumError();
@@ -1006,6 +1203,341 @@ async function updateArticleOperation(
 }
 
 export const updateArticle = transactional(updateArticleOperation);
+
+/**
+ * Re-points every translation draft (and every revision) owned by an original
+ * draft to the article source created by publishing it.
+ *
+ * This runs inside the first-publication transaction before the original draft
+ * is deleted, so unselected drafts survive under the published article and
+ * keep their UUIDs, revisions, and media. Selected drafts additionally record
+ * the revision that was published.
+ */
+export async function promoteArticleTranslationDrafts(
+  db: Database | Transaction,
+  originalDraftId: Uuid,
+  sourceId: Uuid,
+  selected: readonly { id: Uuid; revision: number }[],
+): Promise<void> {
+  // A translation may reference an image attached to the original draft but
+  // absent from the original body and from every selected translation. Copy
+  // those inherited references onto the surviving private translation before
+  // the parent draft's media rows cascade away, otherwise the translation
+  // loses the image the moment the original draft is deleted.
+  const survivingDrafts = await db.query.articleTranslationDraftTable.findMany({
+    where: { articleDraftId: originalDraftId },
+  });
+  if (survivingDrafts.length > 0) {
+    const parentMedia = await db.query.articleDraftMediumTable.findMany({
+      where: { articleDraftId: originalDraftId },
+    });
+    const parentByKey = new Map(parentMedia.map((m) => [m.key, m.mediumId]));
+    for (const draft of survivingDrafts) {
+      const referenced = extractArticleMediumKeys(draft.content);
+      if (referenced.size === 0) continue;
+      const existing =
+        await db.query.articleTranslationDraftMediumTable.findMany({
+          where: { articleTranslationDraftId: draft.id },
+        });
+      const existingKeys = new Set(existing.map((m) => m.key));
+      const inherited = [...referenced]
+        .filter((key) => !existingKeys.has(key) && parentByKey.has(key))
+        .map((key) => ({
+          articleTranslationDraftId: draft.id,
+          key,
+          mediumId: parentByKey.get(key)!,
+        }));
+      if (inherited.length > 0) {
+        await db
+          .insert(articleTranslationDraftMediumTable)
+          .values(inherited)
+          .onConflictDoNothing();
+      }
+    }
+  }
+  await db
+    .update(articleTranslationDraftTable)
+    .set({ sourceId, articleDraftId: null })
+    .where(eq(articleTranslationDraftTable.articleDraftId, originalDraftId));
+  if (selected.length > 0) {
+    for (const { id, revision } of selected) {
+      await db
+        .update(articleTranslationDraftTable)
+        .set({ publishedRevision: revision })
+        .where(
+          and(
+            eq(articleTranslationDraftTable.id, id),
+            eq(articleTranslationDraftTable.sourceId, sourceId),
+          ),
+        );
+    }
+  }
+  await db
+    .update(articleSourceRevisionTable)
+    .set({ sourceId, articleDraftId: null })
+    .where(eq(articleSourceRevisionTable.articleDraftId, originalDraftId));
+}
+
+export interface PublishArticleTranslationInput {
+  translationDraftId: Uuid;
+  revision: number;
+}
+
+export type PublishArticleTranslationResult =
+  | {
+      status: "ok";
+      sourceId: Uuid;
+      language: string;
+      translationDraft: ArticleTranslationDraft;
+    }
+  | { status: "conflict"; currentRevision: number }
+  | { status: "invalid"; inputPath: string }
+  | { status: "forbidden" };
+
+/**
+ * Publishes one private translation draft into the article's public content.
+ *
+ * The draft revision is checked with optimistic concurrency. The public
+ * content row's provenance is derived from the draft (`human` -> `human`,
+ * `llm` -> `llm_reviewed`, `unknown` -> `unknown`), its reviewed baseline is
+ * copied from the draft (never the current source revision), and any automatic
+ * job that started earlier is fenced off because its row no longer satisfies
+ * the in-progress/automatic/token predicates. The original post's title, body,
+ * and summary are untouched: only the translated language version changes.
+ */
+export async function publishArticleTranslation(
+  fedCtx: ApplicationContext,
+  publisher: Account,
+  input: PublishArticleTranslationInput,
+): Promise<PublishArticleTranslationResult> {
+  if (!Number.isInteger(input.revision) || input.revision < 1) {
+    return { status: "invalid", inputPath: "revision" };
+  }
+  type Outcome =
+    | {
+        kind: "ok";
+        sourceId: Uuid;
+        language: string;
+        translationDraft: ArticleTranslationDraft;
+      }
+    | { kind: "conflict"; currentRevision: number }
+    | { kind: "invalid"; inputPath: string }
+    | { kind: "forbidden" };
+  const outcome = await withTransaction<Outcome>(
+    fedCtx,
+    async (context): Promise<Outcome> => {
+      const draftRows = await context.db
+        .select()
+        .from(articleTranslationDraftTable)
+        .where(eq(articleTranslationDraftTable.id, input.translationDraftId))
+        .for("update");
+      const draft = draftRows[0];
+      if (draft == null || draft.sourceId == null) {
+        return { kind: "invalid", inputPath: "translationDraftId" };
+      }
+      const source = await context.db.query.articleSourceTable.findFirst({
+        where: { id: draft.sourceId },
+        with: { account: true, contents: true },
+      });
+      if (source == null) {
+        return { kind: "invalid", inputPath: "translationDraftId" };
+      }
+      if (!(await canAccountActAs(context.db, publisher, source.accountId))) {
+        return { kind: "forbidden" };
+      }
+      if (input.revision !== draft.revision) {
+        return { kind: "conflict", currentRevision: draft.revision };
+      }
+      // A draft with no title or body is explicitly not ready to publish; an
+      // empty version must never replace a published translation.
+      if (draft.title.trim() === "" || draft.content.trim() === "") {
+        return { kind: "invalid", inputPath: "translationDraftId" };
+      }
+      const original = source.contents.find(
+        (content) => content.originalLanguage == null,
+      );
+      if (original == null || original.language === draft.language) {
+        return { kind: "invalid", inputPath: "translationDraftId" };
+      }
+      // Both the publishing individual and the owning workspace must be
+      // unsuspended: a suspended member keeps an authenticated session, but
+      // must not publish through their organization.
+      await assertAccountActorNotSuspended(context.db, publisher.id);
+      await assertAccountActorNotSuspended(context.db, source.accountId);
+      // Acquire the source lock before touching any content row, matching the
+      // source-first order `updateArticle` uses (`updateArticleSource` locks
+      // the source, then `restartArticleContentTranslations` locks the content
+      // rows). Otherwise publishing over an automatic translation could
+      // deadlock with a concurrent original-body edit.
+      await context.db
+        .select({ id: articleSourceTable.id })
+        .from(articleSourceTable)
+        .where(eq(articleSourceTable.id, source.id))
+        .for("update");
+      const provenance: ArticleContentProvenance =
+        draft.provenance === "llm"
+          ? "llm_reviewed"
+          : draft.provenance === "unknown"
+            ? "unknown"
+            : "human";
+      // Upsert atomically: a reader-triggered automatic translation can insert
+      // a placeholder for this language between the read above and this write,
+      // and a plain insert would fail on the primary key instead of replacing
+      // and fencing off that job.
+      await context.db
+        .insert(articleContentTable)
+        .values({
+          sourceId: source.id,
+          language: draft.language,
+          title: draft.title,
+          content: draft.content,
+          originalLanguage: original.language,
+          translatorId: draft.translatorId,
+          provenance,
+          sourceRevisionId: draft.sourceRevisionId,
+          beingTranslated: false,
+        })
+        .onConflictDoUpdate({
+          target: [articleContentTable.sourceId, articleContentTable.language],
+          set: {
+            title: draft.title,
+            content: draft.content,
+            originalLanguage: original.language,
+            translatorId: draft.translatorId,
+            translationRequesterId: null,
+            provenance,
+            sourceRevisionId: draft.sourceRevisionId,
+            beingTranslated: false,
+            translationJobToken: null,
+            summary: null,
+            summaryStarted: null,
+            summaryUnnecessary: false,
+            ogImageKey: null,
+            updated: sql`CURRENT_TIMESTAMP`,
+          },
+        });
+      // Promote the draft's media into the published source. Mappings are
+      // immutable, so a key already mapped keeps its original medium.
+      const draftMedia =
+        await context.db.query.articleTranslationDraftMediumTable.findMany({
+          where: { articleTranslationDraftId: draft.id },
+        });
+      const referenced = extractArticleMediumKeys(draft.content);
+      const promote = draftMedia.filter((medium) => referenced.has(medium.key));
+      if (promote.length > 0) {
+        await context.db
+          .insert(articleSourceMediumTable)
+          .values(
+            promote.map((medium) => ({
+              articleSourceId: source.id,
+              key: medium.key,
+              mediumId: medium.mediumId,
+            })),
+          )
+          .onConflictDoNothing();
+      }
+      const updatedDraft = await context.db
+        .update(articleTranslationDraftTable)
+        .set({ publishedRevision: draft.revision })
+        .where(eq(articleTranslationDraftTable.id, draft.id))
+        .returning();
+      // Advance the article's object version so receivers accept the Update.
+      await context.db
+        .update(articleSourceTable)
+        .set({ updated: sql`CURRENT_TIMESTAMP` })
+        .where(eq(articleSourceTable.id, source.id));
+      return {
+        kind: "ok",
+        sourceId: source.id,
+        language: draft.language,
+        translationDraft: updatedDraft[0],
+      };
+    },
+  );
+  if (outcome.kind === "conflict") {
+    return { status: "conflict", currentRevision: outcome.currentRevision };
+  }
+  if (outcome.kind === "invalid") {
+    return { status: "invalid", inputPath: outcome.inputPath };
+  }
+  if (outcome.kind === "forbidden") {
+    return { status: "forbidden" };
+  }
+  // Federate an Update built from a consistent read of the committed state.
+  // The post's title/body/summary stay original-derived; only this language
+  // version and the article's object version changed.
+  const refreshed = await fedCtx.db.query.articleSourceTable.findFirst({
+    where: { id: outcome.sourceId },
+    with: {
+      account: { with: { avatarMedium: true, emails: true, links: true } },
+      contents: true,
+      post: true,
+    },
+  });
+  if (refreshed != null) {
+    // A censored article still gets a fresh summary for this language locally;
+    // only the outgoing Update is withheld.
+    const publishedContent = refreshed.contents.find(
+      (content) => content.language === outcome.language,
+    );
+    if (publishedContent != null) {
+      await queueArticleContentSummary(fedCtx, publishedContent);
+    }
+    if (refreshed.post.censored == null) {
+      const articleObject = await fedCtx.services.federation.getArticle(
+        fedCtx,
+        refreshed,
+      );
+      const activity = new vocab.Update({
+        id: new URL(
+          `#update/${refreshed.updated.toISOString()}/${outcome.language}`,
+          articleObject.id ?? fedCtx.canonicalOrigin,
+        ),
+        actor: fedCtx.getActorUri(refreshed.accountId),
+        tos: articleObject.toIds,
+        ccs: articleObject.ccIds,
+        object: articleObject,
+      });
+      await fedCtx.sendActivity(
+        { identifier: refreshed.accountId },
+        "followers",
+        activity,
+        {
+          orderingKey: refreshed.post.iri,
+          preferSharedInbox: true,
+          excludeBaseUris: [
+            new URL(fedCtx.origin),
+            new URL(fedCtx.canonicalOrigin),
+          ],
+        },
+      );
+      const relayedTags =
+        await fedCtx.services.federation.sendTagsPubRelayActivity(
+          fedCtx,
+          refreshed.accountId,
+          activity,
+          {
+            orderingKey: refreshed.post.iri,
+            visibility: refreshed.post.visibility,
+            accountBio: refreshed.account.bio,
+            relayedTags: refreshed.post.relayedTags,
+          },
+        );
+      if (relayedTags != null) {
+        await fedCtx.db
+          .update(postTable)
+          .set({ relayedTags: [...relayedTags] })
+          .where(eq(postTable.id, refreshed.post.id));
+      }
+    }
+  }
+  return {
+    status: "ok",
+    sourceId: outcome.sourceId,
+    language: outcome.language,
+    translationDraft: outcome.translationDraft,
+  };
+}
 
 export async function startArticleContentSummary(
   db: Database,
@@ -1249,6 +1781,7 @@ export async function startArticleContentTranslation(
   // `postgres` driver hands JS `Date` values back at ms precision
   // while `timestamptz` keeps µs).
   const queueStamp = new Date();
+  const queueToken = generateUuidV7();
   const inserted = await db
     .insert(articleContentTable)
     .values({
@@ -1258,6 +1791,8 @@ export async function startArticleContentTranslation(
       content: content.content,
       originalLanguage: content.language,
       translationRequesterId: requester.id,
+      provenance: "llm",
+      translationJobToken: queueToken,
       beingTranslated: true,
       updated: queueStamp,
     })
@@ -1302,6 +1837,8 @@ export async function startArticleContentTranslation(
         title: content.title,
         content: content.content,
         originalLanguage: content.language,
+        provenance: "llm",
+        translationJobToken: queueToken,
         summary: null,
         summaryStarted: null,
         summaryUnnecessary: false,
@@ -1312,6 +1849,9 @@ export async function startArticleContentTranslation(
           eq(articleContentTable.sourceId, content.sourceId),
           eq(articleContentTable.language, targetLanguage),
           eq(articleContentTable.beingTranslated, true),
+          // Never reclaim a human-managed or unknown row: only an automatic
+          // row that a previous automatic job left in progress is refreshable.
+          eq(articleContentTable.provenance, "llm"),
           // Repeat the staleness check inside the UPDATE itself so
           // the reclaim is CAS-safe.  If a concurrent worker just
           // reclaimed the same stale placeholder between our SELECT
@@ -1416,6 +1956,9 @@ export async function restartArticleContentTranslations(
         title: original.title,
         content: original.content,
         beingTranslated: true,
+        // Rotate the job token so a worker still running against the previous
+        // revision cannot write its result back.
+        translationJobToken: generateUuidV7(),
         summary: null,
         summaryStarted: null,
         summaryUnnecessary: false,
@@ -1430,15 +1973,11 @@ export async function restartArticleContentTranslations(
         and(
           eq(articleContentTable.sourceId, articleSource.id),
           isNotNull(articleContentTable.originalLanguage),
-          // Only LLM-requested translations.  Human translations
-          // carry `translatorId` instead of `translationRequesterId`
-          // (the schema check
-          // `article_content_translator_translation_requester_id_check`
-          // makes the two columns mutually exclusive), and resetting
-          // a curated human translation back to a source-language
-          // placeholder so the LLM can re-do it would silently
-          // destroy that contributor's work and mis-attribute the
-          // result.
+          // Only automatic translations.  Human and legacy-unknown rows are
+          // never reset to a source-language placeholder so the LLM can redo
+          // them; doing so would silently destroy a contributor's work and
+          // mis-attribute the result.
+          eq(articleContentTable.provenance, "llm"),
           isNull(articleContentTable.translatorId),
         ),
       )
@@ -1612,6 +2151,13 @@ async function runArticleContentTranslation(
         eq(articleContentTable.sourceId, sourceId),
         eq(articleContentTable.language, targetLanguage),
         eq(articleContentTable.beingTranslated, true),
+        eq(articleContentTable.provenance, "llm"),
+        queued.translationJobToken == null
+          ? isNull(articleContentTable.translationJobToken)
+          : eq(
+              articleContentTable.translationJobToken,
+              queued.translationJobToken,
+            ),
         eq(articleContentTable.updated, queued.updated),
       ),
     )
@@ -1682,6 +2228,7 @@ async function runArticleContentTranslation(
                 title,
                 content,
                 beingTranslated: false,
+                translationJobToken: null,
                 updated: sql`CURRENT_TIMESTAMP`,
                 // The translation has just replaced the placeholder content,
                 // so any existing summary state from the original-language
@@ -1700,6 +2247,13 @@ async function runArticleContentTranslation(
                 and(
                   eq(articleContentTable.sourceId, sourceId),
                   eq(articleContentTable.language, targetLanguage),
+                  eq(articleContentTable.provenance, "llm"),
+                  queued.translationJobToken == null
+                    ? isNull(articleContentTable.translationJobToken)
+                    : eq(
+                        articleContentTable.translationJobToken,
+                        queued.translationJobToken,
+                      ),
                   // CAS on the claim taken at the top of this function — see
                   // that comment for why a JS `Date` rather than the row's
                   // round-tripped `updated` is the safe reference.  If a
@@ -1834,6 +2388,13 @@ async function runArticleContentTranslation(
                   eq(articleContentTable.sourceId, sourceId),
                   eq(articleContentTable.language, targetLanguage),
                   eq(articleContentTable.beingTranslated, true),
+                  eq(articleContentTable.provenance, "llm"),
+                  queued.translationJobToken == null
+                    ? isNull(articleContentTable.translationJobToken)
+                    : eq(
+                        articleContentTable.translationJobToken,
+                        queued.translationJobToken,
+                      ),
                   eq(articleContentTable.updated, claim),
                 ),
               );
@@ -1858,6 +2419,13 @@ async function runArticleContentTranslation(
           and(
             eq(articleContentTable.sourceId, sourceId),
             eq(articleContentTable.language, targetLanguage),
+            eq(articleContentTable.provenance, "llm"),
+            queued.translationJobToken == null
+              ? isNull(articleContentTable.translationJobToken)
+              : eq(
+                  articleContentTable.translationJobToken,
+                  queued.translationJobToken,
+                ),
             // CAS on the same claim as the success path — a stale
             // failure must not delete a row another caller has since
             // re-claimed.

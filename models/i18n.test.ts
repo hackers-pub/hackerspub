@@ -1,6 +1,11 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { findNearestLocale, type Locale, negotiateLocale } from "./i18n.ts";
+import {
+  findNearestLocale,
+  type Locale,
+  negotiateLocale,
+  normalizeContentLanguage,
+} from "./i18n.ts";
 
 describe("findNearestLocale()", () => {
   it("exact match", () => {
@@ -199,5 +204,21 @@ describe("negotiateLocale()", () => {
     const result = negotiateLocale(new Intl.Locale("zh-SG"), availableLocales);
     // zh-SG uses Simplified Chinese (Hans), should match zh-CN
     assert.deepEqual(result?.baseName, "zh-CN");
+  });
+});
+
+describe("normalizeContentLanguage()", () => {
+  it("maps canonical aliases back to supported keys", () => {
+    assert.equal(normalizeContentLanguage("fil"), "tl");
+    assert.equal(normalizeContentLanguage("bho"), "bh");
+    assert.equal(normalizeContentLanguage("tl"), "tl");
+    assert.equal(normalizeContentLanguage("bh"), "bh");
+  });
+
+  it("preserves distinct script keys and rejects unsupported tags", () => {
+    assert.equal(normalizeContentLanguage("zh-Hans"), undefined);
+    assert.equal(normalizeContentLanguage("zh-CN"), "zh-CN");
+    assert.equal(normalizeContentLanguage("fil-PH"), undefined);
+    assert.equal(normalizeContentLanguage(""), undefined);
   });
 });

@@ -98,6 +98,7 @@ const articleAnalyticsAccessQuery = parse(`
     node(id: $articleId) {
       ... on Article {
         viewerCanViewAnalytics
+        viewerCanManageTranslations
       }
     }
     articleAnalytics(articleSourceId: $articleSourceId) {
@@ -426,16 +427,29 @@ test("organization members and moderators can view article analytics", async () 
     });
 
     const cases = [
-      { context: makeGuestContext(tx), allowed: false },
-      { context: makeUserContext(tx, outsider.account), allowed: false },
-      { context: makeUserContext(tx, pendingMember.account), allowed: false },
-      { context: makeUserContext(tx, member.account), allowed: true },
+      { context: makeGuestContext(tx), allowed: false, canManage: false },
+      {
+        context: makeUserContext(tx, outsider.account),
+        allowed: false,
+        canManage: false,
+      },
+      {
+        context: makeUserContext(tx, pendingMember.account),
+        allowed: false,
+        canManage: false,
+      },
+      {
+        context: makeUserContext(tx, member.account),
+        allowed: true,
+        canManage: true,
+      },
       {
         context: makeUserContext(tx, {
           ...moderator.account,
           moderator: true,
         }),
         allowed: true,
+        canManage: false,
       },
     ];
 
@@ -451,7 +465,10 @@ test("organization members and moderators can view article analytics", async () 
       });
       assert.deepEqual(result.errors, undefined);
       assert.deepEqual(toPlainJson(result.data), {
-        node: { viewerCanViewAnalytics: testCase.allowed },
+        node: {
+          viewerCanViewAnalytics: testCase.allowed,
+          viewerCanManageTranslations: testCase.canManage,
+        },
         articleAnalytics: testCase.allowed ? { totalViews: 0 } : null,
       });
     }

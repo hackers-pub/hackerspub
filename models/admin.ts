@@ -25,6 +25,8 @@ import {
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
+  articleTranslationDraftMediumTable,
+  articleTranslationDraftTable,
   mediumTable,
   noteSourceMediumTable,
   postTable,
@@ -264,11 +266,22 @@ function orphanMediaWhere(cutoffDate: Date): SQL {
       WHERE ${articleSourceMediumTable.mediumId} = ${mediumTable.id}
     ) AND
     NOT EXISTS (
+      SELECT 1 FROM ${articleTranslationDraftMediumTable}
+      WHERE ${articleTranslationDraftMediumTable.mediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
       SELECT 1 FROM ${articleDraftTable}
       WHERE
         ${articleDraftTable.content} ~ (${hpMediumReferencePattern}) OR
         ${articleDraftTable.content} ~ (${directMediumReferencePattern}) OR
         ${articleDraftTable.content} ~ (${keyPathMediumReferencePattern})
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleTranslationDraftTable}
+      WHERE
+        ${articleTranslationDraftTable.content} ~ (${hpMediumReferencePattern}) OR
+        ${articleTranslationDraftTable.content} ~ (${directMediumReferencePattern}) OR
+        ${articleTranslationDraftTable.content} ~ (${keyPathMediumReferencePattern})
     ) AND
     NOT EXISTS (
       SELECT 1 FROM ${articleContentTable}

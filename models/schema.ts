@@ -749,6 +749,42 @@ export const instanceTable = pgTable(
 export type Instance = typeof instanceTable.$inferSelect;
 export type NewInstance = typeof instanceTable.$inferInsert;
 
+/**
+ * How the starting text of a private translation draft came to be.
+ *
+ * `human` means the translator wrote it themselves (or started from an empty
+ * draft). `llm` means it was seeded from an automatic translation, so the
+ * eventual published version must be identified as AI-assisted. `unknown`
+ * preserves uncertainty when a translation was reopened from a legacy
+ * published version whose provenance cannot be established.
+ */
+export const articleTranslationDraftProvenanceEnum = pgEnum(
+  "article_translation_draft_provenance",
+  ["human", "llm", "unknown"],
+);
+
+export type ArticleTranslationDraftProvenance =
+  (typeof articleTranslationDraftProvenanceEnum.enumValues)[number];
+
+/**
+ * How a published article content version was produced.
+ *
+ * `human` is a person-supplied translation, `llm` is an unreviewed automatic
+ * translation, `llm_reviewed` is a human-managed version that started from an
+ * automatic draft, and `unknown` is a protected legacy classification for rows
+ * whose provenance cannot be established. The distinction is stored explicitly
+ * rather than inferred from `translatorId IS NULL`, so a deleted account never
+ * turns human work into an automatic translation and LLM jobs can refuse to
+ * overwrite anything that is not `llm`.
+ */
+export const articleContentProvenanceEnum = pgEnum(
+  "article_content_provenance",
+  ["human", "llm", "llm_reviewed", "unknown"],
+);
+
+export type ArticleContentProvenance =
+  (typeof articleContentProvenanceEnum.enumValues)[number];
+
 export const articleDraftTable = pgTable(
   "article_draft",
   {
@@ -770,6 +806,12 @@ export const articleDraftTable = pgTable(
       .references(() => articleSourceTable.id, { onDelete: "cascade" }),
     title: text().notNull(),
     content: text().notNull(),
+    // The original language of this draft, chosen early enough that translation
+    // drafts can be added before the article is published. It is `null` on
+    // legacy rows until their next save, which records it. It is not the same
+    // as a published `article_content.language`: this is the language of the
+    // working original.
+    language: varchar(),
     tags: text()
       .array()
       .notNull()
@@ -796,6 +838,136 @@ export const articleDraftTable = pgTable(
 
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
+
+/**
+ * An immutable snapshot of an original article's title and Markdown body.
+ *
+ * A revision belongs to a draft before publication and to a published
+ * `article_source` afterwards; publication re-points the same row (changing
+ * `articleDraftId` to `null` and `sourceId` to the new source) so snapshot IDs
+ * stay stable. This lets a translator keep the exact baseline they read even
+ * after the original has moved on. Only a real title/body change creates a new
+ * row; metadata-only and no-op saves reuse the current one.
+ */
+export const articleSourceRevisionTable = pgTable(
+  "article_source_revision",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    articleDraftId: uuid("article_draft_id")
+      .$type<Uuid>()
+      .references(() => articleDraftTable.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    // The original language at snapshot time. Kept on the revision so a
+    // baseline keeps its language even if the draft language later changes.
+    language: varchar().notNull(),
+    title: text().notNull(),
+    content: text().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "article_source_revision_owner_check",
+      sql`(${table.articleDraftId} IS NULL) <> (${table.sourceId} IS NULL)`,
+    ),
+    index("article_source_revision_draft_idx").on(
+      table.articleDraftId,
+      table.created,
+      table.id,
+    ),
+    index("article_source_revision_source_idx").on(
+      table.sourceId,
+      table.created,
+      table.id,
+    ),
+  ],
+);
+
+export type ArticleSourceRevision =
+  typeof articleSourceRevisionTable.$inferSelect;
+export type NewArticleSourceRevision =
+  typeof articleSourceRevisionTable.$inferInsert;
+
+/**
+ * A private, language-specific translation of an article draft or of an
+ * already-published article.
+ *
+ * Before publication the row hangs off the original draft (`articleDraftId`);
+ * first publication re-points every translation draft of the original draft to
+ * the resulting `article_source` in one update, so unselected drafts survive
+ * the deletion of the original drafting record. `translatorId` is the public
+ * translator credit and never changes merely because someone else saves.
+ * `provenance` describes the starting text, and `sourceRevisionId` is the
+ * original revision the translator actually read (never advanced implicitly by
+ * a later save).
+ */
+export const articleTranslationDraftTable = pgTable(
+  "article_translation_draft",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    articleDraftId: uuid("article_draft_id")
+      .$type<Uuid>()
+      .references(() => articleDraftTable.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    language: varchar().notNull(),
+    title: text().notNull().default(""),
+    content: text().notNull().default(""),
+    translatorId: uuid("translator_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    provenance: articleTranslationDraftProvenanceEnum()
+      .notNull()
+      .default("human"),
+    sourceRevisionId: uuid("source_revision_id")
+      .$type<Uuid>()
+      .references(() => articleSourceRevisionTable.id, {
+        onDelete: "set null",
+      }),
+    // The translation draft revision that was last published, if any. Compared
+    // with `revision` to distinguish PUBLISHED from PUBLISHED_WITH_CHANGES.
+    publishedRevision: integer("published_revision"),
+    // Optimistic concurrency token, independent per language.
+    revision: integer().notNull().default(1),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "article_translation_draft_owner_check",
+      sql`(${table.articleDraftId} IS NULL) <> (${table.sourceId} IS NULL)`,
+    ),
+    unique("article_translation_draft_draft_language_unique").on(
+      table.articleDraftId,
+      table.language,
+    ),
+    unique("article_translation_draft_source_language_unique").on(
+      table.sourceId,
+      table.language,
+    ),
+    index("article_translation_draft_draft_idx").on(
+      table.articleDraftId,
+      table.updated,
+    ),
+    index("article_translation_draft_source_idx").on(
+      table.sourceId,
+      table.updated,
+    ),
+  ],
+);
+
+export type ArticleTranslationDraft =
+  typeof articleTranslationDraftTable.$inferSelect;
+export type NewArticleTranslationDraft =
+  typeof articleTranslationDraftTable.$inferInsert;
 
 export const articleSourceTable = pgTable(
   "article_source",
@@ -857,6 +1029,21 @@ export const articleContentTable = pgTable(
     translationRequesterId: uuid("translation_requester_id")
       .$type<Uuid>()
       .references(() => accountTable.id, { onDelete: "set null" }),
+    // How this version was produced. `null` on original-language rows; always
+    // set on translated rows (enforced by a check). Stored explicitly so that
+    // deleting a translator account does not relabel the content as automatic.
+    provenance: articleContentProvenanceEnum("provenance"),
+    // The source revision this version corresponds to: for the original row the
+    // current published revision, for a translation the revision it was
+    // reviewed against. `null` marks an unknown legacy baseline.
+    sourceRevisionId: uuid("source_revision_id")
+      .$type<Uuid>()
+      .references(() => articleSourceRevisionTable.id, {
+        onDelete: "set null",
+      }),
+    // Identity of the in-flight automatic translation job. Rotated on
+    // acquisition and reclaim so a late worker cannot overwrite human work.
+    translationJobToken: uuid("translation_job_token").$type<Uuid>(),
     beingTranslated: boolean("being_translated").notNull().default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
@@ -875,7 +1062,8 @@ export const articleContentTable = pgTable(
       "article_content_original_language_check",
       sql`${table.originalLanguage} IS NOT NULL OR (
         ${table.translatorId} IS NULL AND
-        ${table.translationRequesterId} IS NULL
+        ${table.translationRequesterId} IS NULL AND
+        ${table.provenance} IS NULL
       )`,
     ),
     check(
@@ -886,6 +1074,13 @@ export const articleContentTable = pgTable(
       "article_content_being_translated_check",
       sql`NOT ${table.beingTranslated} OR (${table.originalLanguage} IS NOT NULL)`,
     ),
+    check(
+      "article_content_provenance_check",
+      sql`${table.originalLanguage} IS NULL OR ${table.provenance} IS NOT NULL`,
+    ),
+    uniqueIndex("article_content_single_original_idx")
+      .on(table.sourceId)
+      .where(isNull(table.originalLanguage)),
   ],
 );
 
@@ -2497,6 +2692,35 @@ export const articleDraftMediumTable = pgTable(
 
 export type ArticleDraftMedium = typeof articleDraftMediumTable.$inferSelect;
 export type NewArticleDraftMedium = typeof articleDraftMediumTable.$inferInsert;
+
+export const articleTranslationDraftMediumTable = pgTable(
+  "article_translation_draft_medium",
+  {
+    articleTranslationDraftId: uuid("article_translation_draft_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleTranslationDraftTable.id, {
+        onDelete: "cascade",
+      }),
+    key: text().notNull(),
+    mediumId: uuid("medium_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => mediumTable.id, { onDelete: "restrict" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.articleTranslationDraftId, table.key] }),
+    index("article_translation_draft_medium_medium_id_idx").on(table.mediumId),
+  ],
+);
+
+export type ArticleTranslationDraftMedium =
+  typeof articleTranslationDraftMediumTable.$inferSelect;
+export type NewArticleTranslationDraftMedium =
+  typeof articleTranslationDraftMediumTable.$inferInsert;
 
 export const articleSourceMediumTable = pgTable(
   "article_source_medium",
