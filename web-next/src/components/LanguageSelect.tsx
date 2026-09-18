@@ -55,7 +55,12 @@ export function LanguageSelect(props: LanguageSelectProps) {
         fullName: `${locale}\n${name}\n${nativeName}\n${
           englishNames.of(locale) ?? ""
         }`.trim(),
-        disabled: props.exclude?.some((l) => l.baseName === locale) ?? false,
+        disabled:
+          props.exclude?.some(
+            (l) =>
+              l.baseName === locale ||
+              l.baseName === new Intl.Locale(locale).baseName,
+          ) ?? false,
       };
     });
     locales.sort((a, b) => a.name.localeCompare(b.name));
@@ -90,7 +95,11 @@ export function LanguageSelect(props: LanguageSelectProps) {
           ? null
           : typeof props.value === "undefined"
             ? undefined
-            : locales().find((l) => l.code === props.value!.baseName)
+            : locales().find(
+                (l) =>
+                  l.code === props.value!.baseName ||
+                  new Intl.Locale(l.code).baseName === props.value!.baseName,
+              )
       }
       onChange={(value) =>
         props.onChange?.(
