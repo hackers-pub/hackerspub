@@ -16,6 +16,7 @@ import {
   ensureSourceRevision,
   recordDraftRevision,
 } from "./article-revision.ts";
+import { syncTranslationReviewNotifications } from "./article-translation-review.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export type ArticleTranslationDraftViewer = Pick<Account, "id" | "kind">;
@@ -65,6 +66,43 @@ async function lockTranslationDraft(
     .where(eq(articleTranslationDraftTable.id, draftId))
     .for("update");
   return rows[0];
+}
+
+/**
+ * Locks the article draft or published source a translation draft hangs off,
+ * before the translation draft itself.
+ *
+ * Every path that touches both takes them in this order (owner, then
+ * translation draft, then content rows), which is also the order
+ * `publishArticleTranslation` and `publishArticleDraft` use. Locking the owner
+ * first is also what makes "this language has no draft yet" safe: creation
+ * takes the same lock, so a draft cannot appear between a lookup and an
+ * update.
+ */
+async function lockTranslationDraftOwner(
+  db: Database | Transaction,
+  draftId: Uuid,
+): Promise<void> {
+  const located = await db.query.articleTranslationDraftTable.findFirst({
+    where: { id: draftId },
+    columns: { articleDraftId: true, sourceId: true },
+  });
+  if (located == null) return;
+  if (located.articleDraftId != null) {
+    await db
+      .select({ id: articleDraftTable.id })
+      .from(articleDraftTable)
+      .where(eq(articleDraftTable.id, located.articleDraftId))
+      .for("update");
+    return;
+  }
+  if (located.sourceId != null) {
+    await db
+      .select({ id: articleSourceTable.id })
+      .from(articleSourceTable)
+      .where(eq(articleSourceTable.id, located.sourceId))
+      .for("update");
+  }
 }
 
 async function resolveOwner(
@@ -291,6 +329,7 @@ export async function saveArticleTranslationDraft(
     db,
     async (tx): Promise<ArticleTranslationDraftSaveResult> => {
       if (updateId != null) {
+        await lockTranslationDraftOwner(tx, updateId);
         const existing = await lockTranslationDraft(tx, updateId);
         if (existing == null) {
           return {
@@ -355,6 +394,19 @@ export async function saveArticleTranslationDraft(
           .returning();
         if (rows[0] == null) {
           return { status: "conflict", currentRevision: existing.revision };
+        }
+        if (
+          existing.sourceId != null &&
+          translatorId !== existing.translatorId
+        ) {
+          // Credit moved to (or away from) someone: drop the language from the
+          // previous translator's outstanding notification. The newly credited
+          // person is not notified here, because no new source revision was
+          // published; they see the review need in the management list, and
+          // the next source edit notifies them.
+          await syncTranslationReviewNotifications(tx, existing.sourceId, {
+            mode: "reconcile",
+          });
         }
         return { status: "ok", draft: rows[0] };
       }
@@ -508,6 +560,7 @@ export async function deleteArticleTranslationDraft(
   return await runInTransaction(
     db,
     async (tx): Promise<ArticleTranslationDraftDeleteResult> => {
+      await lockTranslationDraftOwner(tx, input.id);
       const existing = await lockTranslationDraft(tx, input.id);
       if (existing == null) return { status: "invalid" };
       const owner = await resolveOwner(
@@ -525,6 +578,13 @@ export async function deleteArticleTranslationDraft(
       await tx
         .delete(articleTranslationDraftTable)
         .where(eq(articleTranslationDraftTable.id, input.id));
+      if (existing.sourceId != null) {
+        // The language no longer exists, so it must not stay listed in
+        // anyone's outstanding review notification.
+        await syncTranslationReviewNotifications(tx, existing.sourceId, {
+          mode: "reconcile",
+        });
+      }
       return { status: "ok", draftId: input.id };
     },
   );

@@ -7,9 +7,13 @@ import {
 } from "@hackerspub/models/article";
 import { getArticleTranslationDraftMediumUrls } from "@hackerspub/models/article-translation";
 import {
-  getDraftRevision,
-  getSourceRevision,
+  getCurrentDraftRevision,
+  getCurrentSourceRevision,
 } from "@hackerspub/models/article-revision";
+import {
+  getReviewState,
+  type TranslationReviewState,
+} from "@hackerspub/models/article-translation-review";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import {
   addExternalLinkTargets,
@@ -102,6 +106,149 @@ export const ArticleTranslationProvenance = builder.enumType(
     } as const,
   },
 );
+
+export const ArticleTranslationReviewState = builder.enumType(
+  "ArticleTranslationReviewState",
+  {
+    description:
+      "Whether a language version has been reviewed against the original it " +
+      "is published alongside. It is computed from recorded source " +
+      "revisions, never from `updated` timestamps, which cannot tell a " +
+      "translation published after an edit apart from one based on it.",
+    values: {
+      CURRENT: {
+        value: "current",
+        description:
+          "The version was reviewed against the original's current revision.",
+      },
+      NEEDS_REVIEW: {
+        value: "needsReview",
+        description:
+          "The original has a newer revision than the one this version was " +
+          "reviewed against, so it may not include the latest changes.",
+      },
+      UNKNOWN_BASELINE: {
+        value: "unknownBaseline",
+        description:
+          "No baseline was ever recorded, so freshness cannot be verified. " +
+          "This covers versions published before revision tracking and " +
+          "automatic translations whose input could not be matched to a " +
+          "revision. It must not be presented as a known source change.",
+      },
+    } as const,
+  },
+);
+
+/**
+ * Resolves the account that owns a snapshot, for both owner kinds. Draft text
+ * is private, so a snapshot is readable only by accounts that can act as its
+ * owner.
+ */
+async function getArticleSourceRevisionOwnerId(
+  revision: { articleDraftId: Uuid | null; sourceId: Uuid | null },
+  ctx: UserContext,
+): Promise<Uuid | null> {
+  if (revision.articleDraftId != null) {
+    const draft = await ctx.db.query.articleDraftTable.findFirst({
+      where: { id: revision.articleDraftId },
+      columns: { accountId: true },
+    });
+    return draft?.accountId ?? null;
+  }
+  if (revision.sourceId != null) {
+    const source = await ctx.db.query.articleSourceTable.findFirst({
+      where: { id: revision.sourceId },
+      columns: { accountId: true },
+    });
+    return source?.accountId ?? null;
+  }
+  return null;
+}
+
+export const ArticleSourceRevision = builder.drizzleNode(
+  "articleSourceRevisionTable",
+  {
+    name: "ArticleSourceRevision",
+    description:
+      "An immutable snapshot of an article original's title and Markdown " +
+      "body, used as the baseline a translation was reviewed against and as " +
+      "the left-hand side of the source comparison shown to translators. " +
+      "Snapshots hold unpublished draft text before publication, so they are " +
+      "readable only by accounts authorized to edit the owning draft or " +
+      "article, and never through a public article endpoint.",
+    authScopes: async (revision, ctx) => {
+      const ownerId = await getArticleSourceRevisionOwnerId(revision, ctx);
+      return ownerId == null ? false : { canActAsAccount: ownerId };
+    },
+    runScopesOnType: true,
+    id: {
+      column: (revision) => revision.id,
+    },
+    fields: (t) => ({
+      uuid: t.expose("id", {
+        type: "UUID",
+        description:
+          "Pass this to `publishArticleTranslation` or " +
+          "`acknowledgeArticleTranslationSource` to say which revision was " +
+          "actually reviewed.",
+      }),
+      language: t.expose("language", {
+        type: "Locale",
+        description:
+          "The original's language at the time of the snapshot. Kept on the " +
+          "snapshot so a baseline keeps its language even if the draft's " +
+          "language later changes.",
+      }),
+      title: t.exposeString("title", {
+        description: "The original's title at the time of the snapshot.",
+      }),
+      content: t.expose("content", {
+        type: "Markdown",
+        description:
+          "The original's Markdown body at the time of the snapshot.",
+      }),
+      created: t.expose("created", {
+        type: "DateTime",
+        description:
+          "When the snapshot was recorded. Display only: revisions are " +
+          "compared by identity, because this is the recording " +
+          "transaction's start time and can invert against commit order.",
+      }),
+    }),
+  },
+);
+
+/**
+ * Whether the viewer may read a published version's private editing metadata
+ * (its reviewed snapshot, reviewer and review time), which the public
+ * `reviewState` signal deliberately does not require.
+ */
+async function viewerCanEditArticleContent(
+  content: { source?: { accountId: Uuid } | null },
+  ctx: UserContext,
+): Promise<boolean> {
+  if (ctx.account == null) return false;
+  const accountId = content.source?.accountId;
+  if (accountId == null) return false;
+  return await canAccountActAs(ctx.db, ctx.account, accountId);
+}
+
+/**
+ * The snapshot a translation draft's owner (an article draft before
+ * publication, the published source afterwards) currently corresponds to.
+ */
+function getCurrentTranslationDraftRevision(
+  draft: { articleDraftId: Uuid | null; sourceId: Uuid | null },
+  ctx: UserContext,
+) {
+  if (draft.articleDraftId != null) {
+    return getCurrentDraftRevision(ctx.db, draft.articleDraftId);
+  }
+  if (draft.sourceId != null) {
+    return getCurrentSourceRevision(ctx.db, draft.sourceId);
+  }
+  return Promise.resolve(undefined);
+}
 
 export const Article = builder.drizzleNode("postTable", {
   variant: "Article",
@@ -537,39 +684,110 @@ export const ArticleTranslationDraft = builder.drizzleObject(
             : "PUBLISHED_WITH_CHANGES";
         },
       }),
+      reviewState: t.field({
+        type: ArticleTranslationReviewState,
+        description:
+          "Whether this draft's baseline is the original's current revision. " +
+          "`NEEDS_REVIEW` means publishing it now would not present the " +
+          "translation as current; `UNKNOWN_BASELINE` means no baseline was " +
+          "recorded at all, which the UI must word as unverified freshness " +
+          "rather than as a known source change.",
+        resolve: async (draft, _, ctx) => {
+          const current = await getCurrentTranslationDraftRevision(draft, ctx);
+          return getReviewState(
+            draft.sourceRevisionId,
+            current?.id,
+          ) satisfies TranslationReviewState;
+        },
+      }),
       sourceChanged: t.field({
         type: "Boolean",
+        deprecationReason:
+          "Use `reviewState`, which distinguishes an unknown baseline from a " +
+          "known source change.",
         description:
           "Whether the original has changed since the revision this draft " +
-          "was based on (or its baseline is unknown). A `true` value means " +
-          "publishing now would not mark the translation as current with the " +
-          "latest original.",
+          "was based on (or its baseline is unknown). Equivalent to " +
+          "`reviewState != CURRENT`.",
         resolve: async (draft, _, ctx) => {
-          if (draft.sourceRevisionId == null) return true;
-          const baseline =
-            await ctx.db.query.articleSourceRevisionTable.findFirst({
-              where: { id: draft.sourceRevisionId },
-            });
-          const current =
-            draft.articleDraftId != null
-              ? await getDraftRevision(ctx.db, draft.articleDraftId)
-              : draft.sourceId != null
-                ? await getSourceRevision(ctx.db, draft.sourceId)
-                : undefined;
-          if (baseline == null || current == null) return true;
-          // Compare content, not just ids: a reparented or re-created snapshot
-          // with identical text is still current.
+          const current = await getCurrentTranslationDraftRevision(draft, ctx);
           return (
-            baseline.language !== current.language ||
-            baseline.title !== current.title ||
-            baseline.content !== current.content
+            getReviewState(draft.sourceRevisionId, current?.id) !== "current"
           );
         },
+      }),
+      baselineSourceRevision: t.relation("sourceRevision", {
+        nullable: true,
+        description:
+          "The original's snapshot this draft was written against, which is " +
+          "the left-hand side of the source comparison. `null` for an " +
+          "unknown baseline. Captured when the draft is created and never " +
+          "advanced by saving; only publishing against a reviewed revision " +
+          "or acknowledging one moves it.",
+      }),
+      currentSourceRevision: t.field({
+        type: ArticleSourceRevision,
+        nullable: true,
+        description:
+          "The original's current snapshot, which is the right-hand side of " +
+          "the source comparison. `null` when the original has no snapshot " +
+          "yet, in which case no comparison can be shown.",
+        resolve: (draft, _, ctx) =>
+          getCurrentTranslationDraftRevision(draft, ctx),
+      }),
+      reviewer: t.relation("reviewer", {
+        nullable: true,
+        description:
+          "The individual who last confirmed this draft against its " +
+          "baseline. This is an editing record, not a credit: use " +
+          "`translator` for the public credit. `null` when nobody has " +
+          "reviewed it or that account was deleted.",
+      }),
+      reviewed: t.expose("reviewed", {
+        type: "DateTime",
+        nullable: true,
+        description:
+          "When the draft was last confirmed against its baseline. It " +
+          "survives the deletion of the reviewing account.",
       }),
       created: t.expose("created", { type: "DateTime" }),
       updated: t.expose("updated", { type: "DateTime" }),
     }),
   },
+);
+
+builder.drizzleObjectField(ArticleDraft, "currentSourceRevision", (t) =>
+  t.field({
+    type: ArticleSourceRevision,
+    nullable: true,
+    description:
+      "The snapshot this draft's current title and body correspond to. Pass " +
+      "its `uuid` to `acknowledgeArticleTranslationSource` to record that a " +
+      "translation was reviewed against it. `null` until the draft's " +
+      "original language is chosen and its first snapshot is recorded.",
+    select: { columns: { id: true } },
+    resolve: (draft, _, ctx) => getCurrentDraftRevision(ctx.db, draft.id),
+  }),
+);
+
+builder.drizzleObjectField(Article, "currentSourceRevision", (t) =>
+  t.field({
+    type: ArticleSourceRevision,
+    nullable: true,
+    description:
+      "The snapshot this article's published original currently corresponds " +
+      "to, which is the right-hand side of the translator's source " +
+      "comparison. `null` for a remote article, and for a local article " +
+      "that has had no snapshot recorded; the latter is why an unknown " +
+      "baseline can neither be compared nor cleared until the next edit. " +
+      "Its text is private editing data, so only authorized editors can " +
+      "read the snapshot itself.",
+    select: { columns: { articleSourceId: true } },
+    resolve: (post, _, ctx) =>
+      post.articleSourceId == null
+        ? Promise.resolve(undefined)
+        : getCurrentSourceRevision(ctx.db, post.articleSourceId),
+  }),
 );
 
 builder.drizzleObjectField(ArticleDraft, "translationDrafts", (t) =>
@@ -853,6 +1071,96 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       description:
         "Whether an LLM translation into this language is currently " +
         "in progress. When `true`, the content may be incomplete.",
+    }),
+    reviewState: t.field({
+      type: ArticleTranslationReviewState,
+      nullable: true,
+      description:
+        "Whether this published version was reviewed against the original's " +
+        "current revision. `null` for the original-language version, where " +
+        "review does not apply. `NEEDS_REVIEW` is what a reader-facing " +
+        '"the original has changed" notice is based on; ' +
+        "`UNKNOWN_BASELINE` must be worded as unverified freshness instead, " +
+        "because no baseline was ever recorded. Readable without " +
+        "authentication so server-rendered pages can show the notice.",
+      select: {
+        columns: {
+          originalLanguage: true,
+          sourceId: true,
+          sourceRevisionId: true,
+        },
+      },
+      resolve: async (content, _, ctx) => {
+        if (content.originalLanguage == null) return null;
+        const current = await getCurrentSourceRevision(
+          ctx.db,
+          content.sourceId,
+        );
+        return getReviewState(
+          content.sourceRevisionId,
+          current?.id,
+        ) satisfies TranslationReviewState;
+      },
+    }),
+    reviewedSourceRevision: t.field({
+      type: ArticleSourceRevision,
+      nullable: true,
+      description:
+        "The original's snapshot this version was reviewed against. It is " +
+        "private editing data, so it resolves to `null` for viewers who " +
+        "cannot edit the article; use `reviewState` for the public signal.",
+      select: {
+        columns: { sourceRevisionId: true, sourceId: true },
+        with: { source: { columns: { accountId: true } } },
+      },
+      async resolve(content, _, ctx) {
+        if (content.sourceRevisionId == null) return null;
+        if (!(await viewerCanEditArticleContent(content, ctx))) return null;
+        return (
+          (await ctx.db.query.articleSourceRevisionTable.findFirst({
+            where: { id: content.sourceRevisionId },
+          })) ?? null
+        );
+      },
+    }),
+    reviewer: t.field({
+      type: Account,
+      nullable: true,
+      description:
+        "The individual who last confirmed this version against its " +
+        "baseline, by publishing it against a reviewed revision or by " +
+        "acknowledging that no translation change was needed. An editing " +
+        "record rather than a credit (`translator` is the public credit), " +
+        "and restricted to viewers who can edit the article.",
+      select: {
+        columns: { reviewerId: true, sourceId: true },
+        with: { source: { columns: { accountId: true } } },
+      },
+      async resolve(content, _, ctx) {
+        if (content.reviewerId == null) return null;
+        if (!(await viewerCanEditArticleContent(content, ctx))) return null;
+        return (
+          (await ctx.db.query.accountTable.findFirst({
+            where: { id: content.reviewerId },
+          })) ?? null
+        );
+      },
+    }),
+    reviewed: t.field({
+      type: "DateTime",
+      nullable: true,
+      description:
+        "When this version was last confirmed against its baseline. " +
+        "Restricted to viewers who can edit the article; it survives the " +
+        "deletion of the reviewing account.",
+      select: {
+        columns: { reviewed: true, sourceId: true },
+        with: { source: { columns: { accountId: true } } },
+      },
+      async resolve(content, _, ctx) {
+        if (!(await viewerCanEditArticleContent(content, ctx))) return null;
+        return content.reviewed;
+      },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", { type: "DateTime" }),

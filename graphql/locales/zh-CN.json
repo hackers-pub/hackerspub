@@ -25,6 +25,7 @@
       "poll_ended": "投票已结束",
       "organization_invitation": "组织邀请",
       "organization_conversion_request": "组织转换请求",
+      "article_translation_source_changed": "已翻译文章的原文变更",
       "notification": "通知"
     },
     "moderationNotificationLabels": {

@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { getOriginalArticleContent } from "./article-source.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
@@ -6,6 +6,7 @@ import {
   type ArticleSource,
   type ArticleSourceRevision,
   articleContentTable,
+  articleDraftTable,
   articleSourceRevisionTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -13,6 +14,12 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 /**
  * Returns the most recent immutable snapshot owned by a draft, or `undefined`
  * when the draft has never had one recorded.
+ *
+ * This orders by `created`, which is the enclosing transaction's start time
+ * and can therefore invert against lock acquisition order. Use it only to
+ * detect that *some* snapshot exists (as {@link ensureSourceRevision} does),
+ * never to decide which snapshot is current: that is what the authoritative
+ * `article_draft.current_revision_id` pointer is for.
  */
 export async function getDraftRevision(
   db: Database | Transaction,
@@ -25,8 +32,10 @@ export async function getDraftRevision(
 }
 
 /**
- * Returns the most recent immutable snapshot owned by a published source, or
- * `undefined` for a legacy source that predates revision tracking.
+ * Returns the most recent immutable snapshot owned by a published source.
+ *
+ * Carries the same caveat as {@link getDraftRevision}: it is an existence
+ * probe, not the current-revision pointer.
  */
 export async function getSourceRevision(
   db: Database | Transaction,
@@ -43,9 +52,11 @@ export async function getSourceRevision(
  * corresponds to.
  *
  * The original `article_content` row is authoritative: its `sourceRevisionId`
- * points at the snapshot matching its current title/body. It can be `null` for
- * a legacy row before backfill; callers that need a usable baseline should use
- * {@link ensureSourceRevision}.
+ * points at the snapshot matching its current title/body, and it is written
+ * under the `article_source` row lock. It can be `null` for a legacy row that
+ * predates revision tracking, which callers must read as an unknown baseline
+ * rather than guessing at the newest snapshot; callers that need a usable
+ * baseline on a write path should use {@link ensureSourceRevision}.
  */
 export async function getCurrentSourceRevision(
   db: Database | Transaction,
@@ -54,23 +65,40 @@ export async function getCurrentSourceRevision(
   const original = await getOriginalArticleContent(db, {
     id: sourceId,
   } as ArticleSource);
-  if (original?.sourceRevisionId != null) {
-    const revision = await db.query.articleSourceRevisionTable.findFirst({
-      where: { id: original.sourceRevisionId },
-    });
-    if (revision != null) return revision;
-  }
-  return await getSourceRevision(db, sourceId);
+  if (original?.sourceRevisionId == null) return undefined;
+  return await db.query.articleSourceRevisionTable.findFirst({
+    where: { id: original.sourceRevisionId },
+  });
+}
+
+/**
+ * Returns the snapshot a draft's current title/body/language corresponds to,
+ * following the authoritative `article_draft.current_revision_id` pointer.
+ */
+export async function getCurrentDraftRevision(
+  db: Database | Transaction,
+  draftId: Uuid,
+): Promise<ArticleSourceRevision | undefined> {
+  const draft = await db.query.articleDraftTable.findFirst({
+    where: { id: draftId },
+    columns: { currentRevisionId: true },
+  });
+  if (draft?.currentRevisionId == null) return undefined;
+  return await db.query.articleSourceRevisionTable.findFirst({
+    where: { id: draft.currentRevisionId },
+  });
 }
 
 /**
  * Records a new draft-owned snapshot when the supplied title/body/language
- * differs from the latest one, and returns the snapshot to use as the current
+ * differs from the current one, and returns the snapshot to use as the current
  * baseline.
  *
- * Saves that do not change the original reuse the latest snapshot, so a
+ * Saves that do not change the original reuse the current snapshot, so a
  * translation draft's baseline is never advanced merely because the original
- * was saved again.
+ * was saved again. The draft's authoritative `currentRevisionId` pointer is
+ * (re)written either way; every caller holds the `article_draft` row lock, so
+ * the pointer never depends on timestamp ordering.
  */
 export async function recordDraftRevision(
   db: Database | Transaction,
@@ -79,14 +107,14 @@ export async function recordDraftRevision(
   content: string,
   language: string,
 ): Promise<ArticleSourceRevision> {
-  const latest = await getDraftRevision(db, draftId);
+  const current = await getCurrentDraftRevision(db, draftId);
   if (
-    latest != null &&
-    latest.title === title &&
-    latest.content === content &&
-    latest.language === language
+    current != null &&
+    current.title === title &&
+    current.content === content &&
+    current.language === language
   ) {
-    return latest;
+    return current;
   }
   const inserted = await db
     .insert(articleSourceRevisionTable)
@@ -99,6 +127,10 @@ export async function recordDraftRevision(
       content,
     })
     .returning();
+  await db
+    .update(articleDraftTable)
+    .set({ currentRevisionId: inserted[0].id })
+    .where(eq(articleDraftTable.id, draftId));
   return inserted[0];
 }
 
@@ -138,6 +170,9 @@ export async function createSourceRevision(
  * Returns the current snapshot for a published source, creating one from the
  * original content when revision tracking has not yet recorded any (legacy
  * rows, or a source whose original was written before this feature).
+ *
+ * Write path only: a read must never create a snapshot, because that would
+ * turn an unknown baseline into a fabricated one.
  */
 export async function ensureSourceRevision(
   db: Database | Transaction,
@@ -149,5 +184,57 @@ export async function ensureSourceRevision(
     id: sourceId,
   } as ArticleSource);
   if (original == null) return undefined;
+  // A legacy source may already own snapshots without the original row
+  // pointing at one. Adopt the newest instead of duplicating it.
+  const existing = await getSourceRevision(db, sourceId);
+  if (
+    existing != null &&
+    existing.language === original.language &&
+    existing.title === original.title &&
+    existing.content === original.content
+  ) {
+    await db
+      .update(articleContentTable)
+      .set({ sourceRevisionId: existing.id })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, sourceId),
+          isNull(articleContentTable.originalLanguage),
+        ),
+      );
+    return existing;
+  }
   return await createSourceRevision(db, sourceId, original);
+}
+
+/**
+ * Returns a SQL expression for the published source's current revision id,
+ * but only when its `(language, title, content)` is exactly the text passed
+ * in; otherwise `NULL`.
+ *
+ * Automatic translation jobs use it to stamp the baseline their output was
+ * produced from without taking the `article_source` lock. The comparison lives
+ * inside the same statement that writes the placeholder, so there is no
+ * read-then-write window: if the original moved between the caller's read and
+ * this write, the texts no longer match and the job records an unknown
+ * baseline instead of falsely claiming to be current with a revision it never
+ * translated.
+ */
+export function matchingSourceRevisionSql(
+  sourceId: Uuid,
+  text: { language: string; title: string; content: string },
+) {
+  return sql`(
+    SELECT ${articleSourceRevisionTable.id}
+    FROM ${articleSourceRevisionTable}
+    JOIN ${articleContentTable}
+      ON ${articleContentTable.sourceRevisionId} = ${articleSourceRevisionTable.id}
+      AND ${articleContentTable.sourceId} = ${sourceId}
+      AND ${articleContentTable.originalLanguage} IS NULL
+    WHERE ${articleSourceRevisionTable.sourceId} = ${sourceId}
+      AND ${articleSourceRevisionTable.language} = ${text.language}
+      AND ${articleSourceRevisionTable.title} = ${text.title}
+      AND ${articleSourceRevisionTable.content} = ${text.content}
+    LIMIT 1
+  )`;
 }

@@ -63,6 +63,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       poll_ended: "Poll ended",
       organization_invitation: "Organization invitation",
       organization_conversion_request: "Organization conversion request",
+      article_translation_source_changed: "Original changed",
     },
     body: {
       follow: (name: string) => `${name} followed you.`,
@@ -83,6 +84,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} invited you to join an organization.`,
       organization_conversion_request: (name: string) =>
         `${name} asked you to accept an organization conversion.`,
+      article_translation_source_changed: (name: string) =>
+        `${name} changed the original of an article you translated.`,
     },
   },
   "ja-JP": {
@@ -99,6 +102,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       poll_ended: "投票が終了しました",
       organization_invitation: "組織への招待",
       organization_conversion_request: "組織への変換リクエスト",
+      article_translation_source_changed: "原文が変更されました",
     },
     body: {
       follow: (name: string) => `${name}さんがあなたをフォローしました`,
@@ -119,6 +123,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name}さんがあなたを組織に招待しました`,
       organization_conversion_request: (name: string) =>
         `${name}さんが組織への変換の承認を依頼しました`,
+      article_translation_source_changed: (name: string) =>
+        `${name}さんが、あなたが翻訳した記事の原文を変更しました`,
     },
   },
   "ko-KR": {
@@ -135,6 +141,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       poll_ended: "투표 종료됨",
       organization_invitation: "조직 초대",
       organization_conversion_request: "조직 전환 요청",
+      article_translation_source_changed: "원문이 변경됨",
     },
     body: {
       follow: (name: string) => `${name} 님이 팔로했습니다`,
@@ -156,6 +163,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} 님이 회원님을 조직에 초대했습니다`,
       organization_conversion_request: (name: string) =>
         `${name} 님이 조직 전환 수락을 요청했습니다`,
+      article_translation_source_changed: (name: string) =>
+        `${name} 님이 회원님이 번역한 게시글의 원문을 변경했습니다`,
     },
   },
   "zh-CN": {
@@ -172,6 +181,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       poll_ended: "投票已结束",
       organization_invitation: "组织邀请",
       organization_conversion_request: "组织转换请求",
+      article_translation_source_changed: "原文已变更",
     },
     body: {
       follow: (name: string) => `${name} 关注了你`,
@@ -189,6 +199,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: (name: string) => `${name} 邀请你加入组织`,
       organization_conversion_request: (name: string) =>
         `${name} 请求你接受组织转换`,
+      article_translation_source_changed: (name: string) =>
+        `${name} 变更了你翻译过的文章的原文`,
     },
   },
   "zh-TW": {
@@ -205,6 +217,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       poll_ended: "投票已結束",
       organization_invitation: "組織邀請",
       organization_conversion_request: "組織轉換請求",
+      article_translation_source_changed: "原文已變更",
     },
     body: {
       follow: (name: string) => `${name} 關注了你`,
@@ -222,6 +235,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: (name: string) => `${name} 邀請你加入組織`,
       organization_conversion_request: (name: string) =>
         `${name} 請求你接受組織轉換`,
+      article_translation_source_changed: (name: string) =>
+        `${name} 變更了你翻譯過的文章的原文`,
     },
   },
 } satisfies Record<

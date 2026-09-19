@@ -25,6 +25,7 @@
       "poll_ended": "投票已結束",
       "organization_invitation": "組織邀請",
       "organization_conversion_request": "組織轉換請求",
+      "article_translation_source_changed": "已翻譯文章的原文變更",
       "notification": "通知"
     },
     "moderationNotificationLabels": {

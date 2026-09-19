@@ -25,6 +25,7 @@
       "poll_ended": "投票終了",
       "organization_invitation": "組織への招待",
       "organization_conversion_request": "組織への転換リクエスト",
+      "article_translation_source_changed": "翻訳した記事の原文の変更",
       "notification": "通知"
     },
     "moderationNotificationLabels": {

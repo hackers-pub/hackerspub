@@ -25,6 +25,7 @@
       "poll_ended": "Poll ended",
       "organization_invitation": "Organization invitation",
       "organization_conversion_request": "Organization conversion request",
+      "article_translation_source_changed": "Translated article original changed",
       "notification": "Notification"
     },
     "moderationNotificationLabels": {

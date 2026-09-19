@@ -25,6 +25,7 @@
       "poll_ended": "투표 종료",
       "organization_invitation": "조직 초대",
       "organization_conversion_request": "조직 전환 요청",
+      "article_translation_source_changed": "번역한 게시글의 원문 변경",
       "notification": "알림"
     },
     "moderationNotificationLabels": {

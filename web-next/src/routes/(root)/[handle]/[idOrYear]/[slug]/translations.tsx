@@ -5,8 +5,11 @@ import { fetchQuery, graphql, type GraphQLTaggedNode } from "relay-runtime";
 import { useRelayEnvironment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import {
+  type ArticleSourceRevisionView,
   ArticleTranslationManager,
   type ArticleTranslationView,
+  type PublishedTranslationView,
+  toTranslationReviewState,
   type TranslationUuid,
 } from "~/components/article-translations/ArticleTranslationManager.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -35,9 +38,24 @@ const translationsArticleQueryNode = graphql`
       publishedYear
       slug
       viewerCanManageTranslations
+      currentSourceRevision {
+        uuid
+        title
+        content
+      }
       contents {
         language
         originalLanguage
+        provenance
+        reviewState
+        reviewedSourceRevision {
+          uuid
+          title
+          content
+        }
+        translator {
+          username
+        }
       }
       translationDrafts {
         uuid
@@ -49,7 +67,12 @@ const translationsArticleQueryNode = graphql`
         publishedRevision
         provenance
         publicationState
-        sourceChanged
+        reviewState
+        baselineSourceRevision {
+          uuid
+          title
+          content
+        }
         translator {
           id
           username
@@ -63,7 +86,9 @@ interface ManagerData {
   sourceId: TranslationUuid;
   originalTitle: string;
   originalLanguage: string | null;
+  currentSourceRevision: ArticleSourceRevisionView | null;
   translations: ArticleTranslationView[];
+  publishedOnlyTranslations: PublishedTranslationView[];
 }
 
 export default function ArticleTranslationsPage() {
@@ -99,10 +124,51 @@ export default function ArticleTranslationsPage() {
     const original = article.contents.find(
       (content) => content.originalLanguage == null,
     );
+    // The published version of a language is tracked alongside its draft, and
+    // listed on its own when there is no draft. A draft's review state does
+    // not stand in for the published one: a draft created after a source edit
+    // starts out current while readers still see the stale version, and an
+    // outstanding notification is about that published version.
+    const publishedByLanguage = new Map(
+      article.contents
+        .filter((content) => content.originalLanguage != null)
+        .map((content) => [
+          new Intl.Locale(content.language).baseName,
+          content,
+        ]),
+    );
+    const draftLanguages = new Set(
+      article.translationDrafts.map(
+        (translation) => new Intl.Locale(translation.language).baseName,
+      ),
+    );
+    const publishedOnlyTranslations = [...publishedByLanguage.values()]
+      .filter(
+        (content) =>
+          !draftLanguages.has(new Intl.Locale(content.language).baseName),
+      )
+      .map((content) => ({
+        language: content.language,
+        reviewState: toTranslationReviewState(
+          content.reviewState ?? "UNKNOWN_BASELINE",
+        ),
+        baselineSourceRevision: content.reviewedSourceRevision ?? null,
+        translatorUsername: content.translator?.username ?? null,
+        automatic: content.provenance === "LLM",
+      }));
+    function publishedReviewStateFor(language: string) {
+      const content = publishedByLanguage.get(
+        new Intl.Locale(language).baseName,
+      );
+      return content == null
+        ? null
+        : toTranslationReviewState(content.reviewState ?? "UNKNOWN_BASELINE");
+    }
     setData({
       sourceId: sourceId as TranslationUuid,
       originalTitle: article.name ?? "",
       originalLanguage: original?.language ?? null,
+      currentSourceRevision: article.currentSourceRevision ?? null,
       translations: article.translationDrafts.map((translation) => ({
         uuid: translation.uuid,
         language: translation.language,
@@ -113,9 +179,16 @@ export default function ArticleTranslationsPage() {
         publishedRevision: translation.publishedRevision ?? null,
         provenance: translation.provenance,
         publicationState: translation.publicationState,
-        sourceChanged: translation.sourceChanged,
+        reviewState: toTranslationReviewState(translation.reviewState),
+        baselineSourceRevision: translation.baselineSourceRevision ?? null,
+        publishedReviewState: publishedReviewStateFor(translation.language),
+        publishedBaselineSourceRevision:
+          publishedByLanguage.get(
+            new Intl.Locale(translation.language).baseName,
+          )?.reviewedSourceRevision ?? null,
         translatorUsername: translation.translator?.username ?? null,
       })),
+      publishedOnlyTranslations,
     });
   };
 
@@ -164,7 +237,9 @@ export default function ArticleTranslationsPage() {
             scope={{ sourceId: data()!.sourceId }}
             originalTitle={data()!.originalTitle}
             originalLanguage={data()!.originalLanguage}
+            currentSourceRevision={data()!.currentSourceRevision}
             translations={data()!.translations}
+            publishedOnlyTranslations={data()!.publishedOnlyTranslations}
             canPublishIndependently={true}
             onChanged={load}
           />

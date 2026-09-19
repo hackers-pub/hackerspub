@@ -16,11 +16,12 @@ import {
   startArticleContentTranslation,
   updateArticle,
 } from "@hackerspub/models/article";
-import { getDraftRevision } from "@hackerspub/models/article-revision";
+import { getCurrentDraftRevision } from "@hackerspub/models/article-revision";
 import {
   deleteArticleTranslationDraft,
   saveArticleTranslationDraft,
 } from "@hackerspub/models/article-translation";
+import { acknowledgeArticleTranslationSource } from "@hackerspub/models/article-translation-review";
 import {
   arePostsBookmarkedBy,
   createBookmark,
@@ -67,6 +68,7 @@ import {
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
+  articleTranslationDraftTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
@@ -119,6 +121,7 @@ import {
 import { Note, Question } from "./note.ts";
 import {
   Article,
+  ArticleContent,
   ArticleDraft,
   ArticleDraftConflictError,
   ArticleTranslationDraft,
@@ -1494,11 +1497,20 @@ builder.relayMutationField(
           const selectedTranslationDrafts: schema.ArticleTranslationDraft[] =
             [];
           const seenLanguages = new Set<string>();
-          for (const selection of args.input.translations ?? []) {
-            const translationDraft =
-              await context.db.query.articleTranslationDraftTable.findFirst({
-                where: { id: selection.id },
-              });
+          // Lock the selections in a stable id order, after the owning draft
+          // lock, matching the owner -> translation draft order every other
+          // path uses. Without the lock a concurrent save could land between
+          // validation and the copy below, publishing text nobody selected.
+          const selections = [...(args.input.translations ?? [])].sort(
+            (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+          );
+          for (const selection of selections) {
+            const lockedRows = await context.db
+              .select()
+              .from(articleTranslationDraftTable)
+              .where(eq(articleTranslationDraftTable.id, selection.id))
+              .for("update");
+            const translationDraft = lockedRows[0];
             if (
               translationDraft == null ||
               translationDraft.articleDraftId !== draft.id ||
@@ -1645,6 +1657,11 @@ builder.relayMutationField(
                     ? "unknown"
                     : "human",
               sourceRevisionId: translationDraft.sourceRevisionId,
+              // Only genuine pre-publication review evidence travels with the
+              // translation; the publisher never becomes its reviewer just by
+              // publishing it.
+              reviewerId: translationDraft.reviewerId,
+              reviewed: translationDraft.reviewed,
               // Include the parent draft's attachments too: a translation may
               // reference an original image that the original body no longer
               // does, and the parent draft is deleted at publication.
@@ -1668,7 +1685,10 @@ builder.relayMutationField(
           // and language, so a translation baselined on it is not immediately
           // considered stale (and a language change at publish time records a
           // fresh snapshot under the right language).
-          const draftRevision = await getDraftRevision(context.db, draft.id);
+          const draftRevision = await getCurrentDraftRevision(
+            context.db,
+            draft.id,
+          );
           const reusableRevision =
             draftRevision != null &&
             draftRevision.language === publicationLanguage &&
@@ -1901,6 +1921,132 @@ builder.relayMutationField(
 );
 
 builder.relayMutationField(
+  "acknowledgeArticleTranslationSource",
+  {
+    description:
+      "Record that an authorized editor compared a translation against a " +
+      "specific source revision and decided it needs no change, for example " +
+      "after a typo fix in the original. It moves the reviewed baseline " +
+      "without touching the translated text or the public translator credit, " +
+      "and it credits the acknowledging individual as the version's " +
+      "reviewer, which is separate from that credit.\n\nThe revision must " +
+      "be named explicitly: an acknowledgement speaks only for the revision " +
+      "that was actually read. If the original moved while the comparison " +
+      "was open, passing the older revision leaves the translation in " +
+      "`NEEDS_REVIEW`, which is intended. Both the private draft (when the " +
+      "language has one) and the published version are advanced, because " +
+      "publishing copies the draft's baseline. Requires authentication and " +
+      "the same authority that governs editing the article.",
+    inputFields: (t) => ({
+      articleDraftId: t.field({
+        type: "UUID",
+        required: false,
+        description:
+          "The unpublished `ArticleDraft.uuid` whose translation drafts are " +
+          "being reviewed. Pass exactly one of this and `sourceId`.",
+      }),
+      sourceId: t.field({
+        type: "UUID",
+        required: false,
+        description:
+          "The published `Article.sourceId` whose translation is being " +
+          "reviewed. Pass exactly one of this and `articleDraftId`.",
+      }),
+      language: t.field({
+        type: "Locale",
+        required: true,
+        description:
+          "The translated language being acknowledged, never the original " +
+          "language.",
+      }),
+      sourceRevisionId: t.field({
+        type: "UUID",
+        required: true,
+        description:
+          "The `ArticleSourceRevision.uuid` that was actually compared, " +
+          "normally the `currentSourceRevision` the editor rendered.",
+      }),
+      translationDraftRevision: t.int({
+        required: false,
+        description:
+          "The `ArticleTranslationDraft.revision` being acknowledged, when " +
+          "the language has a private draft. A mismatch returns " +
+          "`ArticleDraftConflictError` instead of acknowledging text the " +
+          "reviewer never saw.",
+      }),
+    }),
+  },
+  {
+    description:
+      "Acknowledge that a translation needs no change for a given source " +
+      "revision. Requires authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+        ArticleDraftConflictError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const { articleDraftId, sourceId } = args.input;
+      if ((articleDraftId == null) === (sourceId == null)) {
+        throw new InvalidInputError(
+          articleDraftId == null ? "articleDraftId" : "sourceId",
+        );
+      }
+      const result = await acknowledgeArticleTranslationSource(
+        ctx.db,
+        ctx.account,
+        {
+          owner:
+            articleDraftId == null
+              ? { sourceId: sourceId! }
+              : { articleDraftId },
+          language: args.input.language.baseName,
+          sourceRevisionId: args.input.sourceRevisionId,
+          translationDraftRevision: args.input.translationDraftRevision,
+        },
+      );
+      switch (result.status) {
+        case "ok":
+          return {
+            translationDraft: result.translationDraft ?? null,
+            content: result.content ?? null,
+          };
+        case "conflict":
+          throw new ArticleDraftConflictError(result.currentRevision);
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      translationDraft: t.field({
+        type: ArticleTranslationDraft,
+        nullable: true,
+        description:
+          "The private draft whose baseline advanced, or `null` when the " +
+          "language has no private draft.",
+        resolve: (result) => result.translationDraft,
+      }),
+      content: t.field({
+        type: ArticleContent,
+        nullable: true,
+        description:
+          "The published version whose baseline advanced, or `null` when the " +
+          "language has not been published yet.",
+        resolve: (result) => result.content,
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
   "publishArticleTranslation",
   {
     description:
@@ -1915,6 +2061,19 @@ builder.relayMutationField(
       revision: t.int({
         required: true,
         description: "The `ArticleTranslationDraft.revision` being published.",
+      }),
+      sourceRevisionId: t.field({
+        type: "UUID",
+        required: false,
+        description:
+          "The `ArticleSourceRevision.uuid` the publisher was shown while " +
+          "reviewing (normally `Article.currentSourceRevision`). It becomes " +
+          "the published version's baseline and records the publisher as its " +
+          "reviewer, so a translation published against the current original " +
+          "reads as `CURRENT` and one published from a stale editor stays " +
+          "`NEEDS_REVIEW`. Omit it only when the article has no snapshot to " +
+          "name: the draft's stored baseline is then published unchanged and " +
+          "no reviewer evidence is recorded.",
       }),
     }),
   },
@@ -1936,6 +2095,7 @@ builder.relayMutationField(
       const result = await publishArticleTranslation(ctx.fedCtx, ctx.account, {
         translationDraftId: args.input.id,
         revision: args.input.revision,
+        sourceRevisionId: args.input.sourceRevisionId ?? null,
       });
       switch (result.status) {
         case "ok": {
@@ -3030,14 +3190,22 @@ builder.relayMutationField(
 
       let updated;
       try {
-        updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
-          title: args.input.title ?? undefined,
-          content: args.input.content ?? undefined,
-          tags: args.input.tags ?? undefined,
-          language: args.input.language?.baseName ?? undefined,
-          allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
-          media: args.input.media == null ? undefined : media,
-        });
+        updated = await updateArticle(
+          ctx.fedCtx,
+          post.articleSource.id,
+          {
+            title: args.input.title ?? undefined,
+            content: args.input.content ?? undefined,
+            tags: args.input.tags ?? undefined,
+            language: args.input.language?.baseName ?? undefined,
+            allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
+            media: args.input.media == null ? undefined : media,
+          },
+          // The authenticated individual, not the acting organization: an
+          // editor who is also a credited translator must not notify
+          // themselves, while their translation still needs review.
+          { editor: { accountId: ctx.account.id } },
+        );
       } catch (e) {
         if (e instanceof LanguageChangeWithTranslationsError) {
           throw new InvalidInputError("language");

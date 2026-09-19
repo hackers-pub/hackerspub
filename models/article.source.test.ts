@@ -81,6 +81,8 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
     translationRequesterId: null,
     provenance: null,
     sourceRevisionId: null,
+    reviewerId: null,
+    reviewed: null,
     translationJobToken: null,
     beingTranslated: false,
     updated: new Date("2026-04-15T00:00:00.000Z"),

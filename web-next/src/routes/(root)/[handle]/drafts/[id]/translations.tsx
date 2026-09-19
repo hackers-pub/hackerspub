@@ -4,8 +4,10 @@ import { createSignal, onMount, Show } from "solid-js";
 import { fetchQuery, graphql, type GraphQLTaggedNode } from "relay-runtime";
 import { useRelayEnvironment } from "solid-relay";
 import {
+  type ArticleSourceRevisionView,
   ArticleTranslationManager,
   type ArticleTranslationView,
+  toTranslationReviewState,
   type TranslationUuid,
 } from "~/components/article-translations/ArticleTranslationManager.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -27,6 +29,11 @@ const translationsQueryNode = graphql`
       uuid
       title
       language
+      currentSourceRevision {
+        uuid
+        title
+        content
+      }
       translationDrafts {
         uuid
         language
@@ -37,7 +44,12 @@ const translationsQueryNode = graphql`
         publishedRevision
         provenance
         publicationState
-        sourceChanged
+        reviewState
+        baselineSourceRevision {
+          uuid
+          title
+          content
+        }
         translator {
           id
           username
@@ -51,6 +63,7 @@ interface ManagerData {
   canEdit: boolean;
   originalTitle: string;
   originalLanguage: string | null;
+  currentSourceRevision: ArticleSourceRevisionView | null;
   translations: ArticleTranslationView[];
 }
 
@@ -80,6 +93,7 @@ export default function ArticleDraftTranslationsPage() {
       canEdit: result.accountByUsername?.viewerCanActAs === true,
       originalTitle: draft.title,
       originalLanguage: draft.language ?? null,
+      currentSourceRevision: draft.currentSourceRevision ?? null,
       translations: draft.translationDrafts.map((translation) => ({
         uuid: translation.uuid,
         language: translation.language,
@@ -90,7 +104,11 @@ export default function ArticleDraftTranslationsPage() {
         publishedRevision: translation.publishedRevision ?? null,
         provenance: translation.provenance,
         publicationState: translation.publicationState,
-        sourceChanged: translation.sourceChanged,
+        reviewState: toTranslationReviewState(translation.reviewState),
+        baselineSourceRevision: translation.baselineSourceRevision ?? null,
+        // An unpublished draft has no published version to be behind.
+        publishedReviewState: null,
+        publishedBaselineSourceRevision: null,
         translatorUsername: translation.translator?.username ?? null,
       })),
     });
@@ -138,6 +156,7 @@ export default function ArticleDraftTranslationsPage() {
             scope={{ articleDraftId: params.id as TranslationUuid }}
             originalTitle={data()!.originalTitle}
             originalLanguage={data()!.originalLanguage}
+            currentSourceRevision={data()!.currentSourceRevision}
             translations={data()!.translations}
             canPublishIndependently={false}
             onChanged={load}

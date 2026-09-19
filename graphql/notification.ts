@@ -8,12 +8,15 @@ import {
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
 import { and, eq, sql } from "drizzle-orm";
+import { canAccountActAs } from "@hackerspub/models/organization";
+import type { Uuid } from "@hackerspub/models/uuid";
 import { Actor, getActorById } from "./actor.ts";
-import { builder, Node } from "./builder.ts";
+import { builder, Node, type UserContext } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
 import { OrganizationConversionRequestRef } from "./organization-conversion-request.ts";
 import { OrganizationMembershipRef } from "./organization-membership.ts";
 import { Post } from "./post.ts";
+import { Article, ArticleSourceRevision } from "./post/article.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 export const NotificationType = builder.enumType("NotificationType", {
@@ -59,6 +62,11 @@ export const NotificationType = builder.enumType("NotificationType", {
         "A personal account asked this account to accept its conversion " +
         "into an organization account.",
     },
+    ARTICLE_TRANSLATION_SOURCE_CHANGED: {
+      description:
+        "The original of an article this account is credited with " +
+        "translating was changed, so the translation needs review.",
+    },
   } as const,
 });
 
@@ -94,6 +102,8 @@ export const Notification = builder.drizzleInterface("notificationTable", {
         return OrganizationInvitationNotification.name;
       case "organization_conversion_request":
         return OrganizationConversionRequestNotification.name;
+      case "article_translation_source_changed":
+        return ArticleTranslationSourceChangedNotification.name;
     }
   },
   fields: (t) => ({
@@ -344,6 +354,101 @@ export const OrganizationInvitationNotification = builder.drizzleNode(
     }),
   },
 );
+
+export const ArticleTranslationSourceChangedNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "ArticleTranslationSourceChangedNotification",
+    description:
+      "Notification that the original of an article this account is " +
+      "credited with translating has changed, so the affected translations " +
+      "need review. Repeated source edits coalesce into this one row per " +
+      "article: `sourceRevision` always names the newest published revision " +
+      "and `languages` is recomputed, so a language reviewed in between " +
+      "drops out. Reading it is not approval: the translation stays in " +
+      "`NEEDS_REVIEW` until someone publishes or acknowledges it.",
+    interfaces: [Notification],
+    // A notification is addressed to one account; `node(id:)` must not let
+    // anyone else learn that it exists, which article it is about, or when it
+    // arrived.
+    authScopes: (notification) => ({ selfAccount: notification.accountId }),
+    runScopesOnType: true,
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      article: t.relation("post", {
+        type: Article,
+        nullable: true,
+        description:
+          "The article whose original changed, or `null` once it has been " +
+          "deleted. Use its `publishedYear` and `slug` to open the " +
+          "translation management screen.",
+      }),
+      sourceRevision: t.field({
+        type: ArticleSourceRevision,
+        nullable: true,
+        description:
+          "The newest published source revision at the time this " +
+          "notification was last raised, which the translation editor " +
+          "compares against. It is private editing data: a recipient who has " +
+          "since lost access to the workspace receives `null`.",
+        async resolve(notification, _, ctx) {
+          if (notification.articleSourceRevisionId == null) return null;
+          if (!(await viewerStillHasTranslationAccess(notification, ctx))) {
+            return null;
+          }
+          return (
+            (await ctx.db.query.articleSourceRevisionTable.findFirst({
+              where: { id: notification.articleSourceRevisionId },
+            })) ?? null
+          );
+        },
+      }),
+      languages: t.field({
+        type: ["Locale"],
+        description:
+          "The languages that need review, sorted. A recipient who has since " +
+          "lost access to the workspace receives an empty list, because the " +
+          "set of languages under way is itself private editing information.",
+        async resolve(notification, _, ctx) {
+          if (!(await viewerStillHasTranslationAccess(notification, ctx))) {
+            return [];
+          }
+          return notification.translationLanguages.map(
+            (language) => new Intl.Locale(language),
+          );
+        },
+      }),
+    }),
+  },
+);
+
+/**
+ * Re-checks the recipient's authority over the article's workspace at read
+ * time. Access can be revoked after a notification is created, and the
+ * stored languages and revision text belong to private editing work.
+ */
+async function viewerStillHasTranslationAccess(
+  notification: { accountId: Uuid; postId: Uuid | null },
+  ctx: UserContext,
+): Promise<boolean> {
+  if (notification.postId == null) return false;
+  if (ctx.account == null || ctx.account.id !== notification.accountId) {
+    return false;
+  }
+  const post = await ctx.db.query.postTable.findFirst({
+    where: { id: notification.postId },
+    columns: { articleSourceId: true },
+  });
+  if (post?.articleSourceId == null) return false;
+  const source = await ctx.db.query.articleSourceTable.findFirst({
+    where: { id: post.articleSourceId },
+    columns: { accountId: true },
+  });
+  if (source == null) return false;
+  return await canAccountActAs(ctx.db, ctx.account, source.accountId);
+}
 
 builder.mutationField("markNotificationsAsRead", (t) =>
   t.field({

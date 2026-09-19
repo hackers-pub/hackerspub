@@ -300,6 +300,11 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.articleSourceRevisionTable.id,
       optional: true,
     }),
+    reviewer: r.one.accountTable({
+      from: r.articleContentTable.reviewerId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
   },
   articleSourceRevisionTable: {
     articleDraft: r.one.articleDraftTable({
@@ -334,6 +339,11 @@ export const relations = defineRelations(schema, (r) => ({
     sourceRevision: r.one.articleSourceRevisionTable({
       from: r.articleTranslationDraftTable.sourceRevisionId,
       to: r.articleSourceRevisionTable.id,
+      optional: true,
+    }),
+    reviewer: r.one.accountTable({
+      from: r.articleTranslationDraftTable.reviewerId,
+      to: r.accountTable.id,
       optional: true,
     }),
     media: r.many.articleTranslationDraftMediumTable(),
@@ -672,6 +682,11 @@ export const relations = defineRelations(schema, (r) => ({
     organizationConversionRequest: r.one.organizationConversionRequestTable({
       from: r.notificationTable.organizationConversionRequestId,
       to: r.organizationConversionRequestTable.id,
+      optional: true,
+    }),
+    articleSourceRevision: r.one.articleSourceRevisionTable({
+      from: r.notificationTable.articleSourceRevisionId,
+      to: r.articleSourceRevisionTable.id,
       optional: true,
     }),
   },

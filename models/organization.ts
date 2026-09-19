@@ -7,6 +7,7 @@ import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   createOrganizationConversionRequestNotification as createOrganizationConversionRequestNotificationRow,
   createOrganizationInvitationNotification as createOrganizationInvitationNotificationRow,
+  deleteTranslationReviewNotificationsForMember,
 } from "./notification.ts";
 import {
   type Account,
@@ -118,7 +119,13 @@ function asTransactionalFedCtx(
   };
 }
 
-async function lockOrganizationMembershipSet(
+/**
+ * Serializes everything that depends on one organization's accepted-member
+ * set, including callers outside this module (translation review
+ * notifications) that must not insert a row for a member another transaction
+ * is concurrently removing.
+ */
+export async function lockOrganizationMembershipSet(
   tx: Transaction,
   organizationAccountId: Uuid,
 ): Promise<void> {
@@ -736,6 +743,15 @@ async function removeAcceptedMembership(
           ),
         ),
       );
+    // Losing posting authority also removes the ability to act on outstanding
+    // translation review notifications, and their language lists point at
+    // private work the former member may no longer read. The organization's
+    // management list keeps showing the review need.
+    await deleteTranslationReviewNotificationsForMember(
+      tx,
+      organizationAccountId,
+      memberAccountId,
+    );
     return removed;
   });
 }
