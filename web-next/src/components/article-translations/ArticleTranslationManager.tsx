@@ -7,7 +7,7 @@ import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
-import { useLingui } from "~/lib/i18n/macro.ts";
+import { msg, useLingui } from "~/lib/i18n/macro.ts";
 import { diffLines } from "~/lib/lineDiff.ts";
 import type { ArticleTranslationManagerSaveMutation } from "./__generated__/ArticleTranslationManagerSaveMutation.graphql.ts";
 import type { ArticleTranslationManagerDeleteMutation } from "./__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
@@ -110,6 +110,14 @@ const AcknowledgeMutation = graphql`
     }
   }
 `;
+
+// "Published" is also an analytics column heading meaning "publication time",
+// and several locales translate it that way. The context keeps this
+// publication-state label in its own catalog entry.
+const publishedStatusMessage = msg({
+  message: "Published",
+  context: "publication state",
+});
 
 export type TranslationUuid =
   `${string}-${string}-${string}-${string}-${string}`;
@@ -245,7 +253,7 @@ export interface ArticleTranslationManagerProps {
 export function ArticleTranslationManager(
   props: ArticleTranslationManagerProps,
 ) {
-  const { t } = useLingui();
+  const { i18n, t } = useLingui();
   const [saveMutation, saving] =
     createMutation<ArticleTranslationManagerSaveMutation>(SaveMutation);
   const [deleteMutation, deleting] =
@@ -336,6 +344,8 @@ export function ArticleTranslationManager(
     if (translation == null) return false;
     return title() !== translation.title || content() !== translation.content;
   };
+
+  const publishedLabel = () => i18n._(publishedStatusMessage);
 
   const reviewStateLabel = (state: TranslationReviewState) =>
     state === "NEEDS_REVIEW"
@@ -793,7 +803,7 @@ export function ArticleTranslationManager(
                   </span>
                   <span class="text-xs text-muted-foreground">
                     {translation.publicationState === "PUBLISHED"
-                      ? t`Published`
+                      ? publishedLabel()
                       : translation.publicationState ===
                           "PUBLISHED_WITH_CHANGES"
                         ? t`Published; unpublished changes`
@@ -853,7 +863,7 @@ export function ArticleTranslationManager(
                     </Show>
                   </span>
                   <span class="text-xs text-muted-foreground">
-                    {t`Published`}
+                    {publishedLabel()}
                   </span>
                   <Show when={translation.reviewState !== "CURRENT"}>
                     <Badge
