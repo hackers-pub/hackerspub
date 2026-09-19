@@ -69,7 +69,18 @@ export function ArticleTranslationSourceChangedNotificationCard(
                 </For>
               </p>
             </Show>
-            <Show keyed when={translationsHref(notification.article)}>
+            {/* The article itself stays public, so the link has to be gated
+                on the access-filtered language list instead: a recipient who
+                lost access to the workspace gets an empty list, and the
+                management page would only turn them away. */}
+            <Show
+              keyed
+              when={
+                notification.languages.length > 0
+                  ? translationsHref(notification.article)
+                  : undefined
+              }
+            >
               {(href) => (
                 <Button
                   as={A}
