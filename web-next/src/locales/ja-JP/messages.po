@@ -641,7 +641,7 @@ msgstr "有効化日時:"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "現在停止または連合ブロック中のアクターです。期限切れの停止は自動的に除外されます。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:888
+#: src/components/article-translations/ArticleTranslationManager.tsx:898
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,9 +675,13 @@ msgstr "古いアカウントをここに追加してください。Hackers' Pub
 msgid "Add to sidebar"
 msgstr "サイドバーに追加"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:866
+#: src/components/article-translations/ArticleTranslationManager.tsx:876
 msgid "Add translation"
 msgstr "翻訳を追加"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:733
+msgid "Added line:"
+msgstr "追加された行:"
 
 #: src/components/EmojiReactionPopover.tsx:104
 msgid "Adding reaction…"
@@ -995,7 +999,7 @@ msgstr "自動入力"
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:834
+#: src/components/article-translations/ArticleTranslationManager.tsx:844
 msgid "Automatic translation"
 msgstr "自動翻訳"
 
@@ -1592,7 +1596,7 @@ msgid "Delete account permanently?"
 msgstr "アカウントを完全に削除しますか？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1010
+#: src/components/article-translations/ArticleTranslationManager.tsx:1020
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "下書きを削除"
@@ -2678,7 +2682,7 @@ msgstr "原文の変更を隠す"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:892
+#: src/components/article-translations/ArticleTranslationManager.tsx:902
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "既に同じ言語の下書きがある場合は、重複して作成せずにそれを開きます。"
 
@@ -2904,7 +2908,7 @@ msgstr "言語設定"
 msgid "Language shown when the view was counted."
 msgstr "閲覧が集計された時点で表示されていた言語です。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:754
+#: src/components/article-translations/ArticleTranslationManager.tsx:764
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 msgid "Languages"
@@ -3224,7 +3228,7 @@ msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the r
 msgstr "インスタンスアクターでActivityPubリレーをフォローします。承認されると、リレーはフェディバース全体の公開コンテンツをこのインスタンスに転送でき、このインスタンスで新たに公開された記事を受け取ります。リレーアクターのURL（例: https://relay.example/actor）を入力してください。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:120
-#: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:81
+#: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:92
 #: src/components/PostActionMenu.tsx:384
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:993
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:204
@@ -3620,8 +3624,8 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "No translation changes needed"
 msgstr "翻訳の修正は不要"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:775
-#: src/components/article-translations/ArticleTranslationManager.tsx:835
+#: src/components/article-translations/ArticleTranslationManager.tsx:785
+#: src/components/article-translations/ArticleTranslationManager.tsx:845
 msgid "No translator credit"
 msgstr "翻訳者のクレジットなし"
 
@@ -3683,7 +3687,7 @@ msgstr "見つかりません"
 #~ msgid "Not found."
 #~ msgstr "見つかりませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:790
+#: src/components/article-translations/ArticleTranslationManager.tsx:800
 msgid "Not published"
 msgstr "未公開"
 
@@ -3855,7 +3859,7 @@ msgstr "組織の招待"
 msgid "Organization members"
 msgstr "組織メンバー"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:959
+#: src/components/article-translations/ArticleTranslationManager.tsx:969
 msgid "Original"
 msgstr "原文"
 
@@ -4139,7 +4143,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "このアカウントをMastodon式の移行先として準備します。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:969
+#: src/components/article-translations/ArticleTranslationManager.tsx:979
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "プレビュー"
@@ -4220,7 +4224,7 @@ msgstr "公開"
 msgid "Publish article"
 msgstr "記事を公開"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1001
+#: src/components/article-translations/ArticleTranslationManager.tsx:1011
 msgid "Publish changes"
 msgstr "変更を公開"
 
@@ -4236,17 +4240,17 @@ msgstr "公開設定"
 msgid "Publish this as a note?"
 msgstr "これを投稿として公開しますか？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1000
+#: src/components/article-translations/ArticleTranslationManager.tsx:1010
 msgid "Publish translation"
 msgstr "翻訳を公開"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:786
-#: src/components/article-translations/ArticleTranslationManager.tsx:846
+#: src/components/article-translations/ArticleTranslationManager.tsx:796
+#: src/components/article-translations/ArticleTranslationManager.tsx:856
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:561
 msgid "Published"
 msgstr "公開日時"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:789
+#: src/components/article-translations/ArticleTranslationManager.tsx:799
 msgid "Published; unpublished changes"
 msgstr "公開済み、未公開の変更あり"
 
@@ -4544,6 +4548,10 @@ msgstr "アンケートを削除"
 msgid "Remove quote"
 msgstr "引用を削除"
 
+#: src/components/article-translations/ArticleTranslationManager.tsx:732
+msgid "Removed line:"
+msgstr "削除された行:"
+
 #: src/routes/(root)/admin/media.tsx:160
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
@@ -4761,7 +4769,7 @@ msgid "Save changes"
 msgstr "変更を保存"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:989
+#: src/components/article-translations/ArticleTranslationManager.tsx:999
 msgid "Save draft"
 msgstr "下書きを保存"
 
@@ -4839,7 +4847,7 @@ msgstr "{0}の検索結果"
 msgid "Searching…"
 msgstr "検索中…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:922
+#: src/components/article-translations/ArticleTranslationManager.tsx:932
 msgid "Select a language to edit its translation."
 msgstr "編集する言語を選択してください。"
 
@@ -5668,7 +5676,7 @@ msgstr "ローカルの通知や異議申し立てがないリモートアクタ
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "長すぎます（最大{MAX_REASON_LENGTH}文字）。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:904
+#: src/components/article-translations/ArticleTranslationManager.tsx:914
 msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 msgstr "この言語は非公開の下書きなしで公開されています。ここで確認するか、翻訳を追加して編集を始めてください。"
 
@@ -5775,12 +5783,12 @@ msgstr "通報総数"
 msgid "Total: {0}"
 msgstr "合計：{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:952
+#: src/components/article-translations/ArticleTranslationManager.tsx:962
 msgid "Translated body"
 msgstr "翻訳本文"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:779
-#: src/components/article-translations/ArticleTranslationManager.tsx:840
+#: src/components/article-translations/ArticleTranslationManager.tsx:789
+#: src/components/article-translations/ArticleTranslationManager.tsx:850
 msgid "Translated by"
 msgstr "翻訳者:"
 
@@ -5790,7 +5798,7 @@ msgstr "翻訳者:"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:941
+#: src/components/article-translations/ArticleTranslationManager.tsx:951
 msgid "Translated title"
 msgstr "翻訳タイトル"
 

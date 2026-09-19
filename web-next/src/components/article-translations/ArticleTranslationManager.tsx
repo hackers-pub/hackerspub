@@ -723,6 +723,16 @@ export function ArticleTranslationManager(
                                 line.kind === "added",
                             }}
                           >
+                            {/* The +/- prefix is decorative and the colour
+                                carries no meaning on its own, so the direction
+                                of a changed line has to be spoken. */}
+                            <Show when={line.kind !== "unchanged"}>
+                              <span class="sr-only">
+                                {line.kind === "removed"
+                                  ? t`Removed line:`
+                                  : t`Added line:`}
+                              </span>
+                            </Show>
                             <span
                               aria-hidden="true"
                               class="select-none text-muted-foreground"
