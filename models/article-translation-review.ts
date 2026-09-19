@@ -237,6 +237,21 @@ export async function syncTranslationReviewNotifications(
   sourceId: Uuid,
   options: SyncTranslationReviewNotificationsOptions,
 ): Promise<PendingTranslationReviewPush[]> {
+  // `pg_advisory_xact_lock` lives and dies with its transaction, so the whole
+  // reconciliation has to run inside one. Handed a root `Database`, each
+  // statement would otherwise be its own transaction and the lock would be
+  // released before the membership reads and notification writes it is meant
+  // to serialize.
+  return await runInTransaction(db, (tx) =>
+    syncTranslationReviewNotificationsInTransaction(tx, sourceId, options),
+  );
+}
+
+async function syncTranslationReviewNotificationsInTransaction(
+  db: Transaction,
+  sourceId: Uuid,
+  options: SyncTranslationReviewNotificationsOptions,
+): Promise<PendingTranslationReviewPush[]> {
   const owner = await getSourceOwner(db, sourceId);
   if (owner == null || owner.postId == null) return [];
   // Serialize against membership revocation on the same advisory lock the

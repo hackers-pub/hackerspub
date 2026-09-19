@@ -126,7 +126,7 @@ function asTransactionalFedCtx(
  * is concurrently removing.
  */
 export async function lockOrganizationMembershipSet(
-  tx: Transaction | Database,
+  tx: Transaction,
   organizationAccountId: Uuid,
 ): Promise<void> {
   await tx.execute(sql`
