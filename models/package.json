@@ -11,6 +11,7 @@
     "./article-analytics": "./article-analytics.ts",
     "./article-revision": "./article-revision.ts",
     "./article-translation": "./article-translation.ts",
+    "./article-translation-review": "./article-translation-review.ts",
     "./avatar": "./avatar.ts",
     "./blocking": "./blocking.ts",
     "./bookmark": "./bookmark.ts",

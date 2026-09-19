@@ -37,6 +37,7 @@ import {
   articleDraftTable,
   type ArticleSource,
   articleSourceMediumTable,
+  type ArticleSourceRevision,
   articleSourceRevisionTable,
   articleSourceTable,
   type ArticleTranslationDraft,
@@ -58,9 +59,17 @@ import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 import {
   createSourceRevision,
+  ensureSourceRevision,
+  matchingSourceRevisionSql,
   recordDraftRevision,
 } from "./article-revision.ts";
+import {
+  isTranslationReviewPushStillValid,
+  type PendingTranslationReviewPush,
+  syncTranslationReviewNotifications,
+} from "./article-translation-review.ts";
 import { normalizeContentLanguage } from "./i18n.ts";
+import { sendNotificationPush } from "./notification.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
 const articleMediumReferencePattern = /hp-medium:([A-Za-z0-9._:/-]+)/g;
@@ -660,6 +669,13 @@ export interface ArticleAdditionalContent {
   translatorId: Uuid | null;
   provenance: ArticleContentProvenance;
   sourceRevisionId: Uuid | null;
+  /**
+   * Carried over from the translation draft's own review record, so a
+   * translation acknowledged before publication keeps that evidence and one
+   * that was never reviewed does not acquire any.
+   */
+  reviewerId?: Uuid | null;
+  reviewed?: Date | null;
   media?: readonly ArticleMediumInput[];
 }
 
@@ -739,6 +755,12 @@ export async function createArticleSource(
         translatorId: content.translatorId,
         provenance: content.provenance,
         sourceRevisionId: content.sourceRevisionId,
+        reviewerId:
+          content.sourceRevisionId == null
+            ? null
+            : (content.reviewerId ?? null),
+        reviewed:
+          content.sourceRevisionId == null ? null : (content.reviewed ?? null),
       })),
     ])
     .returning();
@@ -932,6 +954,16 @@ export interface UpdateArticleSourceResult {
    * is nothing to retranslate.
    */
   originalContentChanged: boolean;
+  /**
+   * The snapshot recorded because the published original's title, body or
+   * language actually changed, or `undefined` when this update changed only
+   * metadata (tags, quote policy, the LLM translation switch) or re-saved
+   * identical text.
+   *
+   * Unlike {@link originalContentChanged}, this also covers title-only edits,
+   * which invalidate translations just as a body edit does.
+   */
+  sourceRevision?: ArticleSourceRevision;
 }
 
 export async function updateArticleSource(
@@ -952,6 +984,7 @@ export async function updateArticleSource(
   // The original content row whose title/body/language changed, so a new
   // snapshot can be recorded after the update.
   let revisionTarget: ArticleContent | undefined;
+  let sourceRevision: ArticleSourceRevision | undefined;
   let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
   try {
     result = await db.transaction(async (tx) => {
@@ -1038,7 +1071,7 @@ export async function updateArticleSource(
         }
       }
       if (revisionTarget != null) {
-        await createSourceRevision(tx, id, revisionTarget);
+        sourceRevision = await createSourceRevision(tx, id, revisionTarget);
       }
       const contents = await tx.query.articleContentTable.findMany({
         where: { sourceId: id },
@@ -1082,7 +1115,61 @@ export async function updateArticleSource(
     throw error;
   }
   if (result == null) return undefined;
-  return { source: result, originalContentChanged, resummarizeTarget };
+  return {
+    source: result,
+    originalContentChanged,
+    resummarizeTarget,
+    sourceRevision,
+  };
+}
+
+export interface UpdateArticleOptions {
+  /**
+   * The individual performing the edit, used to suppress a self-notification
+   * when the editor is also the credited translator of an affected language.
+   * The translation is still marked as needing review.
+   *
+   * It is the authenticated person, never the acting organization.
+   */
+  editor?: { accountId: Uuid } | null;
+}
+
+/**
+ * Queues the in-app "original changed" push deliveries for after the
+ * enclosing transaction commits, re-checking each recipient's access at
+ * delivery time so a membership revoked in between stops the push.
+ */
+async function queueTranslationReviewPushes(
+  fedCtx: ApplicationContext,
+  pending: readonly PendingTranslationReviewPush[],
+): Promise<void> {
+  if (pending.length < 1) return;
+  await queueAfterCommit(fedCtx, async () => {
+    const db = fedCtx.rootDb ?? fedCtx.db;
+    for (const push of pending) {
+      try {
+        if (!(await isTranslationReviewPushStillValid(db as Database, push))) {
+          continue;
+        }
+        // Reuse the existing delivery machinery so the recipient's
+        // preview-policy and locale settings apply unchanged; this issue adds
+        // no new channel of its own.
+        await sendNotificationPush(db as Database, {
+          accountId: push.accountId,
+          notificationId: push.notificationId,
+          type: "article_translation_source_changed",
+          actorId: push.actorId,
+          postId: push.postId,
+        });
+      } catch (error) {
+        logger.error(
+          "Failed to deliver a translation review notification for " +
+            "{accountId}: {error}",
+          { accountId: push.accountId, error },
+        );
+      }
+    }
+  });
 }
 
 async function updateArticleOperation(
@@ -1094,6 +1181,7 @@ async function updateArticleOperation(
     language?: string;
     media?: readonly ArticleMediumInput[];
   },
+  options: UpdateArticleOptions = {},
 ): Promise<
   | (Post & {
       actor: Actor & {
@@ -1116,7 +1204,23 @@ async function updateArticleOperation(
     source: articleSource,
     originalContentChanged,
     resummarizeTarget,
+    sourceRevision,
   } = updateResult;
+  // A new published revision, and only a new published revision, invalidates
+  // the translations based on older ones and notifies the people credited with
+  // them. Draft saves and metadata-only edits never reach this branch, and a
+  // censored article still notifies locally even though nothing federates.
+  if (sourceRevision != null) {
+    const pending = await syncTranslationReviewNotifications(
+      db,
+      articleSourceId,
+      {
+        mode: "sourceChanged",
+        suppressAccountId: options.editor?.accountId ?? null,
+      },
+    );
+    await queueTranslationReviewPushes(fedCtx, pending);
+  }
   if (resummarizeTarget != null) {
     await queueArticleContentSummary(fedCtx, resummarizeTarget);
   }
@@ -1281,6 +1385,16 @@ export async function promoteArticleTranslationDrafts(
 export interface PublishArticleTranslationInput {
   translationDraftId: Uuid;
   revision: number;
+  /**
+   * The source revision the publisher was shown while reviewing, which becomes
+   * the published version's baseline and records them as its reviewer.
+   *
+   * Omitting it publishes the baseline the draft already carried and records
+   * no new reviewer evidence. That legacy path exists because an article that
+   * has never been edited since revision tracking landed may have no snapshot
+   * for the client to name.
+   */
+  sourceRevisionId?: Uuid | null;
 }
 
 export type PublishArticleTranslationResult =
@@ -1326,13 +1440,34 @@ export async function publishArticleTranslation(
   const outcome = await withTransaction<Outcome>(
     fedCtx,
     async (context): Promise<Outcome> => {
+      // Owner first, then the translation draft. Every path that touches both
+      // takes them in this order (`acknowledgeArticleTranslationSource`,
+      // `saveArticleTranslationDraft`'s create path, `publishArticleDraft`),
+      // and `updateArticleSource`/`restartArticleContentTranslations` go
+      // source -> content without ever taking a translation-draft lock, so no
+      // cycle is possible.
+      const located =
+        await context.db.query.articleTranslationDraftTable.findFirst({
+          where: { id: input.translationDraftId },
+          columns: { sourceId: true },
+        });
+      if (located?.sourceId == null) {
+        return { kind: "invalid", inputPath: "translationDraftId" };
+      }
+      await context.db
+        .select({ id: articleSourceTable.id })
+        .from(articleSourceTable)
+        .where(eq(articleSourceTable.id, located.sourceId))
+        .for("update");
+      // Re-read the draft under the lock: the unlocked lookup above only
+      // resolved which source to lock.
       const draftRows = await context.db
         .select()
         .from(articleTranslationDraftTable)
         .where(eq(articleTranslationDraftTable.id, input.translationDraftId))
         .for("update");
       const draft = draftRows[0];
-      if (draft == null || draft.sourceId == null) {
+      if (draft == null || draft.sourceId !== located.sourceId) {
         return { kind: "invalid", inputPath: "translationDraftId" };
       }
       const source = await context.db.query.articleSourceTable.findFirst({
@@ -1364,16 +1499,26 @@ export async function publishArticleTranslation(
       // must not publish through their organization.
       await assertAccountActorNotSuspended(context.db, publisher.id);
       await assertAccountActorNotSuspended(context.db, source.accountId);
-      // Acquire the source lock before touching any content row, matching the
-      // source-first order `updateArticle` uses (`updateArticleSource` locks
-      // the source, then `restartArticleContentTranslations` locks the content
-      // rows). Otherwise publishing over an automatic translation could
-      // deadlock with a concurrent original-body edit.
-      await context.db
-        .select({ id: articleSourceTable.id })
-        .from(articleSourceTable)
-        .where(eq(articleSourceTable.id, source.id))
-        .for("update");
+      // The reviewed baseline: the revision the publisher was actually shown,
+      // when the client identifies one, otherwise the baseline the draft has
+      // carried since it was created. Only the former is evidence that a
+      // person reviewed the current original, so only the former records a
+      // reviewer.
+      let baselineId = draft.sourceRevisionId;
+      let reviewerId = draft.reviewerId;
+      let reviewed: Date | null = draft.reviewed;
+      if (input.sourceRevisionId != null) {
+        const revision =
+          await context.db.query.articleSourceRevisionTable.findFirst({
+            where: { id: input.sourceRevisionId },
+          });
+        if (revision == null || revision.sourceId !== source.id) {
+          return { kind: "invalid", inputPath: "sourceRevisionId" };
+        }
+        baselineId = revision.id;
+        reviewerId = publisher.id;
+        reviewed = new Date();
+      }
       const provenance: ArticleContentProvenance =
         draft.provenance === "llm"
           ? "llm_reviewed"
@@ -1394,7 +1539,9 @@ export async function publishArticleTranslation(
           originalLanguage: original.language,
           translatorId: draft.translatorId,
           provenance,
-          sourceRevisionId: draft.sourceRevisionId,
+          sourceRevisionId: baselineId,
+          reviewerId: baselineId == null ? null : reviewerId,
+          reviewed: baselineId == null ? null : reviewed,
           beingTranslated: false,
         })
         .onConflictDoUpdate({
@@ -1406,7 +1553,9 @@ export async function publishArticleTranslation(
             translatorId: draft.translatorId,
             translationRequesterId: null,
             provenance,
-            sourceRevisionId: draft.sourceRevisionId,
+            sourceRevisionId: baselineId,
+            reviewerId: baselineId == null ? null : reviewerId,
+            reviewed: baselineId == null ? null : reviewed,
             beingTranslated: false,
             translationJobToken: null,
             summary: null,
@@ -1438,7 +1587,15 @@ export async function publishArticleTranslation(
       }
       const updatedDraft = await context.db
         .update(articleTranslationDraftTable)
-        .set({ publishedRevision: draft.revision })
+        .set({
+          publishedRevision: draft.revision,
+          // Keep the private draft's baseline in step with what was just
+          // published, so the translator does not have to acknowledge the same
+          // revision twice.
+          sourceRevisionId: baselineId,
+          reviewerId: baselineId == null ? null : reviewerId,
+          reviewed: baselineId == null ? null : reviewed,
+        })
         .where(eq(articleTranslationDraftTable.id, draft.id))
         .returning();
       // Advance the article's object version so receivers accept the Update.
@@ -1446,6 +1603,12 @@ export async function publishArticleTranslation(
         .update(articleSourceTable)
         .set({ updated: sql`CURRENT_TIMESTAMP` })
         .where(eq(articleSourceTable.id, source.id));
+      // Publishing against the current revision resolves the outstanding
+      // review need for this language; drop it from (or delete) the
+      // translator's notification without resurfacing it.
+      await syncTranslationReviewNotifications(context.db, source.id, {
+        mode: "reconcile",
+      });
       return {
         kind: "ok",
         sourceId: source.id,
@@ -1792,6 +1955,16 @@ export async function startArticleContentTranslation(
       originalLanguage: content.language,
       translationRequesterId: requester.id,
       provenance: "llm",
+      // Stamp the baseline in the same statement that writes the text, and
+      // only when the current snapshot is exactly that text. There is no
+      // source lock on this path, so a concurrent edit must degrade to an
+      // unknown baseline rather than let the job claim freshness against a
+      // revision it never translated.
+      sourceRevisionId: matchingSourceRevisionSql(content.sourceId, {
+        language: content.language,
+        title: content.title,
+        content: content.content,
+      }),
       translationJobToken: queueToken,
       beingTranslated: true,
       updated: queueStamp,
@@ -1838,6 +2011,13 @@ export async function startArticleContentTranslation(
         content: content.content,
         originalLanguage: content.language,
         provenance: "llm",
+        sourceRevisionId: matchingSourceRevisionSql(content.sourceId, {
+          language: content.language,
+          title: content.title,
+          content: content.content,
+        }),
+        reviewerId: null,
+        reviewed: null,
         translationJobToken: queueToken,
         summary: null,
         summaryStarted: null,
@@ -1894,6 +2074,9 @@ export async function startArticleContentTranslation(
  * awaited so callers can rely on placeholders being in place by
  * return time.
  *
+ * Returns the rows the reset produced, before any background translation has
+ * touched them.
+ *
  * No-ops when the article has no original-language content (e.g.,
  * remote articles with no `articleSource.contents` row in the
  * article's own language) or no translation rows at all.
@@ -1904,7 +2087,7 @@ export async function startArticleContentTranslation(
 export async function restartArticleContentTranslations(
   fedCtx: ApplicationContext,
   articleSource: ArticleSource,
-): Promise<void> {
+): Promise<ArticleContent[]> {
   const { db } = fedCtx;
   // Serialize the read-original-then-reset-translations sequence
   // against any other writer to this article's source row.  Two
@@ -1950,12 +2133,22 @@ export async function restartArticleContentTranslations(
     // `runArticleContentTranslation` can match it; see the long
     // comment on that claim for the µs/ms precision rationale.
     const restartStamp = new Date();
+    const restartRevision = await ensureSourceRevision(tx, articleSource.id);
+    const restartRevisionId = restartRevision?.id ?? null;
     const reset = await tx
       .update(articleContentTable)
       .set({
         title: original.title,
         content: original.content,
         beingTranslated: true,
+        // Re-stamp the baseline to the snapshot this restart translates from,
+        // overwriting whatever the previous run recorded. The enclosing
+        // transaction holds the source lock and copies the original verbatim,
+        // so the match always succeeds unless the article has no snapshot at
+        // all, in which case the row honestly reports an unknown baseline.
+        sourceRevisionId: restartRevisionId,
+        reviewerId: null,
+        reviewed: null,
         // Rotate the job token so a worker still running against the previous
         // revision cannot write its result back.
         translationJobToken: generateUuidV7(),
@@ -2021,6 +2214,10 @@ export async function restartArticleContentTranslations(
       );
     });
   }
+  // Returned so callers (and tests) can inspect the placeholders the reset
+  // produced without racing the background translation, which rewrites or
+  // clears these rows as soon as the model answers or fails.
+  return resetRows;
 }
 
 /**

@@ -7,6 +7,7 @@ import type {
   NotificationCard_notification$data,
   NotificationCard_notification$key,
 } from "./__generated__/NotificationCard_notification.graphql.ts";
+import { ArticleTranslationSourceChangedNotificationCard } from "./notification/ArticleTranslationSourceChangedNotificationCard.tsx";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
 import { OrganizationConversionRequestNotificationCard } from "./notification/OrganizationConversionRequestNotificationCard.tsx";
@@ -30,6 +31,8 @@ const notificationCards: Readonly<
     Component<{ $notification: NotificationCard_notification$data }>
   >
 > = {
+  ArticleTranslationSourceChangedNotification:
+    ArticleTranslationSourceChangedNotificationCard,
   FollowNotification: FollowNotificationCard,
   MentionNotification: MentionNotificationCard,
   OrganizationConversionRequestNotification:
@@ -49,6 +52,7 @@ export function NotificationCard(props: NotificationCardProps) {
     graphql`
       fragment NotificationCard_notification on Notification {
         __typename
+        ...ArticleTranslationSourceChangedNotificationCard_notification
         ...FollowNotificationCard_notification
         ...MentionNotificationCard_notification
         ...OrganizationConversionRequestNotificationCard_notification

@@ -280,6 +280,33 @@ export async function createNotification(
   }
 }
 
+/**
+ * Delivers an already-persisted notification through the existing push
+ * channels, best effort.
+ *
+ * Callers that write notification rows inside a transaction use this after the
+ * commit, so a rolled-back write can never have pushed already.
+ */
+export async function sendNotificationPush(
+  db: Database,
+  options: {
+    accountId: Uuid;
+    notificationId: Uuid;
+    type: NotificationType;
+    actorId: Uuid;
+    postId?: Uuid | null;
+  },
+): Promise<void> {
+  await sendPushNotificationsBestEffort(db, {
+    accountId: options.accountId,
+    notificationId: options.notificationId,
+    type: options.type,
+    actorId: options.actorId,
+    postId: options.postId ?? undefined,
+    emoji: null,
+  });
+}
+
 async function sendInsertedNotificationPush(
   db: NotificationDatabase,
   notification: Notification,
@@ -791,4 +818,31 @@ export function getNotificationActors(
   return db.query.actorTable.findMany({
     where: { id: { in: actorIds } },
   });
+}
+
+/**
+ * Drops a removed organization member's outstanding "original changed"
+ * notifications for that organization's articles.
+ *
+ * Losing posting authority removes the ability to act on them, and their
+ * language lists point at private translation work the member may no longer
+ * read. The organization's management list still shows the review need.
+ */
+export async function deleteTranslationReviewNotificationsForMember(
+  db: Database | Transaction,
+  organizationAccountId: Uuid,
+  memberAccountId: Uuid,
+): Promise<void> {
+  await db.delete(notificationTable).where(
+    and(
+      eq(notificationTable.accountId, memberAccountId),
+      eq(notificationTable.type, "article_translation_source_changed"),
+      sql`${notificationTable.postId} IN (
+        SELECT p.id
+        FROM post p
+        JOIN article_source s ON s.id = p.article_source_id
+        WHERE s.account_id = ${organizationAccountId}
+      )`,
+    ),
+  );
 }

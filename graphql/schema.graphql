@@ -407,6 +407,55 @@ type AccountReportsConnectionEdge {
 }
 
 """
+Record that an authorized editor compared a translation against a specific source revision and decided it needs no change, for example after a typo fix in the original. It moves the reviewed baseline without touching the translated text or the public translator credit, and it credits the acknowledging individual as the version's reviewer, which is separate from that credit.
+
+The revision must be named explicitly: an acknowledgement speaks only for the revision that was actually read. If the original moved while the comparison was open, passing the older revision leaves the translation in `NEEDS_REVIEW`, which is intended. Both the private draft (when the language has one) and the published version are advanced, because publishing copies the draft's baseline. Requires authentication and the same authority that governs editing the article.
+"""
+input AcknowledgeArticleTranslationSourceInput {
+  """
+  The unpublished `ArticleDraft.uuid` whose translation drafts are being reviewed. Pass exactly one of this and `sourceId`.
+  """
+  articleDraftId: UUID
+  clientMutationId: ID
+
+  """
+  The translated language being acknowledged, never the original language.
+  """
+  language: Locale!
+
+  """
+  The published `Article.sourceId` whose translation is being reviewed. Pass exactly one of this and `articleDraftId`.
+  """
+  sourceId: UUID
+
+  """
+  The `ArticleSourceRevision.uuid` that was actually compared, normally the `currentSourceRevision` the editor rendered.
+  """
+  sourceRevisionId: UUID!
+
+  """
+  The `ArticleTranslationDraft.revision` being acknowledged, when the language has a private draft. A mismatch returns `ArticleDraftConflictError` instead of acknowledging text the reviewer never saw.
+  """
+  translationDraftRevision: Int
+}
+
+type AcknowledgeArticleTranslationSourcePayload {
+  clientMutationId: ID
+
+  """
+  The published version whose baseline advanced, or `null` when the language has not been published yet.
+  """
+  content: ArticleContent
+
+  """
+  The private draft whose baseline advanced, or `null` when the language has no private draft.
+  """
+  translationDraft: ArticleTranslationDraft
+}
+
+union AcknowledgeArticleTranslationSourceResult = AcknowledgeArticleTranslationSourcePayload | ArticleDraftConflictError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
+
+"""
 An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account`; only `PERSONAL` accounts hold direct login credentials, while `ORGANIZATION` accounts are controlled through memberships. When in doubt, use `Actor` for display and `Account` for viewer, organization, or moderation state.
 """
 type Actor implements Node {
@@ -1036,6 +1085,11 @@ type Article implements Node & Post & Reactable {
   ): [ArticleContent!]!
 
   """
+  The snapshot this article's published original currently corresponds to, which is the right-hand side of the translator's source comparison. `null` for a remote article, and for a local article that has had no snapshot recorded; the latter is why an unknown baseline can neither be compared nor cleared until the next edit. Its text is private editing data, so only authorized editors can read the snapshot itself.
+  """
+  currentSourceRevision: ArticleSourceRevision
+
+  """
   Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
   """
   descendants(
@@ -1630,6 +1684,26 @@ type ArticleContent implements Node {
   rawContent: Markdown!
 
   """
+  Whether this published version was reviewed against the original's current revision. `null` for the original-language version, where review does not apply. `NEEDS_REVIEW` is what a reader-facing "the original has changed" notice is based on; `UNKNOWN_BASELINE` must be worded as unverified freshness instead, because no baseline was ever recorded. Readable without authentication so server-rendered pages can show the notice.
+  """
+  reviewState: ArticleTranslationReviewState
+
+  """
+  When this version was last confirmed against its baseline. Restricted to viewers who can edit the article; it survives the deletion of the reviewing account.
+  """
+  reviewed: DateTime
+
+  """
+  The original's snapshot this version was reviewed against. It is private editing data, so it resolves to `null` for viewers who cannot edit the article; use `reviewState` for the public signal.
+  """
+  reviewedSourceRevision: ArticleSourceRevision
+
+  """
+  The individual who last confirmed this version against its baseline, by publishing it against a reviewed revision or by acknowledging that no translation change was needed. An editing record rather than a credit (`translator` is the public credit), and restricted to viewers who can edit the article.
+  """
+  reviewer: Account
+
+  """
   `null` when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.  Otherwise the LLM-generated summary for this language version: `null` until generation completes. Check `summaryStarted` to distinguish between "not requested" and "in progress".
   """
   summary: String
@@ -1709,6 +1783,11 @@ type ArticleDraft implements Node {
   The personal account that created the draft. This is an editing record, not an author credit, and it never changes. `null` only after the creator's account was deleted.
   """
   creator: Account
+
+  """
+  The snapshot this draft's current title and body correspond to. Pass its `uuid` to `acknowledgeArticleTranslationSource` to record that a translation was reviewed against it. `null` until the draft's original language is chosen and its first snapshot is recorded.
+  """
+  currentSourceRevision: ArticleSourceRevision
   id: ID!
 
   """
@@ -1740,9 +1819,40 @@ type ArticleDraftConflictError {
 }
 
 """
+An immutable snapshot of an article original's title and Markdown body, used as the baseline a translation was reviewed against and as the left-hand side of the source comparison shown to translators. Snapshots hold unpublished draft text before publication, so they are readable only by accounts authorized to edit the owning draft or article, and never through a public article endpoint.
+"""
+type ArticleSourceRevision implements Node {
+  """The original's Markdown body at the time of the snapshot."""
+  content: Markdown!
+
+  """
+  When the snapshot was recorded. Display only: revisions are compared by identity, because this is the recording transaction's start time and can invert against commit order.
+  """
+  created: DateTime!
+  id: ID!
+
+  """
+  The original's language at the time of the snapshot. Kept on the snapshot so a baseline keeps its language even if the draft's language later changes.
+  """
+  language: Locale!
+
+  """The original's title at the time of the snapshot."""
+  title: String!
+
+  """
+  Pass this to `publishArticleTranslation` or `acknowledgeArticleTranslationSource` to say which revision was actually reviewed.
+  """
+  uuid: UUID!
+}
+
+"""
 A private, language-specific translation draft attached to an article draft or a published article. It is never public: readers keep seeing the last published version (or nothing) until it is published. Reach it through `ArticleDraft.translationDrafts` or `Article.translationDrafts`; it has no `node(id:)` entry point.
 """
 type ArticleTranslationDraft {
+  """
+  The original's snapshot this draft was written against, which is the left-hand side of the source comparison. `null` for an unknown baseline. Captured when the draft is created and never advanced by saving; only publishing against a reviewed revision or acknowledging one moves it.
+  """
+  baselineSourceRevision: ArticleSourceRevision
   content: Markdown!
 
   """
@@ -1750,6 +1860,11 @@ type ArticleTranslationDraft {
   """
   contentHtml: HTML!
   created: DateTime!
+
+  """
+  The original's current snapshot, which is the right-hand side of the source comparison. `null` when the original has no snapshot yet, in which case no comparison can be shown.
+  """
+  currentSourceRevision: ArticleSourceRevision
 
   """BCP 47 language tag of this translation."""
   language: Locale!
@@ -1770,14 +1885,29 @@ type ArticleTranslationDraft {
   publishedRevision: Int
 
   """
+  Whether this draft's baseline is the original's current revision. `NEEDS_REVIEW` means publishing it now would not present the translation as current; `UNKNOWN_BASELINE` means no baseline was recorded at all, which the UI must word as unverified freshness rather than as a known source change.
+  """
+  reviewState: ArticleTranslationReviewState!
+
+  """
+  When the draft was last confirmed against its baseline. It survives the deletion of the reviewing account.
+  """
+  reviewed: DateTime
+
+  """
+  The individual who last confirmed this draft against its baseline. This is an editing record, not a credit: use `translator` for the public credit. `null` when nobody has reviewed it or that account was deleted.
+  """
+  reviewer: Account
+
+  """
   Optimistic concurrency token, independent per language. Send it to `saveArticleTranslationDraft` to reject a concurrent edit instead of overwriting it.
   """
   revision: Int!
 
   """
-  Whether the original has changed since the revision this draft was based on (or its baseline is unknown). A `true` value means publishing now would not mark the translation as current with the latest original.
+  Whether the original has changed since the revision this draft was based on (or its baseline is unknown). Equivalent to `reviewState != CURRENT`.
   """
-  sourceChanged: Boolean!
+  sourceChanged: Boolean! @deprecated(reason: "Use `reviewState`, which distinguishes an unknown baseline from a known source change.")
 
   """
   The translation's title. Empty while the translator has not written one; such a draft is not ready to publish.
@@ -1830,6 +1960,50 @@ enum ArticleTranslationPublicationState {
   No public version exists for this language yet; publishing the draft would add a new language version.
   """
   UNPUBLISHED
+}
+
+"""
+Whether a language version has been reviewed against the original it is published alongside. It is computed from recorded source revisions, never from `updated` timestamps, which cannot tell a translation published after an edit apart from one based on it.
+"""
+enum ArticleTranslationReviewState {
+  """The version was reviewed against the original's current revision."""
+  CURRENT
+
+  """
+  The original has a newer revision than the one this version was reviewed against, so it may not include the latest changes.
+  """
+  NEEDS_REVIEW
+
+  """
+  No baseline was ever recorded, so freshness cannot be verified. This covers versions published before revision tracking and automatic translations whose input could not be matched to a revision. It must not be presented as a known source change.
+  """
+  UNKNOWN_BASELINE
+}
+
+"""
+Notification that the original of an article this account is credited with translating has changed, so the affected translations need review. Repeated source edits coalesce into this one row per article: `sourceRevision` always names the newest published revision and `languages` is recomputed, so a language reviewed in between drops out. Reading it is not approval: the translation stays in `NEEDS_REVIEW` until someone publishes or acknowledges it.
+"""
+type ArticleTranslationSourceChangedNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+
+  """
+  The article whose original changed, or `null` once it has been deleted. Use its `publishedYear` and `slug` to open the translation management screen.
+  """
+  article: Article
+  created: DateTime!
+  id: ID!
+
+  """
+  The languages that need review, sorted. A recipient who has since lost access to the workspace receives an empty list, because the set of languages under way is itself private editing information.
+  """
+  languages: [Locale!]!
+
+  """
+  The newest published source revision at the time this notification was last raised, which the translation editor compares against. It is private editing data: a recipient who has since lost access to the workspace receives `null`.
+  """
+  sourceRevision: ArticleSourceRevision
+  uuid: UUID!
 }
 
 union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedError
@@ -3154,6 +3328,11 @@ union MoveArticleDraftToOrganizationResult = ArticleDraftConflictError | Invalid
 type Mutation {
   acceptOrganizationConversion(input: AcceptOrganizationConversionInput!): AcceptOrganizationConversionResult!
   acceptOrganizationInvitation(input: AcceptOrganizationInvitationInput!): AcceptOrganizationInvitationResult!
+
+  """
+  Acknowledge that a translation needs no change for a given source revision. Requires authentication.
+  """
+  acknowledgeArticleTranslationSource(input: AcknowledgeArticleTranslationSourceInput!): AcknowledgeArticleTranslationSourceResult!
   addAccountMigrationAlias(input: AddAccountMigrationAliasInput!): AddAccountMigrationAliasResult!
 
   """
@@ -4142,6 +4321,11 @@ type NotificationActorsConnectionEdge {
 Discriminant values for categorizing notifications. The Notification interface is polymorphic; use this enum when filtering by category.
 """
 enum NotificationType {
+  """
+  The original of an article this account is credited with translating was changed, so the translation needs review.
+  """
+  ARTICLE_TRANSLATION_SOURCE_CHANGED
+
   """Someone followed this account."""
   FOLLOW
 
@@ -5195,6 +5379,11 @@ input PublishArticleTranslationInput {
 
   """The `ArticleTranslationDraft.revision` being published."""
   revision: Int!
+
+  """
+  The `ArticleSourceRevision.uuid` the publisher was shown while reviewing (normally `Article.currentSourceRevision`). It becomes the published version's baseline and records the publisher as its reviewer, so a translation published against the current original reads as `CURRENT` and one published from a stale editor stays `NEEDS_REVIEW`. Omit it only when the article has no snapshot to name: the draft's stored baseline is then published unchanged and no reviewer evidence is recorded.
+  """
+  sourceRevisionId: UUID
 }
 
 type PublishArticleTranslationPayload {

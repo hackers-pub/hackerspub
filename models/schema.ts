@@ -820,6 +820,18 @@ export const articleDraftTable = pgTable(
     // it, and clients must echo the revision they are editing from so that a
     // concurrent save is reported as a conflict instead of overwriting.
     revision: integer().notNull().default(1),
+    // Authoritative pointer to the snapshot matching this draft's current
+    // title/body/language. Written by `recordDraftRevision()` while the draft
+    // row is locked, so "which revision is current" never depends on
+    // timestamp ordering (`CURRENT_TIMESTAMP` is transaction start time and
+    // can invert against lock acquisition order). `null` means the draft has
+    // no snapshot yet, which reads as an unknown baseline rather than as a
+    // guess at the newest row.
+    currentRevisionId: uuid("current_revision_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => articleSourceRevisionTable.id, {
+        onDelete: "set null",
+      }),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -833,6 +845,7 @@ export const articleDraftTable = pgTable(
       table.updated,
     ),
     index("article_draft_creator_id_idx").on(table.creatorId),
+    index("article_draft_current_revision_idx").on(table.currentRevisionId),
   ],
 );
 
@@ -848,6 +861,14 @@ export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
  * stay stable. This lets a translator keep the exact baseline they read even
  * after the original has moved on. Only a real title/body change creates a new
  * row; metadata-only and no-op saves reuse the current one.
+ *
+ * Retention: snapshots are never pruned. They are private editing data,
+ * readable only by accounts authorized to edit the owning draft or article,
+ * they move to the article source (keeping their IDs) at first publication,
+ * and they are removed only when that draft or article is deleted, through
+ * the `ON DELETE CASCADE` on both owner columns. Nothing else deletes them,
+ * so a translation's baseline stays resolvable for the lifetime of its
+ * article.
  */
 export const articleSourceRevisionTable = pgTable(
   "article_source_revision",
@@ -928,6 +949,22 @@ export const articleTranslationDraftTable = pgTable(
       .references(() => articleSourceRevisionTable.id, {
         onDelete: "set null",
       }),
+    // The individual who last confirmed this draft against the source revision
+    // in `sourceRevisionId`, either by acknowledging that no translation
+    // change was needed or by publishing it against a reviewed revision. This
+    // is an editing record, never a public credit: it is deliberately separate
+    // from `translatorId`, and it becomes `null` when that account is deleted
+    // while `reviewed` keeps the fact that a review happened.
+    //
+    // `reviewed` likewise outlives `sourceRevisionId`: that column is
+    // `ON DELETE SET NULL`, so losing the snapshot leaves a row that was
+    // reviewed against a baseline nobody can resolve any more, which reads as
+    // an unknown baseline. Requiring the two together would instead make the
+    // snapshot's deletion fail.
+    reviewerId: uuid("reviewer_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    reviewed: timestamp({ withTimezone: true }),
     // The translation draft revision that was last published, if any. Compared
     // with `revision` to distinguish PUBLISHED from PUBLISHED_WITH_CHANGES.
     publishedRevision: integer("published_revision"),
@@ -944,6 +981,10 @@ export const articleTranslationDraftTable = pgTable(
     check(
       "article_translation_draft_owner_check",
       sql`(${table.articleDraftId} IS NULL) <> (${table.sourceId} IS NULL)`,
+    ),
+    check(
+      "article_translation_draft_review_check",
+      sql`${table.reviewerId} IS NULL OR ${table.reviewed} IS NOT NULL`,
     ),
     unique("article_translation_draft_draft_language_unique").on(
       table.articleDraftId,
@@ -1041,6 +1082,19 @@ export const articleContentTable = pgTable(
       .references(() => articleSourceRevisionTable.id, {
         onDelete: "set null",
       }),
+    // The individual who last confirmed this published version against the
+    // source revision in `sourceRevisionId`. Set by an explicit "no
+    // translation changes needed" acknowledgement, or by publishing a
+    // translation against a revision the publisher was shown. It is an
+    // editing record, not a credit: `translatorId` remains the public
+    // translator, and a deleted reviewer account leaves `reviewed` intact.
+    // `reviewed` also outlives `sourceRevisionId`, which is
+    // `ON DELETE SET NULL`; see the matching column on
+    // `article_translation_draft`.
+    reviewerId: uuid("reviewer_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    reviewed: timestamp({ withTimezone: true }),
     // Identity of the in-flight automatic translation job. Rotated on
     // acquisition and reclaim so a late worker cannot overwrite human work.
     translationJobToken: uuid("translation_job_token").$type<Uuid>(),
@@ -1077,6 +1131,14 @@ export const articleContentTable = pgTable(
     check(
       "article_content_provenance_check",
       sql`${table.originalLanguage} IS NULL OR ${table.provenance} IS NOT NULL`,
+    ),
+    check(
+      "article_content_review_check",
+      sql`(
+        ${table.originalLanguage} IS NOT NULL
+        OR (${table.reviewerId} IS NULL AND ${table.reviewed} IS NULL)
+      )
+        AND (${table.reviewerId} IS NULL OR ${table.reviewed} IS NOT NULL)`,
     ),
     uniqueIndex("article_content_single_original_idx")
       .on(table.sourceId)
@@ -2504,6 +2566,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "poll_ended",
   "organization_invitation",
   "organization_conversion_request",
+  "article_translation_source_changed",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
@@ -2529,6 +2592,8 @@ export const notificationTable = pgTable(
     // - When type is 'poll_ended', this is the ended Question post
     // - When type is 'organization_invitation', this is not used
     // - When type is 'organization_conversion_request', this is not used
+    // - When type is 'article_translation_source_changed', this is the
+    //   Article post whose original changed
     postId: uuid("post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
@@ -2548,6 +2613,22 @@ export const notificationTable = pgTable(
       .references((): AnyPgColumn => organizationConversionRequestTable.id, {
         onDelete: "cascade",
       }),
+    // For 'article_translation_source_changed': the newest published source
+    // revision this outstanding notification is about. Always read from the
+    // database when the row is written, never supplied by the caller, so a
+    // retry can never install an older target.
+    articleSourceRevisionId: uuid("article_source_revision_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => articleSourceRevisionTable.id, {
+        onDelete: "cascade",
+      }),
+    // For 'article_translation_source_changed': the affected languages,
+    // recomputed (sorted and deduplicated) on every write, so a language that
+    // has been reviewed in the meantime drops out instead of accumulating.
+    translationLanguages: text("translation_languages")
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -2560,6 +2641,9 @@ export const notificationTable = pgTable(
     index("notification_post_id_index")
       .on(table.postId)
       .where(isNotNull(table.postId)),
+    index("notification_article_source_revision_id_index")
+      .on(table.articleSourceRevisionId)
+      .where(isNotNull(table.articleSourceRevisionId)),
     check(
       "notification_post_id_check",
       sql`
@@ -2590,6 +2674,18 @@ export const notificationTable = pgTable(
           WHEN 'organization_conversion_request'
           THEN ${table.organizationConversionRequestId} IS NOT NULL
           ELSE ${table.organizationConversionRequestId} IS NULL
+        END
+      `,
+    ),
+    check(
+      "notification_article_translation_source_changed_check",
+      sql`
+        CASE ${table.type}::text
+          WHEN 'article_translation_source_changed'
+          THEN ${table.articleSourceRevisionId} IS NOT NULL
+            AND cardinality(${table.translationLanguages}) > 0
+          ELSE ${table.articleSourceRevisionId} IS NULL
+            AND cardinality(${table.translationLanguages}) = 0
         END
       `,
     ),
