@@ -9,6 +9,7 @@ import {
   RelayEnvironmentProvider,
   useRelayEnvironment,
 } from "solid-relay";
+import { RouteProgress } from "solid-route-progress/router";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -56,6 +57,18 @@ function I18nProviderWrapper(props: ParentProps) {
     <Show keyed when={data()}>
       {(data) => <I18nProvider $query={data}>{props.children}</I18nProvider>}
     </Show>
+  );
+}
+
+function AppRouteProgress() {
+  const { t } = useLingui();
+
+  return (
+    <RouteProgress
+      class="[--sp-color:var(--primary)]"
+      delay={100}
+      label={t`Loading page`}
+    />
   );
 }
 
@@ -142,6 +155,7 @@ export default function App() {
                       <AppErrorFallback error={err} reset={reset} />
                     )}
                   >
+                    <AppRouteProgress />
                     {props.children}
                   </SentryErrorBoundary>
                 </I18nProviderWrapper>

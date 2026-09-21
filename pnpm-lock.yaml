@@ -971,6 +971,9 @@ importers:
       solid-relay:
         specifier: 1.0.0-beta.29
         version: 1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+      solid-route-progress:
+        specifier: ^1.0.1
+        version: 1.0.1(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -8078,6 +8081,15 @@ packages:
       relay-runtime: ^18.1.0 || ^19 || ^20
       seroval: ^1.1.0
       solid-js: '>=1.4.0'
+
+  solid-route-progress@1.0.1:
+    resolution: {integrity: sha512-YdaFzwOgtDKtj+M2gw6LUxoYYIgetl/qSnns0bN5QOaX6kJogdjcrYBc5Wd3n4byBmVkwmxT5q8SXyd0qJl/Lg==}
+    peerDependencies:
+      '@solidjs/router': ^0.15.0 || >=1.0.0
+      solid-js: ^1.9.0
+    peerDependenciesMeta:
+      '@solidjs/router':
+        optional: true
 
   solid-use@0.9.1:
     resolution: {integrity: sha512-UwvXDVPlrrbj/9ewG9ys5uL2IO4jSiwys2KPzK4zsnAcmEl7iDafZWW1Mo4BSEWOmQCGK6IvpmGHo1aou8iOFw==}
@@ -16869,6 +16881,12 @@ snapshots:
       seroval: 1.5.2
       solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       tiny-invariant: 1.3.3
+
+  solid-route-progress@1.0.1(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
+    dependencies:
+      solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
+    optionalDependencies:
+      '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
 
   solid-use@0.9.1(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:

@@ -3181,6 +3181,10 @@ msgstr "正在加载更多新闻…"
 msgid "Loading more…"
 msgstr "正在加载更多…"
 
+#: src/app.tsx:70
+msgid "Loading page"
+msgstr "正在加载页面"
+
 #: src/components/NoteComposer.tsx:996
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
@@ -5114,7 +5118,7 @@ msgstr "该讨论中的部分内容无法显示。"
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "其他人保存了此翻译。请重新加载后重试。"
 
-#: src/app.tsx:110
+#: src/app.tsx:123
 msgid "Something went wrong"
 msgstr "出现错误"
 
@@ -5845,7 +5849,7 @@ msgstr "要发布的翻译"
 msgid "Tree"
 msgstr "树状图"
 
-#: src/app.tsx:119
+#: src/app.tsx:132
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:703
 msgid "Try again"
 msgstr "重试"
@@ -6166,7 +6170,7 @@ msgstr "正在投票…"
 msgid "Warning"
 msgstr "警告"
 
-#: src/app.tsx:109
+#: src/app.tsx:122
 msgid "We couldn't reach the server"
 msgstr "无法连接到服务器"
 
@@ -6525,7 +6529,7 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。最大 512 字符。"
 
-#: src/app.tsx:114
+#: src/app.tsx:127
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "您的网络似乎不稳定。请检查网络后重试。"
 
