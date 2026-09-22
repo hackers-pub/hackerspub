@@ -66,8 +66,9 @@ function AppRouteProgress() {
   return (
     <RouteProgress
       class="[--sp-color:var(--primary)]"
+      crossDocument={false}
       delay={100}
-      label={t`Loading page`}
+      label={t`Loading page…`}
     />
   );
 }
