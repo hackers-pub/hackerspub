@@ -3394,7 +3394,16 @@ type Mutation {
   """
   Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication.
   """
-  verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
+  verifyPasskeyRegistration(
+    accountId: ID!
+
+    """
+    A label that distinguishes this passkey from the account's other passkeys. Surrounding whitespace is trimmed, and a blank name is rejected with a `BAD_USER_INPUT` error.
+    """
+    name: String!
+    platform: String = "web"
+    registrationResponse: JSON!
+  ): PasskeyRegistrationResult!
   voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
 }
 
