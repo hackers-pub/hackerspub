@@ -175,7 +175,7 @@ export default function passkeysPage() {
   );
 
   const [registering, setRegistering] = createSignal(false);
-  let passkeyNameRef: HTMLInputElement | undefined;
+  const [passkeyName, setPasskeyName] = createSignal("");
   const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<{
     id: string;
     name: string;
@@ -203,9 +203,10 @@ export default function passkeysPage() {
     });
   };
 
-  async function onRegisterPasskey() {
+  async function onRegisterPasskey(event: SubmitEvent) {
+    event.preventDefault();
     const account = data()?.accountByUsername;
-    const name = passkeyNameRef?.value?.trim() ?? "";
+    const name = passkeyName().trim();
     if (!account || !name) return;
 
     setRegistering(true);
@@ -262,7 +263,7 @@ export default function passkeysPage() {
           description: t`Your passkey has been registered and can now be used for authentication.`,
           variant: "success",
         });
-        if (passkeyNameRef) passkeyNameRef.value = "";
+        setPasskeyName("");
         // No need to manually refresh - @appendNode automatically updates the connection
       } else {
         throw new Error("Passkey verification failed");
@@ -281,8 +282,8 @@ export default function passkeysPage() {
     }
   }
 
-  function openRevokeDialog(passkeyId: string, passkeyName: string) {
-    setPasskeyToRevoke({ id: passkeyId, name: passkeyName });
+  function openRevokeDialog(passkeyId: string, name: string) {
+    setPasskeyToRevoke({ id: passkeyId, name });
   }
 
   async function confirmRevokePasskey() {
@@ -359,27 +360,33 @@ export default function passkeysPage() {
                             {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
                           </CardDescription>
                         </CardHeader>
-                        <CardContent class="space-y-4">
-                          <TextField class="grid w-full items-center gap-1.5">
-                            <TextFieldLabel for="passkey-name">
-                              {t`Passkey name`}
-                            </TextFieldLabel>
-                            <TextFieldInput
-                              type="text"
-                              id="passkey-name"
-                              placeholder={t`My passkey`}
+                        <CardContent>
+                          <form class="space-y-4" on:submit={onRegisterPasskey}>
+                            <TextField
+                              class="grid w-full items-center gap-1.5"
+                              value={passkeyName()}
+                              onChange={setPasskeyName}
                               required
-                              ref={passkeyNameRef}
-                            />
-                          </TextField>
-                          <Button
-                            type="button"
-                            onClick={onRegisterPasskey}
-                            disabled={registering()}
-                            class="w-full cursor-pointer"
-                          >
-                            {registering() ? t`Registering…` : t`Register`}
-                          </Button>
+                            >
+                              <TextFieldLabel for="passkey-name">
+                                {t`Passkey name`}
+                              </TextFieldLabel>
+                              <TextFieldInput
+                                type="text"
+                                id="passkey-name"
+                                placeholder={t`My passkey`}
+                              />
+                            </TextField>
+                            <Button
+                              type="submit"
+                              disabled={
+                                registering() || passkeyName().trim() === ""
+                              }
+                              class="w-full cursor-pointer"
+                            >
+                              {registering() ? t`Registering…` : t`Register`}
+                            </Button>
+                          </form>
                         </CardContent>
                       </Card>
 

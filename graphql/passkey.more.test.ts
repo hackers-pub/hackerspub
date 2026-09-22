@@ -90,6 +90,35 @@ test("Account.passkeys exposes the signed-in account's passkeys", async () => {
   });
 });
 
+test("verifyPasskeyRegistration rejects a blank passkey name", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "blankpasskeyname",
+      name: "Blank Passkey Name",
+      email: "blankpasskeyname@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: verifyPasskeyRegistrationMutation,
+      variableValues: {
+        accountId: encodeGlobalID("Account", account.account.id),
+        name: "   ",
+        registrationResponse: { id: "credential-id" },
+      },
+      contextValue: makeUserContext(tx, account.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(toPlainJson(result.data), {
+      verifyPasskeyRegistration: null,
+    });
+    assert.equal(result.errors?.[0].message, "Passkey name must not be blank.");
+    assert.equal(result.errors?.[0].extensions?.code, "BAD_USER_INPUT");
+  });
+});
+
 test("verifyPasskeyRegistration requires authentication and a stored challenge", async () => {
   await withRollback(async (tx) => {
     const { kv } = createTestKv();
