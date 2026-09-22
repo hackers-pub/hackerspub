@@ -38,6 +38,8 @@ import type {
   edit_article$key,
 } from "./__generated__/edit_article.graphql.ts";
 import type { edit_renderMarkdown_Query } from "./__generated__/edit_renderMarkdown_Query.graphql.ts";
+import { ARTICLE_LANG_PAGE_QUERY_KEY } from "./[lang].tsx";
+import { ARTICLE_PAGE_QUERY_KEY } from "./index.tsx";
 import type { edit_updateArticle_Mutation } from "./__generated__/edit_updateArticle_Mutation.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -156,6 +158,7 @@ const updateArticleMutation = graphql`
           url
           ...Slug_head
           contents(includeBeingTranslated: false) {
+            id
             title
             content
             toc
@@ -164,8 +167,10 @@ const updateArticleMutation = graphql`
             beingTranslated
           }
           allContents: contents(includeBeingTranslated: true) {
+            id
             language
             url
+            reviewState
           }
           language
           tags
@@ -456,7 +461,13 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
           });
           const articleUrl = response.updateArticle.article.url;
           if (articleUrl) {
-            await revalidate("loadArticlePageQuery").catch((error) => {
+            // Editing the original can move every translation into "needs
+            // review", so the per-language routes have to be revalidated too,
+            // not just the bare article page.
+            await revalidate([
+              ARTICLE_PAGE_QUERY_KEY,
+              ARTICLE_LANG_PAGE_QUERY_KEY,
+            ]).catch((error) => {
               console.error("Failed to revalidate article page:", error);
             });
             navigate(new URL(articleUrl).pathname);

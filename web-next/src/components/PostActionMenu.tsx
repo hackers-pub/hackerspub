@@ -120,6 +120,14 @@ export interface PostActionMenuProps {
   engagementBase?: string | null;
   analyticsHref?: string | null;
   manageTranslationsHref?: string | null;
+  /** Translation editor for the language version currently on screen. */
+  editTranslationHref?: string | null;
+  /**
+   * Whether the generic edit action opens the article's *original* rather
+   * than the translation on screen, so the two edit items cannot read as
+   * interchangeable.
+   */
+  editTargetIsOriginal?: boolean;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -182,6 +190,8 @@ export function PostActionMenu(props: PostActionMenuProps) {
       engagementBase={props.engagementBase}
       analyticsHref={props.analyticsHref}
       manageTranslationsHref={props.manageTranslationsHref}
+      editTranslationHref={props.editTranslationHref}
+      editTargetIsOriginal={props.editTargetIsOriginal}
       onDeleted={props.onDeleted}
       onEdit={props.onEdit}
     />
@@ -196,6 +206,14 @@ interface PostActionMenuContentProps {
   engagementBase?: string | null;
   analyticsHref?: string | null;
   manageTranslationsHref?: string | null;
+  /** Translation editor for the language version currently on screen. */
+  editTranslationHref?: string | null;
+  /**
+   * Whether the generic edit action opens the article's *original* rather
+   * than the translation on screen, so the two edit items cannot read as
+   * interchangeable.
+   */
+  editTargetIsOriginal?: boolean;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -375,8 +393,17 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
           <Show when={props.onEdit != null && isAuthor()}>
             <DropdownMenuItem class="cursor-pointer" onSelect={props.onEdit}>
               <IconPencil class="size-4" />
-              {t`Edit`}
+              <Show when={props.editTargetIsOriginal} fallback={t`Edit`}>
+                {t`Edit original`}
+              </Show>
             </DropdownMenuItem>
+          </Show>
+          <Show when={props.editTranslationHref != null}>
+            <PostActionMenuLink
+              href={props.editTranslationHref!}
+              label={t`Edit this translation`}
+              navigate={navigate}
+            />
           </Show>
           <Show when={props.manageTranslationsHref != null}>
             <PostActionMenuLink

@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.totalCount ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1097
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1214
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -361,7 +361,7 @@ msgstr "{0} will receive a notification to review it."
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: title()
 #. placeholder {1}: titleExcerpt()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:284
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:298
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:266
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
@@ -641,7 +641,7 @@ msgstr "Active since"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:908
+#: src/components/article-translations/ArticleTranslationManager.tsx:1040
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,11 +675,11 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:886
+#: src/components/article-translations/ArticleTranslationManager.tsx:1018
 msgid "Add translation"
 msgstr "Add translation"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:743
+#: src/components/article-translations/ArticleTranslationManager.tsx:875
 msgid "Added line:"
 msgstr "Added line:"
 
@@ -716,6 +716,26 @@ msgstr "After conversion, this account cannot sign in directly and cannot be con
 #: src/routes/(root)/[handle]/settings/account.tsx:1794
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
+
+#. placeholder {0}: "LANGUAGE"
+#: src/components/ArticleCard.tsx:334
+msgid "AI-assisted translation from {0}"
+msgstr "AI-assisted translation from {0}"
+
+#. placeholder {0}: "TRANSLATOR"
+#. placeholder {0}: `@${credit.account.username}`
+#: src/components/ArticleTranslationCredit.tsx:39
+#: src/components/ArticleTranslationCredit.tsx:87
+msgid "AI-assisted translation, reviewed by {0}"
+msgstr "AI-assisted translation, reviewed by {0}"
+
+#: src/components/ArticleTranslationCredit.tsx:43
+msgid "AI-assisted translation, reviewed by an unavailable account"
+msgstr "AI-assisted translation, reviewed by an unavailable account"
+
+#: src/components/ArticleTranslationCredit.tsx:35
+msgid "AI-assisted translation, reviewed by the author"
+msgstr "AI-assisted translation, reviewed by the author"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:137
 #: src/routes/(root)/admin/moderation/appeals.tsx:157
@@ -756,7 +776,7 @@ msgid "All-time"
 msgstr "All-time"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:169
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:562
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:573
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
@@ -786,11 +806,11 @@ msgstr "an article"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:276
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:277
 msgid "An error occurred while registering your passkey."
 msgstr "An error occurred while registering your passkey."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "An error occurred while revoking your passkey."
 msgstr "An error occurred while revoking your passkey."
 
@@ -817,7 +837,7 @@ msgstr "An error occurred while saving your settings. Please try again, or conta
 msgid "An unexpected error occurred. Please try again later."
 msgstr "An unexpected error occurred. Please try again later."
 
-#: src/components/PostActionMenu.tsx:391
+#: src/components/PostActionMenu.tsx:418
 msgid "Analytics"
 msgstr "Analytics"
 
@@ -907,7 +927,7 @@ msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "Are you sure you want to remove {0} ({1}) from your followers?"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:513
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 
@@ -924,7 +944,7 @@ msgstr "Article"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:362
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:370
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:765
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:848
 msgid "Article analytics"
 msgstr "Article analytics"
 
@@ -937,15 +957,15 @@ msgstr "Article drafts"
 msgid "Article published"
 msgstr "Article published"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:513
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:524
 msgid "Article settings"
 msgstr "Article settings"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:513
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:515
 msgid "Article translation failed"
 msgstr "Article translation failed"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:454
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:459
 msgid "Article updated"
 msgstr "Article updated"
 
@@ -999,9 +1019,15 @@ msgstr "Auto-fill"
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:854
+#: src/components/article-translations/ArticleTranslationManager.tsx:986
+#: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "Automatic translation"
+
+#. placeholder {0}: "LANGUAGE"
+#: src/components/ArticleCard.tsx:332
+msgid "Automatic translation from {0}"
+msgstr "Automatic translation from {0}"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:377
 msgid "Avatar"
@@ -1016,7 +1042,7 @@ msgid "Back"
 msgstr "Back"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:368
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:229
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:294
 msgid "Back to article"
 msgstr "Back to article"
 
@@ -1025,7 +1051,7 @@ msgid "Back to cases"
 msgstr "Back to cases"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:261
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:583
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:594
 msgid "Back to editing"
 msgstr "Back to editing"
 
@@ -1135,7 +1161,7 @@ msgstr "By {0}"
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
-#: src/components/PostActionMenu.tsx:484
+#: src/components/PostActionMenu.tsx:511
 #: src/components/ProfileActionMenu.tsx:542
 #: src/components/ProfileActionMenu.tsx:543
 #: src/components/ProfileActionMenu.tsx:575
@@ -1145,10 +1171,10 @@ msgstr "By {0}"
 #: src/components/RemoteFollowButton.tsx:278
 #: src/components/RemoveFollowerButton.tsx:157
 #: src/components/ReportDialog.tsx:220
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:624
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 #: src/routes/(root)/[handle]/settings/account.tsx:2048
 #: src/routes/(root)/[handle]/settings/index.tsx:416
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "Cancel"
@@ -1165,7 +1191,7 @@ msgstr "Cancel request"
 msgid "Canceling…"
 msgstr "Canceling…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:470
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:481
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
@@ -1316,7 +1342,7 @@ msgstr "Content"
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:642
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:653
 msgid "Continue"
 msgstr "Continue"
 
@@ -1506,7 +1532,7 @@ msgid "Created"
 msgstr "Created"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:422
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
 msgid "Created {0}"
 msgstr "Created {0}"
 
@@ -1578,8 +1604,8 @@ msgstr "Default quote permission"
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
-#: src/components/PostActionMenu.tsx:418
-#: src/components/PostActionMenu.tsx:490
+#: src/components/PostActionMenu.tsx:445
+#: src/components/PostActionMenu.tsx:517
 #: src/routes/(root)/[handle]/drafts/index.tsx:436
 #: src/routes/(root)/[handle]/settings/invite.tsx:730
 msgid "Delete"
@@ -1596,7 +1622,7 @@ msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1030
+#: src/components/article-translations/ArticleTranslationManager.tsx:1169
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "Delete draft"
@@ -1624,7 +1650,7 @@ msgstr "Delete organization permanently?"
 msgid "Delete orphan media"
 msgstr "Delete orphan media"
 
-#: src/components/PostActionMenu.tsx:478
+#: src/components/PostActionMenu.tsx:505
 msgid "Delete post?"
 msgstr "Delete post?"
 
@@ -1777,11 +1803,11 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:378
+#: src/components/PostActionMenu.tsx:396
 msgid "Edit"
 msgstr "Edit"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:502
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:513
 msgid "Edit article"
 msgstr "Edit article"
 
@@ -1792,6 +1818,15 @@ msgstr "Edit draft"
 #: src/components/NoteComposeModal.tsx:81
 msgid "Edit note"
 msgstr "Edit note"
+
+#: src/components/PostActionMenu.tsx:397
+msgid "Edit original"
+msgstr "Edit original"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:1063
+#: src/components/PostActionMenu.tsx:404
+msgid "Edit this translation"
+msgstr "Edit this translation"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:376
 #: src/routes/(root)/[handle]/settings/invite.tsx:338
@@ -1905,11 +1940,11 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:860
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:427
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:467
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:432
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:633
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:489
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:498
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:644
 #: src/routes/(root)/[handle]/drafts/index.tsx:226
 #: src/routes/(root)/[handle]/drafts/index.tsx:234
 #: src/routes/(root)/[handle]/drafts/index.tsx:242
@@ -2021,13 +2056,13 @@ msgstr "Failed to delete invitation link"
 msgid "Failed to delete orphan media."
 msgstr "Failed to delete orphan media."
 
-#: src/components/PostActionMenu.tsx:340
-#: src/components/PostActionMenu.tsx:347
+#: src/components/PostActionMenu.tsx:358
+#: src/components/PostActionMenu.tsx:365
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:560
-#: src/components/article-translations/ArticleTranslationManager.tsx:566
+#: src/components/article-translations/ArticleTranslationManager.tsx:692
+#: src/components/article-translations/ArticleTranslationManager.tsx:698
 msgid "Failed to delete the translation draft."
 msgstr "Failed to delete the translation draft."
 
@@ -2096,7 +2131,7 @@ msgstr "Failed to load more notes; click to retry"
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:491
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:498
 msgid "Failed to load more passkeys; click to retry"
 msgstr "Failed to load more passkeys; click to retry"
 
@@ -2165,13 +2200,13 @@ msgstr "Failed to look up user."
 msgid "Failed to mute this user"
 msgstr "Failed to mute this user"
 
-#: src/components/PostActionMenu.tsx:305
-#: src/components/PostActionMenu.tsx:312
+#: src/components/PostActionMenu.tsx:323
+#: src/components/PostActionMenu.tsx:330
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:593
-#: src/components/article-translations/ArticleTranslationManager.tsx:600
+#: src/components/article-translations/ArticleTranslationManager.tsx:725
+#: src/components/article-translations/ArticleTranslationManager.tsx:732
 msgid "Failed to publish the translation."
 msgstr "Failed to publish the translation."
 
@@ -2190,7 +2225,7 @@ msgstr "Failed to react"
 msgid "Failed to recompute news scores."
 msgstr "Failed to recompute news scores."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:486
+#: src/components/article-translations/ArticleTranslationManager.tsx:552
 msgid "Failed to record the review."
 msgstr "Failed to record the review."
 
@@ -2204,7 +2239,7 @@ msgstr "Failed to refresh from origin."
 msgid "Failed to regenerate invitations."
 msgstr "Failed to regenerate invitations."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:272
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:273
 msgid "Failed to register passkey"
 msgstr "Failed to register passkey"
 
@@ -2239,8 +2274,8 @@ msgstr "Failed to remove preferred sharer."
 msgid "Failed to render preview"
 msgstr "Failed to render preview"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:315
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:321
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:316
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:322
 msgid "Failed to revoke passkey"
 msgstr "Failed to revoke passkey"
 
@@ -2264,7 +2299,8 @@ msgstr "Failed to save settings"
 msgid "Failed to save the draft."
 msgstr "Failed to save the draft."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:536
+#: src/components/article-translations/ArticleTranslationManager.tsx:602
+#: src/components/article-translations/ArticleTranslationManager.tsx:668
 msgid "Failed to save the translation."
 msgstr "Failed to save the translation."
 
@@ -2277,8 +2313,8 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostEngagementBar.tsx:367
-#: src/components/PostEngagementBar.tsx:374
+#: src/components/PostEngagementBar.tsx:371
+#: src/components/PostEngagementBar.tsx:378
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -2316,13 +2352,13 @@ msgstr "Failed to unfollow"
 msgid "Failed to unmute this user"
 msgstr "Failed to unmute this user"
 
-#: src/components/PostActionMenu.tsx:280
-#: src/components/PostActionMenu.tsx:287
+#: src/components/PostActionMenu.tsx:298
+#: src/components/PostActionMenu.tsx:305
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostEngagementBar.tsx:349
-#: src/components/PostEngagementBar.tsx:356
+#: src/components/PostEngagementBar.tsx:353
+#: src/components/PostEngagementBar.tsx:360
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -2339,7 +2375,7 @@ msgstr "Failed to update penalty."
 msgid "Failed to update push notification privacy"
 msgstr "Failed to update push notification privacy"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:488
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:499
 msgid "Failed to update the article. Please try again."
 msgstr "Failed to update the article. Please try again."
 
@@ -2352,8 +2388,8 @@ msgstr "Failed to update the article. Please try again."
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:62
 #: src/components/note-composer/createMediaController.ts:146
 #: src/components/note-composer/createSubmissionController.ts:242
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:417
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:429
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:422
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:434
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
@@ -2440,7 +2476,8 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:354
+#: src/components/article-translations/ArticleTranslationManager.tsx:416
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "Freshness unverified"
 
@@ -2456,7 +2493,7 @@ msgstr "Get browser notifications"
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:219
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:284
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:138
@@ -2674,7 +2711,7 @@ msgstr "Hide me from the invitation tree"
 msgid "Hide replies"
 msgstr "Hide replies"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:653
+#: src/components/article-translations/ArticleTranslationManager.tsx:785
 msgid "Hide source changes"
 msgstr "Hide source changes"
 
@@ -2686,7 +2723,7 @@ msgstr "Hide source changes"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:912
+#: src/components/article-translations/ArticleTranslationManager.tsx:1044
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "If a private draft already exists for a language, it opens instead of creating a duplicate."
 
@@ -2699,7 +2736,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1122
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1239
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:555
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
@@ -2762,7 +2799,7 @@ msgstr "Invalid Fediverse handle format."
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:471
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:482
 msgid "Invalid input: {inputPath}"
 msgstr "Invalid input: {inputPath}"
 
@@ -2896,7 +2933,7 @@ msgstr "Keep writing note"
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:128
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:104
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:535
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:546
 msgid "Language"
 msgstr "Language"
 
@@ -2912,9 +2949,10 @@ msgstr "Language settings"
 msgid "Language shown when the view was counted."
 msgstr "Language shown when the view was counted."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:774
+#: src/components/article-translations/ArticleTranslationManager.tsx:906
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
 msgid "Languages"
 msgstr "Languages"
 
@@ -2945,7 +2983,7 @@ msgid "Last updated"
 msgstr "Last updated"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:444
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
@@ -3060,7 +3098,7 @@ msgstr "Load more notes"
 msgid "Load more notifications"
 msgstr "Load more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:499
 msgid "Load more passkeys"
 msgstr "Load more passkeys"
 
@@ -3140,7 +3178,7 @@ msgstr "Loading more notes…"
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:489
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:496
 msgid "Loading more passkeys…"
 msgstr "Loading more passkeys…"
 
@@ -3194,7 +3232,7 @@ msgid "Loading search results…"
 msgstr "Loading search results…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:207
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:272
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:126
 #: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
@@ -3233,10 +3271,10 @@ msgstr "Make the instance actor follow an ActivityPub relay. Once accepted, the 
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:120
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:92
-#: src/components/PostActionMenu.tsx:384
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:993
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:204
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:232
+#: src/components/PostActionMenu.tsx:411
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1110
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:269
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:297
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:123
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
@@ -3384,7 +3422,7 @@ msgstr "Mutes & blocks"
 msgid "Mutes and blocks"
 msgstr "Mutes and blocks"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:370
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:377
 msgid "My passkey"
 msgstr "My passkey"
 
@@ -3400,7 +3438,8 @@ msgstr "Name is too long. Maximum length is 50 characters."
 msgid "Native name"
 msgstr "Native name"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:352
+#: src/components/article-translations/ArticleTranslationManager.tsx:414
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "Needs review"
 
@@ -3417,7 +3456,7 @@ msgstr "Never"
 msgid "Never expires"
 msgstr "Never expires"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:440
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "Never used"
 msgstr "Never used"
 
@@ -3491,7 +3530,7 @@ msgstr "No analyzed reports have been processed yet."
 msgid "No appeals match these filters."
 msgstr "No appeals match these filters."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:643
+#: src/components/article-translations/ArticleTranslationManager.tsx:775
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "No baseline was recorded for this translation, so its freshness cannot be verified."
 
@@ -3624,12 +3663,12 @@ msgstr "No shared links yet. Once links start circulating across the fediverse, 
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:670
+#: src/components/article-translations/ArticleTranslationManager.tsx:802
 msgid "No translation changes needed"
 msgstr "No translation changes needed"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:795
-#: src/components/article-translations/ArticleTranslationManager.tsx:855
+#: src/components/article-translations/ArticleTranslationManager.tsx:927
+#: src/components/article-translations/ArticleTranslationManager.tsx:987
 msgid "No translator credit"
 msgstr "No translator credit"
 
@@ -3691,7 +3730,7 @@ msgstr "Not found"
 #~ msgid "Not found."
 #~ msgstr "Not found."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:810
+#: src/components/article-translations/ArticleTranslationManager.tsx:942
 msgid "Not published"
 msgstr "Not published"
 
@@ -3771,7 +3810,7 @@ msgstr "Oldest signups"
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:693
+#: src/components/article-translations/ArticleTranslationManager.tsx:825
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "One of these versions has no recorded baseline, so its changes cannot be shown."
 
@@ -3819,8 +3858,8 @@ msgid "Option {0}"
 msgstr "Option {0}"
 
 #: src/components/note-composer/PollEditor.tsx:82
-#: src/components/PostActionMenu.tsx:363
-#: src/components/PostActionMenu.tsx:364
+#: src/components/PostActionMenu.tsx:381
+#: src/components/PostActionMenu.tsx:382
 msgid "Options"
 msgstr "Options"
 
@@ -3863,7 +3902,8 @@ msgstr "Organization invitations"
 msgid "Organization members"
 msgstr "Organization members"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:979
+#: src/components/article-translations/ArticleTranslationManager.tsx:1118
+#: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "Original"
 
@@ -3876,8 +3916,8 @@ msgid "Other external websites"
 msgstr "Other external websites"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:949
-msgid "Other languages"
-msgstr "Other languages"
+#~ msgid "Other languages"
+#~ msgstr "Other languages"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:337
 msgid "Other or insufficient data"
@@ -3903,20 +3943,20 @@ msgstr "Page not found"
 msgid "Passkey authentication failed"
 msgstr "Passkey authentication failed"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:365
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:372
 msgid "Passkey name"
 msgstr "Passkey name"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:261
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:262
 msgid "Passkey registered successfully"
 msgstr "Passkey registered successfully"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:308
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:309
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
 #: src/components/SettingsTabs.tsx:81
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:350
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:351
 msgid "Passkeys"
 msgstr "Passkeys"
 
@@ -3958,7 +3998,7 @@ msgstr "Permanently delete this organization account and its content."
 msgid "Permanently delete your account and sign out of this session."
 msgstr "Permanently delete your account and sign out of this session."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:214
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:279
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:109
@@ -3982,7 +4022,7 @@ msgstr "Personal"
 msgid "Personal accounts"
 msgstr "Personal accounts"
 
-#: src/components/PostActionMenu.tsx:407
+#: src/components/PostActionMenu.tsx:434
 msgid "Pin to profile"
 msgstr "Pin to profile"
 
@@ -4091,7 +4131,7 @@ msgstr "Post by {0}"
 msgid "Post censored"
 msgstr "Post censored"
 
-#: src/components/PostActionMenu.tsx:336
+#: src/components/PostActionMenu.tsx:354
 msgid "Post deleted"
 msgstr "Post deleted"
 
@@ -4099,11 +4139,11 @@ msgstr "Post deleted"
 msgid "Post hidden"
 msgstr "Post hidden"
 
-#: src/components/PostActionMenu.tsx:302
+#: src/components/PostActionMenu.tsx:320
 msgid "Post pinned"
 msgstr "Post pinned"
 
-#: src/components/PostActionMenu.tsx:277
+#: src/components/PostActionMenu.tsx:295
 msgid "Post unpinned"
 msgstr "Post unpinned"
 
@@ -4147,7 +4187,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "Prepare this account as the destination for a Mastodon-style move."
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:989
+#: src/components/article-translations/ArticleTranslationManager.tsx:1128
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "Preview"
@@ -4228,7 +4268,7 @@ msgstr "Publish"
 msgid "Publish article"
 msgstr "Publish article"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1021
+#: src/components/article-translations/ArticleTranslationManager.tsx:1160
 msgid "Publish changes"
 msgstr "Publish changes"
 
@@ -4244,7 +4284,7 @@ msgstr "Publish settings"
 msgid "Publish this as a note?"
 msgstr "Publish this as a note?"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1020
+#: src/components/article-translations/ArticleTranslationManager.tsx:1159
 msgid "Publish translation"
 msgstr "Publish translation"
 
@@ -4252,12 +4292,12 @@ msgstr "Publish translation"
 msgid "Published"
 msgstr "Published"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:117
+#: src/components/article-translations/ArticleTranslationManager.tsx:148
 msgctxt "publication state"
 msgid "Published"
 msgstr "Published"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:809
+#: src/components/article-translations/ArticleTranslationManager.tsx:941
 msgid "Published; unpublished changes"
 msgstr "Published; unpublished changes"
 
@@ -4285,7 +4325,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:708
+#: src/components/PostEngagementBar.tsx:714
 #: src/components/ui/markdown-editor.tsx:298
 msgid "Quote"
 msgstr "Quote"
@@ -4314,7 +4354,7 @@ msgstr "Quoted post hidden"
 msgid "Quotes"
 msgstr "Quotes"
 
-#: src/components/PostEngagementBar.tsx:708
+#: src/components/PostEngagementBar.tsx:714
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
@@ -4322,8 +4362,8 @@ msgstr "Quoting is not available for this post"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 
-#: src/components/PostEngagementBar.tsx:475
-#: src/components/PostEngagementBar.tsx:476
+#: src/components/PostEngagementBar.tsx:479
+#: src/components/PostEngagementBar.tsx:480
 msgid "React"
 msgstr "React"
 
@@ -4343,8 +4383,12 @@ msgstr "reaction"
 msgid "Reactions"
 msgstr "Reactions"
 
-#: src/components/ArticleCard.tsx:523
-#: src/components/ArticleCard.tsx:543
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1084
+msgid "Read an automatic translation"
+msgstr "Read an automatic translation"
+
+#: src/components/ArticleCard.tsx:537
+#: src/components/ArticleCard.tsx:557
 #: src/components/NewsDiscussionThread.tsx:807
 msgid "Read full article"
 msgstr "Read full article"
@@ -4352,6 +4396,10 @@ msgstr "Read full article"
 #: src/routes/(root)/sign/up/[token].tsx:447
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
+
+#: src/components/ArticleSourceChangedNotice.tsx:82
+msgid "Read the original"
+msgstr "Read the original"
 
 #: src/components/ReportDialog.tsx:172
 msgid "Reason"
@@ -4452,23 +4500,23 @@ msgstr "Regenerate invitations"
 msgid "Regenerating…"
 msgstr "Regenerating…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "Register"
 msgstr "Register"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:357
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
 msgid "Register a passkey"
 msgstr "Register a passkey"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:359
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:360
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:388
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:395
 msgid "Registered passkeys"
 msgstr "Registered passkeys"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "Registering…"
 msgstr "Registering…"
 
@@ -4555,7 +4603,7 @@ msgstr "Remove poll"
 msgid "Remove quote"
 msgstr "Remove quote"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:742
+#: src/components/article-translations/ArticleTranslationManager.tsx:874
 msgid "Removed line:"
 msgstr "Removed line:"
 
@@ -4598,11 +4646,11 @@ msgid "Replies"
 msgstr "Replies"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:441
+#: src/components/PostEngagementBar.tsx:445
 msgid "Reply"
 msgstr "Reply"
 
-#: src/components/PostEngagementBar.tsx:442
+#: src/components/PostEngagementBar.tsx:446
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
@@ -4610,7 +4658,7 @@ msgstr "Replying is not available for this post"
 msgid "Replying to"
 msgstr "Replying to"
 
-#: src/components/PostActionMenu.tsx:427
+#: src/components/PostActionMenu.tsx:454
 msgid "Report"
 msgstr "Report"
 
@@ -4705,7 +4753,7 @@ msgstr "Review rationale (shown to the appellant)"
 msgid "Review request"
 msgstr "Review request"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:355
+#: src/components/article-translations/ArticleTranslationManager.tsx:417
 msgid "Reviewed"
 msgstr "Reviewed"
 
@@ -4714,12 +4762,12 @@ msgstr "Reviewed"
 msgid "Reviewing"
 msgstr "Reviewing"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:470
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:529
 msgid "Revoke"
 msgstr "Revoke"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:511
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:518
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
@@ -4771,12 +4819,12 @@ msgid "Save as note draft"
 msgstr "Save as note draft"
 
 #: src/components/NoteComposer.tsx:1305
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:596
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:607
 msgid "Save changes"
 msgstr "Save changes"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1009
+#: src/components/article-translations/ArticleTranslationManager.tsx:1148
 msgid "Save draft"
 msgstr "Save draft"
 
@@ -4784,7 +4832,7 @@ msgstr "Save draft"
 #~ msgid "Save draft to see preview"
 #~ msgstr "Save draft to see preview"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:665
+#: src/components/article-translations/ArticleTranslationManager.tsx:797
 msgid "Save or discard your unsaved changes first."
 msgstr "Save or discard your unsaved changes first."
 
@@ -4804,7 +4852,7 @@ msgstr "Saved locally"
 #: src/components/NoteComposer.tsx:1254
 #: src/components/NoteComposer.tsx:1306
 #: src/components/NoteComposer.tsx:1359
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:596
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:607
 #: src/routes/(root)/[handle]/settings/index.tsx:539
 #: src/routes/(root)/[handle]/settings/language.tsx:191
 #: src/routes/(root)/[handle]/settings/preferences.tsx:371
@@ -4854,7 +4902,7 @@ msgstr "Search results for {0}"
 msgid "Searching…"
 msgstr "Searching…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:942
+#: src/components/article-translations/ArticleTranslationManager.tsx:1081
 msgid "Select a language to edit its translation."
 msgstr "Select a language to edit its translation."
 
@@ -4905,7 +4953,7 @@ msgid "Sensitive content"
 msgstr "Sensitive content"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:73
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:530
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:541
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "Separate tags with spaces. Tags help readers discover your article."
 
@@ -4925,11 +4973,11 @@ msgstr "Settings"
 msgid "Settings saved"
 msgstr "Settings saved"
 
-#: src/components/PostEngagementBar.tsx:695
+#: src/components/PostEngagementBar.tsx:701
 msgid "Share"
 msgstr "Share"
 
-#: src/components/PostEngagementBar.tsx:687
+#: src/components/PostEngagementBar.tsx:693
 msgid "Share or quote"
 msgstr "Share or quote"
 
@@ -4955,15 +5003,15 @@ msgstr "Share your opinion on this story…"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostEngagementBar.tsx:686
+#: src/components/PostEngagementBar.tsx:692
 msgid "Sharing and quoting are not available for this post"
 msgstr "Sharing and quoting are not available for this post"
 
-#: src/components/PostEngagementBar.tsx:694
+#: src/components/PostEngagementBar.tsx:700
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
-#: src/components/PostEngagementBar.tsx:681
+#: src/components/PostEngagementBar.tsx:687
 msgid "Sharing…"
 msgstr "Sharing…"
 
@@ -5070,11 +5118,11 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:702
+#: src/components/article-translations/ArticleTranslationManager.tsx:834
 msgid "Since the published version was last reviewed"
 msgstr "Since the published version was last reviewed"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:703
+#: src/components/article-translations/ArticleTranslationManager.tsx:835
 msgid "Since this draft was written"
 msgstr "Since this draft was written"
 
@@ -5111,10 +5159,11 @@ msgstr "Some locally saved images are no longer available and were removed from 
 msgid "Some posts in this thread cannot be shown."
 msgstr "Some posts in this thread cannot be shown."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:477
-#: src/components/article-translations/ArticleTranslationManager.tsx:529
-#: src/components/article-translations/ArticleTranslationManager.tsx:557
-#: src/components/article-translations/ArticleTranslationManager.tsx:590
+#: src/components/article-translations/ArticleTranslationManager.tsx:543
+#: src/components/article-translations/ArticleTranslationManager.tsx:595
+#: src/components/article-translations/ArticleTranslationManager.tsx:661
+#: src/components/article-translations/ArticleTranslationManager.tsx:689
+#: src/components/article-translations/ArticleTranslationManager.tsx:722
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "Someone else saved this translation. Reload and try again."
 
@@ -5131,7 +5180,7 @@ msgid "Sort invitation tree"
 msgstr "Sort invitation tree"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:92
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:617
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:628
 msgid "Start writing to see a preview."
 msgstr "Start writing to see a preview."
 
@@ -5186,7 +5235,7 @@ msgstr "Subscribing…"
 #: src/components/note-composer/createSubmissionController.ts:349
 #: src/components/note-composer/createSubmissionController.ts:395
 #: src/components/note-composer/createSubmissionController.ts:467
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:458
 #: src/routes/(root)/[handle]/drafts/index.tsx:218
 msgid "Success"
 msgstr "Success"
@@ -5209,7 +5258,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:494
+#: src/components/ArticleCard.tsx:508
 #: src/components/QuotedNoteCard.tsx:317
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
@@ -5250,9 +5299,9 @@ msgid "Switch to article"
 msgstr "Switch to article"
 
 #: src/components/DocumentView.tsx:39
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:789
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:797
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1164
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:872
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:880
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1281
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -5261,8 +5310,8 @@ msgstr "Table of contents"
 #~ msgstr "Tag"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:66
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1173
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:534
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1290
 msgid "Tags"
 msgstr "Tags"
 
@@ -5310,7 +5359,8 @@ msgstr "That is not a valid relay actor URL."
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:526
+#: src/components/article-translations/ArticleTranslationManager.tsx:592
+#: src/components/article-translations/ArticleTranslationManager.tsx:658
 msgid "That language is not available or the input is invalid."
 msgstr "That language is not available or the input is invalid."
 
@@ -5343,6 +5393,10 @@ msgstr "The browser did not provide a complete push subscription."
 msgid "The conversion request could not be created. Please try again."
 msgstr "The conversion request could not be created. Please try again."
 
+#: src/components/article-translations/ArticleTranslationManager.tsx:642
+msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
+msgstr "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
+
 #: src/components/admin/ModerationActionForm.tsx:204
 msgid "The decision has been recorded and applied."
 msgstr "The decision has been recorded and applied."
@@ -5374,7 +5428,7 @@ msgstr "The email address is invalid."
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "The email address is not only used for receiving the invitation, but also for signing in to the account."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:390
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "The following passkeys are registered to your account. You can use them to sign in to your account."
 
@@ -5466,7 +5520,11 @@ msgstr "The organization's members with posting permission will gain access to t
 #~ msgid "The original changed; this translation may be out of date."
 #~ msgstr "The original changed; this translation may be out of date."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:642
+#: src/components/ArticleSourceChangedNotice.tsx:69
+msgid "The original has changed"
+msgstr "The original has changed"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:774
 msgid "The original has changed since this translation was last reviewed."
 msgstr "The original has changed since this translation was last reviewed."
 
@@ -5480,7 +5538,7 @@ msgstr "The original of {0} changed; review your translation"
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "The page you're looking for doesn't exist or has been moved."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:309
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:310
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
@@ -5494,7 +5552,7 @@ msgid "The previous account could not be removed. Please try again."
 msgstr "The previous account could not be removed. Please try again."
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:135
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:542
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:553
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
@@ -5538,11 +5596,11 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:682
+#: src/components/article-translations/ArticleTranslationManager.tsx:814
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "There is no earlier version of the original to compare with, so only the current original is shown."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:480
+#: src/components/article-translations/ArticleTranslationManager.tsx:546
 msgid "There is nothing to review for this language."
 msgstr "There is nothing to review for this language."
 
@@ -5570,7 +5628,7 @@ msgstr "This account is no longer in use."
 msgid "This account is suspended."
 msgstr "This account is suspended."
 
-#: src/components/PostActionMenu.tsx:480
+#: src/components/PostActionMenu.tsx:507
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
@@ -5684,8 +5742,12 @@ msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 
 #: src/components/article-translations/ArticleTranslationManager.tsx:924
-msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
-msgstr "This language is published without a private draft. Review it here, or add a translation to start editing it."
+#~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
+#~ msgstr "This language is published without a private draft. Review it here, or add a translation to start editing it."
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:1056
+msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
+msgstr "This language is published without a private draft. Review it here, or start editing to make private changes."
 
 #: src/components/NoteComposer.tsx:1347
 msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
@@ -5743,7 +5805,11 @@ msgstr "This server has not configured Web Push yet."
 msgid "This service does not support remote follow."
 msgstr "This service does not support remote follow."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:651
+#: src/components/ArticleSourceChangedNotice.tsx:73
+msgid "This translation may not include the latest changes to the original."
+msgstr "This translation may not include the latest changes to the original."
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:727
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "This usually takes about a minute. The page will update automatically when the translation is ready."
 
@@ -5761,14 +5827,14 @@ msgstr "Timeline"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:711
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:607
+#: src/components/article-translations/ArticleTranslationManager.tsx:843
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "Title"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:861
 #: src/components/article-composer/ArticleComposerContext.tsx:1511
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:634
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:645
 msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
 
@@ -5790,26 +5856,41 @@ msgstr "Total reports"
 msgid "Total: {0}"
 msgstr "Total: {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:972
+#: src/components/article-translations/ArticleTranslationManager.tsx:1111
 msgid "Translated body"
 msgstr "Translated body"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:799
-#: src/components/article-translations/ArticleTranslationManager.tsx:860
+#: src/components/article-translations/ArticleTranslationManager.tsx:931
+#: src/components/article-translations/ArticleTranslationManager.tsx:992
 msgid "Translated by"
 msgstr "Translated by"
 
+#. placeholder {0}: "TRANSLATOR"
+#. placeholder {0}: `@${credit.account.username}`
+#: src/components/ArticleTranslationCredit.tsx:40
+#: src/components/ArticleTranslationCredit.tsx:88
+msgid "Translated by {0}"
+msgstr "Translated by {0}"
+
+#: src/components/ArticleTranslationCredit.tsx:44
+msgid "Translated by an unavailable account"
+msgstr "Translated by an unavailable account"
+
+#: src/components/ArticleTranslationCredit.tsx:36
+msgid "Translated by the author"
+msgstr "Translated by the author"
+
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:328
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:933
+#: src/components/ArticleCard.tsx:335
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1001
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:961
+#: src/components/article-translations/ArticleTranslationManager.tsx:1100
 msgid "Translated title"
 msgstr "Translated title"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:524
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:526
 msgid "Translating article"
 msgstr "Translating article"
 
@@ -5817,18 +5898,27 @@ msgstr "Translating article"
 #~ msgid "Translating to {0}…"
 #~ msgstr "Translating to {0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:647
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:723
 msgid "Translating to {name}…"
 msgstr "Translating to {name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:644
+#: src/components/ArticleTranslationCredit.tsx:30
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:720
 msgid "Translating…"
 msgstr "Translating…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:418
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:441
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:450
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:690
+#: src/components/ArticleTranslationCredit.tsx:46
+msgid "Translation credit unavailable"
+msgstr "Translation credit unavailable"
+
+#: src/components/ArticleSourceChangedNotice.tsx:70
+msgid "Translation freshness has not been verified."
+msgstr "Translation freshness has not been verified."
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:420
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:443
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:452
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:766
 msgid "Translation request failed"
 msgstr "Translation request failed"
 
@@ -5836,7 +5926,7 @@ msgstr "Translation request failed"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "Translation request failed for {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:771
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
@@ -5850,7 +5940,7 @@ msgid "Tree"
 msgstr "Tree"
 
 #: src/app.tsx:119
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:703
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:779
 msgid "Try again"
 msgstr "Try again"
 
@@ -5874,7 +5964,7 @@ msgid "Type {0} to confirm organization deletion."
 msgstr "Type {0} to confirm organization deletion."
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:70
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:538
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -5917,7 +6007,7 @@ msgstr "Unfollow"
 msgid "Unmute"
 msgstr "Unmute"
 
-#: src/components/PostActionMenu.tsx:408
+#: src/components/PostActionMenu.tsx:435
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
@@ -5925,11 +6015,11 @@ msgstr "Unpin from profile"
 msgid "Unread"
 msgstr "Unread"
 
-#: src/components/PostEngagementBar.tsx:692
+#: src/components/PostEngagementBar.tsx:698
 msgid "Unshare"
 msgstr "Unshare"
 
-#: src/components/PostEngagementBar.tsx:681
+#: src/components/PostEngagementBar.tsx:687
 msgid "Unsharing…"
 msgstr "Unsharing…"
 
@@ -5941,7 +6031,7 @@ msgstr "Unsubscribe"
 msgid "Unsubscribed from the relay."
 msgstr "Unsubscribed from the relay."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:516
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
 msgid "Update how this article is described and discovered."
 msgstr "Update how this article is described and discovered."
 
@@ -6069,18 +6159,18 @@ msgstr "View image"
 msgid "View organization"
 msgstr "View organization"
 
-#: src/components/PostActionMenu.tsx:450
-#: src/components/PostEngagementBar.tsx:753
+#: src/components/PostActionMenu.tsx:477
+#: src/components/PostEngagementBar.tsx:759
 msgid "View quotes"
 msgstr "View quotes"
 
-#: src/components/PostActionMenu.tsx:456
-#: src/components/PostEngagementBar.tsx:535
+#: src/components/PostActionMenu.tsx:483
+#: src/components/PostEngagementBar.tsx:539
 msgid "View reactions"
 msgstr "View reactions"
 
-#: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:443
+#: src/components/PostActionMenu.tsx:463
+#: src/components/PostEngagementBar.tsx:447
 msgid "View replies"
 msgstr "View replies"
 
@@ -6088,12 +6178,12 @@ msgstr "View replies"
 msgid "View request"
 msgstr "View request"
 
-#: src/components/PostActionMenu.tsx:444
-#: src/components/PostEngagementBar.tsx:752
+#: src/components/PostActionMenu.tsx:471
+#: src/components/PostEngagementBar.tsx:758
 msgid "View shares"
 msgstr "View shares"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:653
+#: src/components/article-translations/ArticleTranslationManager.tsx:785
 msgid "View source changes"
 msgstr "View source changes"
 
@@ -6170,11 +6260,15 @@ msgstr "Voting…"
 msgid "Warning"
 msgstr "Warning"
 
+#: src/components/ArticleSourceChangedNotice.tsx:74
+msgid "We cannot tell whether this translation reflects the latest version of the original."
+msgstr "We cannot tell whether this translation reflects the latest version of the original."
+
 #: src/app.tsx:109
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:700
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:776
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
@@ -6208,7 +6302,7 @@ msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:568
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "When enabled, AI may automatically translate this article into other languages."
 
@@ -6242,7 +6336,7 @@ msgid "Write"
 msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:125
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1108
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1225
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:368
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:458
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:546
@@ -6253,7 +6347,7 @@ msgstr "Write a reply…"
 msgid "Write this as an article?"
 msgstr "Write this as an article?"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:612
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:623
 msgid "Write your article here."
 msgstr "Write your article here."
 
@@ -6350,7 +6444,7 @@ msgstr "You can only edit drafts for your own account or an organization you can
 msgid "You can only manage translations for a draft you can edit."
 msgstr "You can only manage translations for a draft you can edit."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:216
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:281
 msgid "You can only manage translations for an article you can edit."
 msgstr "You can only manage translations for an article you can edit."
 
@@ -6375,7 +6469,7 @@ msgstr "You can prepare migration only for accounts you can manage."
 msgid "You do not belong to any organizations yet."
 msgstr "You do not belong to any organizations yet."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:400
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "You don't have any passkeys registered yet."
 msgstr "You don't have any passkeys registered yet."
 
@@ -6405,19 +6499,20 @@ msgstr "You haven't muted anyone."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "You may have already appealed, or the appeal window has closed."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:562
+#: src/components/article-translations/ArticleTranslationManager.tsx:694
 msgid "You may not have permission to delete this translation."
 msgstr "You may not have permission to delete this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:595
+#: src/components/article-translations/ArticleTranslationManager.tsx:727
 msgid "You may not have permission to publish this translation."
 msgstr "You may not have permission to publish this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:482
+#: src/components/article-translations/ArticleTranslationManager.tsx:548
 msgid "You may not have permission to review this translation."
 msgstr "You may not have permission to review this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:532
+#: src/components/article-translations/ArticleTranslationManager.tsx:598
+#: src/components/article-translations/ArticleTranslationManager.tsx:664
 msgid "You may not have permission to save this translation."
 msgstr "You may not have permission to save this translation."
 
@@ -6447,7 +6542,7 @@ msgstr "You must be signed in to delete a draft"
 msgid "You must be signed in to edit a note"
 msgstr "You must be signed in to edit a note"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:490
 msgid "You must be signed in to edit an article"
 msgstr "You must be signed in to edit an article"
 
@@ -6554,7 +6649,7 @@ msgstr "Your name will be displayed on your profile and in your posts."
 msgid "Your organizations"
 msgstr "Your organizations"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:262
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:263
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "Your passkey has been registered and can now be used for authentication."
 

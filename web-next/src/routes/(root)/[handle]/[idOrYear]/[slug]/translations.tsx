@@ -1,6 +1,7 @@
-import { A, useParams } from "@solidjs/router";
+import { normalizeContentLanguage } from "@hackerspub/models/i18n";
+import { A, revalidate, useParams, useSearchParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
-import { createSignal, onMount, Show } from "solid-js";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
 import { fetchQuery, graphql, type GraphQLTaggedNode } from "relay-runtime";
 import { useRelayEnvironment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
@@ -17,7 +18,12 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import { refreshRelayQuery } from "~/lib/relayPreload.ts";
 import type { translationsArticleQuery } from "./__generated__/translationsArticleQuery.graphql.ts";
+import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
+import type { SlugPageQuery } from "./__generated__/SlugPageQuery.graphql.ts";
+import { ARTICLE_LANG_PAGE_QUERY_KEY, LangPageQueryDef } from "./[lang].tsx";
+import { ARTICLE_PAGE_QUERY_KEY, SlugPageQueryDef } from "./index.tsx";
 
 const translationsArticleQueryNode = graphql`
   query translationsArticleQuery(
@@ -44,7 +50,10 @@ const translationsArticleQueryNode = graphql`
         content
       }
       contents {
+        id
         language
+        title
+        rawContent
         originalLanguage
         provenance
         reviewState
@@ -54,6 +63,7 @@ const translationsArticleQueryNode = graphql`
           content
         }
         translator {
+          uuid
           username
         }
       }
@@ -94,11 +104,21 @@ interface ManagerData {
 export default function ArticleTranslationsPage() {
   const { t } = useLingui();
   const params = useParams();
+  const [searchParams] = useSearchParams<{ language?: string }>();
   const env = useRelayEnvironment();
   const actingAccount = useActingAccount();
   const [data, setData] = createSignal<ManagerData | null | undefined>(
     undefined,
   );
+  // `?language=` comes from the article page's **Edit this translation**
+  // action, but it is still URL input: canonicalize it the same way the
+  // translation mutations do and ignore anything that does not resolve to a
+  // supported content language.
+  const initialLanguage = createMemo(() => {
+    const requested = searchParams.language;
+    if (typeof requested !== "string" || requested === "") return null;
+    return normalizeContentLanguage(requested) ?? null;
+  });
 
   const load = async () => {
     const result = await fetchQuery<translationsArticleQuery>(
@@ -155,6 +175,13 @@ export default function ArticleTranslationsPage() {
         baselineSourceRevision: content.reviewedSourceRevision ?? null,
         translatorUsername: content.translator?.username ?? null,
         automatic: content.provenance === "LLM",
+        // Carried so reopening this language starts from the published text
+        // and keeps its credit and provenance.
+        title: content.title,
+        rawContent: content.rawContent,
+        provenance: content.provenance ?? null,
+        translatorId: (content.translator?.uuid ??
+          null) as TranslationUuid | null,
       }));
     function publishedReviewStateFor(language: string) {
       const content = publishedByLanguage.get(
@@ -189,6 +216,44 @@ export default function ArticleTranslationsPage() {
         translatorUsername: translation.translator?.username ?? null,
       })),
       publishedOnlyTranslations,
+    });
+  };
+
+  /**
+   * Refreshes what readers see after a translation is published or a source
+   * revision is acknowledged.
+   *
+   * A plain `revalidate()` is not enough on its own: solid-relay's
+   * `loadQuery()` is `store-or-network`, so re-running a route loader can
+   * answer from the store, and the Relay store only learns about fields the
+   * mutation payload happened to select. A network-only refetch of the two
+   * article route queries writes the whole reader-facing shape back, and the
+   * revalidation then drops the router's cached entries so a brand-new
+   * language (which no store patch could add to an existing list) is fetched
+   * as well.
+   */
+  const refreshArticlePages = async (language: string) => {
+    const variables = {
+      handle: decodeRouteParam(params.handle!),
+      idOrYear: params.idOrYear!,
+      slug: decodeRouteParam(params.slug!),
+      actingAccountId: actingAccount.selectedActingAccountId() ?? null,
+    };
+    await Promise.allSettled([
+      refreshRelayQuery<SlugPageQuery>(env(), SlugPageQueryDef, {
+        ...variables,
+        language: null,
+      }),
+      refreshRelayQuery<LangPageQuery>(env(), LangPageQueryDef, {
+        ...variables,
+        language,
+      }),
+    ]);
+    await revalidate([
+      ARTICLE_PAGE_QUERY_KEY,
+      ARTICLE_LANG_PAGE_QUERY_KEY,
+    ]).catch((error: unknown) => {
+      console.error("Failed to revalidate the article page:", error);
     });
   };
 
@@ -241,7 +306,9 @@ export default function ArticleTranslationsPage() {
             translations={data()!.translations}
             publishedOnlyTranslations={data()!.publishedOnlyTranslations}
             canPublishIndependently={true}
+            initialLanguage={initialLanguage()}
             onChanged={load}
+            onPublicChange={refreshArticlePages}
           />
         </Show>
       </Show>

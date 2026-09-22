@@ -85,7 +85,9 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const LangPageQueryDef = graphql`
+export const ARTICLE_LANG_PAGE_QUERY_KEY = "loadArticleLangPageQuery";
+
+export const LangPageQueryDef = graphql`
   query LangPageQuery(
     $handle: String!
     $idOrYear: String!
@@ -182,7 +184,7 @@ const loadLangPageQuery = routePreloadedQuery(
       language,
       actingAccountId,
     }),
-  "loadArticleLangPageQuery",
+  ARTICLE_LANG_PAGE_QUERY_KEY,
 );
 
 export default function ArticleLangPage() {
