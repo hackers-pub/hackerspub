@@ -366,6 +366,7 @@ export default function passkeysPage() {
                               class="grid w-full items-center gap-1.5"
                               value={passkeyName()}
                               onChange={setPasskeyName}
+                              required
                             >
                               <TextFieldLabel for="passkey-name">
                                 {t`Passkey name`}
@@ -374,7 +375,6 @@ export default function passkeysPage() {
                                 type="text"
                                 id="passkey-name"
                                 placeholder={t`My passkey`}
-                                required
                               />
                             </TextField>
                             <Button
