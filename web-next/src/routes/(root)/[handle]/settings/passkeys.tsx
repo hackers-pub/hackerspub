@@ -203,7 +203,8 @@ export default function passkeysPage() {
     });
   };
 
-  async function onRegisterPasskey() {
+  async function onRegisterPasskey(event: SubmitEvent) {
+    event.preventDefault();
     const account = data()?.accountByUsername;
     const name = passkeyName().trim();
     if (!account || !name) return;
@@ -359,32 +360,33 @@ export default function passkeysPage() {
                             {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
                           </CardDescription>
                         </CardHeader>
-                        <CardContent class="space-y-4">
-                          <TextField
-                            class="grid w-full items-center gap-1.5"
-                            value={passkeyName()}
-                            onChange={setPasskeyName}
-                          >
-                            <TextFieldLabel for="passkey-name">
-                              {t`Passkey name`}
-                            </TextFieldLabel>
-                            <TextFieldInput
-                              type="text"
-                              id="passkey-name"
-                              placeholder={t`My passkey`}
-                              required
-                            />
-                          </TextField>
-                          <Button
-                            type="button"
-                            onClick={onRegisterPasskey}
-                            disabled={
-                              registering() || passkeyName().trim() === ""
-                            }
-                            class="w-full cursor-pointer"
-                          >
-                            {registering() ? t`Registering…` : t`Register`}
-                          </Button>
+                        <CardContent>
+                          <form class="space-y-4" on:submit={onRegisterPasskey}>
+                            <TextField
+                              class="grid w-full items-center gap-1.5"
+                              value={passkeyName()}
+                              onChange={setPasskeyName}
+                            >
+                              <TextFieldLabel for="passkey-name">
+                                {t`Passkey name`}
+                              </TextFieldLabel>
+                              <TextFieldInput
+                                type="text"
+                                id="passkey-name"
+                                placeholder={t`My passkey`}
+                                required
+                              />
+                            </TextField>
+                            <Button
+                              type="submit"
+                              disabled={
+                                registering() || passkeyName().trim() === ""
+                              }
+                              class="w-full cursor-pointer"
+                            >
+                              {registering() ? t`Registering…` : t`Register`}
+                            </Button>
+                          </form>
                         </CardContent>
                       </Card>
 
