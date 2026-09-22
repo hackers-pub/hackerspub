@@ -281,8 +281,8 @@ export default function passkeysPage() {
     }
   }
 
-  function openRevokeDialog(passkeyId: string, passkeyName: string) {
-    setPasskeyToRevoke({ id: passkeyId, name: passkeyName });
+  function openRevokeDialog(passkeyId: string, name: string) {
+    setPasskeyToRevoke({ id: passkeyId, name });
   }
 
   async function confirmRevokePasskey() {
