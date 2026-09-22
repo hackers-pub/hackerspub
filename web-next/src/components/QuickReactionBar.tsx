@@ -113,7 +113,7 @@ function QuickReactionButton(props: QuickReactionButtonProps) {
       aria-pressed={props.selected}
       aria-label={props.label}
       title={props.label}
-      onClick={props.onClick}
+      onClick={() => props.onClick()}
     >
       <span
         class="transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
