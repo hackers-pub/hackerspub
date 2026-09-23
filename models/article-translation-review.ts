@@ -428,6 +428,13 @@ export type AcknowledgeArticleTranslationSourceResult =
       status: "ok";
       translationDraft: ArticleTranslationDraft | undefined;
       content: ArticleContent | undefined;
+      /**
+       * Whether the published version's baseline actually moved, which
+       * changes the article's public freshness and therefore needs an
+       * `Update`. Acknowledging a draft only, or re-acknowledging the same
+       * revision, leaves it `false`.
+       */
+      publishedBaselineChanged: boolean;
     }
   | { status: "conflict"; currentRevision: number }
   | { status: "invalid"; inputPath: string }
@@ -545,7 +552,12 @@ export async function acknowledgeArticleTranslationSource(
         translationDraft = updated[0];
       }
       let content: ArticleContent | undefined;
+      let publishedBaselineChanged = false;
       if ("sourceId" in input.owner) {
+        const before = await tx.query.articleContentTable.findFirst({
+          where: { sourceId: input.owner.sourceId, language },
+          columns: { sourceRevisionId: true },
+        });
         const updated = await tx
           .update(articleContentTable)
           .set({
@@ -568,6 +580,9 @@ export async function acknowledgeArticleTranslationSource(
           )
           .returning();
         content = updated[0];
+        publishedBaselineChanged =
+          content != null &&
+          content.sourceRevisionId !== (before?.sourceRevisionId ?? null);
       }
       if (translationDraft == null && content == null) {
         return { status: "invalid", inputPath: "language" };
@@ -577,7 +592,12 @@ export async function acknowledgeArticleTranslationSource(
           mode: "reconcile",
         });
       }
-      return { status: "ok", translationDraft, content };
+      return {
+        status: "ok",
+        translationDraft,
+        content,
+        publishedBaselineChanged,
+      };
     },
   );
 }

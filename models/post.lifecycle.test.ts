@@ -17,6 +17,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   insertRemoteActor,
+  insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -387,5 +388,53 @@ test("revokeQuote() does not double-decrement retried revocations", async () => 
       where: { id: quotedPost.id },
     });
     assert.deepEqual(storedTarget?.quotesCount, 0);
+  });
+});
+
+test("revokeQuote() keeps a remote quote's own version timestamp", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "quoterevokeremoteowner",
+      name: "Quote Revoke Remote Owner",
+      email: "quoterevokeremoteowner@example.com",
+    });
+    const remote = await insertRemoteActor(tx, {
+      username: "quoterevokeremote",
+      name: "Remote Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: owner.account,
+      content: "Remote quote revocation target",
+    });
+    const version = new Date("2026-09-01T00:00:00.000Z");
+    const quote = await insertRemotePost(tx, {
+      actorId: remote.id,
+      contentHtml: "<p>Remote quote</p>",
+      quotedPostId: quotedPost.id,
+      published: version,
+      updated: version,
+    });
+    const quoteWithActor = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+      with: { actor: true },
+    });
+    assert.ok(quoteWithActor != null);
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity() {
+        return Promise.resolve(undefined);
+      },
+    };
+
+    await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
+
+    const stored = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(stored?.quotedPostId, null);
+    // The publisher's version is untouched, so their next edit (versioned
+    // after `version`) is not mistaken for an older one.
+    assert.equal(stored?.updated.toISOString(), version.toISOString());
   });
 });

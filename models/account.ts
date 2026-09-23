@@ -538,11 +538,20 @@ async function deleteAccountOperation(
       );
     }
     await removePostsFromTimeline(tx, affectedPosts);
+    // The deleted_account row above must exist before this: a credited
+    // translation keeps naming the same actor IRI (now a `Tombstone`) in
+    // federation, so deleting the account never changes how peers classify
+    // the translation or who it credits.
     await tx
       .update(articleContentTable)
       .set({
         translationRequesterId: null,
         translatorId: null,
+        deletedTranslatorId: sql`CASE
+          WHEN ${articleContentTable.translatorId} = ${account.id}
+          THEN ${account.id}::uuid
+          ELSE ${articleContentTable.deletedTranslatorId}
+        END`,
       })
       .where(
         or(

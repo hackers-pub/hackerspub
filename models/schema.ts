@@ -885,6 +885,15 @@ export const articleSourceRevisionTable = pgTable(
     language: varchar().notNull(),
     title: text().notNull(),
     content: text().notNull(),
+    // The article object's ActivityPub reference timestamp (`updated`, or
+    // `published` when never updated) immediately before a newer title/body
+    // revision replaced this one as the public original. It is the last
+    // `sourceUpdated` value peers were told for translations current against
+    // this revision, so a translation that becomes stale keeps federating
+    // exactly that value (FEP-22cd). `null` while this revision is current,
+    // for revisions that were never public, and for revisions superseded
+    // before this column existed.
+    publicUntil: timestamp("public_until", { withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1070,6 +1079,13 @@ export const articleContentTable = pgTable(
     translationRequesterId: uuid("translation_requester_id")
       .$type<Uuid>()
       .references(() => accountTable.id, { onDelete: "set null" }),
+    // The credited translator's account ID once that account has been
+    // deleted. Account deletion moves `translatorId` here in the same
+    // statement that nulls it, so federation can keep naming the same actor
+    // IRI (which now dereferences to its `Tombstone`) instead of silently
+    // dropping the credit and changing how peers classify the translation.
+    // Any publication that sets a new credit clears it.
+    deletedTranslatorId: uuid("deleted_translator_id").$type<Uuid>(),
     // How this version was produced. `null` on original-language rows; always
     // set on translated rows (enforced by a check). Stored explicitly so that
     // deleting a translator account does not relabel the content as automatic.
@@ -1112,6 +1128,11 @@ export const articleContentTable = pgTable(
       columns: [table.sourceId, table.originalLanguage],
       foreignColumns: [table.sourceId, table.language],
     }).onDelete("cascade"),
+    foreignKey({
+      name: "article_content_deleted_translator_id_fkey",
+      columns: [table.deletedTranslatorId],
+      foreignColumns: [deletedAccountTable.accountId],
+    }).onDelete("set null"),
     check(
       "article_content_original_language_check",
       sql`${table.originalLanguage} IS NOT NULL OR (
@@ -1729,6 +1750,100 @@ export const postTable = pgTable(
 
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
+
+/**
+ * How a translated post content variant was produced, as far as it is known.
+ *
+ * For local articles it mirrors `article_content.provenance`. For remote posts
+ * it is derived at ingest from the actor types of the FEP-22cd `translator`
+ * set: only people or groups mean `human`, only applications or services mean
+ * `machine`, both mean `machine_reviewed`, and any actor that could not be
+ * resolved (or an empty set) means `unknown`.
+ */
+export const postTranslationKindEnum = pgEnum("post_translation_kind", [
+  "human",
+  "machine",
+  "machine_reviewed",
+  "unknown",
+]);
+
+export type PostTranslationKind =
+  (typeof postTranslationKindEnum.enumValues)[number];
+
+/**
+ * Whether a translated post content variant reflects its source.
+ *
+ * `unknown` means no freshness claim was made (or none could be established);
+ * it never implies that the translation is current.
+ */
+export const postTranslationFreshnessEnum = pgEnum(
+  "post_translation_freshness",
+  ["current", "source_changed", "unknown"],
+);
+
+export type PostTranslationFreshness =
+  (typeof postTranslationFreshnessEnum.enumValues)[number];
+
+/**
+ * One language version of a post's content.
+ *
+ * Remote posts get one row per language in the ActivityStreams
+ * `content`/`contentMap` set (issue #330), replaced wholesale by every accepted
+ * `Create`/`Update`; posts without language-tagged content store no rows and
+ * are served from the `post` row itself. Local articles materialize their
+ * published, completed `article_content` rows here, so every post type is
+ * read through one shape; `article_content` remains the authoring table.
+ *
+ * The translation columns hold FEP-22cd metadata. For remote posts they are
+ * claims asserted by the publishing server, never locally verified, and they
+ * grant the named translators nothing.
+ */
+export const postContentVariantTable = pgTable(
+  "post_content_variant",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    // BCP 47 tag; `null` for an untagged default value from a remote object.
+    language: varchar(),
+    default: boolean().notNull().default(false),
+    // The language this variant was translated from, when known locally.
+    originalLanguage: varchar("original_language"),
+    // Permalink of this language version, when the publisher has one.
+    url: text(),
+    name: text(),
+    summary: text(),
+    contentHtml: text("content_html").notNull(),
+    // `null` when this variant is not a translation.
+    translationKind: postTranslationKindEnum("translation_kind"),
+    translatorIris: text("translator_iris")
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
+    // `null` exactly when `translationKind` is `null`.
+    freshness: postTranslationFreshnessEnum(),
+    // The FEP-22cd `sourceUpdated` value as published.
+    sourceUpdated: timestamp("source_updated", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("post_content_variant_post_language_idx").on(
+      table.postId,
+      sql`coalesce(${table.language}, '')`,
+    ),
+    uniqueIndex("post_content_variant_post_default_idx")
+      .on(table.postId)
+      .where(sql`${table.default}`),
+    check(
+      "post_content_variant_translation_check",
+      sql`(${table.translationKind} IS NULL) = (${table.freshness} IS NULL)`,
+    ),
+  ],
+);
+
+export type PostContentVariant = typeof postContentVariantTable.$inferSelect;
+export type NewPostContentVariant = typeof postContentVariantTable.$inferInsert;
 
 export const organizationPostAuthorTable = pgTable(
   "organization_post_author",

@@ -100,7 +100,10 @@ async function revokeQuoteOperation(
       quotedPostId: null,
       quoteAuthorizationIri: null,
       quoteTargetState: "denied",
-      updated: revoked,
+      // A remote post's `updated` is its publisher's version, which incoming
+      // Updates are ordered against; stamping local time on it would make the
+      // publisher's next edit look older and be dropped.
+      ...(quotePost.actor.accountId == null ? {} : { updated: revoked }),
     })
     .where(
       and(

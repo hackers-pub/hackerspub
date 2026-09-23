@@ -149,6 +149,10 @@ run = "node scripts/migrate-media.ts"
 description = "Generate a new database migration"
 run = "pnpm exec drizzle-kit generate"
 
+[tasks."migrate:variants"]
+description = "Materialize post content variants for articles published before they existed"
+run = "node --import temporal-polyfill/global scripts/backfill-post-content-variants.ts"
+
 [tasks."migrate:test"]
 description = "Run database migrations against the test database"
 run = "godotenv -f .env.test -o pnpm exec drizzle-kit migrate"

@@ -54,6 +54,11 @@ import { queueAfterCommit } from "../tx.ts";
 import { generateUuidV7, type Uuid } from "../uuid.ts";
 
 import { persistPostLink } from "../link-preview.ts";
+import {
+  attachTranslationMetadata,
+  buildRemoteContentVariants,
+  replacePostContentVariants,
+} from "./content-variant.ts";
 import { getPersistedPost, isPostObject, type PostObject } from "./core.ts";
 import {
   createTargetPostUpdatedNotifications,
@@ -290,6 +295,43 @@ export async function persistPost(
   const shouldRecurse = fetchRemote && depth < maxDepth;
   if (post.id.origin === ctx.canonicalOrigin) {
     return await getPersistedPost(db, post.id);
+  }
+  // Skip, before any side effect (link previews, actors, quotes, media), an
+  // object that is not a newer version of what is stored: one attributed to
+  // a different actor than the stored post (an object keeps its publisher),
+  // or one strictly older than the stored version (a delayed or replayed
+  // Update). Equal versions are applied, so replays and objects without
+  // `updated` behave as before. The write below re-checks both atomically.
+  const incomingVersion = toDate(post.updated ?? post.published);
+  const storedVersion = await db.query.postTable.findFirst({
+    columns: { id: true, updated: true },
+    with: { actor: { columns: { iri: true } } },
+    where: { iri: post.id.href },
+  });
+  if (storedVersion != null) {
+    if (storedVersion.actor.iri !== post.attributionId.href) {
+      logger.warn(
+        "Ignoring {iri}: it is attributed to {attribution}, but the stored " +
+          "post belongs to {actor}.",
+        {
+          iri: post.id.href,
+          attribution: post.attributionId.href,
+          actor: storedVersion.actor.iri,
+        },
+      );
+      return await getPersistedPost(db, post.id);
+    }
+    if (incomingVersion != null && +incomingVersion < +storedVersion.updated) {
+      logger.debug(
+        "Ignoring an older version of {iri} ({incoming} < {stored}).",
+        () => ({
+          iri: post.id?.href,
+          incoming: incomingVersion.toISOString(),
+          stored: storedVersion.updated.toISOString(),
+        }),
+      );
+      return await getPersistedPost(db, post.id);
+    }
   }
   let actor =
     options.actor == null || options.actor.iri !== post.attributionId.href
@@ -687,16 +729,44 @@ export async function persistPost(
         updated: values.updated,
         published: values.published,
       };
-  const rows = await db
-    .insert(postTable)
-    .values({ id: generateUuidV7(), ...values })
-    .onConflictDoUpdate({
-      target: postTable.iri,
-      set: updateSet,
-      setWhere: eq(postTable.iri, post.id.href),
-    })
-    .returning();
-  const persistedPost = { ...rows[0], actor };
+  // Per-language content and its FEP-22cd translation metadata. Built (and
+  // any translator actors resolved) before the write so no network work
+  // happens while the post row is locked.
+  const contentVariants = buildRemoteContentVariants(post);
+  await attachTranslationMetadata(ctx, post, contentVariants, {
+    fetchRemote,
+    documentLoader: opts.documentLoader,
+    contextLoader: opts.contextLoader,
+  });
+  // The row and its variants change together, and only if the stored post
+  // still belongs to the same actor and is not newer than this object; a
+  // concurrent persist of a newer version therefore cannot be overwritten.
+  const written = await runInTransaction(db, async (tx) => {
+    const rows = await tx
+      .insert(postTable)
+      .values({ id: generateUuidV7(), ...values })
+      .onConflictDoUpdate({
+        target: postTable.iri,
+        set: updateSet,
+        setWhere: and(
+          eq(postTable.iri, values.iri),
+          eq(postTable.actorId, actor.id),
+          sql`${postTable.updated} <= excluded.updated`,
+        ),
+      })
+      .returning();
+    if (rows.length < 1) return undefined;
+    await replacePostContentVariants(tx, rows[0].id, contentVariants);
+    return rows[0];
+  });
+  if (written == null) {
+    logger.debug(
+      "A newer version of {iri} was stored concurrently; keeping it.",
+      { iri: post.id.href },
+    );
+    return await getPersistedPost(db, post.id);
+  }
+  const persistedPost = { ...written, actor };
   await createTargetPostUpdatedNotifications(
     db,
     existingPost,

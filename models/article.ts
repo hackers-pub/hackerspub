@@ -29,6 +29,7 @@ import {
   type Account,
   type AccountEmail,
   type AccountLink,
+  accountTable,
   type Actor,
   type ArticleContent,
   type ArticleContentProvenance,
@@ -64,10 +65,21 @@ import {
   recordDraftRevision,
 } from "./article-revision.ts";
 import {
+  acknowledgeArticleTranslationSource,
+  type AcknowledgeArticleTranslationSourceInput,
+  type AcknowledgeArticleTranslationSourceResult,
   isTranslationReviewPushStillValid,
   type PendingTranslationReviewPush,
   syncTranslationReviewNotifications,
 } from "./article-translation-review.ts";
+import {
+  lockArticleSource,
+  nextArticleVersionSql,
+  publishArticleState,
+  syncArticleContentVariants,
+  syncArticleContentVariantSummary,
+} from "./article-publication.ts";
+import { getArticleReferenceTime } from "./article-translation-metadata.ts";
 import { normalizeContentLanguage } from "./i18n.ts";
 import { sendNotificationPush } from "./notification.ts";
 
@@ -878,6 +890,8 @@ async function createArticleOperation(
   });
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
+  // Nothing else can see the new source yet, so no lock is needed.
+  await syncArticleContentVariants(fedCtx, articleSource.id);
   const articleObject = await fedCtx.services.federation.getArticle(fedCtx, {
     ...articleSource,
     account,
@@ -988,13 +1002,27 @@ export async function updateArticleSource(
   let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
   try {
     result = await db.transaction(async (tx) => {
+      // Read the object's reference timestamp under the row lock before
+      // moving it: if this edit supersedes the original's revision, that is
+      // the last `sourceUpdated` peers were told for translations current
+      // against it, and it is recorded on the old revision below.
+      const previous = await tx
+        .select({
+          updated: articleSourceTable.updated,
+          published: articleSourceTable.published,
+        })
+        .from(articleSourceTable)
+        .where(eq(articleSourceTable.id, id))
+        .for("update");
+      if (previous.length < 1) return undefined;
       const sources = await tx
         .update(articleSourceTable)
-        .set({ ...sourceFields, updated: sql`CURRENT_TIMESTAMP` })
+        .set({ ...sourceFields, updated: nextArticleVersionSql() })
         .where(eq(articleSourceTable.id, id))
         .returning();
       if (sources.length < 1) return undefined;
       const originalContent = await getOriginalArticleContent(tx, sources[0]);
+      const previousRevisionId = originalContent?.sourceRevisionId ?? null;
       if (originalContent == null) {
         if (
           sourceFields.language == null ||
@@ -1072,6 +1100,20 @@ export async function updateArticleSource(
       }
       if (revisionTarget != null) {
         sourceRevision = await createSourceRevision(tx, id, revisionTarget);
+        if (
+          previousRevisionId != null &&
+          previousRevisionId !== sourceRevision.id
+        ) {
+          await tx
+            .update(articleSourceRevisionTable)
+            .set({ publicUntil: getArticleReferenceTime(previous[0]) })
+            .where(
+              and(
+                eq(articleSourceRevisionTable.id, previousRevisionId),
+                isNull(articleSourceRevisionTable.publicUntil),
+              ),
+            );
+        }
       }
       const contents = await tx.query.articleContentTable.findMany({
         where: { sourceId: id },
@@ -1195,9 +1237,6 @@ async function updateArticleOperation(
   | undefined
 > {
   const { db } = fedCtx;
-  const previousPost = await db.query.postTable.findFirst({
-    where: { articleSourceId },
-  });
   const updateResult = await updateArticleSource(db, articleSourceId, source);
   if (updateResult == null) return undefined;
   const {
@@ -1235,74 +1274,38 @@ async function updateArticleOperation(
   });
   // A censored article must not federate its (moderation-hidden) content: the
   // local edit persists, but no Update(Article) is delivered to followers or
-  // tag relays, and translation restarts (each of which fires its own Update)
-  // are skipped, while it remains censored.
-  if (post.censored != null) return post;
-  const articleObject = await fedCtx.services.federation.getArticle(fedCtx, {
-    ...articleSource,
-    account,
-  });
-  const activity = new vocab.Update({
-    id: new URL(
-      `#update/${articleSource.updated.toISOString()}`,
-      articleObject.id ?? fedCtx.canonicalOrigin,
-    ),
-    actor: fedCtx.getActorUri(articleSource.accountId),
-    tos: articleObject.toIds,
-    ccs: articleObject.ccIds,
-    object: articleObject,
-  });
-  await fedCtx.sendActivity(
-    { identifier: articleSource.accountId },
-    "followers",
-    activity,
-    {
-      orderingKey: post.iri,
-      preferSharedInbox: true,
-      excludeBaseUris: [
-        new URL(fedCtx.origin),
-        new URL(fedCtx.canonicalOrigin),
-      ],
-    },
-  );
-  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
-    fedCtx,
-    articleSource.accountId,
-    activity,
-    {
-      orderingKey: post.iri,
-      visibility: post.visibility,
-      accountBio: account.bio,
-      relayedTags: previousPost?.relayedTags,
-    },
-  );
-  if (relayedTags != null) {
-    await db
-      .update(postTable)
-      .set({ relayedTags: [...relayedTags] })
-      .where(eq(postTable.id, post.id));
-    post.relayedTags = [...relayedTags];
-  }
-  // TODO: send Update(Article) to the mentioned actors too
-  // After federating the original-language Update, invalidate any
-  // existing translation rows so they retranslate against the new
-  // body.  Each restarted translation will fire its own Update on
-  // completion (correct ActivityPub semantics — peers see the
-  // original change first, then each translation's refresh as it
-  // becomes available).  We `await` the synchronous claim-and-reset
-  // step so the placeholders are visible by the time this function
-  // returns; the actual `translate()` calls run in the background.
+  // tag relays (`publishArticleState` skips federation), and automatic
+  // translations are not restarted while it remains censored.
   //
-  // Gate on the article-level `allowLlmTranslation` switch so an
-  // edit that turns LLM translation off in the same update does
-  // not still enqueue background `translate()` runs against the
-  // author's just-expressed wish.  Existing translation rows from
-  // before the switch was flipped are left alone (stale, not
-  // refreshed); re-enabling the switch and editing the body again
-  // brings them back into sync.
-  if (originalContentChanged && articleSource.allowLlmTranslation) {
+  // Automatic translations based on the old original are reset to
+  // placeholders *before* the Update is built, in this same locked
+  // transaction. Placeholders are never serialized, so the Update withdraws
+  // those languages instead of republishing text translated from the old
+  // original; each finished job re-adds its language with its own Update, and
+  // a failed job has nothing to retract. The model calls themselves run after
+  // commit.
+  //
+  // Gate on the article-level `allowLlmTranslation` switch so an edit that
+  // turns LLM translation off in the same update does not still enqueue
+  // background `translate()` runs against the author's just-expressed wish.
+  // Existing translation rows from before the switch was flipped are left
+  // alone (stale, not refreshed); re-enabling the switch and editing the body
+  // again brings them back into sync.
+  if (
+    post.censored == null &&
+    originalContentChanged &&
+    articleSource.allowLlmTranslation
+  ) {
     await restartArticleContentTranslations(fedCtx, articleSource);
   }
+  // `updateArticleSource` already advanced the object version.
+  await publishArticleState(fedCtx, articleSourceId, { bump: false });
+  // TODO: send Update(Article) to the mentioned actors too
+  const refreshed = await db.query.postTable.findFirst({
+    where: { id: post.id },
+    columns: { relayedTags: true },
+  });
+  if (refreshed != null) post.relayedTags = refreshed.relayedTags;
   return post;
 }
 
@@ -1449,16 +1452,25 @@ export async function publishArticleTranslation(
       const located =
         await context.db.query.articleTranslationDraftTable.findFirst({
           where: { id: input.translationDraftId },
-          columns: { sourceId: true },
+          columns: { sourceId: true, translatorId: true },
         });
       if (located?.sourceId == null) {
         return { kind: "invalid", inputPath: "translationDraftId" };
       }
-      await context.db
-        .select({ id: articleSourceTable.id })
-        .from(articleSourceTable)
-        .where(eq(articleSourceTable.id, located.sourceId))
-        .for("update");
+      // Account deletion locks the account row and then rewrites the
+      // `article_content` rows crediting it. Writing `translatorId` below
+      // takes a key-share lock on that same account for the foreign key, so
+      // take it up front, before any content row: otherwise a deletion
+      // waiting on our content row and our FK check waiting on its account
+      // lock would deadlock.
+      if (located.translatorId != null) {
+        await context.db
+          .select({ id: accountTable.id })
+          .from(accountTable)
+          .where(eq(accountTable.id, located.translatorId))
+          .for("key share");
+      }
+      await lockArticleSource(context.db, located.sourceId);
       // Re-read the draft under the lock: the unlocked lookup above only
       // resolved which source to lock.
       const draftRows = await context.db
@@ -1551,6 +1563,9 @@ export async function publishArticleTranslation(
             content: draft.content,
             originalLanguage: original.language,
             translatorId: draft.translatorId,
+            // The draft's credit replaces the previous version's, including a
+            // retained credit for a since-deleted account.
+            deletedTranslatorId: null,
             translationRequesterId: null,
             provenance,
             sourceRevisionId: baselineId,
@@ -1598,17 +1613,26 @@ export async function publishArticleTranslation(
         })
         .where(eq(articleTranslationDraftTable.id, draft.id))
         .returning();
-      // Advance the article's object version so receivers accept the Update.
-      await context.db
-        .update(articleSourceTable)
-        .set({ updated: sql`CURRENT_TIMESTAMP` })
-        .where(eq(articleSourceTable.id, source.id));
       // Publishing against the current revision resolves the outstanding
       // review need for this language; drop it from (or delete) the
       // translator's notification without resurfacing it.
       await syncTranslationReviewNotifications(context.db, source.id, {
         mode: "reconcile",
       });
+      // Advance the object version, rematerialize the reader variants, and
+      // federate an Update built from this transaction's state while the
+      // source lock is still held, so it cannot interleave with another
+      // change. The original post's title/body/summary stay original-derived.
+      await publishArticleState(context, source.id);
+      // A censored article still gets a fresh summary for this language
+      // locally; only the outgoing Update is withheld.
+      const publishedContent =
+        await context.db.query.articleContentTable.findFirst({
+          where: { sourceId: source.id, language: draft.language },
+        });
+      if (publishedContent != null) {
+        await queueArticleContentSummary(context, publishedContent);
+      }
       return {
         kind: "ok",
         sourceId: source.id,
@@ -1626,80 +1650,160 @@ export async function publishArticleTranslation(
   if (outcome.kind === "forbidden") {
     return { status: "forbidden" };
   }
-  // Federate an Update built from a consistent read of the committed state.
-  // The post's title/body/summary stay original-derived; only this language
-  // version and the article's object version changed.
-  const refreshed = await fedCtx.db.query.articleSourceTable.findFirst({
-    where: { id: outcome.sourceId },
-    with: {
-      account: { with: { avatarMedium: true, emails: true, links: true } },
-      contents: true,
-      post: true,
-    },
-  });
-  if (refreshed != null) {
-    // A censored article still gets a fresh summary for this language locally;
-    // only the outgoing Update is withheld.
-    const publishedContent = refreshed.contents.find(
-      (content) => content.language === outcome.language,
-    );
-    if (publishedContent != null) {
-      await queueArticleContentSummary(fedCtx, publishedContent);
-    }
-    if (refreshed.post.censored == null) {
-      const articleObject = await fedCtx.services.federation.getArticle(
-        fedCtx,
-        refreshed,
-      );
-      const activity = new vocab.Update({
-        id: new URL(
-          `#update/${refreshed.updated.toISOString()}/${outcome.language}`,
-          articleObject.id ?? fedCtx.canonicalOrigin,
-        ),
-        actor: fedCtx.getActorUri(refreshed.accountId),
-        tos: articleObject.toIds,
-        ccs: articleObject.ccIds,
-        object: articleObject,
-      });
-      await fedCtx.sendActivity(
-        { identifier: refreshed.accountId },
-        "followers",
-        activity,
-        {
-          orderingKey: refreshed.post.iri,
-          preferSharedInbox: true,
-          excludeBaseUris: [
-            new URL(fedCtx.origin),
-            new URL(fedCtx.canonicalOrigin),
-          ],
-        },
-      );
-      const relayedTags =
-        await fedCtx.services.federation.sendTagsPubRelayActivity(
-          fedCtx,
-          refreshed.accountId,
-          activity,
-          {
-            orderingKey: refreshed.post.iri,
-            visibility: refreshed.post.visibility,
-            accountBio: refreshed.account.bio,
-            relayedTags: refreshed.post.relayedTags,
-          },
-        );
-      if (relayedTags != null) {
-        await fedCtx.db
-          .update(postTable)
-          .set({ relayedTags: [...relayedTags] })
-          .where(eq(postTable.id, refreshed.post.id));
-      }
-    }
-  }
   return {
     status: "ok",
     sourceId: outcome.sourceId,
     language: outcome.language,
     translationDraft: outcome.translationDraft,
   };
+}
+
+/**
+ * Records a review acknowledgement ({@link acknowledgeArticleTranslationSource})
+ * and, when it moved a published version's baseline, publishes the article's
+ * new public state: the freshness notice and FEP-22cd `sourceUpdated` change
+ * even though no translated text did, so peers need an `Update`.
+ *
+ * Acknowledging only a private draft, or re-acknowledging the revision the
+ * published version already carries, federates nothing.
+ */
+export async function acknowledgeArticleTranslation(
+  fedCtx: ApplicationContext,
+  viewer: Pick<Account, "id" | "kind">,
+  input: AcknowledgeArticleTranslationSourceInput,
+): Promise<AcknowledgeArticleTranslationSourceResult> {
+  return await withTransaction(fedCtx, async (context) => {
+    if ("sourceId" in input.owner) {
+      // Moving a published baseline publishes an Update of the whole
+      // article, so the same suspension rules as publication apply: a
+      // suspended member keeps an authenticated session.
+      const source = await context.db.query.articleSourceTable.findFirst({
+        where: { id: input.owner.sourceId },
+        columns: { accountId: true },
+      });
+      if (source != null) {
+        await assertAccountActorNotSuspended(context.db, viewer.id);
+        await assertAccountActorNotSuspended(context.db, source.accountId);
+      }
+    }
+    const result = await acknowledgeArticleTranslationSource(
+      context.db,
+      viewer,
+      input,
+    );
+    if (
+      result.status === "ok" &&
+      result.publishedBaselineChanged &&
+      "sourceId" in input.owner
+    ) {
+      // The acknowledgement above still holds the source lock.
+      await publishArticleState(context, input.owner.sourceId);
+    }
+    return result;
+  });
+}
+
+export interface WithdrawArticleTranslationInput {
+  sourceId: Uuid;
+  language: string;
+}
+
+export type WithdrawArticleTranslationResult =
+  | {
+      status: "ok";
+      sourceId: Uuid;
+      language: string;
+      /** The private draft kept for the language, now unpublished. */
+      translationDraft: ArticleTranslationDraft | undefined;
+    }
+  | { status: "invalid"; inputPath: string }
+  | { status: "forbidden" };
+
+/**
+ * Withdraws a published, human-managed translation from an article.
+ *
+ * The language disappears from the public article and from the next federated
+ * `Update`, which omits both its `contentMap` entry and its FEP-22cd
+ * `Translation` entry: the proposal's removal semantics, never a `Delete`,
+ * which would remove the whole article. The article keeps its identity,
+ * replies and reactions.
+ *
+ * The language's private translation draft, if any, is kept and becomes
+ * unpublished, so the work can be published again later.
+ *
+ * Automatic translations cannot be withdrawn this way: they are governed by
+ * the article's `allowLlmTranslation` setting. Conversely, withdrawing a human
+ * translation does not suppress automatic ones: while that setting stays
+ * enabled, a reader can request an automatic translation of the language
+ * again, exactly as for a language that was never translated.
+ */
+export async function withdrawArticleTranslation(
+  fedCtx: ApplicationContext,
+  viewer: Pick<Account, "id" | "kind">,
+  input: WithdrawArticleTranslationInput,
+): Promise<WithdrawArticleTranslationResult> {
+  const language = normalizeContentLanguage(input.language);
+  if (language == null) return { status: "invalid", inputPath: "language" };
+  return await withTransaction(
+    fedCtx,
+    async (context): Promise<WithdrawArticleTranslationResult> => {
+      if (!(await lockArticleSource(context.db, input.sourceId))) {
+        return { status: "invalid", inputPath: "sourceId" };
+      }
+      const source = await context.db.query.articleSourceTable.findFirst({
+        where: { id: input.sourceId },
+        columns: { id: true, accountId: true },
+      });
+      if (source == null) return { status: "invalid", inputPath: "sourceId" };
+      if (!(await canAccountActAs(context.db, viewer, source.accountId))) {
+        return { status: "forbidden" };
+      }
+      await assertAccountActorNotSuspended(context.db, viewer.id);
+      await assertAccountActorNotSuspended(context.db, source.accountId);
+      const content = await context.db.query.articleContentTable.findFirst({
+        where: { sourceId: source.id, language },
+        columns: { originalLanguage: true, provenance: true },
+      });
+      if (
+        content == null ||
+        content.originalLanguage == null ||
+        content.provenance === "llm"
+      ) {
+        return { status: "invalid", inputPath: "language" };
+      }
+      await context.db
+        .delete(articleContentTable)
+        .where(
+          and(
+            eq(articleContentTable.sourceId, source.id),
+            eq(articleContentTable.language, language),
+          ),
+        );
+      const drafts = await context.db
+        .update(articleTranslationDraftTable)
+        .set({ publishedRevision: null })
+        .where(
+          and(
+            eq(articleTranslationDraftTable.sourceId, source.id),
+            eq(articleTranslationDraftTable.language, language),
+          ),
+        )
+        .returning();
+      // The withdrawn version no longer needs review, so it drops out of (or
+      // deletes) its translator's outstanding notification; a private draft
+      // that is still behind keeps it.
+      await syncTranslationReviewNotifications(context.db, source.id, {
+        mode: "reconcile",
+      });
+      await publishArticleState(context, source.id);
+      return {
+        status: "ok",
+        sourceId: source.id,
+        language,
+        translationDraft: drafts[0],
+      };
+    },
+  );
 }
 
 export async function startArticleContentSummary(
@@ -1815,6 +1919,10 @@ export async function applyArticleContentSummary(
   // summarization clobber `post.summary` after the CAS-guarded
   // `article_content` update.
   await db.transaction(async (tx) => {
+    // Take the source lock before the content row, the order every other
+    // writer uses, so the variant mirrored below cannot be overwritten by a
+    // concurrent rematerialization built from an older read.
+    await lockArticleSource(tx, content.sourceId);
     // Re-fetch the row so that we don't act on stale state after a
     // concurrent edit happened between the LLM call and now.
     const current = await tx.query.articleContentTable.findFirst({
@@ -1874,6 +1982,12 @@ export async function applyArticleContentSummary(
         // Lost the race to a newer claim; leave it alone.
         return;
       }
+      await syncArticleContentVariantSummary(
+        tx,
+        content.sourceId,
+        content.language,
+        null,
+      );
       if (content.originalLanguage == null) {
         await tx
           .update(postTable)
@@ -1910,6 +2024,12 @@ export async function applyArticleContentSummary(
       // newer summarization.
       return;
     }
+    await syncArticleContentVariantSummary(
+      tx,
+      content.sourceId,
+      content.language,
+      summary,
+    );
     if (content.originalLanguage == null) {
       await tx
         .update(postTable)
@@ -2419,6 +2539,11 @@ async function runArticleContentTranslation(
           };
           await withTransaction(backgroundContext, async (txFedCtx) => {
             const tx = txFedCtx.db;
+            // Source lock first, like every other writer of this article's
+            // content (edits, publications, acknowledgements), so this
+            // completion is ordered against them and cannot deadlock by
+            // taking the locks in the reverse order.
+            if (!(await lockArticleSource(tx, sourceId))) return;
             const updated = await tx
               .update(articleContentTable)
               .set({
@@ -2470,90 +2595,12 @@ async function runArticleContentTranslation(
               );
               return;
             }
-            const article = await tx.query.articleSourceTable.findFirst({
-              where: { id: sourceId },
-              with: {
-                account: true,
-                contents: true,
-              },
-            });
-            if (article == null) return;
-            const post = await tx.query.postTable.findFirst({
-              where: { articleSourceId: article.id },
-            });
-            if (post?.censored != null) {
-              // A censored article must not federate a completed translation's
-              // Update; the translation row and its summary still persist locally.
-              await queueAfterCommit(txFedCtx, () =>
-                startArticleContentSummary(
-                  rootDb,
-                  summarizer,
-                  updated[0],
-                  txFedCtx.services.ai.summarize,
-                ),
-              );
-              return;
-            }
-            const articleObject = await txFedCtx.services.federation.getArticle(
-              txFedCtx,
-              article,
-            );
-            // The id has to be unique across translation completions for
-            // this article — multiple locales can complete in close
-            // succession (especially after a body edit re-queues every
-            // existing translation), and they would all collide on
-            // `article.updated` since translation completions don't bump
-            // it.  Including both the target language and the translated
-            // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
-            // success UPDATE just above) keeps the id distinct from the
-            // original-language Update activity and from every other
-            // translation's Update for the same edit.
-            const update = new vocab.Update({
-              id: new URL(
-                `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
-                articleObject.id ?? txFedCtx.canonicalOrigin,
-              ),
-              actor: txFedCtx.getActorUri(article.accountId),
-              tos: articleObject.toIds,
-              ccs: articleObject.ccIds,
-              object: articleObject,
-            });
-            const orderingKey = txFedCtx.getObjectUri(vocab.Article, {
-              id: article.id,
-            }).href;
-            await txFedCtx.sendActivity(
-              { identifier: article.accountId },
-              "followers",
-              update,
-              {
-                orderingKey,
-                preferSharedInbox: true,
-                excludeBaseUris: [
-                  new URL(txFedCtx.origin),
-                  new URL(txFedCtx.canonicalOrigin),
-                ],
-              },
-            );
-            if (post != null) {
-              const relayedTags =
-                await txFedCtx.services.federation.sendTagsPubRelayActivity(
-                  txFedCtx,
-                  article.accountId,
-                  update,
-                  {
-                    orderingKey,
-                    visibility: post.visibility,
-                    accountBio: article.account.bio,
-                    relayedTags: post.relayedTags,
-                  },
-                );
-              if (relayedTags != null) {
-                await tx
-                  .update(postTable)
-                  .set({ relayedTags: [...relayedTags] })
-                  .where(eq(postTable.id, post.id));
-              }
-            }
+            // Advances the object version (so receivers accept the Update),
+            // rematerializes the reader variants, and federates unless the
+            // article is censored. The job-token CAS above already fenced off
+            // any older or superseded job, so a delayed result can never
+            // restore superseded text or replace a human-published version.
+            await publishArticleState(txFedCtx, sourceId);
             // TODO: send Update(Article) to the mentioned actors too
             await queueAfterCommit(txFedCtx, () =>
               startArticleContentSummary(

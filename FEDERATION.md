@@ -61,6 +61,9 @@ The following FEPs have application-level behavior in Hackers' Pub:
     followers collection implements the server side of synchronization by
     providing origin-filtered views.  Outgoing delivery does not currently
     request synchronization from receiving servers.
+ -  [FEP-22cd][]: Attributing translations (draft).  Articles publish
+    per-language translator credit and source freshness, and incoming objects'
+    metadata is stored as publisher claims.  See [Article translations] below.
  -  [FEP-ae0c][]: Fediverse Relay Protocols: Mastodon and LitePub (partial).
     The instance actor can initiate and cancel LitePub/Pleroma-style relay
     subscriptions with `Follow` and `Undo(Follow)`, and can process `Accept`
@@ -90,6 +93,8 @@ Hackers' Pub's federation configuration:
 [FEP-e232]: https://w3id.org/fep/e232
 [FEP-f1d5]: https://w3id.org/fep/f1d5
 [FEP-8fcf]: https://w3id.org/fep/8fcf
+[FEP-22cd]: https://w3id.org/fep/22cd
+[Article translations]: #article-translations
 [FEP-ae0c]: https://w3id.org/fep/ae0c
 [FEP-8b32]: https://w3id.org/fep/8b32
 [FEP-521a]: https://w3id.org/fep/521a
@@ -153,6 +158,88 @@ collections.  Public and unlisted posts are available from outboxes.  Replies
 are exposed as paginated `OrderedCollection` objects, and emoji reactions are
 exposed as paginated `Collection` objects.  Access to posts and their related
 collections follows the post's visibility and local moderation state.
+
+
+Article translations
+--------------------
+
+Hackers' Pub implements the [FEP-22cd] draft at [revision 6d0d6559], through
+the vocabulary support in Fedify 2.4.0-dev.1988 (a pre-release of Fedify
+2.4.0).  The draft is not a settled standard, and both may change.
+
+An article stays one `Article` object: every published language version is in
+`nameMap` and `contentMap`, and they share one `id`, `replies`, and set of
+reactions.  Each translated language also gets a `Translation` entry in
+`translations`:
+
+ -  `translator` lists the credited actors.  A person's own translation credits
+    their actor.  An automatic translation credits the instance actor, which is
+    an `Application`.  A human-reviewed automatic translation credits both.
+    Translator credit is never added to the article's `attributedTo`, and it
+    grants no authority: every `Create` and `Update` comes from the owning
+    account.
+ -  A deleted translator keeps their actor IRI, which dereferences to the
+    account's `Tombstone`, so the classification of the translation does not
+    change.
+ -  A legacy translation whose provenance and translator are both unknown gets
+    an entry with *no* `translator`.  This does not conform to the draft,
+    which requires one, but omitting the entry would tell consumers the
+    author wrote that language directly.  This is a gap in the draft (see its
+    open question about translators who are not known actors).
+ -  `url` is the language version's web page.  No `isBasedOn` is published,
+    because source revisions are private editing data.
+
+Every public change (a source edit, a translation published or withdrawn, a
+review acknowledgement, an automatic translation finishing) sends an `Update`
+with a unique ID and a strictly increasing `updated`.  Because the source of
+each translation is the same object, `updated` also moves when only another
+language changes.  So `sourceUpdated` is published as follows:
+
+ -  A translation reviewed against the current original carries the object's
+    current reference value (`updated`, or `published`).  The draft treats an
+    equal or later value as current.
+ -  A translation behind the original carries the reference value peers last
+    saw while its baseline was the current original.  That value is recorded
+    when the original changes and is not reconstructed afterwards; when it was
+    never recorded, `sourceUpdated` is omitted.
+ -  An unreviewed automatic translation, or one with no recorded baseline,
+    omits `sourceUpdated`, which makes no freshness claim.
+
+For software that ignores the extension, each translated language's HTML
+starts with a readable credit, a link to the original language's own page,
+and a notice when the translation may be behind the original or its freshness
+is unverified.  The notice is generated for each serialization and is not
+stored in the article's Markdown.  The untagged `content` fallback lists every
+language with its credit written in that language.  Withdrawing a translation
+drops both its `contentMap` entry and its `Translation` entry from the next
+`Update`, which the draft defines as withdrawal; the article is never deleted.
+A translation an automatic job is still producing is not published at all.
+
+JSON-LD compaction writes `contentMap` keys in lowercase (`zh-tw`), while
+`inLanguage` keeps the canonical case (`zh-TW`).  BCP 47 tags are
+case-insensitive, and Hackers' Pub compares them that way when receiving.
+
+Incoming `Article`, `Note`, and `Question` objects keep every language in
+`contentMap` (with same-language `nameMap` and `summaryMap` values) as
+separate content variants, replaced as a whole by every accepted `Create` or
+`Update`.  FEP-22cd metadata on them is stored as a claim by the publishing
+server, never as verified authorship, and gives the named translators no
+access to anything.  Entries are dropped when their language has no content,
+when their `translationOfWork` is not the object itself, or when a language
+has more than one; the content is kept either way.  Translator types are
+classified when the object is received, from actors already known or fetched
+(at most three per object); any translator that cannot be resolved makes the
+classification unknown.  An `Update` that omits `translations` removes the
+metadata; one that omits a language removes that language.  An object
+attributed to a different actor than the stored one, or older than the stored
+version, is ignored.
+
+These behaviors are covered by offline fixtures and by a local round trip in
+which Hackers' Pub receives its own serialized articles.  How other fediverse
+software displays the credit, the notices, or the metadata has not been
+verified against a live peer yet.
+
+[revision 6d0d6559]: https://codeberg.org/fediverse/fep/src/commit/6d0d6559054baeb7b71a5f2bdc14fc4c09b66f39/fep/22cd/fep-22cd.md
 
 
 Delivery and relays
