@@ -38,14 +38,21 @@ const READER_CONTENT_FIELDS = [
   "reviewState",
 ];
 
+interface ContentSelection {
+  /** The response key, so an aliased block can be told from a plain one. */
+  readonly alias: string;
+  readonly fields: readonly string[];
+}
+
 /**
  * The names selected directly inside each `contents { … }` block, with nested
  * blocks skipped, so a field that only exists on a sub-selection cannot be
  * mistaken for one on the content row itself.
  */
-function contentSelections(operation: string): string[][] {
-  const blocks: string[][] = [];
-  const opener = /(?:^|\s)(?:[A-Za-z_]\w*: )?contents(?:\([^)]*\))? \{/g;
+function contentSelections(operation: string): ContentSelection[] {
+  const blocks: ContentSelection[] = [];
+  const opener =
+    /(?:^|\s)(?:(?<alias>[A-Za-z_]\w*): )?contents(?:\([^)]*\))? \{/g;
   for (const match of operation.matchAll(opener)) {
     let depth = 1;
     let index = match.index! + match[0].length;
@@ -71,7 +78,7 @@ function contentSelections(operation: string): string[][] {
       }
       line += char;
     }
-    blocks.push(fields);
+    blocks.push({ alias: match.groups?.alias ?? "contents", fields });
   }
   return blocks;
 }
@@ -80,7 +87,9 @@ test("the article page query reads every field a translation credit needs", asyn
   const operation = await readOperationText(
     "../routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/SlugPageQuery.graphql.ts",
   );
-  const selected = new Set(contentSelections(operation).flat());
+  const selected = new Set(
+    contentSelections(operation).flatMap((block) => block.fields),
+  );
   assert.ok(selected.size > 0, "the query selects no article contents");
   for (const field of READER_CONTENT_FIELDS) {
     assert.ok(
@@ -100,7 +109,7 @@ test("publishing a translation returns what the article page renders", async () 
   );
   const blocks = contentSelections(operation);
   assert.equal(blocks.length, 1);
-  const selected = new Set(blocks[0]);
+  const selected = new Set(blocks[0].fields);
   for (const field of READER_CONTENT_FIELDS) {
     assert.ok(
       selected.has(field),
@@ -124,11 +133,19 @@ test("editing the original returns the freshness of every other language", async
   const operation = await readOperationText(
     "../routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/edit_updateArticle_Mutation.graphql.ts",
   );
-  // A source edit puts the other languages into "needs review"; the payload
-  // has to say so, or the reader page keeps showing them as current.
-  assert.match(
-    operation,
-    /allContents: contents\(includeBeingTranslated: true\) \{\n\s*id\n/,
+  // A source edit puts the other languages into "needs review", so the payload
+  // has to return that state on the block that lists them, `allContents`.
+  // Matching `reviewState` anywhere in the operation would also pass when some
+  // other selection happens to carry it while `allContents` does not.
+  const allContents = contentSelections(operation).find(
+    (block) => block.alias === "allContents",
   );
-  assert.match(operation, /reviewState/);
+  assert.ok(allContents, "the payload does not select every language version");
+  for (const field of ["id", "reviewState"]) {
+    assert.ok(
+      allContents.fields.includes(field),
+      `the update payload's \`allContents\` does not return \`${field}\`, so ` +
+        "the reader page keeps showing the other languages as current",
+    );
+  }
 });
