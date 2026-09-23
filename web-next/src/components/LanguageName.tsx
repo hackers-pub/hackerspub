@@ -32,7 +32,13 @@ export function LanguageName(props: LanguageNameProps) {
     <>
       {label().name}
       <Show when={label().showNative}>
-        <span class={props.nativeClass ?? "ml-1 text-xs text-muted-foreground"}>
+        {/* The native name is written in the language it names, not in the UI
+            locale, so it carries its own `lang` for screen readers and for
+            font selection. */}
+        <span
+          lang={props.code}
+          class={props.nativeClass ?? "ml-1 text-xs text-muted-foreground"}
+        >
           ({label().nativeName})
         </span>
       </Show>

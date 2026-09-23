@@ -21,9 +21,15 @@ import {
   Show,
 } from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
+import { ArticleSourceChangedNotice } from "~/components/ArticleSourceChangedNotice.tsx";
+import {
+  ArticleTranslationCredit,
+  useTranslationCreditLabel,
+} from "~/components/ArticleTranslationCredit.tsx";
 import { ArticleViewTracker } from "~/components/ArticleViewTracker.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
+import { LanguageName } from "~/components/LanguageName.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PermalinkThreadTree } from "~/components/PermalinkThread.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
@@ -31,6 +37,7 @@ import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { Trans } from "~/components/Trans.tsx";
+import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
@@ -45,6 +52,13 @@ import {
   MentionHoverCardLayer,
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
+import {
+  articleLanguageMenuRows,
+  articleTranslationPresentation,
+  automaticTranslationLocales,
+  type TranslationCredit,
+  type TranslationFreshness,
+} from "~/lib/translationCredit.ts";
 import type { SlugPageQuery } from "./__generated__/SlugPageQuery.graphql.ts";
 import type { Slug_articleHeader$key } from "./__generated__/Slug_articleHeader.graphql.ts";
 import type { Slug_body$key } from "./__generated__/Slug_body.graphql.ts";
@@ -63,9 +77,9 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const ARTICLE_PAGE_QUERY_KEY = "loadArticlePageQuery";
+export const ARTICLE_PAGE_QUERY_KEY = "loadArticlePageQuery";
 
-const SlugPageQueryDef = graphql`
+export const SlugPageQueryDef = graphql`
   query SlugPageQuery(
     $handle: String!
     $idOrYear: String!
@@ -385,6 +399,15 @@ function ArticleBody(props: ArticleBodyProps) {
   useContentLinkInterceptor(proseRef);
   const navigate = useNavigate();
   const viewer = useViewer();
+  // Selecting `id` on every `ArticleContent` row lets Relay normalize them
+  // into shared records, so a translation republished from the management page
+  // patches what this page renders instead of leaving a stale copy behind.
+  // `allContents` is here (not only in the language switcher) because the
+  // freshness notice links to the *original row's* own canonical URL rather
+  // than to the article path, which could otherwise negotiate back to a
+  // translation.  `account`/`organizationAuthor` supply the account ids the
+  // translator is compared against; comparing handles would be comparing
+  // presentation text.
   const article = createFragment(
     graphql`
       fragment Slug_body on Article
@@ -400,16 +423,40 @@ function ArticleBody(props: ArticleBodyProps) {
           language: $language
           includeBeingTranslated: $includeBeingTranslated
         ) {
+          id
           title
           content
           toc
           language
           originalLanguage
           beingTranslated
+          provenance
+          reviewState
+          translator {
+            id
+            username
+            handle
+          }
+        }
+        allContents: contents(includeBeingTranslated: true) {
+          id
+          language
+          originalLanguage
+          url
+        }
+        account {
+          id
+        }
+        organizationAuthor {
+          attributionMode
+          member {
+            id
+          }
         }
         language
         tags
         censored
+        url
         actor {
           local
           username
@@ -475,6 +522,22 @@ function ArticleBody(props: ArticleBodyProps) {
         const stableManageTranslationsHref = createHydrationStableMemo(
           manageTranslationsHref,
         );
+        // One snapshot for everything the translation UI decides: who is
+        // credited, whether to warn about the original having moved on, where
+        // "Read the original" goes, and which edit actions to offer.  Reading
+        // all of it from a single hydration-stable value keeps the credit
+        // line, the notice and the action menu from disagreeing or flipping
+        // independently while the page hydrates.
+        const presentation = createHydrationStableMemo(() =>
+          articleTranslationPresentation({
+            content: content(),
+            allContents: article.allContents,
+            article,
+            articleBase: articleBase(),
+            articleUrl: article.url,
+            viewerCanManageTranslations: article.viewerCanManageTranslations,
+          }),
+        );
 
         return (
           <>
@@ -487,6 +550,7 @@ function ArticleBody(props: ArticleBodyProps) {
                 <ArticleHeader
                   $article={article}
                   analyticsHref={analyticsHref()}
+                  credit={presentation().credit}
                 />
                 <Show when={article.censored}>
                   <CensorshipNotice
@@ -494,16 +558,26 @@ function ArticleBody(props: ArticleBodyProps) {
                     privileged={article.actor.isViewer || viewer.moderator()}
                   />
                 </Show>
-                <ArticleInlineToc
-                  items={toc()}
-                  hidden={content()?.beingTranslated ?? false}
-                />
+                {/* The language control belongs next to the title and author
+                    information, and the freshness notice has to be read
+                    before the body it qualifies, so both sit above the table
+                    of contents. */}
                 <ArticleLanguageSwitcher
                   $article={article}
                   currentLanguage={content()?.language ?? undefined}
                   currentOriginalLanguage={content()?.originalLanguage}
                   viewerLocales={props.viewerLocales}
                   manageTranslationsHref={stableManageTranslationsHref()}
+                />
+                <ArticleSourceChangedNotice
+                  class="mt-4"
+                  freshness={presentation().freshness}
+                  originalUrl={presentation().originalUrl}
+                  originalInternalHref={presentation().originalPath}
+                />
+                <ArticleInlineToc
+                  items={toc()}
+                  hidden={content()?.beingTranslated ?? false}
                 />
 
                 <Show when={content()?.beingTranslated}>
@@ -541,6 +615,8 @@ function ArticleBody(props: ArticleBodyProps) {
                       engagementBase={base}
                       analyticsHref={analyticsHref()}
                       manageTranslationsHref={stableManageTranslationsHref()}
+                      editTranslationHref={presentation().editTranslationHref}
+                      editTargetIsOriginal={presentation().editTargetIsOriginal}
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&
@@ -709,6 +785,12 @@ export function ArticleTranslationFailure(
 interface ArticleHeaderProps {
   $article: Slug_articleHeader$key;
   analyticsHref?: string | null;
+  /**
+   * Credit for the language version being read. It is rendered below the
+   * author line rather than in place of it: the author stays the author in
+   * every language, and an organization stays the publishing account.
+   */
+  credit: TranslationCredit;
 }
 
 function ArticleHeader(props: ArticleHeaderProps) {
@@ -739,6 +821,7 @@ function ArticleHeader(props: ArticleHeaderProps) {
                 <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
                   <Timestamp value={article.published} capitalizeFirstLetter />
                 </div>
+                <ArticleTranslationCredit credit={props.credit} />
               </div>
               <Show keyed when={stableAnalyticsHref()}>
                 {(href) => (
@@ -812,6 +895,7 @@ interface ArticleLanguageSwitcherProps {
 
 function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
   const { t, i18n } = useLingui();
+  const creditLabel = useTranslationCreditLabel();
   const article = createFragment(
     graphql`
       fragment Slug_languageSwitcher on Article {
@@ -823,8 +907,27 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
         language
         allowLlmTranslation
         allContents: contents(includeBeingTranslated: true) {
+          id
           language
           url
+          originalLanguage
+          beingTranslated
+          provenance
+          reviewState
+          translator {
+            id
+            username
+            handle
+          }
+        }
+        account {
+          id
+        }
+        organizationAuthor {
+          attributionMode
+          member {
+            id
+          }
         }
       }
     `,
@@ -836,74 +939,41 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
       {(article) => {
         const postUrl = () =>
           `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
-        // solid-relay can republish a transiently incomplete store
-        // snapshot inside `batch()` (e.g., while navigating away),
-        // surfacing `undefined` rows even though `article()` itself is
-        // still truthy.  Normalize to the present rows once so every read
-        // below stays guarded.
-        const allContents = () => article.allContents.filter((c) => c != null);
-        // Extra links for the viewer's preferred locales that aren't
-        // already represented in the existing translations and aren't
-        // the article's original language.  Clicking one navigates to
-        // `/lang`, which auto-fires `requestArticleTranslation` from
-        // `[lang].tsx` and renders the in-progress placeholder.
-        //
-        // Comparisons are done on the language *and* script subtags
-        // (after `Intl.Locale.maximize()`) so two regional variants
-        // that share both (e.g., `en-US` vs `en-GB`) collapse — the
-        // existing translation already covers the viewer's locale —
-        // but two variants that differ in script (e.g., `zh-CN` vs
-        // `zh-TW`, which maximize to `zh-Hans-CN` vs `zh-Hant-TW`)
-        // stay distinct, because Simplified and Traditional Chinese
-        // are meaningfully different translation outputs and the
-        // viewer should be offered a link for each.  This mirrors the
-        // `requestArticleTranslation` mutation's same-language check.
-        const extraLocales = () => {
-          if (!article.allowLlmTranslation) return [];
-          const locales = props.viewerLocales;
-          if (locales == null || locales.length === 0) return [];
-          const subtag = (locale: string | null | undefined) => {
-            if (locale == null) return null;
-            try {
-              const max = new Intl.Locale(locale).maximize();
-              return `${max.language}-${max.script}`;
-            } catch {
-              return locale;
-            }
-          };
-          const existing = new Set(
-            allContents().map((c) => subtag(c.language)),
-          );
-          const articleSubtag = subtag(article.language);
-          const currentSubtag = subtag(props.currentLanguage);
-          const seen = new Set<string>();
-          // Each entry is the (normalized) locale tag we'll use as
-          // both the link href segment and the display-name lookup.
-          // We normalize through `normalizeLocale` (the same allow-
-          // list the `[lang]` route's `matchFilters` and the
-          // `requestArticleTranslation` mutation enforce) so a
-          // viewer locale like `fr-CH` or `ka-GE` (valid BCP 47 but
-          // outside `POSSIBLE_LOCALES`) is dropped here instead of
-          // rendering a link that lands on 404.
-          const result: string[] = [];
-          for (const locale of locales) {
-            const normalized = normalizeLocale(locale);
-            if (normalized == null) continue;
-            const s = subtag(normalized);
-            if (s == null) continue;
-            if (s === articleSubtag) continue;
-            if (s === currentSubtag) continue;
-            if (existing.has(s)) continue;
-            if (seen.has(s)) continue;
-            seen.add(s);
-            result.push(normalized);
-          }
-          return result;
-        };
+        // solid-relay can republish a transiently incomplete store snapshot
+        // inside `batch()`, surfacing `undefined` rows even though `article()`
+        // itself is still truthy.  The row builders below drop those, and the
+        // whole shape is frozen through hydration so a republish cannot change
+        // the list's length and remount this navigation mid-hydration.
+        const rows = createHydrationStableMemo(() =>
+          articleLanguageMenuRows({
+            allContents: article.allContents,
+            article,
+            currentLanguage: props.currentLanguage,
+            articleBase: postUrl(),
+          }),
+        );
+        // Languages nobody has published yet that the viewer could read as a
+        // fresh automatic translation.  Following one lands on `/{lang}`,
+        // which fires `requestArticleTranslation` and renders the in-progress
+        // placeholder, so they are listed apart from published versions.
+        const automaticLocales = createHydrationStableMemo(() =>
+          automaticTranslationLocales({
+            allowLlmTranslation: article.allowLlmTranslation,
+            viewerLocales: props.viewerLocales,
+            articleLanguage: article.language,
+            currentLanguage: props.currentLanguage,
+            publishedLanguages: rows().map((row) => row.language),
+            normalizeLocale,
+          }),
+        );
+        const freshnessLabel = (freshness: TranslationFreshness) =>
+          freshness === "source-changed"
+            ? t`Needs review`
+            : t`Freshness unverified`;
 
         return (
-          <Show when={allContents().length > 1 || extraLocales().length > 0}>
-            <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
+          <Show when={rows().length > 1 || automaticLocales().length > 0}>
+            <aside class="mt-4 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -911,6 +981,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                 stroke-width="1.5"
                 stroke="currentColor"
                 class="size-6 stroke-2 opacity-50 mt-0.5 flex-shrink-0"
+                aria-hidden="true"
               >
                 <path
                   stroke-linecap="round"
@@ -918,22 +989,19 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                   d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
                 />
               </svg>
-              <div>
+              <div class="min-w-0">
                 <Show keyed when={props.currentOriginalLanguage}>
                   {(originalLanguage) => {
-                    const sourceUrl = () => {
-                      const entry = allContents().find(
-                        (c) => c.language === originalLanguage,
-                      );
-                      return entry?.url ?? postUrl();
-                    };
+                    const sourceUrl = () =>
+                      rows().find((row) => row.language === originalLanguage)
+                        ?.href ?? postUrl();
                     return (
                       <p class="mb-4">
                         <Trans
                           message={t`Translated from ${"LANGUAGE"}`}
                           values={{
                             LANGUAGE: () => (
-                              <a href={sourceUrl()}>
+                              <a href={sourceUrl()} hreflang={originalLanguage}>
                                 {new Intl.DisplayNames(i18n.locale, {
                                   type: "language",
                                 }).of(originalLanguage)}
@@ -945,44 +1013,93 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                     );
                   }}
                 </Show>
-                <nav class="text-stone-600 dark:text-stone-400">
-                  <strong>{t`Other languages`}</strong> &rarr;{" "}
-                  <For
-                    each={[
-                      ...allContents()
-                        .filter((c) => c.language !== props.currentLanguage)
-                        .map((c) => ({
-                          language: c.language,
-                          // Being-translated placeholder rows have no
-                          // server-assigned `url` yet; fall back to the
-                          // canonical `/lang` segment so the link still
-                          // points at a real route (where the placeholder
-                          // UI renders) instead of an empty href.
-                          href: c.url ?? `${postUrl()}/${c.language}`,
-                        })),
-                      ...extraLocales().map((language) => ({
-                        language,
-                        href: `${postUrl()}/${language}`,
-                      })),
-                    ]}
-                  >
-                    {(other, i) => (
-                      <>
-                        {i() > 0 && " · "}
-                        <a
-                          href={other.href}
-                          hreflang={other.language}
-                          lang={other.language}
-                          rel="alternate"
-                          class="text-stone-900 dark:text-stone-100"
-                        >
-                          {new Intl.DisplayNames(other.language, {
-                            type: "language",
-                          }).of(other.language)}
-                        </a>
-                      </>
-                    )}
-                  </For>
+                <nav
+                  aria-labelledby="article-languages-heading"
+                  class="text-stone-600 dark:text-stone-400"
+                >
+                  <strong id="article-languages-heading">{t`Languages`}</strong>
+                  <ul class="mt-1 flex flex-col gap-1">
+                    <For each={rows()}>
+                      {(row) => (
+                        <li class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                          <Show
+                            keyed
+                            when={row.href}
+                            fallback={
+                              <span
+                                aria-current="page"
+                                lang={row.language}
+                                class="font-semibold text-stone-900 dark:text-stone-100"
+                              >
+                                <LanguageName code={row.language} />
+                              </span>
+                            }
+                          >
+                            {(href) => (
+                              <a
+                                href={href}
+                                hreflang={row.language}
+                                rel="alternate"
+                                class="text-stone-900 dark:text-stone-100"
+                              >
+                                <LanguageName code={row.language} />
+                              </a>
+                            )}
+                          </Show>
+                          {/* The separator is decoration between two
+                              independent labels; a screen reader should read
+                              the language and then its credit, not a stray
+                              middle dot. */}
+                          <span aria-hidden="true" class="text-sm opacity-60">
+                            &middot;
+                          </span>
+                          <span class="text-sm">{creditLabel(row.credit)}</span>
+                          <Show
+                            when={
+                              row.freshness != null &&
+                              row.freshness !== "current"
+                                ? row.freshness
+                                : undefined
+                            }
+                            keyed
+                          >
+                            {(freshness) => (
+                              <Badge
+                                variant={
+                                  freshness === "source-changed"
+                                    ? "warning"
+                                    : "secondary"
+                                }
+                              >
+                                {freshnessLabel(freshness)}
+                              </Badge>
+                            )}
+                          </Show>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                  <Show when={automaticLocales().length > 0}>
+                    <p class="mt-3">
+                      <strong>{t`Read an automatic translation`}</strong>
+                    </p>
+                    <ul class="mt-1 flex flex-col gap-1">
+                      <For each={automaticLocales()}>
+                        {(language) => (
+                          <li>
+                            <a
+                              href={`${postUrl()}/${encodeURIComponent(language)}`}
+                              hreflang={language}
+                              rel="alternate"
+                              class="text-stone-900 dark:text-stone-100"
+                            >
+                              <LanguageName code={language} />
+                            </a>
+                          </li>
+                        )}
+                      </For>
+                    </ul>
+                  </Show>
                 </nav>
                 <Show when={props.manageTranslationsHref != null}>
                   <p class="mt-3">

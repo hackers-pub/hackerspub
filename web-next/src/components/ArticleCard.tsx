@@ -261,11 +261,13 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         summary
         excerptHtml(maxChars: 800)
         contents(language: $locale) {
+          id
           originalLanguage
           language
           title
           summary
           url
+          provenance
         }
         language
         published
@@ -320,28 +322,40 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                     article.contents[0].originalLanguage
                   }
                 >
-                  {(originalLanguage) => (
-                    <>
-                      &middot;{" "}
-                      <span>
-                        <Trans
-                          message={t`Translated from ${"LANGUAGE"}`}
-                          values={{
-                            LANGUAGE: () => (
-                              // FIXME: There are multiple original languages,
-                              //        so the link should refer to the one for
-                              //        the originalLanguage.
-                              <a href={article.url ?? article.iri}>
-                                {new Intl.DisplayNames(i18n.locale, {
-                                  type: "language",
-                                }).of(originalLanguage)}
-                              </a>
-                            ),
-                          }}
-                        />
-                      </span>
-                    </>
-                  )}
+                  {(originalLanguage) => {
+                    // A card has no room for a freshness panel, but it must
+                    // still not present human work as machine output: the
+                    // wording follows the stored provenance.
+                    const provenance = () => article.contents?.[0]?.provenance;
+                    const message = () =>
+                      provenance() === "LLM"
+                        ? t`Automatic translation from ${"LANGUAGE"}`
+                        : provenance() === "LLM_REVIEWED"
+                          ? t`AI-assisted translation from ${"LANGUAGE"}`
+                          : t`Translated from ${"LANGUAGE"}`;
+                    return (
+                      <>
+                        &middot;{" "}
+                        <span>
+                          <Trans
+                            message={message()}
+                            values={{
+                              LANGUAGE: () => (
+                                // FIXME: There are multiple original languages,
+                                //        so the link should refer to the one for
+                                //        the originalLanguage.
+                                <a href={article.url ?? article.iri}>
+                                  {new Intl.DisplayNames(i18n.locale, {
+                                    type: "language",
+                                  }).of(originalLanguage)}
+                                </a>
+                              ),
+                            }}
+                          />
+                        </span>
+                      </>
+                    );
+                  }}
                 </Show>
               </div>
             </div>
