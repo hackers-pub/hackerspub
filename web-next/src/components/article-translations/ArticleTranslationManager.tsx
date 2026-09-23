@@ -348,12 +348,22 @@ export function ArticleTranslationManager(
         return candidate === requested;
       }
     };
-    const draft = props.translations.find((translation) =>
-      sameLanguage(translation.language),
-    );
-    const published = publishedOnly().find((translation) =>
-      sameLanguage(translation.language),
-    );
+    // Exact first, because `Intl.Locale` canonicalization merges distinct
+    // supported keys: `tw` and `ak` both carry the base name `ak`, and an
+    // article can hold a translation under either, so matching on the base
+    // name alone can open the wrong language.
+    const draft =
+      props.translations.find(
+        (translation) => translation.language === requested,
+      ) ??
+      props.translations.find((translation) =>
+        sameLanguage(translation.language),
+      );
+    const published =
+      publishedOnly().find(
+        (translation) => translation.language === requested,
+      ) ??
+      publishedOnly().find((translation) => sameLanguage(translation.language));
     // Nothing to open yet: the list may still be loading, so leave the request
     // outstanding rather than consuming it against an empty list.
     if (draft == null && published == null) return;
