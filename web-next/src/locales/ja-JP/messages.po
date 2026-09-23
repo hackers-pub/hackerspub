@@ -641,7 +641,7 @@ msgstr "有効化日時:"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "現在停止または連合ブロック中のアクターです。期限切れの停止は自動的に除外されます。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1112
+#: src/components/article-translations/ArticleTranslationManager.tsx:1205
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,11 +675,11 @@ msgstr "古いアカウントをここに追加してください。Hackers' Pub
 msgid "Add to sidebar"
 msgstr "サイドバーに追加"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1090
+#: src/components/article-translations/ArticleTranslationManager.tsx:1183
 msgid "Add translation"
 msgstr "翻訳を追加"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:947
+#: src/components/article-translations/ArticleTranslationManager.tsx:1040
 msgid "Added line:"
 msgstr "追加された行:"
 
@@ -718,7 +718,7 @@ msgid "After the old server confirms the destination, it sends the Move activity
 msgstr "古いサーバーが移行先を確認すると、Moveアクティビティを送信し、対応しているサーバーはフォロワーをこちらへ移行できます。"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:334
+#: src/components/ArticleCard.tsx:372
 msgid "AI-assisted translation from {0}"
 msgstr "{0}からAI補助翻訳"
 
@@ -1019,13 +1019,13 @@ msgstr "自動入力"
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1058
+#: src/components/article-translations/ArticleTranslationManager.tsx:1151
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "自動翻訳"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:332
+#: src/components/ArticleCard.tsx:370
 msgid "Automatic translation from {0}"
 msgstr "{0}から自動翻訳"
 
@@ -1158,6 +1158,7 @@ msgstr "{0}さんによる記事"
 
 #: src/components/AppealDialog.tsx:182
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:264
+#: src/components/article-translations/ArticleTranslationManager.tsx:1390
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
@@ -1622,7 +1623,7 @@ msgid "Delete account permanently?"
 msgstr "アカウントを完全に削除しますか？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1251
+#: src/components/article-translations/ArticleTranslationManager.tsx:1354
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "下書きを削除"
@@ -1823,7 +1824,7 @@ msgstr "投稿を編集"
 msgid "Edit original"
 msgstr "原文を編集"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1145
+#: src/components/article-translations/ArticleTranslationManager.tsx:1238
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "この翻訳を編集"
@@ -2057,8 +2058,8 @@ msgstr "孤立したメディアの削除に失敗しました。"
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:764
-#: src/components/article-translations/ArticleTranslationManager.tsx:770
+#: src/components/article-translations/ArticleTranslationManager.tsx:857
+#: src/components/article-translations/ArticleTranslationManager.tsx:863
 msgid "Failed to delete the translation draft."
 msgstr "翻訳の下書きを削除できませんでした。"
 
@@ -2201,8 +2202,8 @@ msgstr "このユーザーをミュートできませんでした"
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:797
-#: src/components/article-translations/ArticleTranslationManager.tsx:804
+#: src/components/article-translations/ArticleTranslationManager.tsx:890
+#: src/components/article-translations/ArticleTranslationManager.tsx:897
 msgid "Failed to publish the translation."
 msgstr "翻訳を公開できませんでした。"
 
@@ -2221,7 +2222,7 @@ msgstr "リアクションに失敗しました"
 msgid "Failed to recompute news scores."
 msgstr "ニュースのスコアを再計算できませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:623
+#: src/components/article-translations/ArticleTranslationManager.tsx:716
 msgid "Failed to record the review."
 msgstr "確認内容を記録できませんでした。"
 
@@ -2295,8 +2296,8 @@ msgstr "設定の保存に失敗しました"
 msgid "Failed to save the draft."
 msgstr "下書きを保存できませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:673
-#: src/components/article-translations/ArticleTranslationManager.tsx:740
+#: src/components/article-translations/ArticleTranslationManager.tsx:766
+#: src/components/article-translations/ArticleTranslationManager.tsx:833
 msgid "Failed to save the translation."
 msgstr "翻訳を保存できませんでした。"
 
@@ -2393,6 +2394,11 @@ msgstr "画像のアップロードに失敗しました"
 msgid "Failed to vote"
 msgstr "投票に失敗しました"
 
+#: src/components/article-translations/ArticleTranslationManager.tsx:553
+#: src/components/article-translations/ArticleTranslationManager.tsx:562
+msgid "Failed to withdraw the translation."
+msgstr "翻訳を取り下げられませんでした。"
+
 #: src/routes/(root)/admin/news.tsx:686
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "特定のアカウントが共有したリンクを優先します。優先共有者のコンテンツは、そのアカウントがボットであっても（例: Hacker Newsのリンクを再共有するフィード）ニュースフィードに集計され、そのアカウントが共有したリンクは人気ランキングで一定の加点を得ます。リンクにペナルティが付くと、優先よりもペナルティが優先されます。"
@@ -2472,7 +2478,7 @@ msgstr "書式設定"
 msgid "Forwarded to the remote instance"
 msgstr "リモートインスタンスに転送済み"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:487
+#: src/components/article-translations/ArticleTranslationManager.tsx:580
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "最新かどうか不明"
@@ -2707,7 +2713,7 @@ msgstr "招待ツリーから非表示にする"
 msgid "Hide replies"
 msgstr "返信を隠す"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:857
+#: src/components/article-translations/ArticleTranslationManager.tsx:950
 msgid "Hide source changes"
 msgstr "原文の変更を隠す"
 
@@ -2719,7 +2725,7 @@ msgstr "原文の変更を隠す"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1116
+#: src/components/article-translations/ArticleTranslationManager.tsx:1209
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "既に同じ言語の下書きがある場合は、重複して作成せずにそれを開きます。"
 
@@ -2945,7 +2951,7 @@ msgstr "言語設定"
 msgid "Language shown when the view was counted."
 msgstr "閲覧が集計された時点で表示されていた言語です。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:978
+#: src/components/article-translations/ArticleTranslationManager.tsx:1071
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -3434,7 +3440,7 @@ msgstr "名前が長すぎます。最大50文字です。"
 msgid "Native name"
 msgstr "現地名"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:485
+#: src/components/article-translations/ArticleTranslationManager.tsx:578
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "要確認"
@@ -3526,7 +3532,7 @@ msgstr "まだ処理された分析済み通報はありません。"
 msgid "No appeals match these filters."
 msgstr "条件に一致する異議申し立てはありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:847
+#: src/components/article-translations/ArticleTranslationManager.tsx:940
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "この翻訳には基準となる原文が記録されていないため、最新かどうかを確認できません。"
 
@@ -3659,12 +3665,12 @@ msgstr "共有されたリンクはまだありません。フェディバース
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:874
+#: src/components/article-translations/ArticleTranslationManager.tsx:967
 msgid "No translation changes needed"
 msgstr "翻訳の修正は不要"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:999
-#: src/components/article-translations/ArticleTranslationManager.tsx:1059
+#: src/components/article-translations/ArticleTranslationManager.tsx:1092
+#: src/components/article-translations/ArticleTranslationManager.tsx:1152
 msgid "No translator credit"
 msgstr "翻訳者のクレジットなし"
 
@@ -3726,7 +3732,7 @@ msgstr "見つかりません"
 #~ msgid "Not found."
 #~ msgstr "見つかりませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1014
+#: src/components/article-translations/ArticleTranslationManager.tsx:1107
 msgid "Not published"
 msgstr "未公開"
 
@@ -3806,7 +3812,7 @@ msgstr "古い登録順"
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "古いサーバーでアカウント移行設定を開き、このHackers' Pubアカウントを新しいアカウントに設定してください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:897
+#: src/components/article-translations/ArticleTranslationManager.tsx:990
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "これらのバージョンのいずれかには基準となる原文が記録されていないため、変更を表示できません。"
 
@@ -3898,7 +3904,7 @@ msgstr "組織の招待"
 msgid "Organization members"
 msgstr "組織メンバー"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1200
+#: src/components/article-translations/ArticleTranslationManager.tsx:1303
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "原文"
@@ -4183,7 +4189,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "このアカウントをMastodon式の移行先として準備します。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1210
+#: src/components/article-translations/ArticleTranslationManager.tsx:1313
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "プレビュー"
@@ -4264,7 +4270,7 @@ msgstr "公開"
 msgid "Publish article"
 msgstr "記事を公開"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1242
+#: src/components/article-translations/ArticleTranslationManager.tsx:1345
 msgid "Publish changes"
 msgstr "変更を公開"
 
@@ -4280,7 +4286,7 @@ msgstr "公開設定"
 msgid "Publish this as a note?"
 msgstr "これを投稿として公開しますか？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1241
+#: src/components/article-translations/ArticleTranslationManager.tsx:1344
 msgid "Publish translation"
 msgstr "翻訳を公開"
 
@@ -4288,12 +4294,12 @@ msgstr "翻訳を公開"
 msgid "Published"
 msgstr "公開日時"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:148
+#: src/components/article-translations/ArticleTranslationManager.tsx:197
 msgctxt "publication state"
 msgid "Published"
 msgstr "公開済み"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1013
+#: src/components/article-translations/ArticleTranslationManager.tsx:1106
 msgid "Published; unpublished changes"
 msgstr "公開済み、未公開の変更あり"
 
@@ -4383,8 +4389,8 @@ msgstr "リアクション"
 msgid "Read an automatic translation"
 msgstr "自動翻訳で読む"
 
-#: src/components/ArticleCard.tsx:537
-#: src/components/ArticleCard.tsx:557
+#: src/components/ArticleCard.tsx:599
+#: src/components/ArticleCard.tsx:621
 #: src/components/NewsDiscussionThread.tsx:807
 msgid "Read full article"
 msgstr "記事全文を読む"
@@ -4397,6 +4403,10 @@ msgstr "記事全文を読む"
 #: src/components/ArticleSourceChangedNotice.tsx:96
 msgid "Read the original"
 msgstr "原文を読む"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:1385
+msgid "Readers here and on other servers will no longer see this language. Any private draft of it is kept, so you can publish it again later."
+msgstr "このサイトや他のインスタンスの読者は、この言語を読めなくなります。この言語の非公開の下書きは残るため、後で再び公開できます。"
 
 #: src/components/ReportDialog.tsx:172
 msgid "Reason"
@@ -4600,7 +4610,7 @@ msgstr "アンケートを削除"
 msgid "Remove quote"
 msgstr "引用を削除"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:946
+#: src/components/article-translations/ArticleTranslationManager.tsx:1039
 msgid "Removed line:"
 msgstr "削除された行:"
 
@@ -4750,7 +4760,7 @@ msgstr "審査理由（申立人に表示）"
 msgid "Review request"
 msgstr "リクエストを確認"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:488
+#: src/components/article-translations/ArticleTranslationManager.tsx:581
 msgid "Reviewed"
 msgstr "確認済み"
 
@@ -4821,7 +4831,7 @@ msgid "Save changes"
 msgstr "変更を保存"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1230
+#: src/components/article-translations/ArticleTranslationManager.tsx:1333
 msgid "Save draft"
 msgstr "下書きを保存"
 
@@ -4829,7 +4839,7 @@ msgstr "下書きを保存"
 #~ msgid "Save draft to see preview"
 #~ msgstr "下書きを保存するとプレビューが表示されます"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:869
+#: src/components/article-translations/ArticleTranslationManager.tsx:962
 msgid "Save or discard your unsaved changes first."
 msgstr "未保存の変更をまず保存するか破棄してください。"
 
@@ -4899,7 +4909,7 @@ msgstr "{0}の検索結果"
 msgid "Searching…"
 msgstr "検索中…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1163
+#: src/components/article-translations/ArticleTranslationManager.tsx:1266
 msgid "Select a language to edit its translation."
 msgstr "編集する言語を選択してください。"
 
@@ -5115,11 +5125,11 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:906
+#: src/components/article-translations/ArticleTranslationManager.tsx:999
 msgid "Since the published version was last reviewed"
 msgstr "公開中の翻訳を最後に確認して以降"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:907
+#: src/components/article-translations/ArticleTranslationManager.tsx:1000
 msgid "Since this draft was written"
 msgstr "この下書きを書いて以降"
 
@@ -5156,11 +5166,11 @@ msgstr "ローカルに保存された一部の画像は利用できなくなっ
 msgid "Some posts in this thread cannot be shown."
 msgstr "このスレッドの一部のコンテンツは表示できません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:614
-#: src/components/article-translations/ArticleTranslationManager.tsx:666
-#: src/components/article-translations/ArticleTranslationManager.tsx:733
-#: src/components/article-translations/ArticleTranslationManager.tsx:761
-#: src/components/article-translations/ArticleTranslationManager.tsx:794
+#: src/components/article-translations/ArticleTranslationManager.tsx:707
+#: src/components/article-translations/ArticleTranslationManager.tsx:759
+#: src/components/article-translations/ArticleTranslationManager.tsx:826
+#: src/components/article-translations/ArticleTranslationManager.tsx:854
+#: src/components/article-translations/ArticleTranslationManager.tsx:887
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "他のユーザーがこの翻訳を保存しました。再読み込みしてやり直してください。"
 
@@ -5255,7 +5265,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:508
+#: src/components/ArticleCard.tsx:574
 #: src/components/QuotedNoteCard.tsx:317
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
@@ -5356,8 +5366,8 @@ msgstr "有効なリレーアクターのURLではありません。"
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:663
-#: src/components/article-translations/ArticleTranslationManager.tsx:730
+#: src/components/article-translations/ArticleTranslationManager.tsx:756
+#: src/components/article-translations/ArticleTranslationManager.tsx:823
 msgid "That language is not available or the input is invalid."
 msgstr "この言語は利用できないか、入力が正しくありません。"
 
@@ -5390,7 +5400,7 @@ msgstr "ブラウザーから完全なプッシュ通知サブスクリプショ
 msgid "The conversion request could not be created. Please try again."
 msgstr "変換リクエストを作成できませんでした。もう一度お試しください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:714
+#: src/components/article-translations/ArticleTranslationManager.tsx:807
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "クレジットされている翻訳者はこの記事を編集できなくなっているため、この下書きではあなたが翻訳者としてクレジットされます。公開中の翻訳は、あなたが公開するまで元のクレジットのままです。"
 
@@ -5517,11 +5527,12 @@ msgstr "投稿権限を持つ組織のメンバーがこの下書きにアクセ
 #~ msgid "The original changed; this translation may be out of date."
 #~ msgstr "原文が変更されました。この翻訳は古い可能性があります。"
 
+#: src/components/ArticleCard.tsx:419
 #: src/components/ArticleSourceChangedNotice.tsx:69
 msgid "The original has changed"
 msgstr "原文が変更されました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:846
+#: src/components/article-translations/ArticleTranslationManager.tsx:939
 msgid "The original has changed since this translation was last reviewed."
 msgstr "この翻訳を最後に確認したあと、原文が変更されました。"
 
@@ -5593,11 +5604,11 @@ msgstr "Web Push の公開鍵が無効です。"
 msgid "There are no moderation actions on your account."
 msgstr "あなたのアカウントに対するモデレーション対応はありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:886
+#: src/components/article-translations/ArticleTranslationManager.tsx:979
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "比較できる以前の原文がないため、現在の原文のみを表示します。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:617
+#: src/components/article-translations/ArticleTranslationManager.tsx:710
 msgid "There is nothing to review for this language."
 msgstr "この言語には確認すべき翻訳がありません。"
 
@@ -5668,7 +5679,7 @@ msgstr "このケースは対応済みです。"
 #~ msgid "This change is saved, but the article page could not be refreshed. Reload to see it."
 #~ msgstr "変更は保存されましたが、記事ページを更新できませんでした。再読み込みすると反映された内容を確認できます。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:465
+#: src/components/article-translations/ArticleTranslationManager.tsx:520
 msgid "This change is saved, but the translation list or the article page could not be refreshed. Reload to see it."
 msgstr "変更は保存されましたが、翻訳一覧または記事ページを更新できませんでした。再読み込みすると反映された内容を確認できます。"
 
@@ -5750,7 +5761,7 @@ msgstr "長すぎます（最大{MAX_REASON_LENGTH}文字）。"
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "この言語は非公開の下書きなしで公開されています。ここで確認するか、翻訳を追加して編集を始めてください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1138
+#: src/components/article-translations/ArticleTranslationManager.tsx:1231
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "この言語は非公開の下書きなしで公開されています。ここで確認するか、編集を開始して非公開の変更を作成してください。"
 
@@ -5832,7 +5843,7 @@ msgstr "タイムライン"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:915
+#: src/components/article-translations/ArticleTranslationManager.tsx:1008
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "タイトル"
@@ -5861,12 +5872,12 @@ msgstr "通報総数"
 msgid "Total: {0}"
 msgstr "合計：{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1193
+#: src/components/article-translations/ArticleTranslationManager.tsx:1296
 msgid "Translated body"
 msgstr "翻訳本文"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1003
-#: src/components/article-translations/ArticleTranslationManager.tsx:1064
+#: src/components/article-translations/ArticleTranslationManager.tsx:1096
+#: src/components/article-translations/ArticleTranslationManager.tsx:1157
 msgid "Translated by"
 msgstr "翻訳者:"
 
@@ -5886,12 +5897,12 @@ msgid "Translated by the author"
 msgstr "投稿者による翻訳"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:335
+#: src/components/ArticleCard.tsx:373
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1001
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1182
+#: src/components/article-translations/ArticleTranslationManager.tsx:1285
 msgid "Translated title"
 msgstr "翻訳タイトル"
 
@@ -6188,7 +6199,7 @@ msgstr "リクエストを表示"
 msgid "View shares"
 msgstr "共有を見る"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:857
+#: src/components/article-translations/ArticleTranslationManager.tsx:950
 msgid "View source changes"
 msgstr "原文の変更を見る"
 
@@ -6315,6 +6326,10 @@ msgstr "有効にすると、AIがこの記事を他の言語に自動翻訳す�
 msgid "When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles."
 msgstr "有効にすると、あなたのアカウントは招待ツリーに匿名で表示され、あなたに関わる招待関係はプロフィールで非表示になります。"
 
+#: src/components/article-translations/ArticleTranslationManager.tsx:1386
+msgid "While automatic translation is allowed for this article, readers can still request an automatic translation of this language."
+msgstr "この記事で自動翻訳が許可されている間は、読者がこの言語の自動翻訳を依頼できます。"
+
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "この投稿の引用許可範囲"
@@ -6326,6 +6341,16 @@ msgstr "この決定はなぜ不当ですか？"
 #: src/components/admin/AppealResolveForm.tsx:81
 msgid "Withdraw decision"
 msgstr "決定を撤回"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:1383
+msgid "Withdraw the published translation?"
+msgstr "公開中の翻訳を取り下げますか？"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:1247
+#: src/components/article-translations/ArticleTranslationManager.tsx:1369
+#: src/components/article-translations/ArticleTranslationManager.tsx:1396
+msgid "Withdraw translation"
+msgstr "翻訳を取り下げる"
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:138
 msgid "Withdrawn"
@@ -6504,22 +6529,26 @@ msgstr "ミュートしているアカウントはありません。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "すでに異議を申し立てたか、異議申し立て期間が終了している可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:766
+#: src/components/article-translations/ArticleTranslationManager.tsx:859
 msgid "You may not have permission to delete this translation."
 msgstr "この翻訳を削除する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:799
+#: src/components/article-translations/ArticleTranslationManager.tsx:892
 msgid "You may not have permission to publish this translation."
 msgstr "この翻訳を公開する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:619
+#: src/components/article-translations/ArticleTranslationManager.tsx:712
 msgid "You may not have permission to review this translation."
 msgstr "この翻訳を確認する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:669
-#: src/components/article-translations/ArticleTranslationManager.tsx:736
+#: src/components/article-translations/ArticleTranslationManager.tsx:762
+#: src/components/article-translations/ArticleTranslationManager.tsx:829
 msgid "You may not have permission to save this translation."
 msgstr "この翻訳を保存する権限がない可能性があります。"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:556
+msgid "You may not have permission to withdraw this translation."
+msgstr "この翻訳を取り下げる権限がない可能性があります。"
 
 #: src/components/FollowButton.tsx:166
 #: src/components/FollowButton.tsx:192

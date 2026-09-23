@@ -7,6 +7,8 @@ import {
   articleTranslationPresentation,
   automaticTranslationLocales,
   findOriginalContent,
+  remoteTranslationCredit,
+  remoteTranslationFreshness,
   translationCredit,
   translationFreshness,
 } from "./translationCredit.ts";
@@ -592,5 +594,113 @@ test("automatic translation is not offered when the author disabled it", () => {
       normalizeLocale,
     }),
     ["ja"],
+  );
+});
+
+const REMOTE_PERSON = {
+  id: "actor:carol",
+  handle: "@carol@remote.example",
+  type: "PERSON",
+};
+const REMOTE_BOT = {
+  id: "actor:bot",
+  handle: "@bot@remote.example",
+  type: "APPLICATION",
+};
+
+test("a remote translation is credited from the publisher's claim", () => {
+  assert.deepEqual(
+    remoteTranslationCredit({
+      kind: "HUMAN",
+      freshness: "CURRENT",
+      byAuthor: false,
+      translators: [REMOTE_PERSON],
+    }),
+    {
+      kind: "account",
+      assistance: "none",
+      account: {
+        id: "actor:carol",
+        username: "carol@remote.example",
+        handle: "@carol@remote.example",
+      },
+    },
+  );
+  // The reviewer of machine output is the person, never the machine.
+  assert.deepEqual(
+    remoteTranslationCredit({
+      kind: "MACHINE_REVIEWED",
+      freshness: "CURRENT",
+      byAuthor: false,
+      translators: [REMOTE_BOT, REMOTE_PERSON],
+    }),
+    {
+      kind: "account",
+      assistance: "llm",
+      account: {
+        id: "actor:carol",
+        username: "carol@remote.example",
+        handle: "@carol@remote.example",
+      },
+    },
+  );
+  assert.deepEqual(
+    remoteTranslationCredit({
+      kind: "HUMAN",
+      freshness: "CURRENT",
+      byAuthor: true,
+      translators: [REMOTE_PERSON],
+    }),
+    { kind: "author", assistance: "none" },
+  );
+  assert.deepEqual(
+    remoteTranslationCredit({
+      kind: "MACHINE",
+      freshness: "UNKNOWN",
+      byAuthor: false,
+      translators: [REMOTE_BOT],
+    }),
+    { kind: "automatic" },
+  );
+});
+
+test("an unresolved or unrecognized remote claim credits nobody", () => {
+  for (const kind of ["UNKNOWN", "%future added value"]) {
+    assert.deepEqual(
+      remoteTranslationCredit({
+        kind,
+        freshness: "CURRENT",
+        byAuthor: false,
+        translators: [REMOTE_PERSON],
+      }),
+      { kind: "unknown" },
+    );
+  }
+  // A human claim whose person is not known here is not presented as an
+  // unavailable (deleted) account either.
+  assert.deepEqual(
+    remoteTranslationCredit({
+      kind: "HUMAN",
+      freshness: "CURRENT",
+      byAuthor: false,
+      translators: [],
+    }),
+    { kind: "unknown" },
+  );
+});
+
+test("remote freshness never reads an unknown claim as current", () => {
+  assert.equal(remoteTranslationFreshness({ freshness: "CURRENT" }), "current");
+  assert.equal(
+    remoteTranslationFreshness({ freshness: "SOURCE_CHANGED" }),
+    "source-changed",
+  );
+  assert.equal(
+    remoteTranslationFreshness({ freshness: "UNKNOWN" }),
+    "unverified",
+  );
+  assert.equal(
+    remoteTranslationFreshness({ freshness: "%future added value" }),
+    "unverified",
   );
 });

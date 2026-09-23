@@ -4,6 +4,16 @@ import { graphql } from "relay-runtime";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { LanguageName } from "~/components/LanguageName.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
@@ -18,6 +28,7 @@ import type { ArticleTranslationManagerSaveMutation } from "./__generated__/Arti
 import type { ArticleTranslationManagerDeleteMutation } from "./__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
 import type { ArticleTranslationManagerPublishMutation } from "./__generated__/ArticleTranslationManagerPublishMutation.graphql.ts";
 import type { ArticleTranslationManagerAcknowledgeMutation } from "./__generated__/ArticleTranslationManagerAcknowledgeMutation.graphql.ts";
+import type { ArticleTranslationManagerWithdrawMutation } from "./__generated__/ArticleTranslationManagerWithdrawMutation.graphql.ts";
 
 const SaveMutation = graphql`
   mutation ArticleTranslationManagerSaveMutation(
@@ -110,6 +121,44 @@ const PublishMutation = graphql`
       }
       ... on ArticleDraftConflictError {
         currentRevision
+      }
+    }
+  }
+`;
+
+// Like the publish payload, the withdrawal re-reads the article's language
+// versions so the records the article page holds drop the withdrawn one.
+const WithdrawMutation = graphql`
+  mutation ArticleTranslationManagerWithdrawMutation(
+    $input: WithdrawArticleTranslationInput!
+  ) {
+    withdrawArticleTranslation(input: $input) {
+      __typename
+      ... on WithdrawArticleTranslationPayload {
+        language
+        article {
+          id
+          contents(includeBeingTranslated: true) {
+            id
+            language
+            title
+            content
+            toc
+            url
+            originalLanguage
+            beingTranslated
+            provenance
+            reviewState
+            translator {
+              id
+              username
+              handle
+            }
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
       }
     }
   }
@@ -289,6 +338,12 @@ export function ArticleTranslationManager(
     createMutation<ArticleTranslationManagerAcknowledgeMutation>(
       AcknowledgeMutation,
     );
+  const [withdrawMutation, withdrawing] =
+    createMutation<ArticleTranslationManagerWithdrawMutation>(WithdrawMutation);
+  // The language whose withdrawal is awaiting confirmation.
+  const [withdrawLanguage, setWithdrawLanguage] = createSignal<
+    string | undefined
+  >();
   const [selectedUuid, setSelectedUuid] = createSignal<
     TranslationUuid | undefined
   >();
@@ -469,7 +524,49 @@ export function ArticleTranslationManager(
   };
 
   const busy = () =>
-    saving() || deleting() || publishing() || acknowledging() || reloading();
+    saving() ||
+    deleting() ||
+    publishing() ||
+    acknowledging() ||
+    withdrawing() ||
+    reloading();
+
+  const sourceId = () =>
+    "sourceId" in props.scope ? props.scope.sourceId : undefined;
+
+  const handleWithdraw = () => {
+    // Snapshot the confirmed language: the dialog closes (clearing the signal)
+    // before the mutation answers.
+    const staticLanguage = withdrawLanguage();
+    const source = sourceId();
+    setWithdrawLanguage(undefined);
+    if (staticLanguage == null || source == null) return;
+    setError(undefined);
+    withdrawMutation({
+      variables: { input: { sourceId: source, language: staticLanguage } },
+      onCompleted(response) {
+        const payload = response.withdrawArticleTranslation;
+        if (payload.__typename === "WithdrawArticleTranslationPayload") {
+          if (selectedPublished() === staticLanguage) {
+            setSelectedPublished(undefined);
+          }
+          refreshPublicOrNotify(payload.language, false);
+          return;
+        }
+        if (payload.__typename === "InvalidInputError") {
+          setError(t`Failed to withdraw the translation.`);
+        } else {
+          setError(
+            t`You may not have permission to withdraw this translation.`,
+          );
+        }
+        void refresh();
+      },
+      onError() {
+        setError(t`Failed to withdraw the translation.`);
+      },
+    });
+  };
 
   /** Whether the editor holds translation text that has not been saved yet. */
   const dirty = () => {
@@ -1144,6 +1241,16 @@ export function ArticleTranslationManager(
               >
                 {t`Edit this translation`}
               </Button>
+              <Show when={!translation.automatic && sourceId() != null}>
+                <Button
+                  class="mb-4 ml-2"
+                  variant="outline"
+                  disabled={busy()}
+                  onClick={() => setWithdrawLanguage(translation.language)}
+                >
+                  {t`Withdraw translation`}
+                </Button>
+              </Show>
               <Show when={translation.reviewState !== "CURRENT"}>
                 {reviewBanner(translation.reviewState)}
               </Show>
@@ -1251,9 +1358,57 @@ export function ArticleTranslationManager(
                 {t`Delete draft`}
               </Button>
             </Show>
+            <Show
+              when={
+                sourceId() != null &&
+                selected() != null &&
+                selected()?.publicationState !== "UNPUBLISHED"
+              }
+            >
+              <Button
+                variant="outline"
+                // A withdrawal reloads the editor from the saved draft, so
+                // unsaved text would be lost.
+                disabled={busy() || dirty()}
+                title={
+                  dirty()
+                    ? t`Save or discard your unsaved changes first.`
+                    : undefined
+                }
+                onClick={() => setWithdrawLanguage(selected()?.language)}
+              >
+                {t`Withdraw translation`}
+              </Button>
+            </Show>
           </div>
         </Show>
       </section>
+      <AlertDialog
+        open={withdrawLanguage() != null}
+        onOpenChange={(open) => {
+          if (!open) setWithdrawLanguage(undefined);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Withdraw the published translation?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`Readers here and on other servers will no longer see this language. Any private draft of it is kept, so you can publish it again later.`}{" "}
+              {t`While automatic translation is allowed for this article, readers can still request an automatic translation of this language.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
+            <AlertDialogAction
+              class="bg-destructive text-white hover:bg-destructive/90"
+              onClick={handleWithdraw}
+              disabled={busy()}
+            >
+              {t`Withdraw translation`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
