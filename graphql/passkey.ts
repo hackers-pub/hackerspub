@@ -153,7 +153,13 @@ builder.mutationFields((t) => ({
       "new `Passkey` is returned. Requires authentication.",
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
-      name: t.arg.string({ required: true }),
+      name: t.arg.string({
+        required: true,
+        description:
+          "A label that distinguishes this passkey from the account's other " +
+          "passkeys. Surrounding whitespace is trimmed, and a blank name is " +
+          "rejected with a `BAD_USER_INPUT` error.",
+      }),
       registrationResponse: t.arg({ type: "JSON", required: true }),
       platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
@@ -167,6 +173,12 @@ builder.mutationFields((t) => ({
       if (session.accountId !== args.accountId.id) {
         throw createGraphQLError("Not authorized.", {
           extensions: { code: "FORBIDDEN" },
+        });
+      }
+      const name = args.name.trim();
+      if (name === "") {
+        throw createGraphQLError("Passkey name must not be blank.", {
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
       const account = await ctx.db.query.accountTable.findFirst({
@@ -189,7 +201,7 @@ builder.mutationFields((t) => ({
         origins,
         rpId,
         account,
-        args.name,
+        name,
         args.registrationResponse as RegistrationResponseJSON,
       );
 

@@ -9,6 +9,11 @@ import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import { msg, useLingui } from "~/lib/i18n/macro.ts";
 import { diffLines } from "~/lib/lineDiff.ts";
+import {
+  reopenedTranslationProvenance,
+  type TranslationReviewState,
+  translationReviewState,
+} from "~/lib/translationReview.ts";
 import type { ArticleTranslationManagerSaveMutation } from "./__generated__/ArticleTranslationManagerSaveMutation.graphql.ts";
 import type { ArticleTranslationManagerDeleteMutation } from "./__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
 import type { ArticleTranslationManagerPublishMutation } from "./__generated__/ArticleTranslationManagerPublishMutation.graphql.ts";
@@ -66,6 +71,11 @@ const DeleteMutation = graphql`
   }
 `;
 
+// The publish payload deliberately re-reads every field the reader-facing
+// article page renders for a language version. Relay normalizes these rows by
+// `id`, so republishing a translation patches the records the article route
+// already holds instead of leaving a stale title, body, credit, freshness or
+// "translating…" placeholder behind.
 const PublishMutation = graphql`
   mutation ArticleTranslationManagerPublishMutation(
     $input: PublishArticleTranslationInput!
@@ -74,6 +84,26 @@ const PublishMutation = graphql`
       __typename
       ... on PublishArticleTranslationPayload {
         language
+        article {
+          id
+          contents(includeBeingTranslated: true) {
+            id
+            language
+            title
+            content
+            toc
+            url
+            originalLanguage
+            beingTranslated
+            provenance
+            reviewState
+            translator {
+              id
+              username
+              handle
+            }
+          }
+        }
       }
       ... on InvalidInputError {
         inputPath
@@ -97,6 +127,7 @@ const AcknowledgeMutation = graphql`
           reviewState
         }
         content {
+          id
           language
           reviewState
         }
@@ -122,53 +153,25 @@ const publishedStatusMessage = msg({
 export type TranslationUuid =
   `${string}-${string}-${string}-${string}-${string}`;
 
-export type TranslationReviewState =
-  | "CURRENT"
-  | "NEEDS_REVIEW"
-  | "UNKNOWN_BASELINE";
+// Re-exported so the management pages keep importing the whole translation
+// vocabulary from one place; the logic itself lives in a DOM-free module so it
+// can be tested directly.
+export {
+  reopenedTranslationProvenance,
+  type TranslationReviewState,
+  toTranslationReviewState,
+  translationReviewState,
+} from "~/lib/translationReview.ts";
 
 /**
- * The more serious of two review states, so a language whose draft and
- * published version disagree is presented by whichever of them is behind.
- * A known source change outranks unverifiable freshness, which outranks
- * "reviewed".
+ * A message that outlives the editor reload following a write.
+ *
+ * The kind records what made it true, so a later write can retire exactly the
+ * messages it invalidated instead of clearing the panel wholesale.
  */
-function worseReviewState(
-  a: TranslationReviewState,
-  b: TranslationReviewState,
-): TranslationReviewState {
-  if (a === "NEEDS_REVIEW" || b === "NEEDS_REVIEW") return "NEEDS_REVIEW";
-  if (a === "UNKNOWN_BASELINE" || b === "UNKNOWN_BASELINE") {
-    return "UNKNOWN_BASELINE";
-  }
-  return "CURRENT";
-}
-
-/** The review state the management list shows for one language. */
-export function translationReviewState(
-  translation: Pick<
-    ArticleTranslationView,
-    "reviewState" | "publishedReviewState"
-  >,
-): TranslationReviewState {
-  return worseReviewState(
-    translation.reviewState,
-    translation.publishedReviewState ?? "CURRENT",
-  );
-}
-
-/**
- * Narrows the review state Relay hands us, which also carries
- * `"%future added value"`. An unrecognized state falls back to an unknown
- * baseline: an old client must never present a state it cannot interpret as
- * verified freshness.
- */
-export function toTranslationReviewState(
-  value: string,
-): TranslationReviewState {
-  return value === "CURRENT" || value === "NEEDS_REVIEW"
-    ? value
-    : "UNKNOWN_BASELINE";
+interface ManagerNotice {
+  readonly kind: "reopenCredit" | "refreshFailed";
+  readonly message: string;
 }
 
 export interface ArticleSourceRevisionView {
@@ -227,6 +230,14 @@ export interface PublishedTranslationView {
   baselineSourceRevision: ArticleSourceRevisionView | null;
   translatorUsername: string | null;
   automatic: boolean;
+  /**
+   * The published text and credit, so reopening this language starts from what
+   * readers currently see instead of from an empty editor.
+   */
+  title: string;
+  rawContent: string;
+  provenance: string | null;
+  translatorId: TranslationUuid | null;
 }
 
 export interface ArticleTranslationManagerProps {
@@ -248,6 +259,20 @@ export interface ArticleTranslationManagerProps {
   publishedOnlyTranslations?: PublishedTranslationView[];
   canPublishIndependently: boolean;
   onChanged: () => void | Promise<void>;
+  /**
+   * Language to open on first load, from the article page's
+   * **Edit this translation** action. Already canonicalized by the caller;
+   * a language with neither a draft nor a published version is ignored.
+   */
+  initialLanguage?: string | null;
+  /**
+   * Called after a change that readers can see (publishing a translation, or
+   * acknowledging a source revision) with the language that changed, so the
+   * caller can refresh the article page. Saving or deleting a private draft
+   * deliberately does not call it: a draft save must never move the
+   * reader-facing notice.
+   */
+  onPublicChange?: (language: string) => void | Promise<void>;
 }
 
 export function ArticleTranslationManager(
@@ -276,6 +301,11 @@ export function ArticleTranslationManager(
   const [title, setTitle] = createSignal("");
   const [content, setContent] = createSignal("");
   const [error, setError] = createSignal<string | undefined>();
+  // Kept apart from `error`, which the selection effect below clears whenever
+  // the editor reloads: these messages have to survive the selection change
+  // and the list reload that follow a reopen or a publish. The kind is what
+  // lets a later success retire the message it actually invalidated.
+  const [notice, setNotice] = createSignal<ManagerNotice | undefined>();
   // True while a mutation's follow-up reload is in flight, so the editor is
   // not reset under the user's fingers between the save echo and the refetch.
   const [reloading, setReloading] = createSignal(false);
@@ -301,13 +331,58 @@ export function ArticleTranslationManager(
     publishedOnly().find((t) => t.language === selectedPublished());
 
   const selectDraft = (uuid: TranslationUuid | undefined) => {
+    setNotice(undefined);
     setSelectedPublished(undefined);
     setSelectedUuid(uuid);
   };
   const selectPublished = (language: string) => {
+    setNotice(undefined);
     setSelectedUuid(undefined);
     setSelectedPublished(language);
   };
+
+  // Open the language the article page's **Edit this translation** action
+  // asked for. Keyed by the requested language rather than by a single
+  // "applied" flag, so navigating from `?language=ko` to `?language=ja` still
+  // works while a background reload cannot pull the selection away from a
+  // language the editor has since chosen by hand.
+  let appliedInitialLanguage: string | null = null;
+  createEffect(() => {
+    const requested = props.initialLanguage;
+    if (requested == null || requested === appliedInitialLanguage) return;
+    const sameLanguage = (candidate: string) => {
+      try {
+        return (
+          new Intl.Locale(candidate).baseName ===
+          new Intl.Locale(requested).baseName
+        );
+      } catch {
+        return candidate === requested;
+      }
+    };
+    // Exact first, because `Intl.Locale` canonicalization merges distinct
+    // supported keys: `tw` and `ak` both carry the base name `ak`, and an
+    // article can hold a translation under either, so matching on the base
+    // name alone can open the wrong language.
+    const draft =
+      props.translations.find(
+        (translation) => translation.language === requested,
+      ) ??
+      props.translations.find((translation) =>
+        sameLanguage(translation.language),
+      );
+    const published =
+      publishedOnly().find(
+        (translation) => translation.language === requested,
+      ) ??
+      publishedOnly().find((translation) => sameLanguage(translation.language));
+    // Nothing to open yet: the list may still be loading, so leave the request
+    // outstanding rather than consuming it against an empty list.
+    if (draft == null && published == null) return;
+    appliedInitialLanguage = requested;
+    if (draft != null) selectDraft(draft.uuid);
+    else selectPublished(published!.language);
+  });
 
   // Load the selected translation into the editor. Switching languages resets
   // the fields, but the unsaved text of the previously selected language is
@@ -333,6 +408,64 @@ export function ArticleTranslationManager(
     } finally {
       setReloading(false);
     }
+  };
+
+  /**
+   * Reloads the list and then lets the caller refresh anything readers see.
+   * Used only by publishing and by acknowledging a revision; a draft save or
+   * delete changes nothing public, so it uses {@link refresh}.
+   */
+  const refreshPublic = async (language: string) => {
+    setReloading(true);
+    try {
+      // Both refreshes always run. Awaiting them in sequence meant a failed
+      // list reload skipped the article refresh entirely, which is the one
+      // that readers can see; they are independent refetches, so neither has
+      // to wait for the other. The first failure is reported once both are
+      // done.
+      const results = await Promise.allSettled([
+        props.onChanged(),
+        props.onPublicChange?.(language),
+      ]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure != null) throw failure.reason;
+    } finally {
+      setReloading(false);
+    }
+  };
+
+  /**
+   * Runs the post-write refresh and tells the editor when it fails.
+   *
+   * The write itself has already succeeded by this point, so this is not an
+   * error: it only means this tab may still be showing the old state. The
+   * message goes to `notice` rather than `error` because the list reload
+   * inside `refreshPublic` clears `error` on its way past.
+   *
+   * @param published Whether the write replaced the public version. A
+   *                  successful publish retires the reopen credit notice too,
+   *                  because its promise that the published version keeps its
+   *                  original credit has just stopped being true.
+   */
+  const refreshPublicOrNotify = (language: string, published: boolean) => {
+    void refreshPublic(language).then(
+      () => {
+        setNotice((current) =>
+          current == null ||
+          current.kind === "refreshFailed" ||
+          (published && current.kind === "reopenCredit")
+            ? undefined
+            : current,
+        );
+      },
+      (cause: unknown) => {
+        console.error("Failed to refresh after a public change:", cause);
+        setNotice({
+          kind: "refreshFailed",
+          message: t`This change is saved, but the translation list or the article page could not be refreshed. Reload to see it.`,
+        });
+      },
+    );
   };
 
   const busy = () =>
@@ -448,6 +581,10 @@ export function ArticleTranslationManager(
     const target = reviewTarget();
     const current = props.currentSourceRevision;
     if (target == null || current == null) return;
+    // Snapshot the language before the mutation so the follow-up refresh names
+    // what was acknowledged, not whatever the list has selected by the time
+    // the response arrives.
+    const acknowledgedLanguage = target.language;
     setError(undefined);
     acknowledgeMutation({
       variables: {
@@ -469,7 +606,7 @@ export function ArticleTranslationManager(
           payload.__typename === "AcknowledgeArticleTranslationSourcePayload"
         ) {
           setShowComparison(false);
-          void refresh();
+          refreshPublicOrNotify(acknowledgedLanguage, false);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -538,6 +675,73 @@ export function ArticleTranslationManager(
     });
   };
 
+  /**
+   * Reopens a published language that has no private draft, seeding the draft
+   * with the published title, body, credited translator and provenance.
+   *
+   * Creating a blank draft here would be worse than offering nothing: the
+   * create path defaults provenance to `HUMAN` and the translator to the
+   * acting individual, so publishing it would relabel an automatic or legacy
+   * version as person-supplied work and move someone else's credit.
+   */
+  const handleReopenPublished = (
+    translation: PublishedTranslationView,
+    // Set on the retry described below, where the credit could not be kept.
+    dropTranslator = false,
+  ) => {
+    setError(undefined);
+    setTitle(translation.title);
+    setContent(translation.rawContent);
+    const keepsCredit = !dropTranslator && translation.translatorId != null;
+    saveMutation({
+      variables: {
+        input: {
+          ...scopeInput(),
+          language: translation.language,
+          title: translation.title,
+          content: translation.rawContent,
+          provenance: reopenedTranslationProvenance(translation.provenance),
+          ...(keepsCredit ? { translatorId: translation.translatorId } : {}),
+        },
+      },
+      onCompleted(response) {
+        const payload = response.saveArticleTranslationDraft;
+        if (payload.__typename === "SaveArticleTranslationDraftPayload") {
+          selectDraft(payload.draft.uuid);
+          if (dropTranslator) {
+            setNotice({
+              kind: "reopenCredit",
+              message: t`The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish.`,
+            });
+          }
+          // A private draft is not public yet, so this is a plain reload.
+          void refresh();
+          return;
+        }
+        if (payload.__typename === "InvalidInputError") {
+          // The server only accepts a translator who can still act for the
+          // owning account, so a credited member who has left the
+          // organization is rejected. Their published credit stays as it is;
+          // the reopened draft has to be credited to whoever is editing now.
+          if (payload.inputPath === "translatorId" && keepsCredit) {
+            handleReopenPublished(translation, true);
+            return;
+          }
+          setError(t`That language is not available or the input is invalid.`);
+        } else if (payload.__typename === "ArticleDraftConflictError") {
+          setError(
+            t`Someone else saved this translation. Reload and try again.`,
+          );
+        } else {
+          setError(t`You may not have permission to save this translation.`);
+        }
+      },
+      onError() {
+        setError(t`Failed to save the translation.`);
+      },
+    });
+  };
+
   const handleDelete = () => {
     const translation = selected();
     if (translation == null) return;
@@ -582,7 +786,7 @@ export function ArticleTranslationManager(
       onCompleted(response) {
         const payload = response.publishArticleTranslation;
         if (payload.__typename === "PublishArticleTranslationPayload") {
-          void refresh();
+          refreshPublicOrNotify(payload.language, true);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -914,6 +1118,16 @@ export function ArticleTranslationManager(
       </aside>
 
       <section class="min-w-0 flex-1">
+        {/* Outside both selection gates: a reopen changes the selection and
+            then reloads the list, so anything rendered inside them would be
+            unmounted before it could be read. */}
+        <Show when={notice()}>
+          {(notice) => (
+            <p class="mb-4 rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
+              {notice().message}
+            </p>
+          )}
+        </Show>
         <Show keyed when={selectedPublishedTranslation()}>
           {(translation) => (
             <div>
@@ -921,8 +1135,15 @@ export function ArticleTranslationManager(
                 <LanguageName code={translation.language} />
               </h2>
               <p class="mb-4 text-sm text-muted-foreground">
-                {t`This language is published without a private draft. Review it here, or add a translation to start editing it.`}
+                {t`This language is published without a private draft. Review it here, or start editing to make private changes.`}
               </p>
+              <Button
+                class="mb-4"
+                disabled={busy()}
+                onClick={() => handleReopenPublished(translation)}
+              >
+                {t`Edit this translation`}
+              </Button>
               <Show when={translation.reviewState !== "CURRENT"}>
                 {reviewBanner(translation.reviewState)}
               </Show>

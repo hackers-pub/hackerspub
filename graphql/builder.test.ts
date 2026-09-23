@@ -18,6 +18,14 @@ const notificationsPageQueryPath = new URL(
   "../web-next/src/routes/(root)/__generated__/notificationsPageQuery.graphql.ts",
   import.meta.url,
 );
+const slugPageQueryPath = new URL(
+  "../web-next/src/routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/SlugPageQuery.graphql.ts",
+  import.meta.url,
+);
+const langPageQueryPath = new URL(
+  "../web-next/src/routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/LangPageQuery.graphql.ts",
+  import.meta.url,
+);
 
 async function readRelayOperationText(path: URL): Promise<string> {
   const source = await readFile(path, "utf8");
@@ -106,3 +114,48 @@ test("anonymous complexity limits admit the web-next notifications query", async
     );
   });
 });
+
+// The article page renders translator credit and source-freshness state for
+// every language version, so its `contents` selections grew. A signed-out
+// visitor has to be able to run them: the freshness notice is server-rendered
+// and must not depend on signing in.
+for (const [name, path, variables] of [
+  [
+    "article page query",
+    slugPageQueryPath,
+    { handle: "@missing-user", idOrYear: "2026", slug: "missing-article" },
+  ],
+  [
+    "article language page query",
+    langPageQueryPath,
+    {
+      handle: "@missing-user",
+      idOrYear: "2026",
+      slug: "missing-article",
+      language: "ko",
+    },
+  ],
+] as const) {
+  test(`anonymous complexity limits admit the web-next ${name}`, async () => {
+    const query = await readRelayOperationText(path);
+    await withRollback(async (tx) => {
+      const yoga = createYogaServer();
+      const response = await yoga.fetch(
+        new Request("http://localhost/graphql?no-propagate=true", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ query, variables }),
+        }),
+        makeGuestContext(tx),
+      );
+      const payload = (await response.json()) as {
+        data?: { articleByYearAndSlug: unknown; viewer: unknown };
+        errors?: { message: string }[];
+      };
+
+      assert.deepEqual(payload.errors, undefined);
+      assert.equal(payload.data?.articleByYearAndSlug, null);
+      assert.equal(payload.data?.viewer, null);
+    });
+  });
+}

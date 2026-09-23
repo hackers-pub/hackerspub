@@ -61,6 +61,10 @@ export interface PostEngagementBarProps {
   analyticsHref?: string | null;
   /** Translation management page for a source-backed local article. */
   manageTranslationsHref?: string | null;
+  /** Translation editor for the language version currently on screen. */
+  editTranslationHref?: string | null;
+  /** Whether the generic edit action opens the original rather than a translation. */
+  editTargetIsOriginal?: boolean;
   connections?: string[];
   pinConnections?: string[];
   bookmarkListConnections?: string[];
@@ -551,6 +555,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             engagementBase={props.engagementBase ?? null}
             analyticsHref={props.analyticsHref ?? null}
             manageTranslationsHref={props.manageTranslationsHref ?? null}
+            editTranslationHref={props.editTranslationHref ?? null}
+            editTargetIsOriginal={props.editTargetIsOriginal ?? false}
             onDeleted={props.onDeleted}
             onEdit={props.onEdit}
           />
