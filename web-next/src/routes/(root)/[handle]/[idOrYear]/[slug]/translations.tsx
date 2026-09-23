@@ -239,7 +239,10 @@ export default function ArticleTranslationsPage() {
       slug: decodeRouteParam(params.slug!),
       actingAccountId: actingAccount.selectedActingAccountId() ?? null,
     };
-    await Promise.allSettled([
+    // Both kinds of failure reach the caller, which turns them into a notice
+    // saying the write landed but this tab may still show the old article.
+    // Swallowing them here would leave the editor believing otherwise.
+    await Promise.all([
       refreshRelayQuery<SlugPageQuery>(env(), SlugPageQueryDef, {
         ...variables,
         language: null,
@@ -249,12 +252,7 @@ export default function ArticleTranslationsPage() {
         language,
       }),
     ]);
-    await revalidate([
-      ARTICLE_PAGE_QUERY_KEY,
-      ARTICLE_LANG_PAGE_QUERY_KEY,
-    ]).catch((error: unknown) => {
-      console.error("Failed to revalidate the article page:", error);
-    });
+    await revalidate([ARTICLE_PAGE_QUERY_KEY, ARTICLE_LANG_PAGE_QUERY_KEY]);
   };
 
   onMount(() => {

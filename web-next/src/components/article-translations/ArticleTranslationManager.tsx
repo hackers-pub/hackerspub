@@ -291,9 +291,9 @@ export function ArticleTranslationManager(
   const [content, setContent] = createSignal("");
   const [error, setError] = createSignal<string | undefined>();
   // Kept apart from `error`, which the selection effect below clears whenever
-  // the editor reloads: this notice has to survive both the selection change
-  // and the list reload that follow a reopen.
-  const [reopenNotice, setReopenNotice] = createSignal<string | undefined>();
+  // the editor reloads: these messages have to survive the selection change
+  // and the list reload that follow a reopen or a publish.
+  const [notice, setNotice] = createSignal<string | undefined>();
   // True while a mutation's follow-up reload is in flight, so the editor is
   // not reset under the user's fingers between the save echo and the refetch.
   const [reloading, setReloading] = createSignal(false);
@@ -319,12 +319,12 @@ export function ArticleTranslationManager(
     publishedOnly().find((t) => t.language === selectedPublished());
 
   const selectDraft = (uuid: TranslationUuid | undefined) => {
-    setReopenNotice(undefined);
+    setNotice(undefined);
     setSelectedPublished(undefined);
     setSelectedUuid(uuid);
   };
   const selectPublished = (language: string) => {
-    setReopenNotice(undefined);
+    setNotice(undefined);
     setSelectedUuid(undefined);
     setSelectedPublished(language);
   };
@@ -401,6 +401,23 @@ export function ArticleTranslationManager(
     } finally {
       setReloading(false);
     }
+  };
+
+  /**
+   * Runs the public refresh and tells the editor when it fails.
+   *
+   * The write itself has already succeeded by this point, so this is not an
+   * error: it only means this tab may still be showing the article as it was.
+   * The message goes to `notice` rather than `error` because the list reload
+   * inside `refreshPublic` clears `error` on its way past.
+   */
+  const refreshPublicOrNotify = (language: string) => {
+    void refreshPublic(language).catch((cause: unknown) => {
+      console.error("Failed to refresh the public article:", cause);
+      setNotice(
+        t`This change is saved, but the article page could not be refreshed. Reload to see it.`,
+      );
+    });
   };
 
   const busy = () =>
@@ -541,7 +558,7 @@ export function ArticleTranslationManager(
           payload.__typename === "AcknowledgeArticleTranslationSourcePayload"
         ) {
           setShowComparison(false);
-          void refreshPublic(acknowledgedLanguage);
+          refreshPublicOrNotify(acknowledgedLanguage);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -644,7 +661,7 @@ export function ArticleTranslationManager(
         if (payload.__typename === "SaveArticleTranslationDraftPayload") {
           selectDraft(payload.draft.uuid);
           if (dropTranslator) {
-            setReopenNotice(
+            setNotice(
               t`The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish.`,
             );
           }
@@ -720,7 +737,7 @@ export function ArticleTranslationManager(
       onCompleted(response) {
         const payload = response.publishArticleTranslation;
         if (payload.__typename === "PublishArticleTranslationPayload") {
-          void refreshPublic(payload.language);
+          refreshPublicOrNotify(payload.language);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -1055,7 +1072,7 @@ export function ArticleTranslationManager(
         {/* Outside both selection gates: a reopen changes the selection and
             then reloads the list, so anything rendered inside them would be
             unmounted before it could be read. */}
-        <Show when={reopenNotice()}>
+        <Show when={notice()}>
           {(notice) => (
             <p class="mb-4 rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
               {notice()}

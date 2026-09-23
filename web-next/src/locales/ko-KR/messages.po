@@ -641,7 +641,7 @@ msgstr "활성화 시점:"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "현재 정지 또는 연합 차단 중인 액터입니다. 만료된 정지는 자동으로 제외됩니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1040
+#: src/components/article-translations/ArticleTranslationManager.tsx:1063
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,11 +675,11 @@ msgstr "예전 계정을 여기에 추가하세요. Hackers' Pub은 이 계정�
 msgid "Add to sidebar"
 msgstr "사이드바에 추가"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1018
+#: src/components/article-translations/ArticleTranslationManager.tsx:1041
 msgid "Add translation"
 msgstr "번역 추가"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:875
+#: src/components/article-translations/ArticleTranslationManager.tsx:898
 msgid "Added line:"
 msgstr "추가된 줄:"
 
@@ -1019,7 +1019,7 @@ msgstr "자동 입력"
 msgid "Auto-fill alt text"
 msgstr "대체 텍스트 자동 입력"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:986
+#: src/components/article-translations/ArticleTranslationManager.tsx:1009
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "자동 번역"
@@ -1042,7 +1042,7 @@ msgid "Back"
 msgstr "돌아가기"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:368
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:294
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:292
 msgid "Back to article"
 msgstr "게시글로 돌아가기"
 
@@ -1622,7 +1622,7 @@ msgid "Delete account permanently?"
 msgstr "계정을 영구적으로 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1169
+#: src/components/article-translations/ArticleTranslationManager.tsx:1202
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "초고 삭제"
@@ -1823,7 +1823,7 @@ msgstr "단문 수정"
 msgid "Edit original"
 msgstr "원문 수정"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1063
+#: src/components/article-translations/ArticleTranslationManager.tsx:1096
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "이 번역 수정"
@@ -2057,8 +2057,8 @@ msgstr "연결되지 않은 미디어 삭제에 실패했습니다."
 msgid "Failed to delete post"
 msgstr "콘텐츠 삭제에 실패했습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:692
-#: src/components/article-translations/ArticleTranslationManager.tsx:698
+#: src/components/article-translations/ArticleTranslationManager.tsx:715
+#: src/components/article-translations/ArticleTranslationManager.tsx:721
 msgid "Failed to delete the translation draft."
 msgstr "번역 초고를 삭제하지 못했습니다."
 
@@ -2201,8 +2201,8 @@ msgstr "사용자를 뮤트하지 못했습니다"
 msgid "Failed to pin post"
 msgstr "콘텐츠를 고정하지 못했습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:725
-#: src/components/article-translations/ArticleTranslationManager.tsx:732
+#: src/components/article-translations/ArticleTranslationManager.tsx:748
+#: src/components/article-translations/ArticleTranslationManager.tsx:755
 msgid "Failed to publish the translation."
 msgstr "번역을 공개하지 못했습니다."
 
@@ -2221,7 +2221,7 @@ msgstr "반응 실패"
 msgid "Failed to recompute news scores."
 msgstr "뉴스 점수를 다시 계산하지 못했습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:552
+#: src/components/article-translations/ArticleTranslationManager.tsx:575
 msgid "Failed to record the review."
 msgstr "검토 내용을 기록하지 못했습니다."
 
@@ -2295,8 +2295,8 @@ msgstr "설정 저장 실패"
 msgid "Failed to save the draft."
 msgstr "초고를 저장하지 못했습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:602
-#: src/components/article-translations/ArticleTranslationManager.tsx:668
+#: src/components/article-translations/ArticleTranslationManager.tsx:625
+#: src/components/article-translations/ArticleTranslationManager.tsx:691
 msgid "Failed to save the translation."
 msgstr "번역을 저장하지 못했습니다."
 
@@ -2472,7 +2472,7 @@ msgstr "서식"
 msgid "Forwarded to the remote instance"
 msgstr "원격 인스턴스로 전달됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:416
+#: src/components/article-translations/ArticleTranslationManager.tsx:439
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "최신 여부 미확인"
@@ -2489,7 +2489,7 @@ msgstr "브라우저 알림 받기"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:284
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:282
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:138
@@ -2707,7 +2707,7 @@ msgstr "초대 족보에서 숨기기"
 msgid "Hide replies"
 msgstr "댓글 숨기기"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:785
+#: src/components/article-translations/ArticleTranslationManager.tsx:808
 msgid "Hide source changes"
 msgstr "원문 변경 사항 숨기기"
 
@@ -2719,7 +2719,7 @@ msgstr "원문 변경 사항 숨기기"
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1044
+#: src/components/article-translations/ArticleTranslationManager.tsx:1067
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "이미 해당 언어의 비공개 초고가 있으면 중복으로 만들지 않고 기존 초고를 엽니다."
 
@@ -2945,7 +2945,7 @@ msgstr "언어 설정"
 msgid "Language shown when the view was counted."
 msgstr "조회가 집계될 때 표시된 언어입니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:906
+#: src/components/article-translations/ArticleTranslationManager.tsx:929
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -3228,7 +3228,7 @@ msgid "Loading search results…"
 msgstr "검색 결과를 불러오는 중…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:270
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:126
 #: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
@@ -3269,8 +3269,8 @@ msgstr "인스턴스 액터가 ActivityPub 릴레이를 팔로하도록 합니�
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:92
 #: src/components/PostActionMenu.tsx:411
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1110
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:269
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:297
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:267
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:295
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:123
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
@@ -3434,7 +3434,7 @@ msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Native name"
 msgstr "현지명"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:414
+#: src/components/article-translations/ArticleTranslationManager.tsx:437
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "검토 필요"
@@ -3526,7 +3526,7 @@ msgstr "아직 처리된 분석 신고가 없습니다."
 msgid "No appeals match these filters."
 msgstr "조건에 맞는 이의 제기가 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:775
+#: src/components/article-translations/ArticleTranslationManager.tsx:798
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "이 번역에는 기준 원문이 기록되어 있지 않아 최신 여부를 확인할 수 없습니다."
 
@@ -3659,12 +3659,12 @@ msgstr "아직 공유된 링크가 없습니다. 연합우주에서 링크가 �
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:802
+#: src/components/article-translations/ArticleTranslationManager.tsx:825
 msgid "No translation changes needed"
 msgstr "번역 수정 불필요"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:927
-#: src/components/article-translations/ArticleTranslationManager.tsx:987
+#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:1010
 msgid "No translator credit"
 msgstr "번역자 표시 없음"
 
@@ -3726,7 +3726,7 @@ msgstr "찾을 수 없음"
 #~ msgid "Not found."
 #~ msgstr "찾을 수 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:942
+#: src/components/article-translations/ArticleTranslationManager.tsx:965
 msgid "Not published"
 msgstr "미공개"
 
@@ -3806,7 +3806,7 @@ msgstr "오래된 가입순"
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "예전 서버에서 계정 이전 설정을 열고 이 Hackers' Pub 계정을 새 계정으로 지정하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:825
+#: src/components/article-translations/ArticleTranslationManager.tsx:848
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "이 버전 중 하나에는 기준 원문이 기록되어 있지 않아 변경 사항을 표시할 수 없습니다."
 
@@ -3898,7 +3898,7 @@ msgstr "조직 초대"
 msgid "Organization members"
 msgstr "조직 구성원"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1118
+#: src/components/article-translations/ArticleTranslationManager.tsx:1151
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "원문"
@@ -3994,7 +3994,7 @@ msgstr "이 조직 계정과 해당 콘텐츠를 영구적으로 삭제합니다
 msgid "Permanently delete your account and sign out of this session."
 msgstr "계정을 영구적으로 삭제하고 이 세션에서 로그아웃합니다."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:279
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:277
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:109
@@ -4183,7 +4183,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "이 계정을 Mastodon 방식 이전의 대상 계정으로 준비합니다."
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1128
+#: src/components/article-translations/ArticleTranslationManager.tsx:1161
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "미리보기"
@@ -4264,7 +4264,7 @@ msgstr "공개"
 msgid "Publish article"
 msgstr "게시글 공개"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1160
+#: src/components/article-translations/ArticleTranslationManager.tsx:1193
 msgid "Publish changes"
 msgstr "변경 사항 공개"
 
@@ -4280,7 +4280,7 @@ msgstr "공개 설정"
 msgid "Publish this as a note?"
 msgstr "이 글을 단문으로 공개할까요?"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1159
+#: src/components/article-translations/ArticleTranslationManager.tsx:1192
 msgid "Publish translation"
 msgstr "번역 공개"
 
@@ -4293,7 +4293,7 @@ msgctxt "publication state"
 msgid "Published"
 msgstr "공개됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:941
+#: src/components/article-translations/ArticleTranslationManager.tsx:964
 msgid "Published; unpublished changes"
 msgstr "공개됨, 미공개 변경 사항 있음"
 
@@ -4393,7 +4393,8 @@ msgstr "게시글 전체 읽기"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "행동 강령 전문을 읽으세요."
 
-#: src/components/ArticleSourceChangedNotice.tsx:82
+#: src/components/ArticleSourceChangedNotice.tsx:86
+#: src/components/ArticleSourceChangedNotice.tsx:96
 msgid "Read the original"
 msgstr "원문 읽기"
 
@@ -4599,7 +4600,7 @@ msgstr "설문 삭제"
 msgid "Remove quote"
 msgstr "인용 삭제"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:874
+#: src/components/article-translations/ArticleTranslationManager.tsx:897
 msgid "Removed line:"
 msgstr "삭제된 줄:"
 
@@ -4749,7 +4750,7 @@ msgstr "검토 사유 (이의 제기자에게 표시됨)"
 msgid "Review request"
 msgstr "요청 검토"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:417
+#: src/components/article-translations/ArticleTranslationManager.tsx:440
 msgid "Reviewed"
 msgstr "검토됨"
 
@@ -4820,7 +4821,7 @@ msgid "Save changes"
 msgstr "변경사항 저장"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1148
+#: src/components/article-translations/ArticleTranslationManager.tsx:1181
 msgid "Save draft"
 msgstr "초고 저장"
 
@@ -4828,7 +4829,7 @@ msgstr "초고 저장"
 #~ msgid "Save draft to see preview"
 #~ msgstr "미리보기를 보려면 초고로 저장하세요"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:797
+#: src/components/article-translations/ArticleTranslationManager.tsx:820
 msgid "Save or discard your unsaved changes first."
 msgstr "저장하지 않은 변경 사항을 먼저 저장하거나 취소하세요."
 
@@ -4898,7 +4899,7 @@ msgstr "{0}의 검색 결과"
 msgid "Searching…"
 msgstr "검색 중…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1081
+#: src/components/article-translations/ArticleTranslationManager.tsx:1114
 msgid "Select a language to edit its translation."
 msgstr "편집할 언어를 선택하세요."
 
@@ -5114,11 +5115,11 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:834
+#: src/components/article-translations/ArticleTranslationManager.tsx:857
 msgid "Since the published version was last reviewed"
 msgstr "공개된 번역을 마지막으로 검토한 이후"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:835
+#: src/components/article-translations/ArticleTranslationManager.tsx:858
 msgid "Since this draft was written"
 msgstr "이 초고를 작성한 이후"
 
@@ -5155,11 +5156,11 @@ msgstr "로컬에 저장된 일부 이미지를 더 이상 사용할 수 없어 
 msgid "Some posts in this thread cannot be shown."
 msgstr "이 스레드의 일부 콘텐츠는 표시할 수 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:543
-#: src/components/article-translations/ArticleTranslationManager.tsx:595
-#: src/components/article-translations/ArticleTranslationManager.tsx:661
-#: src/components/article-translations/ArticleTranslationManager.tsx:689
-#: src/components/article-translations/ArticleTranslationManager.tsx:722
+#: src/components/article-translations/ArticleTranslationManager.tsx:566
+#: src/components/article-translations/ArticleTranslationManager.tsx:618
+#: src/components/article-translations/ArticleTranslationManager.tsx:684
+#: src/components/article-translations/ArticleTranslationManager.tsx:712
+#: src/components/article-translations/ArticleTranslationManager.tsx:745
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "다른 사용자가 이 번역을 저장했습니다. 새로 고친 후 다시 시도하세요."
 
@@ -5355,8 +5356,8 @@ msgstr "올바른 릴레이 액터 URL이 아닙니다."
 msgid "That is not a valid URL pattern."
 msgstr "올바른 URL 패턴이 아닙니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:592
-#: src/components/article-translations/ArticleTranslationManager.tsx:658
+#: src/components/article-translations/ArticleTranslationManager.tsx:615
+#: src/components/article-translations/ArticleTranslationManager.tsx:681
 msgid "That language is not available or the input is invalid."
 msgstr "해당 언어를 사용할 수 없거나 입력이 올바르지 않습니다."
 
@@ -5389,7 +5390,7 @@ msgstr "브라우저가 완전한 푸시 알림 구독 정보를 제공하지 �
 msgid "The conversion request could not be created. Please try again."
 msgstr "전환 요청을 만들 수 없습니다. 다시 시도하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:642
+#: src/components/article-translations/ArticleTranslationManager.tsx:665
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "표시된 번역자가 더 이상 이 게시글을 수정할 수 없어 이 초고는 회원님 이름으로 기록됩니다. 공개된 번역은 회원님이 공개하기 전까지 기존 번역자 표시를 유지합니다."
 
@@ -5520,7 +5521,7 @@ msgstr "게시 권한이 있는 조직 멤버가 이 초고에 접근할 수 있
 msgid "The original has changed"
 msgstr "원문이 변경되었습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:774
+#: src/components/article-translations/ArticleTranslationManager.tsx:797
 msgid "The original has changed since this translation was last reviewed."
 msgstr "이 번역을 마지막으로 검토한 뒤 원문이 변경되었습니다."
 
@@ -5592,11 +5593,11 @@ msgstr "Web Push 공개 키가 올바르지 않습니다."
 msgid "There are no moderation actions on your account."
 msgstr "회원님의 계정에 대한 모더레이션 조치가 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:814
+#: src/components/article-translations/ArticleTranslationManager.tsx:837
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "비교할 이전 원문이 없어 현재 원문만 표시합니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:546
+#: src/components/article-translations/ArticleTranslationManager.tsx:569
 msgid "There is nothing to review for this language."
 msgstr "이 언어에는 검토할 번역이 없습니다."
 
@@ -5662,6 +5663,10 @@ msgstr "존재하지 않는 케이스입니다."
 #: src/routes/(root)/admin/moderation/[id].tsx:419
 msgid "This case is resolved."
 msgstr "이미 처리된 케이스입니다."
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:418
+msgid "This change is saved, but the article page could not be refreshed. Reload to see it."
+msgstr "변경 사항은 저장되었지만 게시글 페이지를 새로 고치지 못했습니다. 새로 고침하면 반영된 내용을 볼 수 있습니다."
 
 #: src/components/NoteComposer.tsx:1322
 msgid "This clears the saved draft from this browser."
@@ -5741,7 +5746,7 @@ msgstr "너무 깁니다 (최대 {MAX_REASON_LENGTH}자)."
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "이 언어는 비공개 초고 없이 공개되어 있습니다. 여기에서 검토하거나, 번역을 추가해 편집을 시작하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1056
+#: src/components/article-translations/ArticleTranslationManager.tsx:1089
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "이 언어는 비공개 초고 없이 공개되어 있습니다. 여기에서 검토하거나, 수정을 시작해 비공개 변경 사항을 만드세요."
 
@@ -5823,7 +5828,7 @@ msgstr "타임라인"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:843
+#: src/components/article-translations/ArticleTranslationManager.tsx:866
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "제목"
@@ -5852,12 +5857,12 @@ msgstr "총 신고"
 msgid "Total: {0}"
 msgstr "전체: {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1111
+#: src/components/article-translations/ArticleTranslationManager.tsx:1144
 msgid "Translated body"
 msgstr "번역 본문"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:931
-#: src/components/article-translations/ArticleTranslationManager.tsx:992
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
+#: src/components/article-translations/ArticleTranslationManager.tsx:1015
 msgid "Translated by"
 msgstr "번역자:"
 
@@ -5882,7 +5887,7 @@ msgstr "작성자가 직접 번역"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1100
+#: src/components/article-translations/ArticleTranslationManager.tsx:1133
 msgid "Translated title"
 msgstr "번역 제목"
 
@@ -6179,7 +6184,7 @@ msgstr "요청 보기"
 msgid "View shares"
 msgstr "공유 보기"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:785
+#: src/components/article-translations/ArticleTranslationManager.tsx:808
 msgid "View source changes"
 msgstr "원문 변경 사항 보기"
 
@@ -6440,7 +6445,7 @@ msgstr "자신의 계정이나 게시할 수 있는 조직의 초고만 편집�
 msgid "You can only manage translations for a draft you can edit."
 msgstr "편집 권한이 있는 초고의 번역만 관리할 수 있습니다."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:281
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:279
 msgid "You can only manage translations for an article you can edit."
 msgstr "편집 권한이 있는 게시글의 번역만 관리할 수 있습니다."
 
@@ -6495,20 +6500,20 @@ msgstr "뮤트한 계정이 없습니다."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "이미 이의를 제기했거나 이의 제기 기간이 종료되었을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:694
+#: src/components/article-translations/ArticleTranslationManager.tsx:717
 msgid "You may not have permission to delete this translation."
 msgstr "이 번역을 삭제할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:727
+#: src/components/article-translations/ArticleTranslationManager.tsx:750
 msgid "You may not have permission to publish this translation."
 msgstr "이 번역을 공개할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:548
+#: src/components/article-translations/ArticleTranslationManager.tsx:571
 msgid "You may not have permission to review this translation."
 msgstr "이 번역을 검토할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:598
-#: src/components/article-translations/ArticleTranslationManager.tsx:664
+#: src/components/article-translations/ArticleTranslationManager.tsx:621
+#: src/components/article-translations/ArticleTranslationManager.tsx:687
 msgid "You may not have permission to save this translation."
 msgstr "이 번역을 저장할 권한이 없을 수 있습니다."
 

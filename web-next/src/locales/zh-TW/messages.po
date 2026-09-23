@@ -641,7 +641,7 @@ msgstr "啟用於"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "目前處於停權或聯邦封鎖狀態的行為者。已過期的停權會自動移除。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1040
+#: src/components/article-translations/ArticleTranslationManager.tsx:1063
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,11 +675,11 @@ msgstr "在這裡新增舊帳戶。Hackers' Pub 會將它公開為屬於你的�
 msgid "Add to sidebar"
 msgstr "新增至側邊欄"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1018
+#: src/components/article-translations/ArticleTranslationManager.tsx:1041
 msgid "Add translation"
 msgstr "新增翻譯"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:875
+#: src/components/article-translations/ArticleTranslationManager.tsx:898
 msgid "Added line:"
 msgstr "新增行："
 
@@ -1019,7 +1019,7 @@ msgstr "自動填寫"
 msgid "Auto-fill alt text"
 msgstr "自動填寫替代文字"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:986
+#: src/components/article-translations/ArticleTranslationManager.tsx:1009
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "自動翻譯"
@@ -1042,7 +1042,7 @@ msgid "Back"
 msgstr "返回"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:368
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:294
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:292
 msgid "Back to article"
 msgstr "返回文章"
 
@@ -1622,7 +1622,7 @@ msgid "Delete account permanently?"
 msgstr "要永久刪除帳戶嗎？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1169
+#: src/components/article-translations/ArticleTranslationManager.tsx:1202
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "刪除草稿"
@@ -1823,7 +1823,7 @@ msgstr "編輯貼文"
 msgid "Edit original"
 msgstr "編輯原文"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1063
+#: src/components/article-translations/ArticleTranslationManager.tsx:1096
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "編輯此翻譯"
@@ -2057,8 +2057,8 @@ msgstr "刪除孤立媒體失敗。"
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:692
-#: src/components/article-translations/ArticleTranslationManager.tsx:698
+#: src/components/article-translations/ArticleTranslationManager.tsx:715
+#: src/components/article-translations/ArticleTranslationManager.tsx:721
 msgid "Failed to delete the translation draft."
 msgstr "無法刪除翻譯草稿。"
 
@@ -2201,8 +2201,8 @@ msgstr "無法靜音此使用者"
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:725
-#: src/components/article-translations/ArticleTranslationManager.tsx:732
+#: src/components/article-translations/ArticleTranslationManager.tsx:748
+#: src/components/article-translations/ArticleTranslationManager.tsx:755
 msgid "Failed to publish the translation."
 msgstr "無法發布翻譯。"
 
@@ -2221,7 +2221,7 @@ msgstr "反應失敗"
 msgid "Failed to recompute news scores."
 msgstr "無法重新計算新聞評分。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:552
+#: src/components/article-translations/ArticleTranslationManager.tsx:575
 msgid "Failed to record the review."
 msgstr "未能記錄審核結果。"
 
@@ -2295,8 +2295,8 @@ msgstr "儲存設定失敗"
 msgid "Failed to save the draft."
 msgstr "無法儲存草稿。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:602
-#: src/components/article-translations/ArticleTranslationManager.tsx:668
+#: src/components/article-translations/ArticleTranslationManager.tsx:625
+#: src/components/article-translations/ArticleTranslationManager.tsx:691
 msgid "Failed to save the translation."
 msgstr "無法儲存翻譯。"
 
@@ -2472,7 +2472,7 @@ msgstr "格式"
 msgid "Forwarded to the remote instance"
 msgstr "已轉送給遠端站台"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:416
+#: src/components/article-translations/ArticleTranslationManager.tsx:439
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "時效性未驗證"
@@ -2489,7 +2489,7 @@ msgstr "接收瀏覽器通知"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:284
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:282
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:138
@@ -2707,7 +2707,7 @@ msgstr "在邀請樹中隱藏我"
 msgid "Hide replies"
 msgstr "隱藏回覆"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:785
+#: src/components/article-translations/ArticleTranslationManager.tsx:808
 msgid "Hide source changes"
 msgstr "隱藏原文變更"
 
@@ -2719,7 +2719,7 @@ msgstr "隱藏原文變更"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行為準則。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1044
+#: src/components/article-translations/ArticleTranslationManager.tsx:1067
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "如果該語言已有私人草稿，會開啟它，而不是建立重複草稿。"
 
@@ -2945,7 +2945,7 @@ msgstr "語言設定"
 msgid "Language shown when the view was counted."
 msgstr "統計瀏覽次數時顯示的語言。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:906
+#: src/components/article-translations/ArticleTranslationManager.tsx:929
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -3228,7 +3228,7 @@ msgid "Loading search results…"
 msgstr "正在載入搜尋結果…"
 
 #: src/components/NoteComposer.tsx:945
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:270
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:126
 #: src/routes/(root)/[handle]/drafts/index.tsx:458
 #: src/routes/(root)/sign/up/[token].tsx:466
@@ -3269,8 +3269,8 @@ msgstr "讓此站台 actor 關注一個 ActivityPub 中繼。接受後，中繼�
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:92
 #: src/components/PostActionMenu.tsx:411
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1110
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:269
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:297
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:267
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:295
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:123
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
@@ -3434,7 +3434,7 @@ msgstr "使用者名稱太長。不能長於 50 字元。"
 msgid "Native name"
 msgstr "本地名稱"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:414
+#: src/components/article-translations/ArticleTranslationManager.tsx:437
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "需要審核"
@@ -3526,7 +3526,7 @@ msgstr "尚未處理任何已分析的檢舉。"
 msgid "No appeals match these filters."
 msgstr "沒有符合這些篩選條件的申訴。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:775
+#: src/components/article-translations/ArticleTranslationManager.tsx:798
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "此翻譯沒有記錄基準原文，因此無法驗證其時效性。"
 
@@ -3659,12 +3659,12 @@ msgstr "還沒有被轉貼的連結。當連結開始在聯邦宇宙中流傳時
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:802
+#: src/components/article-translations/ArticleTranslationManager.tsx:825
 msgid "No translation changes needed"
 msgstr "無需修改翻譯"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:927
-#: src/components/article-translations/ArticleTranslationManager.tsx:987
+#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:1010
 msgid "No translator credit"
 msgstr "無譯者署名"
 
@@ -3726,7 +3726,7 @@ msgstr "未找到"
 #~ msgid "Not found."
 #~ msgstr "未找到。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:942
+#: src/components/article-translations/ArticleTranslationManager.tsx:965
 msgid "Not published"
 msgstr "未發布"
 
@@ -3806,7 +3806,7 @@ msgstr "最早註冊優先"
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "在舊伺服器上開啟帳戶遷移設定，並將此 Hackers' Pub 帳戶設為新帳戶。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:825
+#: src/components/article-translations/ArticleTranslationManager.tsx:848
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "其中一個版本沒有記錄基準原文，因此無法顯示其變更。"
 
@@ -3898,7 +3898,7 @@ msgstr "組織邀請"
 msgid "Organization members"
 msgstr "組織成員"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1118
+#: src/components/article-translations/ArticleTranslationManager.tsx:1151
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "原文"
@@ -3994,7 +3994,7 @@ msgstr "永久刪除此組織帳號及其內容。"
 msgid "Permanently delete your account and sign out of this session."
 msgstr "永久刪除你的帳戶，並登出此工作階段。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:279
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:277
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:109
@@ -4183,7 +4183,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "將此帳戶準備為 Mastodon 式遷移的目標帳戶。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1128
+#: src/components/article-translations/ArticleTranslationManager.tsx:1161
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "預覽"
@@ -4264,7 +4264,7 @@ msgstr "發布"
 msgid "Publish article"
 msgstr "發布文章"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1160
+#: src/components/article-translations/ArticleTranslationManager.tsx:1193
 msgid "Publish changes"
 msgstr "發布變更"
 
@@ -4280,7 +4280,7 @@ msgstr "發布設定"
 msgid "Publish this as a note?"
 msgstr "要將其作為貼文發布嗎？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1159
+#: src/components/article-translations/ArticleTranslationManager.tsx:1192
 msgid "Publish translation"
 msgstr "發布翻譯"
 
@@ -4293,7 +4293,7 @@ msgctxt "publication state"
 msgid "Published"
 msgstr "已發布"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:941
+#: src/components/article-translations/ArticleTranslationManager.tsx:964
 msgid "Published; unpublished changes"
 msgstr "已發布，有未發布的變更"
 
@@ -4393,7 +4393,8 @@ msgstr "閱讀完整文章"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "閱讀完整的行為守則"
 
-#: src/components/ArticleSourceChangedNotice.tsx:82
+#: src/components/ArticleSourceChangedNotice.tsx:86
+#: src/components/ArticleSourceChangedNotice.tsx:96
 msgid "Read the original"
 msgstr "閱讀原文"
 
@@ -4599,7 +4600,7 @@ msgstr "移除投票調查"
 msgid "Remove quote"
 msgstr "移除引用"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:874
+#: src/components/article-translations/ArticleTranslationManager.tsx:897
 msgid "Removed line:"
 msgstr "刪除行："
 
@@ -4749,7 +4750,7 @@ msgstr "審核理由（向申訴人顯示）"
 msgid "Review request"
 msgstr "審核請求"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:417
+#: src/components/article-translations/ArticleTranslationManager.tsx:440
 msgid "Reviewed"
 msgstr "已審核"
 
@@ -4820,7 +4821,7 @@ msgid "Save changes"
 msgstr "儲存變更"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1148
+#: src/components/article-translations/ArticleTranslationManager.tsx:1181
 msgid "Save draft"
 msgstr "儲存草稿"
 
@@ -4828,7 +4829,7 @@ msgstr "儲存草稿"
 #~ msgid "Save draft to see preview"
 #~ msgstr "儲存草稿以查看預覽"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:797
+#: src/components/article-translations/ArticleTranslationManager.tsx:820
 msgid "Save or discard your unsaved changes first."
 msgstr "請先儲存或捨棄未儲存的變更。"
 
@@ -4898,7 +4899,7 @@ msgstr "{0}的搜尋結果"
 msgid "Searching…"
 msgstr "搜尋中…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1081
+#: src/components/article-translations/ArticleTranslationManager.tsx:1114
 msgid "Select a language to edit its translation."
 msgstr "選擇要編輯翻譯的語言。"
 
@@ -5114,11 +5115,11 @@ msgstr "登入中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "註冊 Hackers' Pub"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:834
+#: src/components/article-translations/ArticleTranslationManager.tsx:857
 msgid "Since the published version was last reviewed"
 msgstr "自上次審核已發布的翻譯以來"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:835
+#: src/components/article-translations/ArticleTranslationManager.tsx:858
 msgid "Since this draft was written"
 msgstr "自撰寫此草稿以來"
 
@@ -5155,11 +5156,11 @@ msgstr "部分本機儲存的圖片已無法使用，已從草稿中移除。"
 msgid "Some posts in this thread cannot be shown."
 msgstr "此討論串中的部分內容無法顯示。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:543
-#: src/components/article-translations/ArticleTranslationManager.tsx:595
-#: src/components/article-translations/ArticleTranslationManager.tsx:661
-#: src/components/article-translations/ArticleTranslationManager.tsx:689
-#: src/components/article-translations/ArticleTranslationManager.tsx:722
+#: src/components/article-translations/ArticleTranslationManager.tsx:566
+#: src/components/article-translations/ArticleTranslationManager.tsx:618
+#: src/components/article-translations/ArticleTranslationManager.tsx:684
+#: src/components/article-translations/ArticleTranslationManager.tsx:712
+#: src/components/article-translations/ArticleTranslationManager.tsx:745
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "其他人儲存了此翻譯。請重新載入後再試。"
 
@@ -5355,8 +5356,8 @@ msgstr "這不是有效的中繼 actor URL。"
 msgid "That is not a valid URL pattern."
 msgstr "這不是有效的 URL 模式。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:592
-#: src/components/article-translations/ArticleTranslationManager.tsx:658
+#: src/components/article-translations/ArticleTranslationManager.tsx:615
+#: src/components/article-translations/ArticleTranslationManager.tsx:681
 msgid "That language is not available or the input is invalid."
 msgstr "該語言無法使用，或輸入無效。"
 
@@ -5389,7 +5390,7 @@ msgstr "瀏覽器未提供完整的推播通知訂閱。"
 msgid "The conversion request could not be created. Please try again."
 msgstr "無法建立轉換請求。請重試。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:642
+#: src/components/article-translations/ArticleTranslationManager.tsx:665
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "署名的譯者已無法編輯此文章，因此該草稿將署名為你。已發布的翻譯在你發布之前仍保留原有署名。"
 
@@ -5520,7 +5521,7 @@ msgstr "擁有發文權限的組織成員將取得此草稿的存取權。之後
 msgid "The original has changed"
 msgstr "原文已變更"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:774
+#: src/components/article-translations/ArticleTranslationManager.tsx:797
 msgid "The original has changed since this translation was last reviewed."
 msgstr "自上次審核此翻譯以來，原文已變更。"
 
@@ -5592,11 +5593,11 @@ msgstr "Web Push 公開金鑰無效。"
 msgid "There are no moderation actions on your account."
 msgstr "你的帳戶沒有任何審核處理。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:814
+#: src/components/article-translations/ArticleTranslationManager.tsx:837
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "沒有可供比較的早期原文，因此僅顯示目前的原文。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:546
+#: src/components/article-translations/ArticleTranslationManager.tsx:569
 msgid "There is nothing to review for this language."
 msgstr "此語言沒有可審核的翻譯。"
 
@@ -5662,6 +5663,10 @@ msgstr "此案件不存在。"
 #: src/routes/(root)/admin/moderation/[id].tsx:419
 msgid "This case is resolved."
 msgstr "此案件已處置。"
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:418
+msgid "This change is saved, but the article page could not be refreshed. Reload to see it."
+msgstr "變更已儲存，但文章頁面未能重新整理。重新載入即可看到更新後的內容。"
 
 #: src/components/NoteComposer.tsx:1322
 msgid "This clears the saved draft from this browser."
@@ -5741,7 +5746,7 @@ msgstr "內容過長（最多 {MAX_REASON_LENGTH} 個字元）。"
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "此語言在沒有私人草稿的情況下已發布。你可以在此審核，或新增翻譯以開始編輯。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1056
+#: src/components/article-translations/ArticleTranslationManager.tsx:1089
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "此語言已發布，但沒有私人草稿。可在此審核，或開始編輯以建立私人變更。"
 
@@ -5823,7 +5828,7 @@ msgstr "時間軸"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:843
+#: src/components/article-translations/ArticleTranslationManager.tsx:866
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "標題"
@@ -5852,12 +5857,12 @@ msgstr "檢舉總數"
 msgid "Total: {0}"
 msgstr "共 {0} 個"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1111
+#: src/components/article-translations/ArticleTranslationManager.tsx:1144
 msgid "Translated body"
 msgstr "翻譯內文"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:931
-#: src/components/article-translations/ArticleTranslationManager.tsx:992
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
+#: src/components/article-translations/ArticleTranslationManager.tsx:1015
 msgid "Translated by"
 msgstr "譯者:"
 
@@ -5882,7 +5887,7 @@ msgstr "由作者翻譯"
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1100
+#: src/components/article-translations/ArticleTranslationManager.tsx:1133
 msgid "Translated title"
 msgstr "翻譯標題"
 
@@ -6179,7 +6184,7 @@ msgstr "查看請求"
 msgid "View shares"
 msgstr "查看轉貼"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:785
+#: src/components/article-translations/ArticleTranslationManager.tsx:808
 msgid "View source changes"
 msgstr "檢視原文變更"
 
@@ -6440,7 +6445,7 @@ msgstr "你只能編輯自己的帳戶或你有發文權限的組織的草稿"
 msgid "You can only manage translations for a draft you can edit."
 msgstr "你只能管理你有權編輯的草稿的翻譯。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:281
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:279
 msgid "You can only manage translations for an article you can edit."
 msgstr "你只能管理你有權編輯的文章的翻譯。"
 
@@ -6495,20 +6500,20 @@ msgstr "你還沒有靜音任何帳號。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "你可能已經申訴過，或申訴期限已結束。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:694
+#: src/components/article-translations/ArticleTranslationManager.tsx:717
 msgid "You may not have permission to delete this translation."
 msgstr "你可能沒有刪除此翻譯的權限。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:727
+#: src/components/article-translations/ArticleTranslationManager.tsx:750
 msgid "You may not have permission to publish this translation."
 msgstr "你可能沒有發布此翻譯的權限。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:548
+#: src/components/article-translations/ArticleTranslationManager.tsx:571
 msgid "You may not have permission to review this translation."
 msgstr "你可能沒有權限審核此翻譯。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:598
-#: src/components/article-translations/ArticleTranslationManager.tsx:664
+#: src/components/article-translations/ArticleTranslationManager.tsx:621
+#: src/components/article-translations/ArticleTranslationManager.tsx:687
 msgid "You may not have permission to save this translation."
 msgstr "你可能沒有儲存此翻譯的權限。"
 
