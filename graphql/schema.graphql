@@ -409,7 +409,7 @@ type AccountReportsConnectionEdge {
 """
 Record that an authorized editor compared a translation against a specific source revision and decided it needs no change, for example after a typo fix in the original. It moves the reviewed baseline without touching the translated text or the public translator credit, and it credits the acknowledging individual as the version's reviewer, which is separate from that credit.
 
-The revision must be named explicitly: an acknowledgement speaks only for the revision that was actually read. If the original moved while the comparison was open, passing the older revision leaves the translation in `NEEDS_REVIEW`, which is intended. Both the private draft (when the language has one) and the published version are advanced, because publishing copies the draft's baseline. Requires authentication and the same authority that governs editing the article.
+The revision must be named explicitly: an acknowledgement speaks only for the revision that was actually read. If the original moved while the comparison was open, passing the older revision leaves the translation in `NEEDS_REVIEW`, which is intended. Both the private draft (when the language has one) and the published version are advanced, because publishing copies the draft's baseline. When the published version's baseline actually moves, its public freshness changes, so the article's object version advances and an ActivityPub `Update` is sent; acknowledging a private draft alone sends nothing. Requires authentication and the same authority that governs editing the article.
 """
 input AcknowledgeArticleTranslationSourceInput {
   """
@@ -453,7 +453,7 @@ type AcknowledgeArticleTranslationSourcePayload {
   translationDraft: ArticleTranslationDraft
 }
 
-union AcknowledgeArticleTranslationSourceResult = AcknowledgeArticleTranslationSourcePayload | ArticleDraftConflictError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
+union AcknowledgeArticleTranslationSourceResult = AcknowledgeArticleTranslationSourcePayload | ActorSuspendedError | ArticleDraftConflictError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 """
 An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account`; only `PERSONAL` accounts hold direct login credentials, while `ORGANIZATION` accounts are controlled through memberships. When in doubt, use `Actor` for display and `Account` for viewer, organization, or moderation state.
@@ -1068,6 +1068,19 @@ type Article implements Node & Post & Reactable {
   The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  The best content variant for `language`: BCP 47 negotiation among `contentVariants` first, then the default variant. Omit `language` to get the default variant. Use this to render a post in the reader's language.
+  """
+  contentVariant(
+    """The preferred language, usually the viewer's locale."""
+    language: Locale
+  ): PostContentVariant!
+
+  """
+  Every stored content variant of this post, default first. Not paginated: it mirrors the bounded language alternatives of one ActivityPub object. It lists content-bearing variants only; a title- or summary-only language entry never appears by itself.
+  """
+  contentVariants: [PostContentVariant!]!
 
   """
   All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.  Empty when the article is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.
@@ -3838,6 +3851,11 @@ type Mutation {
     registrationResponse: JSON!
   ): PasskeyRegistrationResult!
   voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
+
+  """
+  Withdraw a published translation from an article and send an ActivityPub `Update`. Requires authentication.
+  """
+  withdrawArticleTranslation(input: WithdrawArticleTranslationInput!): WithdrawArticleTranslationResult!
 }
 
 input MuteActorInput {
@@ -4016,6 +4034,19 @@ type Note implements Node & Post & Reactable {
   The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  The best content variant for `language`: BCP 47 negotiation among `contentVariants` first, then the default variant. Omit `language` to get the default variant. Use this to render a post in the reader's language.
+  """
+  contentVariant(
+    """The preferred language, usually the viewer's locale."""
+    language: Locale
+  ): PostContentVariant!
+
+  """
+  Every stored content variant of this post, default first. Not paginated: it mirrors the bounded language alternatives of one ActivityPub object. It lists content-bearing variants only; a title- or summary-only language entry never appears by itself.
+  """
+  contentVariants: [PostContentVariant!]!
 
   """
   Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
@@ -4804,6 +4835,19 @@ interface Post implements Node & Reactable {
   content: HTML!
 
   """
+  The best content variant for `language`: BCP 47 negotiation among `contentVariants` first, then the default variant. Omit `language` to get the default variant. Use this to render a post in the reader's language.
+  """
+  contentVariant(
+    """The preferred language, usually the viewer's locale."""
+    language: Locale
+  ): PostContentVariant!
+
+  """
+  Every stored content variant of this post, default first. Not paginated: it mirrors the bounded language alternatives of one ActivityPub object. It lists content-bearing variants only; a title- or summary-only language entry never appears by itself.
+  """
+  contentVariants: [PostContentVariant!]!
+
+  """
   Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
   """
   descendants(
@@ -5101,6 +5145,104 @@ enum PostAttributionMode {
   ACTING_ACCOUNT_WITH_VIEWER
 }
 
+"""
+Translation metadata of one `PostContentVariant`, following [FEP-22cd](https://w3id.org/fep/22cd). For remote posts every field is a claim made by the publishing server (see `publisherAsserted`): it is not verified, and the credited translators gain no authority over the post.
+"""
+type PostContentTranslation {
+  """
+  Whether the post's own attributed actor is among the credited translators, so the credit can read as translated by the author.
+  """
+  byAuthor: Boolean!
+
+  """
+  Whether the translation reflects the current source. Show a notice for `SOURCE_CHANGED`, and never present `UNKNOWN` as current.
+  """
+  freshness: PostTranslationFreshness!
+
+  """
+  How the translation was produced. Prefer this over inspecting `translators`: a deleted or unresolved account must not turn human work into machine output or the reverse.
+  """
+  kind: PostTranslationKind!
+
+  """
+  `true` for a remote post: the metadata was asserted by the publishing server and not verified here. `false` for a local article, whose metadata this server records itself.
+  """
+  publisherAsserted: Boolean!
+
+  """
+  The FEP-22cd `sourceUpdated` value: the source's `updated` (or `published`) timestamp this translation is known to reflect. `null` when no claim is made, which is always the case for unreviewed machine output.
+  """
+  sourceUpdated: DateTime
+
+  """
+  IRIs of every actor credited for this translation, exactly as published, including actors this server cannot resolve and deleted accounts (whose IRIs now resolve to a `Tombstone`). Their order has no meaning. Empty for a legacy version whose translator is unknown.
+  """
+  translatorIris: [URL!]!
+
+  """
+  The credited actors this server knows, a subset of `translatorIris`. Use it to link to their profiles; an IRI missing here is not evidence of machine translation.
+  """
+  translators: [Actor!]!
+}
+
+"""
+One language version of a post's content. Remote posts get one per language in the ActivityStreams `contentMap`; local articles get one per published language version. A post that published no language alternatives has a single variant built from its own fields. Content-bearing fields are emptied under the same censorship and moderation-sanction rules as `Post.content`.
+"""
+type PostContentVariant {
+  """
+  Full HTML content in this language, rendered like `Post.content`. Empty when redacted for the viewer.
+  """
+  content: HTML!
+
+  """
+  Whether this is the default variant: the ActivityPub default value for a remote post, or the original language for a local article. At most one variant of a post is the default.
+  """
+  default: Boolean!
+
+  """
+  Plain-text excerpt: `summary` when set, otherwise the content stripped of tags. Empty when redacted for the viewer.
+  """
+  excerpt: String!
+
+  """
+  A sanitized HTML preview clipped to about `maxChars` visible characters, like `Post.excerptHtml`. It does not fall back to `summary`. Empty when redacted for the viewer.
+  """
+  excerptHtml(
+    """Approximate number of visible characters to keep."""
+    maxChars: Int!
+  ): HTML!
+
+  """
+  BCP 47 language tag of this variant. `null` when the publisher supplied a default value without a language tag.
+  """
+  language: Locale
+
+  """
+  Title in this language. `null` when the publisher gave no title in this language (it never falls back to another language) or when the content is redacted for the viewer.
+  """
+  name: String
+
+  """
+  The language this variant was translated from, when known. `null` for a default or original variant and for remote language alternatives, which are not necessarily translations; use `translation` to tell whether one is.
+  """
+  originalLanguage: Locale
+
+  """
+  Summary in this language, or `null` when there is none or the content is redacted for the viewer.
+  """
+  summary: String
+
+  """
+  Translation credit and freshness, or `null` when this variant is not known to be a translation (an original, a default value, or a remote language alternative without FEP-22cd metadata), or when the content is redacted for the viewer.
+  """
+  translation: PostContentTranslation
+
+  """
+  Web page of this language version when the publisher has one, otherwise the post's own URL (or IRI).
+  """
+  url: URL!
+}
+
 type PostDescendantsConnection {
   edges: [PostDescendantsConnectionEdge!]!
   pageInfo: PageInfo!
@@ -5283,6 +5425,49 @@ type PostSharesConnection {
 type PostSharesConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+"""
+Whether a translated `PostContentVariant` reflects the current version of its source.
+"""
+enum PostTranslationFreshness {
+  """The translation was reviewed against the current source."""
+  CURRENT
+
+  """
+  The source changed after the translation was last reviewed, so it may miss those changes. It does not mean the translation is wrong.
+  """
+  SOURCE_CHANGED
+
+  """
+  No freshness information: nobody recorded which source version the translation follows (or, for a remote post, the publisher made no claim). Never present this as `CURRENT` or as a known source change.
+  """
+  UNKNOWN
+}
+
+"""
+How a translated `PostContentVariant` was produced, as far as it is known. For local articles it follows `ArticleContent.provenance`; for remote posts it is derived from the actor types the publisher credited in its [FEP-22cd](https://w3id.org/fep/22cd) metadata.
+"""
+enum PostTranslationKind {
+  """
+  Translated by people (only `Person`, `Organization`, or `Group` actors are credited).
+  """
+  HUMAN
+
+  """
+  Machine output that no person reviewed (only `Application` or `Service` actors are credited).
+  """
+  MACHINE
+
+  """
+  Machine output reviewed by a person. The credited person reviewed it; do not present them as having translated it from scratch.
+  """
+  MACHINE_REVIEWED
+
+  """
+  Not established: a legacy local version, or a remote one whose credited actors could not all be resolved or that credits nobody. Never present this as either human or machine translation.
+  """
+  UNKNOWN
 }
 
 """
@@ -5941,6 +6126,19 @@ type Question implements Node & Post & Reactable {
   The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  The best content variant for `language`: BCP 47 negotiation among `contentVariants` first, then the default variant. Omit `language` to get the default variant. Use this to render a post in the reader's language.
+  """
+  contentVariant(
+    """The preferred language, usually the viewer's locale."""
+    language: Locale
+  ): PostContentVariant!
+
+  """
+  Every stored content variant of this post, default first. Not paginated: it mirrors the bounded language alternatives of one ActivityPub object. It lists content-bearing variants only; a title- or summary-only language entry never appears by itself.
+  """
+  contentVariants: [PostContentVariant!]!
 
   """
   Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
@@ -7635,3 +7833,32 @@ type WebFingerResult {
   """The actor's web profile URL."""
   url: URL
 }
+
+"""
+Withdraw a published, human-managed translation from an article. Readers stop seeing that language, and the ActivityPub `Update` sent for the article omits both its `contentMap` entry and its [FEP-22cd](https://w3id.org/fep/22cd) translation metadata, which peers read as a withdrawal; the article itself keeps its identity, replies and reactions. The language's private translation draft, if any, is kept and becomes unpublished. Automatic translations cannot be withdrawn this way (they follow `allowLlmTranslation`), and while that setting stays enabled a reader can request an automatic translation of the withdrawn language again. Requires authentication and the same authority that governs editing the article.
+"""
+input WithdrawArticleTranslationInput {
+  clientMutationId: ID
+
+  """The translated language to withdraw, never the original language."""
+  language: Locale!
+
+  """The published `Article.sourceId`."""
+  sourceId: UUID!
+}
+
+type WithdrawArticleTranslationPayload {
+  """The article the translation was withdrawn from."""
+  article: Article!
+  clientMutationId: ID
+
+  """The withdrawn language."""
+  language: Locale!
+
+  """
+  The language's private translation draft, now unpublished, or `null` when it has none.
+  """
+  translationDraft: ArticleTranslationDraft
+}
+
+union WithdrawArticleTranslationResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | WithdrawArticleTranslationPayload
