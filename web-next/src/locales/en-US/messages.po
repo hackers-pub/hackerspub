@@ -641,7 +641,7 @@ msgstr "Active since"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1063
+#: src/components/article-translations/ArticleTranslationManager.tsx:1112
 #: src/routes/(root)/[handle]/settings/account.tsx:1835
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
@@ -675,11 +675,11 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1041
+#: src/components/article-translations/ArticleTranslationManager.tsx:1090
 msgid "Add translation"
 msgstr "Add translation"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:898
+#: src/components/article-translations/ArticleTranslationManager.tsx:947
 msgid "Added line:"
 msgstr "Added line:"
 
@@ -1019,7 +1019,7 @@ msgstr "Auto-fill"
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1009
+#: src/components/article-translations/ArticleTranslationManager.tsx:1058
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "Automatic translation"
@@ -1622,7 +1622,7 @@ msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1202
+#: src/components/article-translations/ArticleTranslationManager.tsx:1251
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "Delete draft"
@@ -1823,7 +1823,7 @@ msgstr "Edit note"
 msgid "Edit original"
 msgstr "Edit original"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1096
+#: src/components/article-translations/ArticleTranslationManager.tsx:1145
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "Edit this translation"
@@ -2061,8 +2061,8 @@ msgstr "Failed to delete orphan media."
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:715
-#: src/components/article-translations/ArticleTranslationManager.tsx:721
+#: src/components/article-translations/ArticleTranslationManager.tsx:764
+#: src/components/article-translations/ArticleTranslationManager.tsx:770
 msgid "Failed to delete the translation draft."
 msgstr "Failed to delete the translation draft."
 
@@ -2205,8 +2205,8 @@ msgstr "Failed to mute this user"
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:748
-#: src/components/article-translations/ArticleTranslationManager.tsx:755
+#: src/components/article-translations/ArticleTranslationManager.tsx:797
+#: src/components/article-translations/ArticleTranslationManager.tsx:804
 msgid "Failed to publish the translation."
 msgstr "Failed to publish the translation."
 
@@ -2225,7 +2225,7 @@ msgstr "Failed to react"
 msgid "Failed to recompute news scores."
 msgstr "Failed to recompute news scores."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:575
+#: src/components/article-translations/ArticleTranslationManager.tsx:623
 msgid "Failed to record the review."
 msgstr "Failed to record the review."
 
@@ -2299,8 +2299,8 @@ msgstr "Failed to save settings"
 msgid "Failed to save the draft."
 msgstr "Failed to save the draft."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:625
-#: src/components/article-translations/ArticleTranslationManager.tsx:691
+#: src/components/article-translations/ArticleTranslationManager.tsx:673
+#: src/components/article-translations/ArticleTranslationManager.tsx:740
 msgid "Failed to save the translation."
 msgstr "Failed to save the translation."
 
@@ -2476,7 +2476,7 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:439
+#: src/components/article-translations/ArticleTranslationManager.tsx:487
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "Freshness unverified"
@@ -2711,7 +2711,7 @@ msgstr "Hide me from the invitation tree"
 msgid "Hide replies"
 msgstr "Hide replies"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:808
+#: src/components/article-translations/ArticleTranslationManager.tsx:857
 msgid "Hide source changes"
 msgstr "Hide source changes"
 
@@ -2723,7 +2723,7 @@ msgstr "Hide source changes"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1067
+#: src/components/article-translations/ArticleTranslationManager.tsx:1116
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "If a private draft already exists for a language, it opens instead of creating a duplicate."
 
@@ -2949,7 +2949,7 @@ msgstr "Language settings"
 msgid "Language shown when the view was counted."
 msgstr "Language shown when the view was counted."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:929
+#: src/components/article-translations/ArticleTranslationManager.tsx:978
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -3438,7 +3438,7 @@ msgstr "Name is too long. Maximum length is 50 characters."
 msgid "Native name"
 msgstr "Native name"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:437
+#: src/components/article-translations/ArticleTranslationManager.tsx:485
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "Needs review"
@@ -3530,7 +3530,7 @@ msgstr "No analyzed reports have been processed yet."
 msgid "No appeals match these filters."
 msgstr "No appeals match these filters."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:798
+#: src/components/article-translations/ArticleTranslationManager.tsx:847
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "No baseline was recorded for this translation, so its freshness cannot be verified."
 
@@ -3663,12 +3663,12 @@ msgstr "No shared links yet. Once links start circulating across the fediverse, 
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:825
+#: src/components/article-translations/ArticleTranslationManager.tsx:874
 msgid "No translation changes needed"
 msgstr "No translation changes needed"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:950
-#: src/components/article-translations/ArticleTranslationManager.tsx:1010
+#: src/components/article-translations/ArticleTranslationManager.tsx:999
+#: src/components/article-translations/ArticleTranslationManager.tsx:1059
 msgid "No translator credit"
 msgstr "No translator credit"
 
@@ -3730,7 +3730,7 @@ msgstr "Not found"
 #~ msgid "Not found."
 #~ msgstr "Not found."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:965
+#: src/components/article-translations/ArticleTranslationManager.tsx:1014
 msgid "Not published"
 msgstr "Not published"
 
@@ -3810,7 +3810,7 @@ msgstr "Oldest signups"
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:848
+#: src/components/article-translations/ArticleTranslationManager.tsx:897
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "One of these versions has no recorded baseline, so its changes cannot be shown."
 
@@ -3902,7 +3902,7 @@ msgstr "Organization invitations"
 msgid "Organization members"
 msgstr "Organization members"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1151
+#: src/components/article-translations/ArticleTranslationManager.tsx:1200
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "Original"
@@ -4187,7 +4187,7 @@ msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "Prepare this account as the destination for a Mastodon-style move."
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1161
+#: src/components/article-translations/ArticleTranslationManager.tsx:1210
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "Preview"
@@ -4268,7 +4268,7 @@ msgstr "Publish"
 msgid "Publish article"
 msgstr "Publish article"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1193
+#: src/components/article-translations/ArticleTranslationManager.tsx:1242
 msgid "Publish changes"
 msgstr "Publish changes"
 
@@ -4284,7 +4284,7 @@ msgstr "Publish settings"
 msgid "Publish this as a note?"
 msgstr "Publish this as a note?"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1192
+#: src/components/article-translations/ArticleTranslationManager.tsx:1241
 msgid "Publish translation"
 msgstr "Publish translation"
 
@@ -4297,7 +4297,7 @@ msgctxt "publication state"
 msgid "Published"
 msgstr "Published"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:964
+#: src/components/article-translations/ArticleTranslationManager.tsx:1013
 msgid "Published; unpublished changes"
 msgstr "Published; unpublished changes"
 
@@ -4604,7 +4604,7 @@ msgstr "Remove poll"
 msgid "Remove quote"
 msgstr "Remove quote"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:897
+#: src/components/article-translations/ArticleTranslationManager.tsx:946
 msgid "Removed line:"
 msgstr "Removed line:"
 
@@ -4754,7 +4754,7 @@ msgstr "Review rationale (shown to the appellant)"
 msgid "Review request"
 msgstr "Review request"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:440
+#: src/components/article-translations/ArticleTranslationManager.tsx:488
 msgid "Reviewed"
 msgstr "Reviewed"
 
@@ -4825,7 +4825,7 @@ msgid "Save changes"
 msgstr "Save changes"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1181
+#: src/components/article-translations/ArticleTranslationManager.tsx:1230
 msgid "Save draft"
 msgstr "Save draft"
 
@@ -4833,7 +4833,7 @@ msgstr "Save draft"
 #~ msgid "Save draft to see preview"
 #~ msgstr "Save draft to see preview"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:820
+#: src/components/article-translations/ArticleTranslationManager.tsx:869
 msgid "Save or discard your unsaved changes first."
 msgstr "Save or discard your unsaved changes first."
 
@@ -4903,7 +4903,7 @@ msgstr "Search results for {0}"
 msgid "Searching…"
 msgstr "Searching…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1114
+#: src/components/article-translations/ArticleTranslationManager.tsx:1163
 msgid "Select a language to edit its translation."
 msgstr "Select a language to edit its translation."
 
@@ -5119,11 +5119,11 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:857
+#: src/components/article-translations/ArticleTranslationManager.tsx:906
 msgid "Since the published version was last reviewed"
 msgstr "Since the published version was last reviewed"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:858
+#: src/components/article-translations/ArticleTranslationManager.tsx:907
 msgid "Since this draft was written"
 msgstr "Since this draft was written"
 
@@ -5160,11 +5160,11 @@ msgstr "Some locally saved images are no longer available and were removed from 
 msgid "Some posts in this thread cannot be shown."
 msgstr "Some posts in this thread cannot be shown."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:566
-#: src/components/article-translations/ArticleTranslationManager.tsx:618
-#: src/components/article-translations/ArticleTranslationManager.tsx:684
-#: src/components/article-translations/ArticleTranslationManager.tsx:712
-#: src/components/article-translations/ArticleTranslationManager.tsx:745
+#: src/components/article-translations/ArticleTranslationManager.tsx:614
+#: src/components/article-translations/ArticleTranslationManager.tsx:666
+#: src/components/article-translations/ArticleTranslationManager.tsx:733
+#: src/components/article-translations/ArticleTranslationManager.tsx:761
+#: src/components/article-translations/ArticleTranslationManager.tsx:794
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "Someone else saved this translation. Reload and try again."
 
@@ -5360,8 +5360,8 @@ msgstr "That is not a valid relay actor URL."
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:615
-#: src/components/article-translations/ArticleTranslationManager.tsx:681
+#: src/components/article-translations/ArticleTranslationManager.tsx:663
+#: src/components/article-translations/ArticleTranslationManager.tsx:730
 msgid "That language is not available or the input is invalid."
 msgstr "That language is not available or the input is invalid."
 
@@ -5394,7 +5394,7 @@ msgstr "The browser did not provide a complete push subscription."
 msgid "The conversion request could not be created. Please try again."
 msgstr "The conversion request could not be created. Please try again."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:665
+#: src/components/article-translations/ArticleTranslationManager.tsx:714
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 
@@ -5525,7 +5525,7 @@ msgstr "The organization's members with posting permission will gain access to t
 msgid "The original has changed"
 msgstr "The original has changed"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:797
+#: src/components/article-translations/ArticleTranslationManager.tsx:846
 msgid "The original has changed since this translation was last reviewed."
 msgstr "The original has changed since this translation was last reviewed."
 
@@ -5597,11 +5597,11 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:837
+#: src/components/article-translations/ArticleTranslationManager.tsx:886
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "There is no earlier version of the original to compare with, so only the current original is shown."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:569
+#: src/components/article-translations/ArticleTranslationManager.tsx:617
 msgid "There is nothing to review for this language."
 msgstr "There is nothing to review for this language."
 
@@ -5669,8 +5669,12 @@ msgid "This case is resolved."
 msgstr "This case is resolved."
 
 #: src/components/article-translations/ArticleTranslationManager.tsx:418
-msgid "This change is saved, but the article page could not be refreshed. Reload to see it."
-msgstr "This change is saved, but the article page could not be refreshed. Reload to see it."
+#~ msgid "This change is saved, but the article page could not be refreshed. Reload to see it."
+#~ msgstr "This change is saved, but the article page could not be refreshed. Reload to see it."
+
+#: src/components/article-translations/ArticleTranslationManager.tsx:465
+msgid "This change is saved, but the translation list or the article page could not be refreshed. Reload to see it."
+msgstr "This change is saved, but the translation list or the article page could not be refreshed. Reload to see it."
 
 #: src/components/NoteComposer.tsx:1322
 msgid "This clears the saved draft from this browser."
@@ -5750,7 +5754,7 @@ msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "This language is published without a private draft. Review it here, or add a translation to start editing it."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1089
+#: src/components/article-translations/ArticleTranslationManager.tsx:1138
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "This language is published without a private draft. Review it here, or start editing to make private changes."
 
@@ -5832,7 +5836,7 @@ msgstr "Timeline"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:866
+#: src/components/article-translations/ArticleTranslationManager.tsx:915
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "Title"
@@ -5861,12 +5865,12 @@ msgstr "Total reports"
 msgid "Total: {0}"
 msgstr "Total: {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1144
+#: src/components/article-translations/ArticleTranslationManager.tsx:1193
 msgid "Translated body"
 msgstr "Translated body"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:954
-#: src/components/article-translations/ArticleTranslationManager.tsx:1015
+#: src/components/article-translations/ArticleTranslationManager.tsx:1003
+#: src/components/article-translations/ArticleTranslationManager.tsx:1064
 msgid "Translated by"
 msgstr "Translated by"
 
@@ -5891,7 +5895,7 @@ msgstr "Translated by the author"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1133
+#: src/components/article-translations/ArticleTranslationManager.tsx:1182
 msgid "Translated title"
 msgstr "Translated title"
 
@@ -6188,7 +6192,7 @@ msgstr "View request"
 msgid "View shares"
 msgstr "View shares"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:808
+#: src/components/article-translations/ArticleTranslationManager.tsx:857
 msgid "View source changes"
 msgstr "View source changes"
 
@@ -6504,20 +6508,20 @@ msgstr "You haven't muted anyone."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "You may have already appealed, or the appeal window has closed."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:717
+#: src/components/article-translations/ArticleTranslationManager.tsx:766
 msgid "You may not have permission to delete this translation."
 msgstr "You may not have permission to delete this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:750
+#: src/components/article-translations/ArticleTranslationManager.tsx:799
 msgid "You may not have permission to publish this translation."
 msgstr "You may not have permission to publish this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:571
+#: src/components/article-translations/ArticleTranslationManager.tsx:619
 msgid "You may not have permission to review this translation."
 msgstr "You may not have permission to review this translation."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:621
-#: src/components/article-translations/ArticleTranslationManager.tsx:687
+#: src/components/article-translations/ArticleTranslationManager.tsx:669
+#: src/components/article-translations/ArticleTranslationManager.tsx:736
 msgid "You may not have permission to save this translation."
 msgstr "You may not have permission to save this translation."
 

@@ -163,6 +163,17 @@ export {
   translationReviewState,
 } from "~/lib/translationReview.ts";
 
+/**
+ * A message that outlives the editor reload following a write.
+ *
+ * The kind records what made it true, so a later write can retire exactly the
+ * messages it invalidated instead of clearing the panel wholesale.
+ */
+interface ManagerNotice {
+  readonly kind: "reopenCredit" | "refreshFailed";
+  readonly message: string;
+}
+
 export interface ArticleSourceRevisionView {
   uuid: TranslationUuid;
   title: string;
@@ -292,8 +303,9 @@ export function ArticleTranslationManager(
   const [error, setError] = createSignal<string | undefined>();
   // Kept apart from `error`, which the selection effect below clears whenever
   // the editor reloads: these messages have to survive the selection change
-  // and the list reload that follow a reopen or a publish.
-  const [notice, setNotice] = createSignal<string | undefined>();
+  // and the list reload that follow a reopen or a publish. The kind is what
+  // lets a later success retire the message it actually invalidated.
+  const [notice, setNotice] = createSignal<ManagerNotice | undefined>();
   // True while a mutation's follow-up reload is in flight, so the editor is
   // not reset under the user's fingers between the save echo and the refetch.
   const [reloading, setReloading] = createSignal(false);
@@ -406,28 +418,54 @@ export function ArticleTranslationManager(
   const refreshPublic = async (language: string) => {
     setReloading(true);
     try {
-      await props.onChanged();
-      await props.onPublicChange?.(language);
+      // Both refreshes always run. Awaiting them in sequence meant a failed
+      // list reload skipped the article refresh entirely, which is the one
+      // that readers can see; they are independent refetches, so neither has
+      // to wait for the other. The first failure is reported once both are
+      // done.
+      const results = await Promise.allSettled([
+        props.onChanged(),
+        props.onPublicChange?.(language),
+      ]);
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure != null) throw failure.reason;
     } finally {
       setReloading(false);
     }
   };
 
   /**
-   * Runs the public refresh and tells the editor when it fails.
+   * Runs the post-write refresh and tells the editor when it fails.
    *
    * The write itself has already succeeded by this point, so this is not an
-   * error: it only means this tab may still be showing the article as it was.
-   * The message goes to `notice` rather than `error` because the list reload
+   * error: it only means this tab may still be showing the old state. The
+   * message goes to `notice` rather than `error` because the list reload
    * inside `refreshPublic` clears `error` on its way past.
+   *
+   * @param published Whether the write replaced the public version. A
+   *                  successful publish retires the reopen credit notice too,
+   *                  because its promise that the published version keeps its
+   *                  original credit has just stopped being true.
    */
-  const refreshPublicOrNotify = (language: string) => {
-    void refreshPublic(language).catch((cause: unknown) => {
-      console.error("Failed to refresh the public article:", cause);
-      setNotice(
-        t`This change is saved, but the article page could not be refreshed. Reload to see it.`,
-      );
-    });
+  const refreshPublicOrNotify = (language: string, published: boolean) => {
+    void refreshPublic(language).then(
+      () => {
+        setNotice((current) =>
+          current == null ||
+          current.kind === "refreshFailed" ||
+          (published && current.kind === "reopenCredit")
+            ? undefined
+            : current,
+        );
+      },
+      (cause: unknown) => {
+        console.error("Failed to refresh after a public change:", cause);
+        setNotice({
+          kind: "refreshFailed",
+          message: t`This change is saved, but the translation list or the article page could not be refreshed. Reload to see it.`,
+        });
+      },
+    );
   };
 
   const busy = () =>
@@ -568,7 +606,7 @@ export function ArticleTranslationManager(
           payload.__typename === "AcknowledgeArticleTranslationSourcePayload"
         ) {
           setShowComparison(false);
-          refreshPublicOrNotify(acknowledgedLanguage);
+          refreshPublicOrNotify(acknowledgedLanguage, false);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -671,9 +709,10 @@ export function ArticleTranslationManager(
         if (payload.__typename === "SaveArticleTranslationDraftPayload") {
           selectDraft(payload.draft.uuid);
           if (dropTranslator) {
-            setNotice(
-              t`The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish.`,
-            );
+            setNotice({
+              kind: "reopenCredit",
+              message: t`The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish.`,
+            });
           }
           // A private draft is not public yet, so this is a plain reload.
           void refresh();
@@ -747,7 +786,7 @@ export function ArticleTranslationManager(
       onCompleted(response) {
         const payload = response.publishArticleTranslation;
         if (payload.__typename === "PublishArticleTranslationPayload") {
-          refreshPublicOrNotify(payload.language);
+          refreshPublicOrNotify(payload.language, true);
           return;
         }
         if (payload.__typename === "ArticleDraftConflictError") {
@@ -1085,7 +1124,7 @@ export function ArticleTranslationManager(
         <Show when={notice()}>
           {(notice) => (
             <p class="mb-4 rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
-              {notice()}
+              {notice().message}
             </p>
           )}
         </Show>
