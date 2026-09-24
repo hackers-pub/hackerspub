@@ -33,6 +33,7 @@ const variantQuery = parse(`
       ... on Post {
         contentVariant(language: $language) {
           language
+          url
           name
           summary
           content
@@ -59,6 +60,7 @@ const variantQuery = parse(`
 interface VariantResult {
   contentVariant: {
     language: string | null;
+    url: string;
     name: string | null;
     summary: string | null;
     content: string;
@@ -176,6 +178,11 @@ test("a remote article's variants expose the publisher's translation claims", as
     assert.equal(censored.contentVariant.content, "");
     assert.equal(censored.contentVariant.name, null);
     assert.equal(censored.contentVariant.translation, null);
+    // The link leads to the local notice, not the uncensored origin.
+    assert.equal(
+      censored.contentVariant.url,
+      `http://localhost/@gqlvariantauthor@remote.example/${post.id}`,
+    );
   });
 });
 

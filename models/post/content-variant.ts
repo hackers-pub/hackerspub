@@ -149,10 +149,17 @@ function classify(types: readonly (ActorType | null)[]): PostTranslationKind {
   return "human";
 }
 
+/**
+ * The language version's web page, kept only when it is an `http(s)` URL:
+ * readers follow it as a link, so a `javascript:` or `data:` URL from a
+ * remote publisher must never be stored.
+ */
 function linkHref(value: URL | vocab.Link | null): string | null {
-  if (value == null) return null;
-  if (value instanceof URL) return value.href;
-  return value.href?.href ?? null;
+  const url = value instanceof URL ? value : (value?.href ?? null);
+  if (url == null) return null;
+  return url.protocol === "https:" || url.protocol === "http:"
+    ? url.href
+    : null;
 }
 
 export interface AttachTranslationMetadataOptions {

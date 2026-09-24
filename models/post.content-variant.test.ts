@@ -431,6 +431,8 @@ test("dropped translator IRIs keep the classification unknown", async () => {
           // dropped before classification.
           translators: [new URL(author.iri), new URL("urn:example:bot")],
           original: id,
+          // Readers follow this as a link, so it must never be stored.
+          url: new URL("javascript:alert(1)"),
         }),
       ],
     });
@@ -438,5 +440,6 @@ test("dropped translator IRIs keep the classification unknown", async () => {
     const variants = await variantsOf(tx, id.href);
     assert.equal(variants.get("ko")?.translationKind, "unknown");
     assert.deepEqual(variants.get("ko")?.translatorIris, [author.iri]);
+    assert.equal(variants.get("ko")?.url, null);
   });
 });

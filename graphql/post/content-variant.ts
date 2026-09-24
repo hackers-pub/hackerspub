@@ -82,11 +82,13 @@ export const PostTranslationFreshness = builder.enumType(
 /** The post columns a variant needs to render and redact itself. */
 const variantPostSelection = {
   columns: {
+    id: true,
     actorId: true,
     censored: true,
     contentHtml: true,
     emojis: true,
     iri: true,
+    sharedPostId: true,
     language: true,
     name: true,
     quotedPostId: true,
@@ -99,6 +101,7 @@ const variantPostSelection = {
       columns: {
         ...sanctionActorSelection.columns,
         iri: true,
+        handle: true,
       },
     },
     mentions: { with: { actor: true } },
@@ -112,6 +115,8 @@ const variantPostSelection = {
 
 type VariantPost = Pick<
   schema.Post,
+  | "id"
+  | "sharedPostId"
   | "actorId"
   | "censored"
   | "contentHtml"
@@ -126,7 +131,7 @@ type VariantPost = Pick<
 > & {
   actor: Pick<
     schema.Actor,
-    "accountId" | "suspended" | "suspendedUntil" | "iri"
+    "accountId" | "suspended" | "suspendedUntil" | "iri" | "handle"
   >;
   mentions: (schema.Mention & { actor: schema.Actor })[];
   sharedPost?: {
@@ -352,8 +357,22 @@ export const PostContentVariant = builder
         type: "URL",
         description:
           "Web page of this language version when the publisher has one, " +
-          "otherwise the post's own URL (or IRI).",
-        resolve: (shape) => {
+          "otherwise the post's own URL (or IRI).  When the content is " +
+          "redacted for the viewer, a remote post or boost wrapper gets the " +
+          "local permalink that renders the notice instead, like `Post.iri`.",
+        resolve: (shape, _, ctx) => {
+          // Mirror `Post.iri`: a hidden remote post or boost wrapper would
+          // otherwise link to the uncensored copy on its origin, so it gets
+          // the local permalink that renders the notice instead.
+          if (
+            shape.redacted &&
+            (shape.post.sharedPostId != null || !shape.local)
+          ) {
+            return new URL(
+              `/${shape.post.actor.handle}/${shape.post.id}`,
+              ctx.fedCtx.canonicalOrigin,
+            );
+          }
           for (const value of [
             shape.variant.url,
             shape.post.url,

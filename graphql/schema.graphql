@@ -5238,7 +5238,7 @@ type PostContentVariant {
   translation: PostContentTranslation
 
   """
-  Web page of this language version when the publisher has one, otherwise the post's own URL (or IRI).
+  Web page of this language version when the publisher has one, otherwise the post's own URL (or IRI).  When the content is redacted for the viewer, a remote post or boost wrapper gets the local permalink that renders the notice instead, like `Post.iri`.
   """
   url: URL!
 }
