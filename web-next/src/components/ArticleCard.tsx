@@ -6,12 +6,17 @@ import { createFragment } from "solid-relay";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
+import {
+  remoteTranslationCredit,
+  remoteTranslationFreshness,
+} from "~/lib/translationCredit.ts";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { ArticleCard_article$key } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
+import { useTranslationCreditLabel } from "./ArticleTranslationCredit.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
@@ -269,6 +274,23 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           url
           provenance
         }
+        variant: contentVariant(language: $locale) {
+          language
+          name
+          summary
+          excerptHtml(maxChars: 800)
+          url
+          translation {
+            kind
+            freshness
+            byAuthor
+            translators {
+              id
+              handle
+              type
+            }
+          }
+        }
         language
         published
         publishedYear
@@ -280,106 +302,172 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
     () => props.$article,
   );
 
+  const creditLabel = useTranslationCreditLabel();
+
   return (
     <Show keyed when={article()}>
-      {(article) => (
-        <>
-          <div class="m-4 mb-0 flex gap-3 sm:gap-4">
-            <PostAuthorAvatar $post={article} size="large" />
-            <div class="flex min-w-0 flex-col">
-              <PostAuthorLine $post={article} />
-              <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
-                <Show
-                  when={
-                    article.actor.local &&
-                    article.publishedYear != null &&
-                    article.slug != null
-                  }
-                  fallback={
-                    <a href={article.url ?? article.iri}>
+      {(article) => {
+        // A remote article has no local `contents`; its language versions
+        // come from `contentVariant`, which negotiates the reader's locale.
+        // Every remote field below (title, summary, excerpt, language, link)
+        // reads the same variant so the card never mixes languages.
+        const variant = article.variant;
+        const remoteTitle = () => variant.name ?? article.name;
+        const remoteTitleLanguage = () =>
+          (variant.name != null ? variant.language : article.language) ??
+          undefined;
+        const remoteLanguage = () =>
+          variant.language ?? article.language ?? undefined;
+        const remoteUrl = () => variant.url ?? article.url ?? article.iri;
+        return (
+          <>
+            <div class="m-4 mb-0 flex gap-3 sm:gap-4">
+              <PostAuthorAvatar $post={article} size="large" />
+              <div class="flex min-w-0 flex-col">
+                <PostAuthorLine $post={article} />
+                <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
+                  <Show
+                    when={
+                      article.actor.local &&
+                      article.publishedYear != null &&
+                      article.slug != null
+                    }
+                    fallback={
+                      <a href={article.url ?? article.iri}>
+                        <Timestamp
+                          value={article.published}
+                          capitalizeFirstLetter
+                        />
+                      </a>
+                    }
+                  >
+                    <InternalLink
+                      href={article.url ?? article.iri}
+                      internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                    >
                       <Timestamp
                         value={article.published}
                         capitalizeFirstLetter
                       />
+                    </InternalLink>
+                  </Show>
+                  <Show
+                    keyed
+                    when={
+                      article.contents != null &&
+                      article.contents.length > 0 &&
+                      article.contents[0].originalLanguage
+                    }
+                  >
+                    {(originalLanguage) => {
+                      // A card has no room for a freshness panel, but it must
+                      // still not present human work as machine output: the
+                      // wording follows the stored provenance.
+                      const provenance = () =>
+                        article.contents?.[0]?.provenance;
+                      const message = () =>
+                        provenance() === "LLM"
+                          ? t`Automatic translation from ${"LANGUAGE"}`
+                          : provenance() === "LLM_REVIEWED"
+                            ? t`AI-assisted translation from ${"LANGUAGE"}`
+                            : t`Translated from ${"LANGUAGE"}`;
+                      return (
+                        <>
+                          &middot;{" "}
+                          <span>
+                            <Trans
+                              message={message()}
+                              values={{
+                                LANGUAGE: () => (
+                                  // FIXME: There are multiple original languages,
+                                  //        so the link should refer to the one for
+                                  //        the originalLanguage.
+                                  <a href={article.url ?? article.iri}>
+                                    {new Intl.DisplayNames(i18n.locale, {
+                                      type: "language",
+                                    }).of(originalLanguage)}
+                                  </a>
+                                ),
+                              }}
+                            />
+                          </span>
+                        </>
+                      );
+                    }}
+                  </Show>
+                  <Show
+                    keyed
+                    when={
+                      !article.actor.local &&
+                      (article.contents?.length ?? 0) < 1 &&
+                      variant.translation
+                    }
+                  >
+                    {(translation) => (
+                      <>
+                        &middot;{" "}
+                        <span lang={remoteLanguage()}>
+                          {creditLabel(remoteTranslationCredit(translation))}
+                        </span>
+                        <Show
+                          when={
+                            remoteTranslationFreshness(translation) ===
+                            "source-changed"
+                          }
+                        >
+                          {" "}
+                          &middot; <span>{t`The original has changed`}</span>
+                        </Show>
+                      </>
+                    )}
+                  </Show>
+                </div>
+              </div>
+            </div>
+            <Show when={article.censored}>
+              <CensorshipNotice
+                class="mx-4 mb-0 mt-2"
+                privileged={article.actor.isViewer || moderator()}
+              />
+            </Show>
+            <Show
+              when={
+                article.actor.local
+                  ? (article.contents?.[0]?.title ?? article.name)
+                  : remoteTitle()
+              }
+            >
+              <h1
+                lang={
+                  article.actor.local
+                    ? (article.contents?.[0]?.language ??
+                      article.language ??
+                      undefined)
+                    : remoteTitleLanguage()
+                }
+                class="text-xl font-semibold leading-snug"
+              >
+                <Show
+                  when={article.actor.local}
+                  fallback={
+                    <a
+                      href={remoteUrl()}
+                      lang={remoteTitleLanguage()}
+                      hreflang={remoteLanguage()}
+                      target="_blank"
+                      on:mouseover={() => props.setHover?.(true)}
+                      on:mouseout={() => props.setHover?.(false)}
+                      class="block p-4"
+                    >
+                      {remoteTitle()}
                     </a>
                   }
                 >
                   <InternalLink
-                    href={article.url ?? article.iri}
-                    internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                  >
-                    <Timestamp
-                      value={article.published}
-                      capitalizeFirstLetter
-                    />
-                  </InternalLink>
-                </Show>
-                <Show
-                  keyed
-                  when={
-                    article.contents != null &&
-                    article.contents.length > 0 &&
-                    article.contents[0].originalLanguage
-                  }
-                >
-                  {(originalLanguage) => {
-                    // A card has no room for a freshness panel, but it must
-                    // still not present human work as machine output: the
-                    // wording follows the stored provenance.
-                    const provenance = () => article.contents?.[0]?.provenance;
-                    const message = () =>
-                      provenance() === "LLM"
-                        ? t`Automatic translation from ${"LANGUAGE"}`
-                        : provenance() === "LLM_REVIEWED"
-                          ? t`AI-assisted translation from ${"LANGUAGE"}`
-                          : t`Translated from ${"LANGUAGE"}`;
-                    return (
-                      <>
-                        &middot;{" "}
-                        <span>
-                          <Trans
-                            message={message()}
-                            values={{
-                              LANGUAGE: () => (
-                                // FIXME: There are multiple original languages,
-                                //        so the link should refer to the one for
-                                //        the originalLanguage.
-                                <a href={article.url ?? article.iri}>
-                                  {new Intl.DisplayNames(i18n.locale, {
-                                    type: "language",
-                                  }).of(originalLanguage)}
-                                </a>
-                              ),
-                            }}
-                          />
-                        </span>
-                      </>
-                    );
-                  }}
-                </Show>
-              </div>
-            </div>
-          </div>
-          <Show when={article.censored}>
-            <CensorshipNotice
-              class="mx-4 mb-0 mt-2"
-              privileged={article.actor.isViewer || moderator()}
-            />
-          </Show>
-          <Show when={article.contents?.[0]?.title ?? article.name}>
-            <h1
-              lang={
-                article.contents?.[0]?.language ?? article.language ?? undefined
-              }
-              class="text-xl font-semibold leading-snug"
-            >
-              <Show
-                when={article.actor.local}
-                fallback={
-                  <a
                     href={
                       article.contents?.[0]?.url ?? article.url ?? article.iri
                     }
+                    internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
                     lang={
                       article.contents?.[0]?.language ??
                       article.language ??
@@ -390,20 +478,87 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                       article.language ??
                       undefined
                     }
-                    target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
                     class="block p-4"
                   >
                     {article.contents?.[0]?.title ?? article.name}
-                  </a>
-                }
-              >
-                <InternalLink
+                  </InternalLink>
+                </Show>
+              </h1>
+            </Show>
+            <Show
+              keyed
+              when={
+                article.actor.local && preferAiSummary()
+                  ? (article.contents?.[0]?.summary ?? article.summary)
+                  : null
+              }
+              fallback={
+                <Show
+                  keyed
+                  when={!article.actor.local && variant.summary}
+                  fallback={
+                    <Show
+                      when={article.actor.local}
+                      fallback={
+                        <a
+                          href={remoteUrl()}
+                          lang={remoteLanguage()}
+                          hreflang={remoteLanguage()}
+                          target="_blank"
+                          on:mouseover={() => props.setHover?.(true)}
+                          on:mouseout={() => props.setHover?.(false)}
+                          class="px-4 pb-4"
+                        >
+                          <HtmlContent
+                            html={variant.excerptHtml}
+                            class="line-clamp-4 overflow-hidden"
+                          />
+                        </a>
+                      }
+                    >
+                      <InternalLink
+                        href={article.url ?? article.iri}
+                        internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                        lang={article.language ?? undefined}
+                        hreflang={article.language ?? undefined}
+                        on:mouseover={() => props.setHover?.(true)}
+                        on:mouseout={() => props.setHover?.(false)}
+                        class="px-4 pb-4"
+                      >
+                        <HtmlContent
+                          html={article.excerptHtml}
+                          class="line-clamp-4 overflow-hidden"
+                        />
+                      </InternalLink>
+                    </Show>
+                  }
+                >
+                  {(summary) => (
+                    <HtmlContent
+                      as="a"
+                      href={remoteUrl()}
+                      html={summary}
+                      lang={remoteLanguage()}
+                      hreflang={remoteLanguage()}
+                      target="_blank"
+                      on:mouseover={() => props.setHover?.(true)}
+                      on:mouseout={() => props.setHover?.(false)}
+                      class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4"
+                    />
+                  )}
+                </Show>
+              }
+            >
+              {(llmSummary) => (
+                <HtmlContent
+                  as={InternalLink}
                   href={
                     article.contents?.[0]?.url ?? article.url ?? article.iri
                   }
                   internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                  html={llmSummary}
                   lang={
                     article.contents?.[0]?.language ??
                     article.language ??
@@ -416,114 +571,43 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                   }
                   on:mouseover={() => props.setHover?.(true)}
                   on:mouseout={() => props.setHover?.(false)}
-                  class="block p-4"
+                  data-llm-summary-label={t`Summarized by LLM`}
+                  class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
+                  classList={{
+                    "before:border-transparent": !props.hover?.(),
+                  }}
+                />
+              )}
+            </Show>
+            <Show
+              when={article.actor.local}
+              fallback={
+                <a
+                  href={remoteUrl()}
+                  hreflang={remoteLanguage()}
+                  target="_blank"
+                  on:mouseover={() => props.setHover?.(true)}
+                  on:mouseout={() => props.setHover?.(false)}
+                  class="block p-4 border-t bg-muted text-center"
+                  classList={{
+                    "text-muted-foreground": !props.hover?.(),
+                    "text-accent-foreground": props.hover?.(),
+                    "border-t-muted": !props.hover?.(),
+                    "dark:border-t-black": props.hover?.(),
+                  }}
                 >
-                  {article.contents?.[0]?.title ?? article.name}
-                </InternalLink>
-              </Show>
-            </h1>
-          </Show>
-          <Show
-            keyed
-            when={
-              article.actor.local && preferAiSummary()
-                ? (article.contents?.[0]?.summary ?? article.summary)
-                : null
-            }
-            fallback={
-              <Show
-                keyed
-                when={!article.actor.local && article.summary}
-                fallback={
-                  <Show
-                    when={article.actor.local}
-                    fallback={
-                      <a
-                        href={article.url ?? article.iri}
-                        lang={article.language ?? undefined}
-                        hreflang={article.language ?? undefined}
-                        target="_blank"
-                        on:mouseover={() => props.setHover?.(true)}
-                        on:mouseout={() => props.setHover?.(false)}
-                        class="px-4 pb-4"
-                      >
-                        <HtmlContent
-                          html={article.excerptHtml}
-                          class="line-clamp-4 overflow-hidden"
-                        />
-                      </a>
-                    }
-                  >
-                    <InternalLink
-                      href={article.url ?? article.iri}
-                      internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                      lang={article.language ?? undefined}
-                      hreflang={article.language ?? undefined}
-                      on:mouseover={() => props.setHover?.(true)}
-                      on:mouseout={() => props.setHover?.(false)}
-                      class="px-4 pb-4"
-                    >
-                      <HtmlContent
-                        html={article.excerptHtml}
-                        class="line-clamp-4 overflow-hidden"
-                      />
-                    </InternalLink>
-                  </Show>
-                }
-              >
-                {(summary) => (
-                  <HtmlContent
-                    as="a"
-                    href={article.url ?? article.iri}
-                    html={summary}
-                    lang={article.language ?? undefined}
-                    hreflang={article.language ?? undefined}
-                    target="_blank"
-                    on:mouseover={() => props.setHover?.(true)}
-                    on:mouseout={() => props.setHover?.(false)}
-                    class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4"
-                  />
-                )}
-              </Show>
-            }
-          >
-            {(llmSummary) => (
-              <HtmlContent
-                as={InternalLink}
+                  {t`Read full article`}
+                </a>
+              }
+            >
+              <InternalLink
                 href={article.contents?.[0]?.url ?? article.url ?? article.iri}
                 internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                html={llmSummary}
-                lang={
-                  article.contents?.[0]?.language ??
-                  article.language ??
-                  undefined
-                }
                 hreflang={
                   article.contents?.[0]?.language ??
                   article.language ??
                   undefined
                 }
-                on:mouseover={() => props.setHover?.(true)}
-                on:mouseout={() => props.setHover?.(false)}
-                data-llm-summary-label={t`Summarized by LLM`}
-                class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
-                classList={{
-                  "before:border-transparent": !props.hover?.(),
-                }}
-              />
-            )}
-          </Show>
-          <Show
-            when={article.actor.local}
-            fallback={
-              <a
-                href={article.contents?.[0]?.url ?? article.url ?? article.iri}
-                hreflang={
-                  article.contents?.[0]?.language ??
-                  article.language ??
-                  undefined
-                }
-                target="_blank"
                 on:mouseover={() => props.setHover?.(true)}
                 on:mouseout={() => props.setHover?.(false)}
                 class="block p-4 border-t bg-muted text-center"
@@ -535,30 +619,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 }}
               >
                 {t`Read full article`}
-              </a>
-            }
-          >
-            <InternalLink
-              href={article.contents?.[0]?.url ?? article.url ?? article.iri}
-              internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-              hreflang={
-                article.contents?.[0]?.language ?? article.language ?? undefined
-              }
-              on:mouseover={() => props.setHover?.(true)}
-              on:mouseout={() => props.setHover?.(false)}
-              class="block p-4 border-t bg-muted text-center"
-              classList={{
-                "text-muted-foreground": !props.hover?.(),
-                "text-accent-foreground": props.hover?.(),
-                "border-t-muted": !props.hover?.(),
-                "dark:border-t-black": props.hover?.(),
-              }}
-            >
-              {t`Read full article`}
-            </InternalLink>
-          </Show>
-        </>
-      )}
+              </InternalLink>
+            </Show>
+          </>
+        );
+      }}
     </Show>
   );
 }

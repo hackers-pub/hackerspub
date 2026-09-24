@@ -46,6 +46,16 @@ import {
   reactionTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import {
+  getArticleLanguageUrl,
+  getTranslatorIris,
+} from "@hackerspub/models/article-publication";
+import { getPublishedTranslationMetadata } from "@hackerspub/models/article-translation-metadata";
+import {
+  renderTranslationCreditHtml,
+  renderTranslationHeaderHtml,
+  type TranslationNoticeAccount,
+} from "./translation-notice.ts";
 import { escape } from "es-toolkit";
 import {
   aliasedTable,
@@ -138,22 +148,6 @@ export function getPostAttributionIds(
   ];
 }
 
-async function getArticleAttributionIds(
-  ctx: Context<ContextData>,
-  articleSource: Pick<ArticleSource, "id" | "accountId">,
-): Promise<URL[]> {
-  const post = await ctx.data.db.query.postTable.findFirst({
-    columns: { id: true },
-    with: { organizationAuthor: true },
-    where: { articleSourceId: articleSource.id },
-  });
-  return getPostAttributionIds(
-    ctx,
-    articleSource.accountId,
-    post?.organizationAuthor,
-  );
-}
-
 async function getNoteAttributionIds(
   ctx: Context<ContextData>,
   note: Pick<NoteSource, "id" | "accountId">,
@@ -173,12 +167,11 @@ export async function getArticle(
     contents: ArticleContent[];
   },
 ): Promise<vocab.Article> {
-  const sourceMedia = await ctx.data.db.query.articleSourceMediumTable.findMany(
-    {
-      where: { articleSourceId: articleSource.id },
-      with: { medium: true },
-    },
-  );
+  const { db } = ctx.data;
+  const sourceMedia = await db.query.articleSourceMediumTable.findMany({
+    where: { articleSourceId: articleSource.id },
+    with: { medium: true },
+  });
   const mediumUrls = Object.fromEntries(
     await Promise.all(
       sourceMedia.map(async (relation) => [
@@ -187,14 +180,63 @@ export async function getArticle(
       ]),
     ),
   );
-  const url = new URL(
-    `/@${articleSource.account.username}/${articleSource.publishedYear}/${encodeURIComponent(
-      articleSource.slug,
-    )}`,
-    ctx.canonicalOrigin,
+  const articlePath = {
+    username: articleSource.account.username,
+    publishedYear: articleSource.publishedYear,
+    slug: articleSource.slug,
+  };
+  const url = getArticleLanguageUrl(ctx.canonicalOrigin, articlePath);
+  const objectId = ctx.getObjectUri(vocab.Article, { id: articleSource.id });
+  const post = await db.query.postTable.findFirst({
+    columns: { id: true },
+    with: { organizationAuthor: true },
+    where: { articleSourceId: articleSource.id },
+  });
+  // A row an automatic translation job is still filling holds the original's
+  // text as a placeholder; publishing it would present the original under the
+  // target language, so it is left out until the job finishes (and the job's
+  // own Update adds the language).
+  const publishedContents = articleSource.contents.filter(
+    (content) => !content.beingTranslated,
   );
+  const metadata = await getPublishedTranslationMetadata(
+    db,
+    articleSource,
+    publishedContents,
+    post?.organizationAuthor,
+  );
+  const translatorIds = [
+    ...new Set(
+      publishedContents
+        .map((content) => content.translatorId)
+        .filter((id): id is Uuid => id != null),
+    ),
+  ];
+  const translatorAccounts =
+    translatorIds.length < 1
+      ? []
+      : await db.query.accountTable.findMany({
+          where: { id: { in: translatorIds } },
+          columns: { id: true, username: true },
+        });
+  const host = new URL(ctx.canonicalOrigin).host;
+  const translatorLinks = new Map<Uuid, TranslationNoticeAccount>(
+    translatorAccounts.map((account) => [
+      account.id,
+      {
+        handle: `@${account.username}@${host}`,
+        url: new URL(`/@${account.username}`, ctx.canonicalOrigin),
+      },
+    ]),
+  );
+  const translatorLinkOf = (language: string) => {
+    const content = publishedContents.find((c) => c.language === language);
+    return content?.translatorId == null
+      ? null
+      : (translatorLinks.get(content.translatorId) ?? null);
+  };
   const contents = await Promise.all(
-    articleSource.contents.map(async (content) => {
+    publishedContents.map(async (content) => {
       const missingMediumLabel = getMissingArticleMediumLabel(content.language);
       const { hashtags, html } = await renderMarkup(
         toApplicationContext(ctx),
@@ -227,6 +269,14 @@ export async function getArticle(
   // the same timestamp, and a translation must never become the fallback body.
   const original =
     contents.find((c) => c.originalLanguage == null) ?? contents[0];
+  const originalUrl =
+    original == null
+      ? url
+      : getArticleLanguageUrl(
+          ctx.canonicalOrigin,
+          articlePath,
+          original.language,
+        );
   let content: string | null = null;
   if (contents.length > 1) {
     content = "<nav><ul>";
@@ -240,19 +290,74 @@ export async function getArticle(
           c.language,
         ) ?? "";
       const langName = displayNames.of(c.language) ?? "";
+      // Each entry's credit is written in that entry's own language (the
+      // `<li>` carries its `lang`), so the fallback never attributes a
+      // translator to the original's language.
+      const translation = metadata.get(c.language);
+      const credit =
+        translation == null
+          ? ""
+          : ` · <small>${renderTranslationCreditHtml(
+              translation,
+              translatorLinkOf(c.language),
+            )}</small>`;
       content += `<li lang="${escape(c.language)}">${escape(nativeLangName)} (${escape(
         langName,
       )}): <a hreflang="${escape(c.language)}" href="${escape(url.href)}/${escape(
         encodeURIComponent(c.language),
-      )}">${escape(c.title)}</a></li>\n`;
+      )}">${escape(c.title)}</a>${credit}</li>\n`;
     }
     content += `</ul></nav>\n<hr>\n${original.html}`;
   } else if (contents.length > 0) {
     content = original.html;
   }
+  const translations: vocab.Translation[] = [];
+  for (const c of contents) {
+    const translation = metadata.get(c.language);
+    if (translation == null) continue;
+    translations.push(
+      new vocab.Translation({
+        language: new Intl.Locale(c.language),
+        // Empty only for a legacy version whose provenance and translator
+        // are both unknown. FEP-22cd requires a translator, but omitting the
+        // entry instead would tell consumers the author wrote this language
+        // directly, which is a worse false claim; see FEDERATION.md.
+        translators: getTranslatorIris(ctx, translation),
+        original: objectId,
+        sourceUpdated:
+          translation.sourceUpdated == null
+            ? null
+            : translation.sourceUpdated.toTemporalInstant(),
+        url: getArticleLanguageUrl(
+          ctx.canonicalOrigin,
+          articlePath,
+          c.language,
+        ),
+      }),
+    );
+  }
+  const languageHtml = (c: (typeof contents)[number]): string => {
+    const translation = metadata.get(c.language);
+    if (translation == null || original == null) return c.html;
+    // Readable credit, a link to the original language, and a freshness
+    // notice for peers that do not understand FEP-22cd. It is generated here
+    // on every serialization and never stored in the Markdown source.
+    return (
+      renderTranslationHeaderHtml({
+        metadata: translation,
+        translator: translatorLinkOf(c.language),
+        originalUrl,
+        originalLanguage: original.language,
+      }) + c.html
+    );
+  };
   return new vocab.Article({
-    id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
-    attributions: await getArticleAttributionIds(ctx, articleSource),
+    id: objectId,
+    attributions: getPostAttributionIds(
+      ctx,
+      articleSource.accountId,
+      post?.organizationAuthor,
+    ),
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(articleSource.accountId),
     interactionPolicy: getQuoteInteractionPolicy(
@@ -266,8 +371,9 @@ export async function getArticle(
     ],
     contents: [
       ...(content ? [content] : []),
-      ...contents.map((c) => new LanguageString(c.html, c.language)),
+      ...contents.map((c) => new LanguageString(languageHtml(c), c.language)),
     ],
+    translations,
     source:
       contents.length > 0
         ? new vocab.Source({

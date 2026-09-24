@@ -420,7 +420,15 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
   },
+  postContentVariantTable: {
+    post: r.one.postTable({
+      from: r.postContentVariantTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+  },
   postTable: {
+    contentVariants: r.many.postContentVariantTable(),
     actor: r.one.actorTable({
       from: r.postTable.actorId,
       to: r.actorTable.id,

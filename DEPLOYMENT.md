@@ -130,6 +130,12 @@ Cutover
     Installations upgraded from the removed Fresh application also need
     `mise run migrate:media` once; it is safe to repeat and never overwrites.
 
+    Installations with articles published before post content variants
+    existed also need `mise run migrate:variants` once, after the API is
+    running on the new image.  It rebuilds each local article's language
+    variants from its published versions, federates nothing, and is safe to
+    repeat.
+
 6.  Restart the roles in this order, waiting for each probe to pass before
     continuing: **worker → API → web UI.**  The worker first because it drains
     federation queues and is the only role that can be down without user-facing

@@ -79,6 +79,7 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
     originalLanguage: null,
     translatorId: null,
     translationRequesterId: null,
+    deletedTranslatorId: null,
     provenance: null,
     sourceRevisionId: null,
     reviewerId: null,

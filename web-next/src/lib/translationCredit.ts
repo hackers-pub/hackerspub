@@ -470,3 +470,86 @@ export function automaticTranslationLocales(
   }
   return result;
 }
+
+/**
+ * The subset of `PostContentTranslation` needed to credit a remote post's
+ * language version.
+ *
+ * `kind`, `freshness`, and `type` are plain strings for the same reason as in
+ * {@link TranslationContent}: an enum member added later falls through to the
+ * neutral branches instead of being labelled by accident.
+ */
+export interface RemoteTranslationContent {
+  readonly kind: string;
+  readonly freshness: string;
+  readonly byAuthor: boolean;
+  readonly translators: readonly {
+    readonly id: string;
+    readonly handle: string;
+    readonly type: string;
+  }[];
+}
+
+const HUMAN_ACTOR_TYPES: ReadonlySet<string> = new Set([
+  "PERSON",
+  "ORGANIZATION",
+  "GROUP",
+]);
+
+/**
+ * Classifies a remote post's language version from its FEP-22cd metadata.
+ *
+ * The publisher's claim is shown as it was made: `kind` decides the wording,
+ * so a translator this server cannot resolve never turns human work into
+ * machine output. A version whose producers are unknown is not credited to
+ * anyone, and "an unavailable account" is never used, because an unresolved
+ * remote actor is not known to be a deleted one.
+ */
+export function remoteTranslationCredit(
+  translation: RemoteTranslationContent,
+): TranslationCredit {
+  switch (translation.kind) {
+    case "MACHINE":
+      return { kind: "automatic" };
+    case "HUMAN":
+    case "MACHINE_REVIEWED": {
+      const assistance: TranslationAssistance =
+        translation.kind === "MACHINE_REVIEWED" ? "llm" : "none";
+      if (translation.byAuthor) return { kind: "author", assistance };
+      const person = translation.translators.find((actor) =>
+        HUMAN_ACTOR_TYPES.has(actor.type),
+      );
+      if (person == null) return { kind: "unknown" };
+      return {
+        kind: "account",
+        assistance,
+        account: {
+          id: person.id,
+          // The label prefixes `@`, and a remote translator needs the full
+          // handle to be unambiguous.
+          username: person.handle.replace(/^@/, ""),
+          handle: person.handle,
+        },
+      };
+    }
+    default:
+      return { kind: "unknown" };
+  }
+}
+
+/**
+ * The freshness signal of a remote post's language version. Anything but a
+ * claimed `CURRENT` or `SOURCE_CHANGED` is unverified.
+ */
+export function remoteTranslationFreshness(
+  translation: Pick<RemoteTranslationContent, "freshness">,
+): TranslationFreshness {
+  switch (translation.freshness) {
+    case "CURRENT":
+      return "current";
+    case "SOURCE_CHANGED":
+      return "source-changed";
+    default:
+      return "unverified";
+  }
+}

@@ -24,6 +24,7 @@ import "./poll.ts";
 import "./post.ts";
 import "./post/actor-fields.ts";
 import "./post/article-fields.ts";
+import "./post/content-variant.ts";
 import "./push.ts";
 import "./reactable.ts";
 import "./refresh.ts";

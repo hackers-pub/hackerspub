@@ -3,6 +3,7 @@ import { assertNever } from "@std/assert/unstable-never";
 import { eq } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import {
+  acknowledgeArticleTranslation,
   type ArticleAdditionalContent,
   createArticle,
   deleteArticleDraft,
@@ -15,13 +16,13 @@ import {
   saveArticleDraft,
   startArticleContentTranslation,
   updateArticle,
+  withdrawArticleTranslation,
 } from "@hackerspub/models/article";
 import { getCurrentDraftRevision } from "@hackerspub/models/article-revision";
 import {
   deleteArticleTranslationDraft,
   saveArticleTranslationDraft,
 } from "@hackerspub/models/article-translation";
-import { acknowledgeArticleTranslationSource } from "@hackerspub/models/article-translation-review";
 import {
   arePostsBookmarkedBy,
   createBookmark,
@@ -1935,8 +1936,12 @@ builder.relayMutationField(
       "was open, passing the older revision leaves the translation in " +
       "`NEEDS_REVIEW`, which is intended. Both the private draft (when the " +
       "language has one) and the published version are advanced, because " +
-      "publishing copies the draft's baseline. Requires authentication and " +
-      "the same authority that governs editing the article.",
+      "publishing copies the draft's baseline. When the published " +
+      "version's baseline actually moves, its public freshness changes, so " +
+      "the article's object version advances and an ActivityPub `Update` " +
+      "is sent; acknowledging a private draft alone sends nothing. Requires " +
+      "authentication and the same authority that governs editing the " +
+      "article.",
     inputFields: (t) => ({
       articleDraftId: t.field({
         type: "UUID",
@@ -1984,6 +1989,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
         OrganizationPermissionError,
         ArticleDraftConflictError,
       ],
@@ -1996,8 +2002,8 @@ builder.relayMutationField(
           articleDraftId == null ? "articleDraftId" : "sourceId",
         );
       }
-      const result = await acknowledgeArticleTranslationSource(
-        ctx.db,
+      const result = await acknowledgeArticleTranslation(
+        ctx.fedCtx,
         ctx.account,
         {
           owner:
@@ -2127,6 +2133,96 @@ builder.relayMutationField(
         resolve(result) {
           return result.language;
         },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "withdrawArticleTranslation",
+  {
+    description:
+      "Withdraw a published, human-managed translation from an article. " +
+      "Readers stop seeing that language, and the ActivityPub `Update` sent " +
+      "for the article omits both its `contentMap` entry and its " +
+      "[FEP-22cd](https://w3id.org/fep/22cd) translation metadata, which " +
+      "peers read as a withdrawal; the article itself keeps its identity, " +
+      "replies and reactions. The language's private translation draft, if " +
+      "any, is kept and becomes unpublished. Automatic translations cannot " +
+      "be withdrawn this way (they follow `allowLlmTranslation`), and while " +
+      "that setting stays enabled a reader can request an automatic " +
+      "translation of the withdrawn language again. Requires authentication " +
+      "and the same authority that governs editing the article.",
+    inputFields: (t) => ({
+      sourceId: t.field({
+        type: "UUID",
+        required: true,
+        description: "The published `Article.sourceId`.",
+      }),
+      language: t.field({
+        type: "Locale",
+        required: true,
+        description:
+          "The translated language to withdraw, never the original language.",
+      }),
+    }),
+  },
+  {
+    description:
+      "Withdraw a published translation from an article and send an " +
+      "ActivityPub `Update`. Requires authentication.",
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        ActorSuspendedError,
+        OrganizationPermissionError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const result = await withdrawArticleTranslation(ctx.fedCtx, ctx.account, {
+        sourceId: args.input.sourceId,
+        language: args.input.language.baseName,
+      });
+      switch (result.status) {
+        case "ok": {
+          const post = await ctx.db.query.postTable.findFirst({
+            where: { articleSourceId: result.sourceId },
+          });
+          if (post == null) throw new InvalidInputError("sourceId");
+          return {
+            article: post,
+            language: result.language,
+            translationDraft: result.translationDraft ?? null,
+          };
+        }
+        case "forbidden":
+          throw new OrganizationPermissionError();
+        case "invalid":
+          throw new InvalidInputError(result.inputPath);
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      article: t.field({
+        type: Article,
+        description: "The article the translation was withdrawn from.",
+        resolve: (result) => result.article,
+      }),
+      language: t.field({
+        type: "Locale",
+        description: "The withdrawn language.",
+        resolve: (result) => result.language,
+      }),
+      translationDraft: t.field({
+        type: ArticleTranslationDraft,
+        nullable: true,
+        description:
+          "The language's private translation draft, now unpublished, or " +
+          "`null` when it has none.",
+        resolve: (result) => result.translationDraft,
       }),
     }),
   },

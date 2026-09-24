@@ -19,14 +19,14 @@ catalog:
   '@aws-sdk/s3-request-presigner': 3.873.0
   '@c4spar/mock-fetch': jsr:^1.0.0
   '@envelop/core': ^5.5.1
-  '@fedify/fedify': 2.3.8
-  '@fedify/lint': 2.3.8
+  '@fedify/fedify': 2.4.0-dev.1988
+  '@fedify/lint': 2.4.0-dev.1988
   '@fedify/markdown-it-hashtag': ^0.3.0
   '@fedify/markdown-it-mention': ^0.3.0
-  '@fedify/postgres': 2.3.8
-  '@fedify/redis': 2.3.8
-  '@fedify/vocab': 2.3.8
-  '@fedify/vocab-runtime': 2.3.8
+  '@fedify/postgres': 2.4.0-dev.1988
+  '@fedify/redis': 2.4.0-dev.1988
+  '@fedify/vocab': 2.4.0-dev.1988
+  '@fedify/vocab-runtime': 2.4.0-dev.1988
   '@hackerspub/markdown-it-texmath': ^1.0.1
   '@keyv/redis': ^4.6.0
   '@logtape/drizzle-orm': 2.3.2
