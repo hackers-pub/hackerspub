@@ -87,4 +87,11 @@ export async function main(): Promise<void> {
   }
 }
 
-if (isMain(import.meta)) await main();
+if (isMain(import.meta)) {
+  await main();
+  // Every resource this script opened is closed by now, but rendering
+  // articles can leave library handles behind that keep the event loop alive
+  // (in production the task sat idle after its last line until killed), so a
+  // one-shot task ends explicitly, keeping the exit code `main()` set.
+  process.exit();
+}
