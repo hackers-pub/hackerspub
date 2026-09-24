@@ -183,7 +183,11 @@ export async function syncArticleContentVariants(
       url:
         content.originalLanguage == null
           ? post.url
-          : getArticleLanguageUrl(ctx.origin, article, content.language).href,
+          : getArticleLanguageUrl(
+              ctx.canonicalOrigin,
+              article,
+              content.language,
+            ).href,
       name: content.title,
       summary: content.summary,
       contentHtml: rendered.html,
