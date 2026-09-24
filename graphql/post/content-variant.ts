@@ -420,7 +420,10 @@ export const PostContentVariant = builder
           "stripped of tags. Empty when redacted for the viewer.",
         resolve: (shape) => {
           if (shape.redacted) return "";
-          if (shape.variant.summary != null) return shape.variant.summary;
+          // Remote summaries can carry markup, and this field is plain text.
+          if (shape.variant.summary != null) {
+            return stripHtml(shape.variant.summary);
+          }
           let html = shape.variant.contentHtml;
           if (shape.post.quotedPostId != null) {
             html = removeQuoteInlineFallback(html);

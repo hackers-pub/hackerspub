@@ -36,6 +36,7 @@ const variantQuery = parse(`
           url
           name
           summary
+          excerpt
           content
           translation {
             kind
@@ -63,6 +64,7 @@ interface VariantResult {
     url: string;
     name: string | null;
     summary: string | null;
+    excerpt: string;
     content: string;
     translation: {
       kind: string;
@@ -151,6 +153,8 @@ test("a remote article's variants expose the publisher's translation claims", as
     assert.ok(!korean.contentVariant.content.includes("onerror"));
     assert.ok(!korean.contentVariant.summary?.includes("onerror"));
     assert.ok(korean.contentVariant.summary?.includes("요약"));
+    // `excerpt` is plain text even when the summary carries markup.
+    assert.equal(korean.contentVariant.excerpt, "요약");
     assert.deepEqual(korean.contentVariant.translation, {
       kind: "HUMAN",
       freshness: "CURRENT",
