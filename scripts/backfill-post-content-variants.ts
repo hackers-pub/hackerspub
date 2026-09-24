@@ -3,7 +3,6 @@ import {
   lockArticleSource,
   syncArticleContentVariants,
 } from "@hackerspub/models/article-publication";
-import { articleSourceTable } from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import type { Uuid } from "@hackerspub/models/uuid";
 import {
@@ -14,7 +13,6 @@ import {
   createRuntimeResources,
   FILE_SYSTEM_STORAGE_BASE_URL,
 } from "@hackerspub/runtime/resources";
-import { asc, gt } from "drizzle-orm";
 import process from "node:process";
 import metadata from "../graphql/package.json" with { type: "json" };
 import { services } from "../graphql/services.ts";
@@ -57,12 +55,15 @@ export async function main(): Promise<void> {
     );
     let after: Uuid | undefined;
     while (true) {
-      const batch = await resources.db
-        .select({ id: articleSourceTable.id })
-        .from(articleSourceTable)
-        .where(after == null ? undefined : gt(articleSourceTable.id, after))
-        .orderBy(asc(articleSourceTable.id))
-        .limit(BATCH_SIZE);
+      // The query builder keeps this script free of a direct drizzle-orm
+      // import: the root package only has it as a dev dependency, and
+      // production images install without dev dependencies.
+      const batch = await resources.db.query.articleSourceTable.findMany({
+        columns: { id: true },
+        where: after == null ? undefined : { id: { gt: after } },
+        orderBy: { id: "asc" },
+        limit: BATCH_SIZE,
+      });
       if (batch.length < 1) break;
       for (const { id } of batch) {
         try {
