@@ -477,8 +477,10 @@ export async function onUnfollowed(
     return;
   }
   const [following] = rows;
-  await updateFolloweesCount(db, following.followerId, 1);
-  await updateFollowersCount(db, following.followeeId, 1);
+  if (following.accepted != null) {
+    await updateFolloweesCount(db, following.followerId, -1);
+    await updateFollowersCount(db, following.followeeId, -1);
+  }
   const followee = await db.query.actorTable.findFirst({
     where: { id: following.followeeId },
   });

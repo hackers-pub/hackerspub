@@ -384,23 +384,48 @@ export async function getRankedFollowerPage(
     .offset(offset);
 }
 
+// PostgreSQL `integer` upper bound.  Remote servers report their own
+// collection sizes, so a counter must never be pushed past it.
+const MAX_COUNT = 2147483647;
+
+/**
+ * Adjusts an actor's cached followees count after a following row has been
+ * inserted, accepted, or deleted.
+ *
+ * For a local actor, the count is recomputed from the `following` table, so
+ * it is always exact.  For a remote actor, the count is the value the remote
+ * server last reported plus the changes we have observed since, so `delta`
+ * is applied to it.  That cached value can drift, e.g., when the remote
+ * collection was hidden and the actor was persisted with `0`, so when the
+ * result would go negative it falls back to the number of accepted followings
+ * we know about, which is a lower bound of the real count.  The fallback is
+ * used only then, because the subquery is evaluated once per statement: under
+ * concurrent unfollows it may still count a row another transaction has just
+ * deleted, while the cached count itself is re-read after the row lock.
+ * See also <https://github.com/hackers-pub/hackerspub/issues/394>.
+ */
 export async function updateFolloweesCount(
   db: Database,
   followerId: Uuid,
   delta: number,
 ): Promise<Actor | undefined> {
+  const knownCount = sql`(
+    SELECT count(*)
+    FROM ${followingTable}
+    WHERE ${followingTable.followerId} = ${followerId}
+      AND ${followingTable.accepted} IS NOT NULL
+  )`;
   const rows = await db
     .update(actorTable)
     .set({
       followeesCount: sql`
       CASE WHEN ${actorTable.accountId} IS NULL
-        THEN ${actorTable.followeesCount} + ${delta}
-        ELSE (
-          SELECT count(*)
-          FROM ${followingTable}
-          WHERE ${followingTable.followerId} = ${followerId}
-            AND ${followingTable.accepted} IS NOT NULL
-        )
+        THEN CASE
+          WHEN ${actorTable.followeesCount}::bigint + ${delta} < 0
+            THEN ${knownCount}
+          ELSE LEAST(${actorTable.followeesCount}::bigint + ${delta}, ${MAX_COUNT})
+        END
+        ELSE ${knownCount}
       END
     `,
     })
@@ -409,23 +434,33 @@ export async function updateFolloweesCount(
   return rows[0];
 }
 
+/**
+ * Adjusts an actor's cached followers count after a following row has been
+ * inserted, accepted, or deleted.  See {@link updateFolloweesCount} for how
+ * local and remote actors are handled differently.
+ */
 export async function updateFollowersCount(
   db: Database,
   followeeId: Uuid,
   delta: number,
 ): Promise<Actor | undefined> {
+  const knownCount = sql`(
+    SELECT count(*)
+    FROM ${followingTable}
+    WHERE ${followingTable.followeeId} = ${followeeId}
+      AND ${followingTable.accepted} IS NOT NULL
+  )`;
   const rows = await db
     .update(actorTable)
     .set({
       followersCount: sql`
       CASE WHEN ${actorTable.accountId} IS NULL
-        THEN ${actorTable.followersCount} + ${delta}
-        ELSE (
-          SELECT count(*)
-          FROM ${followingTable}
-          WHERE ${followingTable.followeeId} = ${followeeId}
-            AND ${followingTable.accepted} IS NOT NULL
-        )
+        THEN CASE
+          WHEN ${actorTable.followersCount}::bigint + ${delta} < 0
+            THEN ${knownCount}
+          ELSE LEAST(${actorTable.followersCount}::bigint + ${delta}, ${MAX_COUNT})
+        END
+        ELSE ${knownCount}
       END
     `,
     })

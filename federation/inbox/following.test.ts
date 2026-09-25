@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import type { InboxContext } from "@fedify/fedify";
-import { Block } from "@fedify/vocab";
+import { Block, Follow, Undo } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import { followingTable } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -15,6 +15,7 @@ import {
   type FollowAcceptanceRepository,
   type FollowRejectionRepository,
   onBlocked,
+  onUnfollowed,
   type PendingOutgoingFollowRepository,
   reconcileFollowAcceptance,
   reconcileFollowAcceptanceFromObjectId,
@@ -113,6 +114,96 @@ describe("onBlocked()", () => {
       });
       assert.ok(persistedBlock != null);
       assert.equal(removedFollow, undefined);
+    });
+  });
+});
+
+describe("onUnfollowed()", () => {
+  it("decrements the cached counts of both actors", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      const local = await insertAccountWithActor(tx, {
+        username: "unfollowedlocal",
+        name: "Unfollowed Local",
+        email: "unfollowedlocal@example.com",
+      });
+      const remote = await insertRemoteActor(tx, {
+        username: "unfollowingremote",
+        name: "Unfollowing Remote",
+        host: "unfollowing.example",
+        followeesCount: 10,
+      });
+      const followIri = `https://unfollowing.example/follows/${crypto.randomUUID()}`;
+      await tx.insert(followingTable).values({
+        iri: followIri,
+        followerId: remote.id,
+        followeeId: local.actor.id,
+        accepted: new Date("2026-09-14T00:00:00.000Z"),
+      });
+      const undo = new Undo({
+        id: new URL(`https://unfollowing.example/undos/${crypto.randomUUID()}`),
+        actor: new URL(remote.iri),
+        object: new Follow({
+          id: new URL(followIri),
+          actor: new URL(remote.iri),
+          object: new URL(local.actor.iri),
+        }),
+      });
+
+      await onUnfollowed(fedCtx, undo);
+
+      const storedRemote = await tx.query.actorTable.findFirst({
+        where: { id: remote.id },
+      });
+      const storedLocal = await tx.query.actorTable.findFirst({
+        where: { id: local.actor.id },
+      });
+      assert.equal(storedRemote?.followeesCount, 9);
+      assert.equal(storedLocal?.followersCount, 0);
+    });
+  });
+
+  it("keeps the cached counts when a pending follow is undone", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      const local = await insertAccountWithActor(tx, {
+        username: "pendingunfollowedlocal",
+        name: "Pending Unfollowed Local",
+        email: "pendingunfollowedlocal@example.com",
+      });
+      const remote = await insertRemoteActor(tx, {
+        username: "pendingunfollowingremote",
+        name: "Pending Unfollowing Remote",
+        host: "unfollowing.example",
+        followeesCount: 10,
+      });
+      const followIri = `https://unfollowing.example/follows/${crypto.randomUUID()}`;
+      await tx.insert(followingTable).values({
+        iri: followIri,
+        followerId: remote.id,
+        followeeId: local.actor.id,
+        accepted: null,
+      });
+      const undo = new Undo({
+        id: new URL(`https://unfollowing.example/undos/${crypto.randomUUID()}`),
+        actor: new URL(remote.iri),
+        object: new Follow({
+          id: new URL(followIri),
+          actor: new URL(remote.iri),
+          object: new URL(local.actor.iri),
+        }),
+      });
+
+      await onUnfollowed(fedCtx, undo);
+
+      const removed = await tx.query.followingTable.findFirst({
+        where: { iri: followIri },
+      });
+      const storedRemote = await tx.query.actorTable.findFirst({
+        where: { id: remote.id },
+      });
+      assert.equal(removed, undefined);
+      assert.equal(storedRemote?.followeesCount, 10);
     });
   });
 });
