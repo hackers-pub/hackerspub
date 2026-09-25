@@ -169,14 +169,14 @@ catalogs:
       specifier: 3.6.4
       version: 3.6.4
     '@upyo/core':
-      specifier: ^0.5.0
-      version: 0.5.1
-    '@upyo/mailgun':
-      specifier: ^0.5.0
-      version: 0.5.1
+      specifier: ^0.6.0
+      version: 0.6.0
+    '@upyo/maileroo':
+      specifier: ^0.6.0
+      version: 0.6.0
     '@upyo/mock':
-      specifier: ^0.5.0
-      version: 0.5.1
+      specifier: ^0.6.0
+      version: 0.6.0
     '@vertana/context-web':
       specifier: ^0.2.0
       version: 0.2.0
@@ -418,7 +418,7 @@ importers:
         version: 3.6.4
       '@upyo/core':
         specifier: 'catalog:'
-        version: 0.5.1
+        version: 0.6.0
       ai:
         specifier: 'catalog:'
         version: 6.0.290(zod@4.3.6)
@@ -590,7 +590,7 @@ importers:
         version: '@jsr/std__http@1.1.2'
       '@upyo/core':
         specifier: 'catalog:'
-        version: 0.5.1
+        version: 0.6.0
       ai:
         specifier: 'catalog:'
         version: 6.0.290(zod@4.3.6)
@@ -834,13 +834,13 @@ importers:
         version: 2.3.2
       '@upyo/core':
         specifier: 'catalog:'
-        version: 0.5.1
-      '@upyo/mailgun':
+        version: 0.6.0
+      '@upyo/maileroo':
         specifier: 'catalog:'
-        version: 0.5.1(@upyo/core@0.5.1)
+        version: 0.6.0(@upyo/core@0.6.0)
       '@upyo/mock':
         specifier: 'catalog:'
-        version: 0.5.1(@upyo/core@0.5.1)
+        version: 0.6.0(@upyo/core@0.6.0)
       ai:
         specifier: 'catalog:'
         version: 6.0.290(zod@4.3.6)
@@ -4848,21 +4848,21 @@ packages:
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
     deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
-  '@upyo/core@0.5.1':
-    resolution: {integrity: sha512-Z5Xym9EMJysgkXbPIo2Y/odbJT0OpF0NK8wOfxMccHfuBzvuba4KHvOgskFUbomptMobvPp7oB9HGjlli1L/Xg==}
+  '@upyo/core@0.6.0':
+    resolution: {integrity: sha512-zgNNXOcUe5662vQ5qmGJcwioy7KvrOKUeuDifb6oA23MYz3MvRWmhaMlbjAnZWt6OzutKAP/lR3C9/afTld7EQ==}
     engines: {bun: '>=1.2.0', deno: '>=2.3.0', node: '>=20.0.0'}
 
-  '@upyo/mailgun@0.5.1':
-    resolution: {integrity: sha512-NDpaaSykFhPSz8t+T2Un+fVTY+ECSfbbXDnCicv0Y+VUeLXB2PhsLs/Q2Jjw5NW15rm9VgwlGe+aBsmX48gSxw==}
+  '@upyo/maileroo@0.6.0':
+    resolution: {integrity: sha512-k6iLTTYoZPoBe1VkNHYP9F+nm+xkWGqq+fms4d+7udTZk4h0Ln7Pdh2IUu8reypd3vO+xijQssFdVPF/0O0nFw==}
     engines: {bun: '>=1.2.0', deno: '>=2.3.0', node: '>=20.0.0'}
     peerDependencies:
-      '@upyo/core': 0.5.1
+      '@upyo/core': 0.6.0
 
-  '@upyo/mock@0.5.1':
-    resolution: {integrity: sha512-JwBXwWv1wyOFuLhwoXeyOzZ3T+BRUf3apf1qzBOBpL+M+iKOfkkzz69OIy6/0sao9Rk7yP39u047CxQzNpOp2g==}
+  '@upyo/mock@0.6.0':
+    resolution: {integrity: sha512-oEF6vkr1WPWVYdHSm5vVQ+LrMBdRbw3McN5f+ha0ijaYHpwWstqSNJzXITcSJylAoSqWKHhnEk1c4nZMn49ifg==}
     engines: {bun: '>=1.2.0', deno: '>=2.3.0', node: '>=20.0.0'}
     peerDependencies:
-      '@upyo/core': 0.5.1
+      '@upyo/core': 0.6.0
 
   '@vercel/nft@1.5.0':
     resolution: {integrity: sha512-IWTDeIoWhQ7ZtRO/JRKH+jhmeQvZYhtGPmzw/QGDY+wDCQqfm25P9yIdoAFagu4fWsK4IwZXDFIjrmp5rRm/sA==}
@@ -13308,15 +13308,15 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@upyo/core@0.5.1': {}
+  '@upyo/core@0.6.0': {}
 
-  '@upyo/mailgun@0.5.1(@upyo/core@0.5.1)':
+  '@upyo/maileroo@0.6.0(@upyo/core@0.6.0)':
     dependencies:
-      '@upyo/core': 0.5.1
+      '@upyo/core': 0.6.0
 
-  '@upyo/mock@0.5.1(@upyo/core@0.5.1)':
+  '@upyo/mock@0.6.0(@upyo/core@0.6.0)':
     dependencies:
-      '@upyo/core': 0.5.1
+      '@upyo/core': 0.6.0
 
   '@vercel/nft@1.5.0(encoding@0.1.13)(rollup@4.60.1)':
     dependencies:

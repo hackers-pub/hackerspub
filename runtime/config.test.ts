@@ -89,58 +89,71 @@ test("loadGraphqlApiConfig permits file KV only when explicitly allowed", () => 
   assertEquals(config.kv.url.href, required.KV_URL);
 });
 
-test("loadServerConfig uses mock email in development without Mailgun", () => {
+test("loadServerConfig uses mock email in development without Maileroo", () => {
   const { CI: _ci, EMAIL_FROM: _emailFrom, ...withoutEmail } = required;
   const config = loadServerConfig({ ...withoutEmail, MODE: "development" });
 
   assertEquals(config.email, {
     transport: "mock",
     from: "noreply@hackers.pub",
-    reason: "mailgun-unconfigured",
+    reason: "maileroo-unconfigured",
   });
 });
 
-test("loadServerConfig ignores sender and region without Mailgun credentials", () => {
+test("loadServerConfig keeps the sender when Maileroo is unconfigured", () => {
   const { CI: _ci, ...withoutCi } = required;
   const config = loadServerConfig({
     ...withoutCi,
     MODE: "development",
-    MAILGUN_FROM: "legacy@hackers.pub",
-    MAILGUN_REGION: "us",
+    EMAIL_FROM: "admin@hackers.pub",
   });
 
   assertEquals(config.email, {
     transport: "mock",
-    from: "noreply@hackers.pub",
-    reason: "mailgun-unconfigured",
+    from: "admin@hackers.pub",
+    reason: "maileroo-unconfigured",
   });
 });
 
-test("loadServerConfig requires Mailgun in the default production mode", () => {
+test("loadServerConfig selects Maileroo when its key is configured", () => {
   const { CI: _ci, ...withoutCi } = required;
-  const error = assertThrows(
-    () => loadServerConfig({ ...withoutCi, MAILGUN_REGION: "us" }),
-    ConfigurationError,
-  ) as ConfigurationError;
+  const config = loadServerConfig({
+    ...withoutCi,
+    MODE: "development",
+    MAILEROO_KEY: " key ",
+  });
 
-  assertEquals(error.issues.map((issue) => issue.variable).toSorted(), [
-    "MAILGUN_DOMAIN",
-    "MAILGUN_KEY",
-  ]);
+  assertEquals(config.email, {
+    transport: "maileroo",
+    from: "noreply@hackers.pub",
+    apiKey: "key",
+  });
 });
 
-test("loadServerConfig rejects partial Mailgun configuration", () => {
-  const { CI: _ci, EMAIL_FROM: _emailFrom, ...withoutEmail } = required;
+test("loadServerConfig requires Maileroo in the default production mode", () => {
+  const { CI: _ci, ...withoutCi } = required;
   const error = assertThrows(
-    () => loadServerConfig({ ...withoutEmail, MAILGUN_KEY: "key" }),
+    () => loadServerConfig(withoutCi),
     ConfigurationError,
   ) as ConfigurationError;
 
-  assertEquals(error.issues.map((issue) => issue.variable).toSorted(), [
-    "EMAIL_FROM",
-    "MAILGUN_DOMAIN",
-    "MAILGUN_REGION",
-  ]);
+  assertEquals(
+    error.issues.map((issue) => issue.variable),
+    ["MAILEROO_KEY"],
+  );
+});
+
+test("loadServerConfig requires a sender for Maileroo", () => {
+  const { CI: _ci, EMAIL_FROM: _emailFrom, ...withoutEmail } = required;
+  const error = assertThrows(
+    () => loadServerConfig({ ...withoutEmail, MAILEROO_KEY: "key" }),
+    ConfigurationError,
+  ) as ConfigurationError;
+
+  assertEquals(
+    error.issues.map((issue) => issue.variable),
+    ["EMAIL_FROM"],
+  );
 });
 
 test("loadServerConfig reports missing and invalid values as typed issues", () => {

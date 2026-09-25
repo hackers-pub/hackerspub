@@ -37,14 +37,12 @@ export type EmailConfig =
   | {
       readonly transport: "mock";
       readonly from: string;
-      readonly reason: "ci" | "mailgun-unconfigured";
+      readonly reason: "ci" | "maileroo-unconfigured";
     }
   | {
-      readonly transport: "mailgun";
+      readonly transport: "maileroo";
       readonly from: string;
       readonly apiKey: string;
-      readonly domain: string;
-      readonly region: "eu" | "us";
     };
 
 export interface DatabaseConfig {
@@ -193,12 +191,11 @@ export function loadServerConfig(env: Environment): ServerConfig {
     issues.push({ variable: "DRIVE_DISK", message: "must be fs or s3" });
   }
 
-  const configuredFrom = (env.EMAIL_FROM ?? env.MAILGUN_FROM)?.trim();
+  const configuredFrom = env.EMAIL_FROM?.trim();
   const defaultFrom = `noreply@${origin?.hostname ?? "localhost"}`;
   const mode = env.MODE ?? "production";
-  const mailgunSelected = [env.MAILGUN_KEY, env.MAILGUN_DOMAIN].some(
-    (value) => value != null && value.trim() !== "",
-  );
+  const mailerooSelected =
+    env.MAILEROO_KEY != null && env.MAILEROO_KEY.trim() !== "";
   let email: EmailConfig | undefined;
   if (env.CI?.toLowerCase() === "true") {
     email = {
@@ -207,47 +204,22 @@ export function loadServerConfig(env: Environment): ServerConfig {
       reason: "ci",
     };
   } else if (
-    !mailgunSelected &&
+    !mailerooSelected &&
     (mode === "development" || mode === "test" || mode === "build")
   ) {
     email = {
       transport: "mock",
       from: configuredFrom || defaultFrom,
-      reason: "mailgun-unconfigured",
+      reason: "maileroo-unconfigured",
     };
   } else {
     const from = configuredFrom;
     if (from == null || from === "") {
-      issues.push({
-        variable: "EMAIL_FROM",
-        message: "EMAIL_FROM or MAILGUN_FROM is required",
-      });
+      issues.push({ variable: "EMAIL_FROM", message: "is required" });
     }
-    const apiKey = nonEmpty(env, "MAILGUN_KEY", issues);
-    const domain = nonEmpty(env, "MAILGUN_DOMAIN", issues);
-    const regionValue = nonEmpty(env, "MAILGUN_REGION", issues);
-    const region =
-      regionValue === "eu" || regionValue === "us" ? regionValue : undefined;
-    if (regionValue != null && region == null) {
-      issues.push({
-        variable: "MAILGUN_REGION",
-        message: "must be eu or us",
-      });
-    }
-    if (
-      from != null &&
-      from !== "" &&
-      apiKey != null &&
-      domain != null &&
-      region != null
-    ) {
-      email = {
-        transport: "mailgun",
-        from,
-        apiKey,
-        domain,
-        region,
-      };
+    const apiKey = nonEmpty(env, "MAILEROO_KEY", issues);
+    if (from != null && from !== "" && apiKey != null) {
+      email = { transport: "maileroo", from, apiKey };
     }
   }
 
