@@ -269,8 +269,8 @@ export function loadServerConfig(env: Environment): ServerConfig {
     email,
     ai: {
       altTextModel: env.AI_ALT_TEXT_MODEL ?? "gemini-3.1-flash-lite",
-      summarizerModel: env.AI_SUMMARIZER_MODEL ?? "gemini-3.5-flash",
-      translatorModel: env.AI_TRANSLATOR_MODEL ?? "claude-sonnet-5",
+      summarizerModel: env.AI_SUMMARIZER_MODEL ?? "gemini-3.8-flash",
+      translatorModel: env.AI_TRANSLATOR_MODEL ?? "gemini-3.8-flash",
       moderationModel: env.AI_MODERATION_MODEL ?? "claude-sonnet-5",
     },
     behindProxy: env.BEHIND_PROXY?.toLowerCase() === "true",

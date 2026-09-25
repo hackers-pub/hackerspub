@@ -7,11 +7,11 @@ settings:
 catalogs:
   default:
     '@ai-sdk/anthropic':
-      specifier: ^3.0.44
-      version: 3.0.100
+      specifier: ^3.0.122
+      version: 3.0.122
     '@ai-sdk/google':
-      specifier: ^3.0.29
-      version: 3.0.99
+      specifier: ^3.0.127
+      version: 3.0.127
     '@aws-sdk/client-s3':
       specifier: 3.873.0
       version: 3.873.0
@@ -187,8 +187,8 @@ catalogs:
       specifier: ^0.2.0
       version: 0.2.0
     ai:
-      specifier: ^6.0.86
-      version: 6.0.146
+      specifier: ^6.0.290
+      version: 6.0.290
     apns2:
       specifier: ^12.2.0
       version: 12.2.0
@@ -421,7 +421,7 @@ importers:
         version: 0.5.1
       ai:
         specifier: 'catalog:'
-        version: 6.0.146(zod@4.3.6)
+        version: 6.0.290(zod@4.3.6)
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6)
@@ -454,16 +454,16 @@ importers:
         version: link:../models
       '@vertana/context-web':
         specifier: 'catalog:'
-        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)
+        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)
       '@vertana/core':
         specifier: 'catalog:'
-        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)
+        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)
       '@vertana/facade':
         specifier: 'catalog:'
-        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)
+        version: 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)
       ai:
         specifier: 'catalog:'
-        version: 6.0.146(zod@4.2.1)
+        version: 6.0.290(zod@4.2.1)
 
   asset-cdn:
     devDependencies:
@@ -593,7 +593,7 @@ importers:
         version: 0.5.1
       ai:
         specifier: 'catalog:'
-        version: 6.0.146(zod@4.3.6)
+        version: 6.0.290(zod@4.3.6)
       croner:
         specifier: 'catalog:'
         version: 10.0.1
@@ -792,16 +792,16 @@ importers:
         version: 2.1.28
       ai:
         specifier: 'catalog:'
-        version: 6.0.146(zod@4.3.6)
+        version: 6.0.290(zod@4.3.6)
 
   runtime:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'
-        version: 3.0.100(zod@4.3.6)
+        version: 3.0.122(zod@4.3.6)
       '@ai-sdk/google':
         specifier: 'catalog:'
-        version: 3.0.99(zod@4.3.6)
+        version: 3.0.127(zod@4.3.6)
       '@aws-sdk/client-s3':
         specifier: 'catalog:'
         version: 3.873.0
@@ -841,6 +841,9 @@ importers:
       '@upyo/mock':
         specifier: 'catalog:'
         version: 0.5.1(@upyo/core@0.5.1)
+      ai:
+        specifier: 'catalog:'
+        version: 6.0.290(zod@4.3.6)
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6)
@@ -1056,42 +1059,32 @@ packages:
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
 
-  '@ai-sdk/anthropic@3.0.100':
-    resolution: {integrity: sha512-/o2a3zVPdwRGSHYgssZ6Xec0vdhlgzMpm/T6JmifApVc5j6JmMChtV+sZ3omUqCFmHxfPzHvvNumplDFh3zrmw==}
+  '@ai-sdk/anthropic@3.0.122':
+    resolution: {integrity: sha512-ZHgmZHQPhYLJNhIGAcA7LzzUDVsJnBxeaGHoYr0smfcxhPtHiliJfv8z9kVQlldplP2bkmocM44Z/9q1Lqa49w==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@3.0.88':
-    resolution: {integrity: sha512-AFoj7xdWAtCQcy0jJ235ENSakYM8D28qBX+rB+/rX4r8qe/LXgl0e5UivOqxAlIM5E9jnQdYxIPuj3XFtGk/yg==}
+  '@ai-sdk/gateway@3.0.200':
+    resolution: {integrity: sha512-4I7lWtXixOV0Dh9cWqBD4BRiTA7iBCfGoBRcsyv0GE35xPSh3vYkOyA8/kOEzcQ8PPiUipbRi2Vzudu5AkD/FQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/google@3.0.99':
-    resolution: {integrity: sha512-mZnXQRMIlQKCUa3gPD+MaFmONzXppeIzBP+XcPhEkwcw2bQZucZsHMXW8nGqaJ/tOIbZdYG8UmtnIRqrrxpzOA==}
+  '@ai-sdk/google@3.0.127':
+    resolution: {integrity: sha512-0rWe2vTbj/aQbmD588Fem02rte2bXZqQ8omZ5PadOVG6QTDWGeIROrCHuBatJG2NW2ww9SfBZvpRBNwcH3+Q0w==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.22':
-    resolution: {integrity: sha512-B2OTFcRw/Pdka9ZTjpXv6T6qZ6RruRuLokyb8HwW+aoW9ndJ3YasA3/mVswyJw7VMBF8ofXgqvcrCt9KYvFifg==}
-    engines: {node: '>=18'}
+  '@ai-sdk/provider-utils@4.0.54':
+    resolution: {integrity: sha512-piCQO5dnTqW7QSUbMsKg8oNI+u5VtgLnVFkgG6LfckrOyHcHFrIssBVJDg3/CXOdWXIFhVjIr540rzZAdom2TA==}
+    engines: {node: '>=18.17'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.40':
-    resolution: {integrity: sha512-OL5IrpUm9Y8Dwy+w/vvFwPotS6m52O9W0op2oXgXdCROMJIBalBI0oro6OIBYkPxvm5Xg02GSkoQN25RlR0bnw==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/provider@3.0.14':
-    resolution: {integrity: sha512-5X1k57JBJ4H7H1QjX7CnJYAB1I19r/trVZTMcSms7/kLNZ8RaU4Nt2agcwZzv82Hfx6Q7/TOLU7agAKeFfc8cA==}
-    engines: {node: '>=18'}
-
-  '@ai-sdk/provider@3.0.8':
-    resolution: {integrity: sha512-oGMAgGoQdBXbZqNG0Ze56CHjDZ1IDYOwGYxYjO5KLSlz5HiNQ9udIXsPZ61VWaHGZ5XW/jyjmr6t2xz2jGVwbQ==}
+  '@ai-sdk/provider@3.0.17':
+    resolution: {integrity: sha512-ijb+g+XxIAmv46hpt73ty83LhQHwwsqA1IwVX6p1MAREyX0zGM9eIrz1m3KlFxTHr8E4k/ao01w6Dlx3UBOihQ==}
     engines: {node: '>=18'}
 
   '@antfu/install-pkg@1.1.0':
@@ -2756,10 +2749,6 @@ packages:
 
   '@opentelemetry/api-logs@0.214.0':
     resolution: {integrity: sha512-40lSJeqYO8Uz2Yj7u94/SJWE/wONa7rmMKjI1ZcIjgf3MHNHv1OZUCrCETGuaRF62d5pQD1wKIW+L4lmSMTzZA==}
-    engines: {node: '>=8.0.0'}
-
-  '@opentelemetry/api@1.9.0':
-    resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.1':
@@ -4880,8 +4869,8 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  '@vercel/oidc@3.1.0':
-    resolution: {integrity: sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w==}
+  '@vercel/oidc@3.2.0':
+    resolution: {integrity: sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==}
     engines: {node: '>= 20'}
 
   '@vertana/context-web@0.2.0':
@@ -4987,8 +4976,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@6.0.146:
-    resolution: {integrity: sha512-70DE8k1rR0N3mXxyyfjYAx/FxRln/kQ5ym18lt1ys1eUklcPuoIXGbUBwdfCbmkt6YF3jCDZ5+OgkWieP/NGDw==}
+  ai@6.0.290:
+    resolution: {integrity: sha512-DK+7M/L4mz+W7oO9v0i1ZLmaEDOArELQHUUbZkhSJxomHVu1k6AMc/QITltbEaXgd+cIPjBqqbmsKrQeUO43Qg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -8486,6 +8475,10 @@ packages:
     resolution: {integrity: sha512-sC+b0tB1whOCzbtlx20fx3WgCXwkW627p4EA9uM+/tNNPkSS+eSEld6pAs9nDv7WbY1UUljBMYPtu9BCOrCWKA==}
     engines: {node: '>=18.17'}
 
+  undici@6.28.1:
+    resolution: {integrity: sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==}
+    engines: {node: '>=18.17'}
+
   undici@7.24.7:
     resolution: {integrity: sha512-H/nlJ/h0ggGC+uRL3ovD+G0i4bqhvsDOpbDv7At5eFLlj2b41L8QliGbnl2H7SnDiYhENphh1tQFJZf+MyfLsQ==}
     engines: {node: '>=20.18.1'}
@@ -8945,58 +8938,49 @@ snapshots:
 
   '@adobe/css-tools@4.4.4': {}
 
-  '@ai-sdk/anthropic@3.0.100(zod@4.3.6)':
+  '@ai-sdk/anthropic@3.0.122(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.14
-      '@ai-sdk/provider-utils': 4.0.40(zod@4.3.6)
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.3.6)
       zod: 4.3.6
 
-  '@ai-sdk/gateway@3.0.88(zod@4.2.1)':
+  '@ai-sdk/gateway@3.0.200(zod@4.2.1)':
     dependencies:
-      '@ai-sdk/provider': 3.0.8
-      '@ai-sdk/provider-utils': 4.0.22(zod@4.2.1)
-      '@vercel/oidc': 3.1.0
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.2.1)
+      '@vercel/oidc': 3.2.0
       zod: 4.2.1
 
-  '@ai-sdk/gateway@3.0.88(zod@4.3.6)':
+  '@ai-sdk/gateway@3.0.200(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.8
-      '@ai-sdk/provider-utils': 4.0.22(zod@4.3.6)
-      '@vercel/oidc': 3.1.0
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.3.6)
+      '@vercel/oidc': 3.2.0
       zod: 4.3.6
 
-  '@ai-sdk/google@3.0.99(zod@4.3.6)':
+  '@ai-sdk/google@3.0.127(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.14
-      '@ai-sdk/provider-utils': 4.0.40(zod@4.3.6)
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.3.6)
       zod: 4.3.6
 
-  '@ai-sdk/provider-utils@4.0.22(zod@4.2.1)':
+  '@ai-sdk/provider-utils@4.0.54(zod@4.2.1)':
     dependencies:
-      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider': 3.0.17
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.1.0
+      undici: 6.28.1
       zod: 4.2.1
 
-  '@ai-sdk/provider-utils@4.0.22(zod@4.3.6)':
+  '@ai-sdk/provider-utils@4.0.54(zod@4.3.6)':
     dependencies:
-      '@ai-sdk/provider': 3.0.8
+      '@ai-sdk/provider': 3.0.17
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.1.0
+      undici: 6.28.1
       zod: 4.3.6
 
-  '@ai-sdk/provider-utils@4.0.40(zod@4.3.6)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.14
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.1.0
-      zod: 4.3.6
-
-  '@ai-sdk/provider@3.0.14':
-    dependencies:
-      json-schema: 0.4.0
-
-  '@ai-sdk/provider@3.0.8':
+  '@ai-sdk/provider@3.0.17':
     dependencies:
       json-schema: 0.4.0
 
@@ -11135,8 +11119,6 @@ snapshots:
   '@opentelemetry/api-logs@0.214.0':
     dependencies:
       '@opentelemetry/api': 1.9.1
-
-  '@opentelemetry/api@1.9.0': {}
 
   '@opentelemetry/api@1.9.1': {}
 
@@ -13355,14 +13337,14 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vercel/oidc@3.1.0': {}
+  '@vercel/oidc@3.2.0': {}
 
-  '@vertana/context-web@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)':
+  '@vertana/context-web@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)':
     dependencies:
       '@logtape/logtape': 2.3.2
       '@mozilla/readability': 0.6.0
-      '@vertana/core': 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)
-      ai: 6.0.146(zod@4.2.1)
+      '@vertana/core': 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)
+      ai: 6.0.290(zod@4.2.1)
       htmlparser2: 10.1.0
       linkedom: 0.18.12
       zod: 4.2.1
@@ -13379,12 +13361,12 @@ snapshots:
       - valibot
       - zod-to-json-schema
 
-  '@vertana/core@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)':
+  '@vertana/core@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)':
     dependencies:
       '@logtape/logtape': 2.3.2
       '@standard-community/standard-json': 0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(quansync@1.0.0)(zod@4.2.1)
       '@standard-schema/spec': 1.1.0
-      ai: 6.0.146(zod@4.2.1)
+      ai: 6.0.290(zod@4.2.1)
       dom-serializer: 2.0.0
       domhandler: 5.0.3
       htmlparser2: 10.1.0
@@ -13401,11 +13383,11 @@ snapshots:
       - valibot
       - zod-to-json-schema
 
-  '@vertana/facade@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)':
+  '@vertana/facade@0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)':
     dependencies:
       '@logtape/logtape': 2.3.2
-      '@vertana/core': 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.146(zod@4.2.1))(quansync@1.0.0)
-      ai: 6.0.146(zod@4.2.1)
+      '@vertana/core': 0.2.0(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(ai@6.0.290(zod@4.2.1))(quansync@1.0.0)
+      ai: 6.0.290(zod@4.2.1)
     transitivePeerDependencies:
       - '@standard-schema/spec'
       - '@types/json-schema'
@@ -13505,20 +13487,20 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@6.0.146(zod@4.2.1):
+  ai@6.0.290(zod@4.2.1):
     dependencies:
-      '@ai-sdk/gateway': 3.0.88(zod@4.2.1)
-      '@ai-sdk/provider': 3.0.8
-      '@ai-sdk/provider-utils': 4.0.22(zod@4.2.1)
-      '@opentelemetry/api': 1.9.0
+      '@ai-sdk/gateway': 3.0.200(zod@4.2.1)
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.2.1)
+      '@opentelemetry/api': 1.9.1
       zod: 4.2.1
 
-  ai@6.0.146(zod@4.3.6):
+  ai@6.0.290(zod@4.3.6):
     dependencies:
-      '@ai-sdk/gateway': 3.0.88(zod@4.3.6)
-      '@ai-sdk/provider': 3.0.8
-      '@ai-sdk/provider-utils': 4.0.22(zod@4.3.6)
-      '@opentelemetry/api': 1.9.0
+      '@ai-sdk/gateway': 3.0.200(zod@4.3.6)
+      '@ai-sdk/provider': 3.0.17
+      '@ai-sdk/provider-utils': 4.0.54(zod@4.3.6)
+      '@opentelemetry/api': 1.9.1
       zod: 4.3.6
 
   ajv@6.15.0:
@@ -17305,6 +17287,8 @@ snapshots:
       '@fastify/busboy': 2.1.1
 
   undici@6.24.1: {}
+
+  undici@6.28.1: {}
 
   undici@7.24.7: {}
 

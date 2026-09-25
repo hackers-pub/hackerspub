@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
+import { google, type GoogleGenerativeAIProviderOptions } from "@ai-sdk/google";
 import "@aws-sdk/client-s3";
 import "@aws-sdk/s3-request-presigner";
 import type { Federation, FederationOptions } from "@fedify/fedify";
@@ -18,6 +18,11 @@ import type { Transport } from "@upyo/core";
 import { MailgunTransport } from "@upyo/mailgun";
 import { MockTransport } from "@upyo/mock";
 import KeyvRedis from "@keyv/redis";
+import {
+  defaultSettingsMiddleware,
+  type LanguageModel,
+  wrapLanguageModel,
+} from "ai";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { type Disk, DriveManager } from "flydrive";
 import { FSDriver } from "flydrive/drivers/fs";
@@ -249,13 +254,40 @@ export function createEmailResource(
   });
 }
 
+/**
+ * Makes a Gemini model default to the given thinking level.  Gemini 3.x Flash
+ * models think at `medium` unless told otherwise, and thinking tokens are
+ * billed as output tokens, so summarization and translation ask for less.
+ */
+function withGeminiThinkingLevel(
+  model: ReturnType<typeof google>,
+  thinkingLevel: "minimal" | "low" | "medium" | "high",
+): LanguageModel {
+  return wrapLanguageModel({
+    model,
+    middleware: defaultSettingsMiddleware({
+      settings: {
+        providerOptions: {
+          google: {
+            thinkingConfig: { thinkingLevel },
+          } satisfies GoogleGenerativeAIProviderOptions,
+        },
+      },
+    }),
+  });
+}
+
 export function createAiModels(config: ServerConfig["ai"]): Models & {
   altTextGenerator: ReturnType<typeof google>;
 } {
   return {
     altTextGenerator: google(config.altTextModel),
-    summarizer: defineApplicationModel(google(config.summarizerModel)),
-    translator: defineApplicationModel(anthropic(config.translatorModel)),
+    summarizer: defineApplicationModel(
+      withGeminiThinkingLevel(google(config.summarizerModel), "low"),
+    ),
+    translator: defineApplicationModel(
+      withGeminiThinkingLevel(google(config.translatorModel), "low"),
+    ),
     moderationAnalyzer: defineApplicationModel(
       anthropic(config.moderationModel),
     ),

@@ -23,6 +23,7 @@
     "@upyo/core": "catalog:",
     "@upyo/mailgun": "catalog:",
     "@upyo/mock": "catalog:",
+    "ai": "catalog:",
     "drizzle-orm": "catalog:",
     "flydrive": "catalog:",
     "ioredis": "catalog:",

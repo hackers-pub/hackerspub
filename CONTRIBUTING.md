@@ -72,8 +72,9 @@ To build the project, you need to have the following tools installed:
  -  [Redis]
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
- -  [Anthropic] API key (optional; for translating posts)
- -  [Google Generative AI] API key (optional; for summarizing posts)
+ -  [Anthropic] API key (optional; for moderation analysis)
+ -  [Google Generative AI] API key (optional; for summarizing and translating
+    posts and generating alt text)
 
 Project tools and dependencies are managed by mise.  From the repository root,
 run:
@@ -171,9 +172,11 @@ and set the values of the variables according to your environment.
 >     (e.g., for sign up or sending invitations), you can omit this variable.
 >
 >  -  `ANTHROPIC_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY` are the API keys
->     for summarizing and translating posts using LLMs.  You can use
->     [Anthropic] and [Google Generative AI] accounts for this.  However, if
->     you won't test these features, you can omit these variables.
+>     for LLM features.  The Google key is used for summarizing and
+>     translating posts and for generating alt text, and the Anthropic key is
+>     used for moderation analysis.  You can use [Anthropic] and
+>     [Google Generative AI] accounts for this.  However, if you won't test
+>     these features, you can omit these variables.
 >
 >  -  `FUTURE_TIMESTAMP_TOLERANCE` is the tolerance period in milliseconds for
 >     posts with future timestamps. Posts published more than this time in the
