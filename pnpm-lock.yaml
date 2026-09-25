@@ -972,8 +972,8 @@ importers:
         specifier: 1.0.0-beta.29
         version: 1.0.0-beta.29(relay-runtime@19.0.0(encoding@0.1.13))(seroval@1.5.2)(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       solid-route-progress:
-        specifier: ^1.0.2
-        version: 1.0.2(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
+        specifier: ^1.1.0
+        version: 1.1.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -8082,10 +8082,10 @@ packages:
       seroval: ^1.1.0
       solid-js: '>=1.4.0'
 
-  solid-route-progress@1.0.2:
-    resolution: {integrity: sha512-CWHzIXPVhc2oSpyEnudX/vG6qFRFDCNsl4EP5u0tE7F+XyJ6OrCuGZQJk05MouBX+BsoMo+McPMHYHeN6JEKew==}
+  solid-route-progress@1.1.0:
+    resolution: {integrity: sha512-WitGhvvcPmRM31cErpvsZdodgcqnRi59zvWS+jfSnbwnTnPLXn+tP332o9uvYwvHEkq7qXp7cdfuxCIn0IwVlA==}
     peerDependencies:
-      '@solidjs/router': ^0.15.0 || >=1.0.0
+      '@solidjs/router': ^0.15.0 || ^1.0.0
       solid-js: ^1.9.0
     peerDependenciesMeta:
       '@solidjs/router':
@@ -16882,7 +16882,7 @@ snapshots:
       solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
       tiny-invariant: 1.3.3
 
-  solid-route-progress@1.0.2(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
+  solid-route-progress@1.1.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)))(solid-js@1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)):
     dependencies:
       solid-js: 1.9.12(patch_hash=34c2f852b6eea276ac4197267ba4a9f6cc6d4572abf8f95809360053bf650808)
     optionalDependencies:
