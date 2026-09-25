@@ -119,15 +119,12 @@ test("Compose forwards dotenv runtime options before mise starts", async () => {
   assertStringIncludes(application, "KV_URL: redis://redis:6379/0");
 });
 
-test("Compose preserves the configured Mailgun sender", async () => {
+test("Compose passes the configured email sender", async () => {
   const compose = await readTextFile(
     new URL("../docker-compose.yml", import.meta.url),
   );
 
-  assertStringIncludes(
-    compose,
-    "EMAIL_FROM: ${EMAIL_FROM:-${MAILGUN_FROM:-admin@example.com}}",
-  );
+  assertStringIncludes(compose, "EMAIL_FROM: ${EMAIL_FROM:-admin@example.com}");
 });
 
 test("file KV is limited to API-only development", async () => {

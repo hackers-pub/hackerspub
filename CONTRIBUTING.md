@@ -71,7 +71,7 @@ To build the project, you need to have the following tools installed:
  -  [PostgreSQL] 17 or higher
  -  [Redis]
  -  [ffmpeg] 5.0 or higher
- -  [Mailgun] account (optional; for sending emails)
+ -  [Maileroo] account (optional; for sending emails)
  -  [Anthropic] API key (optional; for moderation analysis)
  -  [Google Generative AI] API key (optional; for summarizing and translating
     posts and generating alt text)
@@ -88,7 +88,7 @@ dependencies, and writes the pre-commit hook.
 
 [mise]: https://mise.jdx.dev/
 [Redis]: https://redis.io/docs/latest/operate/oss_and_stack/install/
-[Mailgun]: https://www.mailgun.com/
+[Maileroo]: https://maileroo.com/
 [Anthropic]: https://console.anthropic.com/
 [Google Generative AI]: https://aistudio.google.com/apikey
 
@@ -167,9 +167,11 @@ and set the values of the variables according to your environment.
 >     is listed in the *.gitignore* file, so you don't need to worry about
 >     accidentally committing the files to the repository.
 >
->  -  `MAILGUN_API_KEY` is the API key for sending emails.  You can use a
->     [Mailgun] account for this.  However, if you won't test sending emails
->     (e.g., for sign up or sending invitations), you can omit this variable.
+>  -  `MAILEROO_KEY` is the sending key for sending emails, and `EMAIL_FROM`
+>     is the sender address, which must belong to a sending domain verified
+>     in [Maileroo].  However, if you won't test sending emails (e.g., for
+>     sign up or sending invitations), you can omit `MAILEROO_KEY` in
+>     development; emails are then discarded instead of being delivered.
 >
 >  -  `ANTHROPIC_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY` are the API keys
 >     for LLM features.  The Google key is used for summarizing and

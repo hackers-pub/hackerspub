@@ -137,13 +137,13 @@ test("runWithFederationQueue stops both tasks on an external signal", async () =
   await running;
 });
 
-test("createEmailResource warns when Mailgun is unconfigured", () => {
+test("createEmailResource warns when Maileroo is unconfigured", () => {
   const warnings: string[] = [];
   const transport = createEmailResource(
     {
       transport: "mock",
       from: "noreply@hackers.pub",
-      reason: "mailgun-unconfigured",
+      reason: "maileroo-unconfigured",
     },
     {
       warning(message) {
@@ -154,7 +154,7 @@ test("createEmailResource warns when Mailgun is unconfigured", () => {
 
   assertInstanceOf(transport, MockTransport);
   assertEquals(warnings, [
-    "MAILGUN_* environment variables are not configured; using MockTransport. Emails will not be delivered.",
+    "MAILEROO_KEY is not configured; using MockTransport. Emails will not be delivered.",
   ]);
 });
 

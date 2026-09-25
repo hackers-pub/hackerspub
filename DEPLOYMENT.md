@@ -120,7 +120,15 @@ Cutover
     Run the inspection query again after the build.  Do not continue until it
     reports the expected definition with both flags set to `t`.
 
-5.  Run database migrations once, from the new image, before starting any
+5.  A release that switches email delivery from Mailgun to Maileroo needs a
+    verified Maileroo sending domain before it starts.  Give the API and
+    worker `MAILEROO_KEY` (the domain's sending key) and set `EMAIL_FROM` to an
+    address on that domain; `MAILGUN_FROM` is no longer read.  The new image
+    refuses to start in production without `MAILEROO_KEY`.  Leave the
+    `MAILGUN_*` variables in place until the rollback window closes, because
+    the previous image still needs them.
+
+6.  Run database migrations once, from the new image, before starting any
     service on it:
 
     ~~~~ sh
@@ -136,12 +144,12 @@ Cutover
     variants from its published versions, federates nothing, and is safe to
     repeat.
 
-6.  Restart the roles in this order, waiting for each probe to pass before
+7.  Restart the roles in this order, waiting for each probe to pass before
     continuing: **worker → API → web UI.**  The worker first because it drains
     federation queues and is the only role that can be down without user-facing
     effect; the API before the web UI because the web UI proxies to it.
 
-7.  Run the post-deploy checks below.
+8.  Run the post-deploy checks below.
 
 The API and worker shut down gracefully on `SIGTERM`: the API stops accepting
 connections and drains in-flight requests, and the worker stops taking new
@@ -201,6 +209,10 @@ The `idx_post_url_hash` index added for [#390] is additive and can remain in
 place during an image rollback.  If its concurrent build fails before cutover,
 drop the invalid index with the command above and retry it; do not start the
 new image while the index is invalid.
+
+An image from before the switch to Maileroo sends email through Mailgun, so
+rolling back across that switch needs the `MAILGUN_*` variables (and
+`MAILGUN_FROM` or `EMAIL_FROM`) that the older image reads.
 
 > [!CAUTION]
 > Rollback is image-level only.  There is no second runtime to fall back to,

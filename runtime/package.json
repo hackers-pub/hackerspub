@@ -21,7 +21,7 @@
     "@logtape/drizzle-orm": "catalog:",
     "@logtape/logtape": "catalog:",
     "@upyo/core": "catalog:",
-    "@upyo/mailgun": "catalog:",
+    "@upyo/maileroo": "catalog:",
     "@upyo/mock": "catalog:",
     "ai": "catalog:",
     "drizzle-orm": "catalog:",

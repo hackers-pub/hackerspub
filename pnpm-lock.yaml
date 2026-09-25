@@ -171,7 +171,7 @@ catalogs:
     '@upyo/core':
       specifier: ^0.6.0
       version: 0.6.0
-    '@upyo/mailgun':
+    '@upyo/maileroo':
       specifier: ^0.6.0
       version: 0.6.0
     '@upyo/mock':
@@ -835,7 +835,7 @@ importers:
       '@upyo/core':
         specifier: 'catalog:'
         version: 0.6.0
-      '@upyo/mailgun':
+      '@upyo/maileroo':
         specifier: 'catalog:'
         version: 0.6.0(@upyo/core@0.6.0)
       '@upyo/mock':
@@ -4852,8 +4852,8 @@ packages:
     resolution: {integrity: sha512-zgNNXOcUe5662vQ5qmGJcwioy7KvrOKUeuDifb6oA23MYz3MvRWmhaMlbjAnZWt6OzutKAP/lR3C9/afTld7EQ==}
     engines: {bun: '>=1.2.0', deno: '>=2.3.0', node: '>=20.0.0'}
 
-  '@upyo/mailgun@0.6.0':
-    resolution: {integrity: sha512-JmbqaVvkpBL0z4W/tEEonzy3o8BWEZl6T3eawfPHhd2UwZ59j+qWZrzO6ts0GUNwgNmTJpo+Tkh10r9jUDE+AQ==}
+  '@upyo/maileroo@0.6.0':
+    resolution: {integrity: sha512-k6iLTTYoZPoBe1VkNHYP9F+nm+xkWGqq+fms4d+7udTZk4h0Ln7Pdh2IUu8reypd3vO+xijQssFdVPF/0O0nFw==}
     engines: {bun: '>=1.2.0', deno: '>=2.3.0', node: '>=20.0.0'}
     peerDependencies:
       '@upyo/core': 0.6.0
@@ -13310,7 +13310,7 @@ snapshots:
 
   '@upyo/core@0.6.0': {}
 
-  '@upyo/mailgun@0.6.0(@upyo/core@0.6.0)':
+  '@upyo/maileroo@0.6.0(@upyo/core@0.6.0)':
     dependencies:
       '@upyo/core': 0.6.0
 

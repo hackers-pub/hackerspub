@@ -15,7 +15,7 @@ import { relations } from "@hackerspub/models/relations";
 import { getLogger as getDatabaseLogger } from "@logtape/drizzle-orm";
 import { getLogger } from "@logtape/logtape";
 import type { Transport } from "@upyo/core";
-import { MailgunTransport } from "@upyo/mailgun";
+import { MailerooTransport } from "@upyo/maileroo";
 import { MockTransport } from "@upyo/mock";
 import KeyvRedis from "@keyv/redis";
 import {
@@ -240,18 +240,14 @@ export function createEmailResource(
   logger: WarningLogger = getLogger(["hackerspub", "email"]),
 ): Transport {
   if (config.transport === "mock") {
-    if (config.reason === "mailgun-unconfigured") {
+    if (config.reason === "maileroo-unconfigured") {
       logger.warning(
-        "MAILGUN_* environment variables are not configured; using MockTransport. Emails will not be delivered.",
+        "MAILEROO_KEY is not configured; using MockTransport. Emails will not be delivered.",
       );
     }
     return new MockTransport();
   }
-  return new MailgunTransport({
-    apiKey: config.apiKey,
-    domain: config.domain,
-    region: config.region,
-  });
+  return new MailerooTransport({ apiKey: config.apiKey });
 }
 
 /**
