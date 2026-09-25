@@ -127,6 +127,69 @@ test("persistActor() skips featured posts authored by other actors", async () =>
   });
 });
 
+test("persistActor() keeps cached follow counts when collections are hidden", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const makeActor = (
+      following: vocab.Collection | null,
+      followers: vocab.Collection | null,
+    ) => {
+      const actorObject = new vocab.Person({
+        id: new URL("https://hidden.example/users/carol"),
+        preferredUsername: "carol",
+        name: "Carol Hidden",
+        inbox: new URL("https://hidden.example/users/carol/inbox"),
+        following: new URL("https://hidden.example/users/carol/following"),
+        followers: new URL("https://hidden.example/users/carol/followers"),
+      });
+      // With suppressError, a collection that answers 403 (e.g., hidden
+      // follow lists or a suspended account) resolves to null:
+      Object.defineProperties(actorObject, {
+        getFollowing: { value: () => Promise.resolve(following) },
+        getFollowers: { value: () => Promise.resolve(followers) },
+      });
+      return actorObject;
+    };
+
+    const visible = await persistActor(
+      fedCtx,
+      makeActor(
+        new vocab.OrderedCollection({ totalItems: 42 }),
+        new vocab.OrderedCollection({ totalItems: 7 }),
+      ),
+      { outbox: false },
+    );
+    assert.equal(visible?.followeesCount, 42);
+    assert.equal(visible?.followersCount, 7);
+
+    const hidden = await persistActor(fedCtx, makeActor(null, null), {
+      outbox: false,
+    });
+    assert.equal(hidden?.followeesCount, 42);
+    assert.equal(hidden?.followersCount, 7);
+
+    const withoutTotals = await persistActor(
+      fedCtx,
+      makeActor(new vocab.OrderedCollection({}), new vocab.Collection({})),
+      { outbox: false },
+    );
+    assert.equal(withoutTotals?.followeesCount, 42);
+    assert.equal(withoutTotals?.followersCount, 7);
+
+    // Values past PostgreSQL's integer range must not fail the upsert:
+    const huge = await persistActor(
+      fedCtx,
+      makeActor(
+        new vocab.OrderedCollection({ totalItems: 10_000_000_000 }),
+        new vocab.OrderedCollection({ totalItems: 0 }),
+      ),
+      { outbox: false },
+    );
+    assert.equal(huge?.followeesCount, 2147483647);
+    assert.equal(huge?.followersCount, 0);
+  });
+});
+
 test("persistActorsByHandles() fetches missing handles and returns cached actors on repeat", async () => {
   await withRollback(async (tx) => {
     const { kv, store } = createTestKv();

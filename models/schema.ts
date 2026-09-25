@@ -591,6 +591,14 @@ export const actorTable = pgTable(
     index("idx_actor_url").on(table.url).where(isNotNull(table.url)),
     index("idx_actor_aliases_gin").using("gin", table.aliases),
     check("actor_username_check", sql`${table.username} NOT LIKE '%@%'`),
+    // Collection sizes are counts, so they can never be negative.  Remote
+    // actors' counts are cached values adjusted by deltas, which drifted below
+    // zero before (https://github.com/hackers-pub/hackerspub/issues/394);
+    // writers clamp their values, and these checks are the last line of
+    // defense against a regression:
+    check("actor_followees_count_check", sql`${table.followeesCount} >= 0`),
+    check("actor_followers_count_check", sql`${table.followersCount} >= 0`),
+    check("actor_posts_count_check", sql`${table.postsCount} >= 0`),
     check(
       "actor_suspended_check",
       sql`

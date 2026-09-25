@@ -78,6 +78,30 @@ async function getOptionalActorValue<T>(
   }
 }
 
+// PostgreSQL `integer` upper bound for the cached collection counts.
+const MAX_COLLECTION_COUNT = 2147483647;
+
+/**
+ * Picks the value to cache for a remote actor's `following` or `followers`
+ * count.  Remote servers often hide these collections (e.g., Misskey's
+ * private follow lists, or suspended Mastodon accounts answer 403), in which
+ * case the collection cannot be fetched or has no `totalItems`.  That means
+ * the count is *unknown*, not zero, so the previously cached count is kept.
+ * Treating it as zero let later local unfollows push the cached count below
+ * zero; see <https://github.com/hackers-pub/hackerspub/issues/394>.
+ * Reported values are also clamped into the range the column can store.
+ */
+function getCollectionCount(
+  result: OptionalActorValue<{ totalItems: number | null } | null>,
+  persistedCount: number | undefined,
+): number {
+  const totalItems = result.success ? result.value?.totalItems : null;
+  if (totalItems == null || !Number.isFinite(totalItems)) {
+    return persistedCount ?? 0;
+  }
+  return Math.min(Math.max(Math.trunc(totalItems), 0), MAX_COLLECTION_COUNT);
+}
+
 async function mapWithConcurrencyLimit<T, TResult>(
   items: T[],
   concurrency: number,
@@ -278,12 +302,8 @@ export async function persistActor(
     emojis,
     tags,
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
-    followeesCount: followees.success
-      ? (followees.value?.totalItems ?? 0)
-      : (persisted?.followeesCount ?? 0),
-    followersCount: followers.success
-      ? (followers.value?.totalItems ?? 0)
-      : (persisted?.followersCount ?? 0),
+    followeesCount: getCollectionCount(followees, persisted?.followeesCount),
+    followersCount: getCollectionCount(followers, persisted?.followersCount),
     aliases: actor.aliasIds?.map((a) => a.href),
     successorId:
       successorActor == null || !successorActor.aliases.includes(actor.id.href)
