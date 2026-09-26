@@ -3225,6 +3225,10 @@ msgstr "뉴스를 더 불러오는 중…"
 msgid "Loading more…"
 msgstr "더 불러오는 중…"
 
+#: src/app.tsx:71
+msgid "Loading page…"
+msgstr "페이지를 불러오는 중…"
+
 #: src/components/NoteComposer.tsx:996
 msgid "Loading quoted post…"
 msgstr "인용 콘텐츠를 불러오는 중…"
@@ -5174,7 +5178,7 @@ msgstr "이 스레드의 일부 콘텐츠는 표시할 수 없습니다."
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "다른 사용자가 이 번역을 저장했습니다. 새로 고친 후 다시 시도하세요."
 
-#: src/app.tsx:110
+#: src/app.tsx:124
 msgid "Something went wrong"
 msgstr "문제가 발생했습니다"
 
@@ -5955,7 +5959,7 @@ msgstr "공개할 번역"
 msgid "Tree"
 msgstr "트리"
 
-#: src/app.tsx:119
+#: src/app.tsx:133
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:779
 msgid "Try again"
 msgstr "다시 시도"
@@ -6280,7 +6284,7 @@ msgstr "경고"
 msgid "We cannot tell whether this translation reflects the latest version of the original."
 msgstr "이 번역이 원문의 최신 내용을 반영하는지 알 수 없습니다."
 
-#: src/app.tsx:109
+#: src/app.tsx:123
 msgid "We couldn't reach the server"
 msgstr "서버에 연결하지 못했습니다"
 
@@ -6658,7 +6662,7 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다. 최대 512자입니다."
 
-#: src/app.tsx:114
+#: src/app.tsx:128
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "연결이 불안정한 것 같습니다. 네트워크를 확인하고 다시 시도해 주세요."
 

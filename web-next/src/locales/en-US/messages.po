@@ -3229,6 +3229,10 @@ msgstr "Loading more stories…"
 msgid "Loading more…"
 msgstr "Loading more…"
 
+#: src/app.tsx:71
+msgid "Loading page…"
+msgstr "Loading page…"
+
 #: src/components/NoteComposer.tsx:996
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
@@ -5178,7 +5182,7 @@ msgstr "Some posts in this thread cannot be shown."
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "Someone else saved this translation. Reload and try again."
 
-#: src/app.tsx:110
+#: src/app.tsx:124
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
@@ -5959,7 +5963,7 @@ msgstr "Translations to publish"
 msgid "Tree"
 msgstr "Tree"
 
-#: src/app.tsx:119
+#: src/app.tsx:133
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:779
 msgid "Try again"
 msgstr "Try again"
@@ -6284,7 +6288,7 @@ msgstr "Warning"
 msgid "We cannot tell whether this translation reflects the latest version of the original."
 msgstr "We cannot tell whether this translation reflects the latest version of the original."
 
-#: src/app.tsx:109
+#: src/app.tsx:123
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
@@ -6662,7 +6666,7 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/app.tsx:114
+#: src/app.tsx:128
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "Your connection looks unstable. Check your network and try again."
 
