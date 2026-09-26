@@ -10,10 +10,10 @@ export interface InternalLinkProps extends Omit<
 }
 
 export function InternalLink(props: InternalLinkProps) {
-  const [internalProps, restProps] = splitProps(props, [
-    "internalHref",
-    "children",
-  ]);
+  // Leave `children` in the spread so callers such as `HtmlContent` can pass
+  // `innerHTML` instead: an explicit child expression makes Solid's SSR drop
+  // `innerHTML`, rendering an empty anchor.
+  const [internalProps, restProps] = splitProps(props, ["internalHref"]);
   const navigate = useNavigate();
   function onClick(event: MouseEvent) {
     if (event.metaKey || event.ctrlKey || event.shiftKey) {
@@ -29,9 +29,5 @@ export function InternalLink(props: InternalLinkProps) {
     const href = internalProps.internalHref.toString();
     void startTransition(() => navigate(href));
   }
-  return (
-    <a {...restProps} on:click={onClick}>
-      {internalProps.children}
-    </a>
-  );
+  return <a {...restProps} on:click={onClick} />;
 }
