@@ -63,7 +63,7 @@ const OTPFieldSlot: Component<ComponentProps<"div"> & { index: number }> = (
       {char()}
       <Show when={showFakeCaret()}>
         <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div class="h-4 w-px animate-caret-blink bg-foreground transition-none duration-1000" />
+          <div class="h-4 w-px animate-caret-blink bg-foreground" />
         </div>
       </Show>
     </div>
