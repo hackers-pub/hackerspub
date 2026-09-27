@@ -253,14 +253,9 @@ export default function RootLayout(props: RouteSectionProps) {
               classList={{
                 "pt-14 md:pt-0": !isComposeRoute(),
                 "pb-24 md:pb-0": showFloatingCompose(),
-                // The dev watermark lives on a fixed ::before layer instead
-                // of main's own background-image: iOS Chrome's long-press
-                // probe walks the touched element chain and offers a
-                // download menu for any CSS background-image it finds
-                // there, and pseudo-element styles are invisible to that
-                // probe.  `fixed` rather than `absolute` so main needs no
-                // dev-only `relative`, keeping containing blocks identical
-                // to production builds.
+                // On ::before so iOS Chrome's long press doesn't offer to
+                // download it as a background-image.  `fixed` avoids a
+                // dev-only `relative` on main.
                 "before:fixed before:inset-0 before:-z-10 before:bg-[url(/dev-bg-light.svg)] dark:before:bg-[url(/dev-bg-dark.svg)]":
                   import.meta.env.DEV,
               }}
