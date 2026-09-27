@@ -59,5 +59,13 @@
       "emailSubject": "您在 Hackers' Pub 的申訴已審核",
       "emailContent": "您針對 Hackers' Pub 管理處置提出的申訴已經過審核。\n\n結果：{{result}}\n\n來自管理團隊的訊息：\n{{rationale}}\n\n— Hackers' Pub 管理團隊\n"
     }
+  },
+  "accountEmailVerification": {
+    "emailSubject": "驗證 Hackers' Pub 電子郵件地址",
+    "emailContent": "若要將此電子郵件地址新增至 Hackers' Pub 的 @{{username}} 帳戶，請在提出驗證請求的瀏覽器中的設定 → 帳戶頁面輸入以下驗證碼：\n\n{{code}}\n\n此驗證碼將在 15 分鐘後到期。若您未提出請求，請忽略此郵件。\n"
+  },
+  "accountEmailChange": {
+    "emailSubject": "Hackers' Pub 電子郵件設定已變更",
+    "emailContent": "Hackers' Pub 的 @{{username}} 帳戶的電子郵件設定已變更。若非您本人操作，請使用現有電子郵件地址或通行金鑰登入，並聯絡站台管理員。\n"
   }
 }

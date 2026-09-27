@@ -1,3 +1,4 @@
+import { AccountEmailSettings } from "~/components/AccountEmailSettings.tsx";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { debounce } from "es-toolkit";
 import { fetchQuery, graphql } from "relay-runtime";
@@ -128,6 +129,7 @@ const accountPageQuery = graphql`
         aliases
       }
       ...SettingsTabs_account
+      ...AccountEmailSettings_account
     }
   }
 `;
@@ -530,6 +532,7 @@ export default function AccountSettingsPage() {
                         <Show keyed when={data.viewer}>
                           {(viewer) => (
                             <>
+                              <AccountEmailSettings $account={account} />
                               <PersonalOrganizationCards
                                 account={account}
                                 viewer={viewer}

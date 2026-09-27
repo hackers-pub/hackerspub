@@ -59,5 +59,13 @@
       "emailSubject": "Your Hackers' Pub appeal has been reviewed",
       "emailContent": "Your appeal against a moderation action on Hackers' Pub has been reviewed.\n\nOutcome: {{result}}\n\nMessage from the moderation team:\n{{rationale}}\n\n— The Hackers' Pub moderation team\n"
     }
+  },
+  "accountEmailVerification": {
+    "emailSubject": "Verify your email address for Hackers' Pub",
+    "emailContent": "To add this email address to @{{username}} on Hackers' Pub, enter this code in Settings → Account in the browser where you requested it:\n\n{{code}}\n\nThis code expires in 15 minutes. If you did not request it, ignore this email.\n"
+  },
+  "accountEmailChange": {
+    "emailSubject": "Email settings changed on Hackers' Pub",
+    "emailContent": "The email settings for @{{username}} on Hackers' Pub have changed. If you did not make this change, sign in using an existing email address or passkey and contact the instance administrator.\n"
   }
 }

@@ -143,7 +143,7 @@ msgid "{0, plural, one {You have invited total # person so far.} other {You have
 msgstr "{0, plural, other {これまでに合計#人を招待しました。}}"
 
 #. placeholder {0}: organizationCount()
-#: src/routes/(root)/[handle]/settings/account.tsx:645
+#: src/routes/(root)/[handle]/settings/account.tsx:648
 msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 msgstr "{0, plural, other {まだ#件の組織に所属しています。}}"
 
@@ -233,7 +233,7 @@ msgid "{0} asked you to become the first admin of this organization account."
 msgstr "{0}さんが、この組織アカウントの最初の管理者になるよう依頼しました。"
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1341
+#: src/routes/(root)/[handle]/settings/account.tsx:1344
 msgid "{0} can now accept the organization invitation."
 msgstr "{0}さんが組織の招待を承諾できるようになりました。"
 
@@ -278,7 +278,7 @@ msgstr "{0}さんは既にHackers' Pubのメンバーです。"
 
 #. placeholder {0}: result.membership.member.username
 #. placeholder {1}: roleLabel( result.membership.role, )
-#: src/routes/(root)/[handle]/settings/account.tsx:1408
+#: src/routes/(root)/[handle]/settings/account.tsx:1411
 msgid "{0} is now {1}."
 msgstr "{0}さんは現在{1}です。"
 
@@ -288,12 +288,12 @@ msgid "{0} mentioned you"
 msgstr "{0}さんがあなたにメンションしました"
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1462
+#: src/routes/(root)/[handle]/settings/account.tsx:1465
 msgid "{0} no longer belongs to this organization."
 msgstr "{0}さんはこの組織に所属しなくなりました。"
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1459
+#: src/routes/(root)/[handle]/settings/account.tsx:1462
 msgid "{0} no longer has a pending organization invitation."
 msgstr "{0}さんへの保留中の組織招待はなくなりました。"
 
@@ -353,7 +353,7 @@ msgid "{0} updated a post you shared"
 msgstr "{0}さんがあなたが共有したコンテンツを更新しました"
 
 #. placeholder {0}: result.request.admin.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1116
+#: src/routes/(root)/[handle]/settings/account.tsx:1119
 msgid "{0} will receive a notification to review it."
 msgstr "{0}さんに確認用の通知が届きます。"
 
@@ -441,7 +441,7 @@ msgstr "{name}（原文）"
 msgid "{name} (translation)"
 msgstr "{name}（翻訳）"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1815
+#: src/routes/(root)/[handle]/settings/account.tsx:1818
 msgid "@old@example.com or actor URL"
 msgstr "@old@example.comまたはアクターURL"
 
@@ -530,7 +530,7 @@ msgstr "通報者が転送に同意したため、リモートインスタンス
 msgid "A review rationale is required."
 msgstr "審査理由の入力が必要です。"
 
-#: src/routes/(root)/sign/index.tsx:251
+#: src/routes/(root)/sign/index.tsx:261
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
@@ -542,7 +542,7 @@ msgstr "この通報は転送されるため、要約が必要です。"
 msgid "A user (profile) report."
 msgstr "ユーザー（プロフィール）の通報です。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:914
+#: src/routes/(root)/[handle]/settings/account.tsx:917
 msgid "Accept"
 msgstr "承諾"
 
@@ -558,7 +558,7 @@ msgstr "変換を承諾"
 msgid "Accept organization conversion"
 msgstr "組織への変換を承認"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:671
+#: src/routes/(root)/[handle]/settings/account.tsx:674
 msgid "Accept pending invitations from organization administrators."
 msgstr "組織管理者からの保留中の招待を承諾します。"
 
@@ -567,7 +567,7 @@ msgid "Accepted"
 msgstr "受理"
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:267
-#: src/routes/(root)/[handle]/settings/account.tsx:913
+#: src/routes/(root)/[handle]/settings/account.tsx:916
 msgid "Accepting…"
 msgstr "承諾中…"
 
@@ -581,7 +581,7 @@ msgstr "アカウント"
 msgid "Account converted"
 msgstr "アカウントを変換しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1932
+#: src/routes/(root)/[handle]/settings/account.tsx:1935
 msgid "Account deletion is unavailable"
 msgstr "アカウント削除は利用できません"
 
@@ -593,7 +593,7 @@ msgstr "アカウントのハンドル"
 msgid "Account kind"
 msgstr "アカウント種別"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1639
+#: src/routes/(root)/[handle]/settings/account.tsx:1642
 msgid "Account migration"
 msgstr "アカウント移行"
 
@@ -601,8 +601,8 @@ msgstr "アカウント移行"
 msgid "Account permanently suspended"
 msgstr "アカウントを永久停止"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:523
 #: src/routes/(root)/[handle]/settings/account.tsx:525
+#: src/routes/(root)/[handle]/settings/account.tsx:527
 msgid "Account settings"
 msgstr "アカウント設定"
 
@@ -641,8 +641,8 @@ msgstr "有効化日時:"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "現在停止または連合ブロック中のアクターです。期限切れの停止は自動的に除外されます。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1205
-#: src/routes/(root)/[handle]/settings/account.tsx:1835
+#: src/components/article-translations/ArticleTranslationManager.tsx:1209
+#: src/routes/(root)/[handle]/settings/account.tsx:1838
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
 #: src/routes/(root)/admin/news.tsx:755
@@ -667,7 +667,7 @@ msgstr "選択肢を追加"
 msgid "Add poll"
 msgstr "アンケートを追加"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1788
+#: src/routes/(root)/[handle]/settings/account.tsx:1791
 msgid "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 msgstr "古いアカウントをここに追加してください。Hackers' Pubは、そのアカウントをあなたの別アカウントとして公開します。"
 
@@ -675,11 +675,11 @@ msgstr "古いアカウントをここに追加してください。Hackers' Pub
 msgid "Add to sidebar"
 msgstr "サイドバーに追加"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1183
+#: src/components/article-translations/ArticleTranslationManager.tsx:1187
 msgid "Add translation"
 msgstr "翻訳を追加"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1040
+#: src/components/article-translations/ArticleTranslationManager.tsx:1044
 msgid "Added line:"
 msgstr "追加された行:"
 
@@ -687,7 +687,7 @@ msgstr "追加された行:"
 msgid "Adding reaction…"
 msgstr "リアクションを追加中…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1835
+#: src/routes/(root)/[handle]/settings/account.tsx:1838
 #: src/routes/(root)/admin/news.tsx:642
 #: src/routes/(root)/admin/news.tsx:755
 msgid "Adding…"
@@ -709,11 +709,11 @@ msgstr "管理"
 msgid "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
 msgstr "承認すると、このアカウントは組織アカウントになり、直接ログインできなくなり、個人アカウントへ戻せなくなります。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1150
+#: src/routes/(root)/[handle]/settings/account.tsx:1153
 msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
 msgstr "変換後、このアカウントでは直接サインインできず、個人アカウントに戻すこともできません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1794
+#: src/routes/(root)/[handle]/settings/account.tsx:1797
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "古いサーバーが移行先を確認すると、Moveアクティビティを送信し、対応しているサーバーはフォロワーをこちらへ移行できます。"
 
@@ -1002,7 +1002,7 @@ msgstr "画像を添付"
 msgid "Attempted servers"
 msgstr "送信を試みたサーバー"
 
-#: src/routes/(root)/sign/index.tsx:451
+#: src/routes/(root)/sign/index.tsx:463
 msgid "Authenticating…"
 msgstr "認証中…"
 
@@ -1019,7 +1019,7 @@ msgstr "自動入力"
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1151
+#: src/components/article-translations/ArticleTranslationManager.tsx:1155
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "自動翻訳"
@@ -1156,9 +1156,11 @@ msgstr "通報者 {0}"
 msgid "By {0}"
 msgstr "{0}さんによる記事"
 
+#: src/components/AccountEmailSettings.tsx:444
+#: src/components/AccountEmailSettings.tsx:464
 #: src/components/AppealDialog.tsx:182
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:264
-#: src/components/article-translations/ArticleTranslationManager.tsx:1390
+#: src/components/article-translations/ArticleTranslationManager.tsx:1401
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
@@ -1173,14 +1175,14 @@ msgstr "{0}さんによる記事"
 #: src/components/RemoveFollowerButton.tsx:157
 #: src/components/ReportDialog.tsx:220
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
-#: src/routes/(root)/[handle]/settings/account.tsx:2048
+#: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1611
+#: src/routes/(root)/[handle]/settings/account.tsx:1614
 msgid "Cancel invitation"
 msgstr "招待を取り消す"
 
@@ -1188,7 +1190,7 @@ msgstr "招待を取り消す"
 msgid "Cancel request"
 msgstr "リクエストをキャンセル"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1606
+#: src/routes/(root)/[handle]/settings/account.tsx:1609
 msgid "Canceling…"
 msgstr "取り消し中…"
 
@@ -1196,17 +1198,17 @@ msgstr "取り消し中…"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1952
-#: src/routes/(root)/[handle]/settings/account.tsx:1965
+#: src/routes/(root)/[handle]/settings/account.tsx:1955
+#: src/routes/(root)/[handle]/settings/account.tsx:1968
 msgid "Cannot delete this account"
 msgstr "このアカウントは削除できません"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1951
+#: src/routes/(root)/[handle]/settings/account.tsx:1954
 msgid "Cannot delete this organization"
 msgstr "この組織を削除できません"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1709
-#: src/routes/(root)/[handle]/settings/account.tsx:1758
+#: src/routes/(root)/[handle]/settings/account.tsx:1712
+#: src/routes/(root)/[handle]/settings/account.tsx:1761
 msgid "Cannot update this account"
 msgstr "このアカウントを更新できません"
 
@@ -1227,11 +1229,11 @@ msgstr "モデレーターによって検閲されました。"
 msgid "Check again"
 msgstr "再確認"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1125
+#: src/routes/(root)/[handle]/settings/account.tsx:1128
 msgid "Check the admin username and confirmation, then try again."
 msgstr "管理者のユーザー名と確認入力を確認して、もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:766
+#: src/routes/(root)/[handle]/settings/account.tsx:769
 msgid "Check the username and your remaining invitations, then try again."
 msgstr "ユーザー名と残りの招待数を確認して、もう一度お試しください。"
 
@@ -1254,6 +1256,10 @@ msgstr "対応を選択してください。"
 #: src/components/admin/AppealResolveForm.tsx:222
 msgid "Choose an outcome."
 msgstr "結果を選択してください。"
+
+#: src/components/AccountEmailSettings.tsx:169
+msgid "Choose another primary email address before removing this one."
+msgstr "このアドレスを削除する前に、別のメインメールアドレスを選択してください。"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:58
 msgid "Choose how this article appears and who can interact with it."
@@ -1368,11 +1374,11 @@ msgstr "タイムラインでこの記事を引用できる相手を設定しま
 msgid "Conversion already accepted"
 msgstr "変換は承認済みです"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1115
+#: src/routes/(root)/[handle]/settings/account.tsx:1118
 msgid "Conversion request created"
 msgstr "変換リクエストを作成しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:697
+#: src/routes/(root)/[handle]/settings/account.tsx:700
 msgid "Convert to organization"
 msgstr "組織に変換"
 
@@ -1389,8 +1395,8 @@ msgstr "コピー"
 msgid "Could not accept conversion"
 msgstr "変換を承諾できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:861
-#: src/routes/(root)/[handle]/settings/account.tsx:873
+#: src/routes/(root)/[handle]/settings/account.tsx:864
+#: src/routes/(root)/[handle]/settings/account.tsx:876
 msgid "Could not accept invitation"
 msgstr "招待を承諾できませんでした"
 
@@ -1399,8 +1405,8 @@ msgstr "招待を承諾できませんでした"
 #~ msgid "Could not add migration alias"
 #~ msgstr "移行エイリアスを追加できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1716
-#: src/routes/(root)/[handle]/settings/account.tsx:1722
+#: src/routes/(root)/[handle]/settings/account.tsx:1719
+#: src/routes/(root)/[handle]/settings/account.tsx:1725
 msgid "Could not add previous account"
 msgstr "古いアカウントを追加できませんでした"
 
@@ -1408,8 +1414,8 @@ msgstr "古いアカウントを追加できませんでした"
 msgid "Could not copy the link to the clipboard."
 msgstr "クリップボードにリンクをコピーできませんでした。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:762
-#: src/routes/(root)/[handle]/settings/account.tsx:774
+#: src/routes/(root)/[handle]/settings/account.tsx:765
+#: src/routes/(root)/[handle]/settings/account.tsx:777
 msgid "Could not create organization"
 msgstr "組織を作成できませんでした"
 
@@ -1417,15 +1423,15 @@ msgstr "組織を作成できませんでした"
 #~ msgid "Could not find a post at this URL"
 #~ msgstr "このURLのコンテンツが見つかりませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1347
-#: src/routes/(root)/[handle]/settings/account.tsx:1359
+#: src/routes/(root)/[handle]/settings/account.tsx:1350
+#: src/routes/(root)/[handle]/settings/account.tsx:1362
 msgid "Could not invite member"
 msgstr "メンバーを招待できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:953
-#: src/routes/(root)/[handle]/settings/account.tsx:965
-#: src/routes/(root)/[handle]/settings/account.tsx:1473
-#: src/routes/(root)/[handle]/settings/account.tsx:1489
+#: src/routes/(root)/[handle]/settings/account.tsx:956
+#: src/routes/(root)/[handle]/settings/account.tsx:968
+#: src/routes/(root)/[handle]/settings/account.tsx:1476
+#: src/routes/(root)/[handle]/settings/account.tsx:1492
 msgid "Could not leave organization"
 msgstr "組織から脱退できませんでした"
 
@@ -1443,8 +1449,8 @@ msgstr "対応を記録できませんでした"
 msgid "Could not refresh this from its origin."
 msgstr "この項目を配信元から再取得できませんでした。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1474
-#: src/routes/(root)/[handle]/settings/account.tsx:1490
+#: src/routes/(root)/[handle]/settings/account.tsx:1477
+#: src/routes/(root)/[handle]/settings/account.tsx:1493
 msgid "Could not remove member"
 msgstr "メンバーを削除できませんでした"
 
@@ -1453,13 +1459,13 @@ msgstr "メンバーを削除できませんでした"
 #~ msgid "Could not remove migration alias"
 #~ msgstr "移行エイリアスを削除できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1764
-#: src/routes/(root)/[handle]/settings/account.tsx:1772
+#: src/routes/(root)/[handle]/settings/account.tsx:1767
+#: src/routes/(root)/[handle]/settings/account.tsx:1775
 msgid "Could not remove previous account"
 msgstr "古いアカウントを削除できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1121
-#: src/routes/(root)/[handle]/settings/account.tsx:1133
+#: src/routes/(root)/[handle]/settings/account.tsx:1124
+#: src/routes/(root)/[handle]/settings/account.tsx:1136
 msgid "Could not request conversion"
 msgstr "変換をリクエストできませんでした"
 
@@ -1482,8 +1488,8 @@ msgstr "引用を取り消せませんでした"
 msgid "Could not submit the appeal"
 msgstr "異議申し立てを送信できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1416
-#: src/routes/(root)/[handle]/settings/account.tsx:1428
+#: src/routes/(root)/[handle]/settings/account.tsx:1419
+#: src/routes/(root)/[handle]/settings/account.tsx:1431
 msgid "Could not update role"
 msgstr "役割を更新できませんでした"
 
@@ -1495,7 +1501,7 @@ msgstr "ローカルに保存された画像を確認できませんでした。
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:657
+#: src/routes/(root)/[handle]/settings/account.tsx:660
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
 msgstr "ユーザー名名前空間を共有し、招待を1つ消費する組織アカウントを作成します。"
 
@@ -1515,8 +1521,8 @@ msgstr "招待リンクを作成"
 msgid "Create note"
 msgstr "投稿を作成"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:655
-#: src/routes/(root)/[handle]/settings/account.tsx:825
+#: src/routes/(root)/[handle]/settings/account.tsx:658
+#: src/routes/(root)/[handle]/settings/account.tsx:828
 msgid "Create organization"
 msgstr "組織を作成"
 
@@ -1542,7 +1548,7 @@ msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
 #: src/components/NoteComposer.tsx:1301
-#: src/routes/(root)/[handle]/settings/account.tsx:825
+#: src/routes/(root)/[handle]/settings/account.tsx:828
 #: src/routes/(root)/[handle]/settings/invite.tsx:831
 msgid "Creating…"
 msgstr "作成中…"
@@ -1555,7 +1561,7 @@ msgstr "切り抜き"
 msgid "Crop your new avatar"
 msgstr "新しいアイコンを切り抜く"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1175
+#: src/routes/(root)/[handle]/settings/account.tsx:1178
 msgid "Current username"
 msgstr "現在のユーザー名"
 
@@ -1612,18 +1618,18 @@ msgstr "共有のデフォルト公開範囲"
 msgid "Delete"
 msgstr "削除"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:540
-#: src/routes/(root)/[handle]/settings/account.tsx:2028
-#: src/routes/(root)/[handle]/settings/account.tsx:2061
+#: src/routes/(root)/[handle]/settings/account.tsx:543
+#: src/routes/(root)/[handle]/settings/account.tsx:2031
+#: src/routes/(root)/[handle]/settings/account.tsx:2064
 msgid "Delete account"
 msgstr "アカウントを削除"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2038
+#: src/routes/(root)/[handle]/settings/account.tsx:2041
 msgid "Delete account permanently?"
 msgstr "アカウントを完全に削除しますか？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1354
+#: src/components/article-translations/ArticleTranslationManager.tsx:1358
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "下書きを削除"
@@ -1636,13 +1642,13 @@ msgstr "ローカル下書きを削除"
 msgid "Delete local draft?"
 msgstr "ローカル下書きを削除しますか？"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:564
-#: src/routes/(root)/[handle]/settings/account.tsx:2028
-#: src/routes/(root)/[handle]/settings/account.tsx:2060
+#: src/routes/(root)/[handle]/settings/account.tsx:567
+#: src/routes/(root)/[handle]/settings/account.tsx:2031
+#: src/routes/(root)/[handle]/settings/account.tsx:2063
 msgid "Delete organization"
 msgstr "組織を削除"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2037
+#: src/routes/(root)/[handle]/settings/account.tsx:2040
 msgid "Delete organization permanently?"
 msgstr "組織を完全に削除しますか？"
 
@@ -1656,7 +1662,7 @@ msgid "Delete post?"
 msgstr "コンテンツを削除しますか？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/routes/(root)/[handle]/settings/account.tsx:2058
+#: src/routes/(root)/[handle]/settings/account.tsx:2061
 #: src/routes/(root)/[handle]/settings/invite.tsx:729
 #: src/routes/(root)/admin/media.tsx:185
 msgid "Deleting…"
@@ -1687,7 +1693,7 @@ msgstr "却下"
 msgid "Deny (uphold decision)"
 msgstr "却下（決定を維持）"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:816
+#: src/routes/(root)/[handle]/settings/account.tsx:819
 msgid "Description"
 msgstr "説明"
 
@@ -1742,7 +1748,7 @@ msgstr "閉じる"
 msgid "Dismissed"
 msgstr "却下"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:807
+#: src/routes/(root)/[handle]/settings/account.tsx:810
 #: src/routes/(root)/[handle]/settings/index.tsx:478
 #: src/routes/(root)/sign/up/[token].tsx:382
 msgid "Display name"
@@ -1752,7 +1758,7 @@ msgstr "名前"
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "この記事の共同著者として記録されたメンバーを組織の隣に表示します。既定では、公開した人ではなく下書きの作成者が共同著者として記録されます。"
 
-#: src/routes/(root)/sign/index.tsx:457
+#: src/routes/(root)/sign/index.tsx:469
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
@@ -1824,7 +1830,7 @@ msgstr "投稿を編集"
 msgid "Edit original"
 msgstr "原文を編集"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1238
+#: src/components/article-translations/ArticleTranslationManager.tsx:1242
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "この翻訳を編集"
@@ -1835,11 +1841,23 @@ msgstr "この翻訳を編集"
 msgid "Email address"
 msgstr "メールアドレス"
 
+#: src/components/AccountEmailSettings.tsx:277
+msgid "Email address removed"
+msgstr "メールアドレスを削除しました"
+
+#: src/components/AccountEmailSettings.tsx:233
+msgid "Email address verified"
+msgstr "メールアドレスを認証しました"
+
+#: src/components/AccountEmailSettings.tsx:289
+msgid "Email addresses"
+msgstr "メールアドレス"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:444
 msgid "Email digests"
 msgstr "通知ダイジェスト"
 
-#: src/routes/(root)/sign/index.tsx:412
+#: src/routes/(root)/sign/index.tsx:424
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
@@ -1861,23 +1879,32 @@ msgstr "終了"
 msgid "Ends"
 msgstr "終了予定"
 
+#: src/components/AccountEmailSettings.tsx:151
+msgid "Enter a valid email address."
+msgstr "有効なメールアドレスを入力してください。"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:284
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "有効な以前のアカウントのハンドルまたはアクターURLを入力してください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1822
+#: src/routes/(root)/[handle]/settings/account.tsx:1825
 msgid "Enter the account you are moving from, for example @old@example.com."
 msgstr "移行元のアカウントを入力してください。例：@old@example.com。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1714
+#: src/routes/(root)/[handle]/settings/account.tsx:1717
 msgid "Enter the account you are moving from, such as @old@example.com or its actor URL."
 msgstr "移行元のアカウントを入力してください。@old@example.comやアクターURLを使用できます。"
+
+#. placeholder {0}: challenge().email
+#: src/components/AccountEmailSettings.tsx:412
+msgid "Enter the verification code sent to {0} in this tab."
+msgstr "{0}に送信された認証コードをこのタブで入力してください。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:295
 msgid "Enter your email address below to get started."
 msgstr "以下にメールアドレスを入力して始めましょう。"
 
-#: src/routes/(root)/sign/index.tsx:261
+#: src/routes/(root)/sign/index.tsx:273
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
@@ -2038,9 +2065,9 @@ msgstr "コピーに失敗しました"
 msgid "Failed to create invitation link"
 msgstr "招待リンクの作成に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1908
-#: src/routes/(root)/[handle]/settings/account.tsx:1972
-#: src/routes/(root)/[handle]/settings/account.tsx:1982
+#: src/routes/(root)/[handle]/settings/account.tsx:1911
+#: src/routes/(root)/[handle]/settings/account.tsx:1975
+#: src/routes/(root)/[handle]/settings/account.tsx:1985
 msgid "Failed to delete account"
 msgstr "アカウントを削除できませんでした"
 
@@ -2058,8 +2085,8 @@ msgstr "孤立したメディアの削除に失敗しました。"
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:857
-#: src/components/article-translations/ArticleTranslationManager.tsx:863
+#: src/components/article-translations/ArticleTranslationManager.tsx:861
+#: src/components/article-translations/ArticleTranslationManager.tsx:867
 msgid "Failed to delete the translation draft."
 msgstr "翻訳の下書きを削除できませんでした。"
 
@@ -2202,8 +2229,8 @@ msgstr "このユーザーをミュートできませんでした"
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:890
-#: src/components/article-translations/ArticleTranslationManager.tsx:897
+#: src/components/article-translations/ArticleTranslationManager.tsx:894
+#: src/components/article-translations/ArticleTranslationManager.tsx:901
 msgid "Failed to publish the translation."
 msgstr "翻訳を公開できませんでした。"
 
@@ -2222,7 +2249,7 @@ msgstr "リアクションに失敗しました"
 msgid "Failed to recompute news scores."
 msgstr "ニュースのスコアを再計算できませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:716
+#: src/components/article-translations/ArticleTranslationManager.tsx:720
 msgid "Failed to record the review."
 msgstr "確認内容を記録できませんでした。"
 
@@ -2296,8 +2323,8 @@ msgstr "設定の保存に失敗しました"
 msgid "Failed to save the draft."
 msgstr "下書きを保存できませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:766
-#: src/components/article-translations/ArticleTranslationManager.tsx:833
+#: src/components/article-translations/ArticleTranslationManager.tsx:770
+#: src/components/article-translations/ArticleTranslationManager.tsx:837
 msgid "Failed to save the translation."
 msgstr "翻訳を保存できませんでした。"
 
@@ -2394,8 +2421,8 @@ msgstr "画像のアップロードに失敗しました"
 msgid "Failed to vote"
 msgstr "投票に失敗しました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:553
-#: src/components/article-translations/ArticleTranslationManager.tsx:562
+#: src/components/article-translations/ArticleTranslationManager.tsx:557
+#: src/components/article-translations/ArticleTranslationManager.tsx:566
 msgid "Failed to withdraw the translation."
 msgstr "翻訳を取り下げられませんでした。"
 
@@ -2470,6 +2497,11 @@ msgstr "フォロー中"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
+#: src/components/AccountEmailSettings.tsx:167
+#: src/components/AccountEmailSettings.tsx:346
+msgid "For security, adding or removing an email address or changing your primary address requires a sign-in within the last 10 minutes. Sign in again with a registered email address or passkey."
+msgstr "セキュリティのため、メールアドレスの追加・削除やメインアドレスの変更には、過去10分以内のログインが必要です。登録済みのメールアドレスまたはパスキーで再度ログインしてください。"
+
 #: src/components/ui/markdown-editor.tsx:538
 msgid "Formatting"
 msgstr "書式設定"
@@ -2478,7 +2510,7 @@ msgstr "書式設定"
 msgid "Forwarded to the remote instance"
 msgstr "リモートインスタンスに転送済み"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:580
+#: src/components/article-translations/ArticleTranslationManager.tsx:584
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "最新かどうか不明"
@@ -2556,11 +2588,11 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 #~ msgid "Hackers' Pub no longer publishes that account as an alias."
 #~ msgstr "Hackers' Pubは、そのアカウントをエイリアスとして公開しなくなりました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1745
+#: src/routes/(root)/[handle]/settings/account.tsx:1748
 msgid "Hackers' Pub no longer publishes that account as another account that belongs to you."
 msgstr "Hackers' Pubは、そのアカウントをあなたの別アカウントとして公開しなくなりました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1696
+#: src/routes/(root)/[handle]/settings/account.tsx:1699
 msgid "Hackers' Pub now publishes the old account as another account that belongs to you."
 msgstr "Hackers' Pubは、古いアカウントをあなたの別アカウントとして公開するようになりました。"
 
@@ -2713,7 +2745,7 @@ msgstr "招待ツリーから非表示にする"
 msgid "Hide replies"
 msgstr "返信を隠す"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
 msgid "Hide source changes"
 msgstr "原文の変更を隠す"
 
@@ -2725,7 +2757,7 @@ msgstr "原文の変更を隠す"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1209
+#: src/components/article-translations/ArticleTranslationManager.tsx:1213
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "既に同じ言語の下書きがある場合は、重複して作成せずにそれを開きます。"
 
@@ -2805,11 +2837,11 @@ msgstr "無効な入力：{0}"
 msgid "Invalid input: {inputPath}"
 msgstr "無効な入力：{inputPath}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:854
+#: src/routes/(root)/[handle]/settings/account.tsx:857
 msgid "Invitation accepted"
 msgstr "招待を承諾しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1454
+#: src/routes/(root)/[handle]/settings/account.tsx:1457
 msgid "Invitation canceled"
 msgstr "招待を取り消しました"
 
@@ -2834,7 +2866,7 @@ msgstr "招待リンクを削除しました"
 msgid "Invitation links"
 msgstr "招待リンク"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1340
+#: src/routes/(root)/[handle]/settings/account.tsx:1343
 #: src/routes/(root)/[handle]/settings/invite.tsx:273
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
@@ -2865,15 +2897,15 @@ msgstr "招待"
 msgid "Invite a friend"
 msgstr "友達を招待"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1524
+#: src/routes/(root)/[handle]/settings/account.tsx:1527
 msgid "Invite a personal account by its local username."
 msgstr "ローカルユーザー名で個人アカウントを招待します。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1542
+#: src/routes/(root)/[handle]/settings/account.tsx:1545
 msgid "Invite member"
 msgstr "メンバーを招待"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1507
+#: src/routes/(root)/[handle]/settings/account.tsx:1510
 msgid "Invite members and choose who can manage this organization."
 msgstr "メンバーを招待し、この組織を管理できる人を選びます。"
 
@@ -2890,7 +2922,7 @@ msgstr "招待者"
 msgid "Invited by {0}"
 msgstr "{0}さんが招待"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1542
+#: src/routes/(root)/[handle]/settings/account.tsx:1545
 msgid "Inviting…"
 msgstr "招待中…"
 
@@ -2915,6 +2947,10 @@ msgstr "{0}に参加"
 #: src/routes/(root)/[handle]/settings/invite.tsx:993
 msgid "Joined on {0}"
 msgstr "{0}に参加"
+
+#: src/components/AccountEmailSettings.tsx:449
+msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
+msgstr "認証済みメールアドレスまたはパスキーの少なくとも一つを使える状態にしておいてください。すべての認証手段を失うと、原則としてアカウントを復旧できません。"
 
 #: src/components/NoteComposer.tsx:1326
 msgid "Keep draft"
@@ -2951,7 +2987,7 @@ msgstr "言語設定"
 msgid "Language shown when the view was counted."
 msgstr "閲覧が集計された時点で表示されていた言語です。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1071
+#: src/components/article-translations/ArticleTranslationManager.tsx:1075
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -2989,26 +3025,26 @@ msgstr "最終更新"
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1007
-#: src/routes/(root)/[handle]/settings/account.tsx:1613
+#: src/routes/(root)/[handle]/settings/account.tsx:1010
+#: src/routes/(root)/[handle]/settings/account.tsx:1616
 msgid "Leave"
 msgstr "脱退"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:710
+#: src/routes/(root)/[handle]/settings/account.tsx:713
 msgid "Leave every organization listed under \"Your organizations\" above before you can convert this account."
 msgstr "このアカウントを変換する前に、上の「あなたの組織」に表示されているすべての組織から脱退してください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:685
+#: src/routes/(root)/[handle]/settings/account.tsx:688
 msgid "Leave organizations you no longer work with. The last member or last admin cannot leave."
 msgstr "もう作業しない組織から脱退します。最後のメンバーまたは最後の管理者は脱退できません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1006
-#: src/routes/(root)/[handle]/settings/account.tsx:1608
+#: src/routes/(root)/[handle]/settings/account.tsx:1009
+#: src/routes/(root)/[handle]/settings/account.tsx:1611
 msgid "Leaving…"
 msgstr "脱退中…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:946
-#: src/routes/(root)/[handle]/settings/account.tsx:1456
+#: src/routes/(root)/[handle]/settings/account.tsx:949
+#: src/routes/(root)/[handle]/settings/account.tsx:1459
 msgid "Left organization"
 msgstr "組織から脱退しました"
 
@@ -3140,7 +3176,7 @@ msgstr "ニュースをもっと読み込む"
 msgid "Loading draft…"
 msgstr "下書きを読み込み中…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1551
+#: src/routes/(root)/[handle]/settings/account.tsx:1554
 msgid "Loading members…"
 msgstr "メンバーを読み込み中…"
 
@@ -3271,6 +3307,10 @@ msgstr "ユーザーを検索"
 msgid "Looking up user…"
 msgstr "ユーザー情報を取得中…"
 
+#: src/components/AccountEmailSettings.tsx:314
+msgid "Make primary"
+msgstr "メインにする"
+
 #: src/routes/(root)/admin/relay.tsx:229
 msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 msgstr "インスタンスアクターでActivityPubリレーをフォローします。承認されると、リレーはフェディバース全体の公開コンテンツをこのインスタンスに転送でき、このインスタンスで新たに公開された記事を受け取ります。リレーアクターのURL（例: https://relay.example/actor）を入力してください。"
@@ -3300,22 +3340,22 @@ msgstr "Markdown対応"
 msgid "Media"
 msgstr "メディア"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1517
+#: src/routes/(root)/[handle]/settings/account.tsx:1520
 msgid "member"
 msgstr "member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:837
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1209
-#: src/routes/(root)/[handle]/settings/account.tsx:1244
+#: src/routes/(root)/[handle]/settings/account.tsx:840
+#: src/routes/(root)/[handle]/settings/account.tsx:933
+#: src/routes/(root)/[handle]/settings/account.tsx:1212
+#: src/routes/(root)/[handle]/settings/account.tsx:1247
 msgid "Member"
 msgstr "メンバー"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1457
+#: src/routes/(root)/[handle]/settings/account.tsx:1460
 msgid "Member removed"
 msgstr "メンバーを削除しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1312
+#: src/routes/(root)/[handle]/settings/account.tsx:1315
 msgid "Members could not be loaded."
 msgstr "メンバーを読み込めませんでした。"
 
@@ -3444,7 +3484,7 @@ msgstr "名前が長すぎます。最大50文字です。"
 msgid "Native name"
 msgstr "現地名"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:578
+#: src/components/article-translations/ArticleTranslationManager.tsx:582
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "要確認"
@@ -3470,7 +3510,7 @@ msgstr "使用履歴なし"
 msgid "New"
 msgstr "新規"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1158
+#: src/routes/(root)/[handle]/settings/account.tsx:1161
 msgid "New admin username"
 msgstr "新しい管理者のユーザー名"
 
@@ -3478,6 +3518,10 @@ msgstr "新しい管理者のユーザー名"
 #: src/routes/(root)/[handle]/drafts/index.tsx:307
 msgid "New article"
 msgstr "新しい記事"
+
+#: src/components/AccountEmailSettings.tsx:382
+msgid "New email address"
+msgstr "新しいメールアドレス"
 
 #: src/components/WebPushNotificationSettings.tsx:233
 msgid "New notifications can now appear even when Hackers' Pub is not open."
@@ -3536,7 +3580,7 @@ msgstr "まだ処理された分析済み通報はありません。"
 msgid "No appeals match these filters."
 msgstr "条件に一致する異議申し立てはありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:940
+#: src/components/article-translations/ArticleTranslationManager.tsx:944
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "この翻訳には基準となる原文が記録されていないため、最新かどうかを確認できません。"
 
@@ -3590,7 +3634,7 @@ msgstr "招待状が残っていません"
 msgid "No matching object found"
 msgstr "一致するオブジェクトが見つかりません"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1561
+#: src/routes/(root)/[handle]/settings/account.tsx:1564
 msgid "No members found."
 msgstr "メンバーが見つかりません。"
 
@@ -3624,7 +3668,7 @@ msgstr "まだ誰も共有していません。"
 msgid "No penalized links."
 msgstr "ペナルティ付きのリンクはありません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:888
+#: src/routes/(root)/[handle]/settings/account.tsx:891
 msgid "No pending organization invitations."
 msgstr "保留中の組織招待はありません。"
 
@@ -3644,7 +3688,7 @@ msgstr "まだ優先共有者がありません。"
 msgid "No previews"
 msgstr "プレビューなし"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1844
+#: src/routes/(root)/[handle]/settings/account.tsx:1847
 msgid "No previous accounts added yet."
 msgstr "古いアカウントはまだ追加されていません。"
 
@@ -3665,16 +3709,16 @@ msgstr "読み込まれたリアクターはありません。"
 msgid "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 msgstr "共有されたリンクはまだありません。フェディバースでリンクが広がり始めると、ここに表示されます。"
 
-#: src/routes/(root)/sign/index.tsx:256
+#: src/routes/(root)/sign/index.tsx:266
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:967
+#: src/components/article-translations/ArticleTranslationManager.tsx:971
 msgid "No translation changes needed"
 msgstr "翻訳の修正は不要"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1092
-#: src/components/article-translations/ArticleTranslationManager.tsx:1152
+#: src/components/article-translations/ArticleTranslationManager.tsx:1096
+#: src/components/article-translations/ArticleTranslationManager.tsx:1156
 msgid "No translator credit"
 msgstr "翻訳者のクレジットなし"
 
@@ -3736,7 +3780,7 @@ msgstr "見つかりません"
 #~ msgid "Not found."
 #~ msgstr "見つかりませんでした。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1107
+#: src/components/article-translations/ArticleTranslationManager.tsx:1111
 msgid "Not published"
 msgstr "未公開"
 
@@ -3804,7 +3848,7 @@ msgstr "ブラウザー設定で通知がブロックされています。"
 msgid "Number of invitations"
 msgstr "招待数"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1809
+#: src/routes/(root)/[handle]/settings/account.tsx:1812
 msgid "Old account"
 msgstr "古いアカウント"
 
@@ -3812,11 +3856,11 @@ msgstr "古いアカウント"
 msgid "Oldest signups"
 msgstr "古い登録順"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1791
+#: src/routes/(root)/[handle]/settings/account.tsx:1794
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "古いサーバーでアカウント移行設定を開き、このHackers' Pubアカウントを新しいアカウントに設定してください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:990
+#: src/components/article-translations/ArticleTranslationManager.tsx:994
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "これらのバージョンのいずれかには基準となる原文が記録されていないため、変更を表示できません。"
 
@@ -3829,7 +3873,7 @@ msgstr "十分な閲覧数があるホスト名のみ表示します。パスや
 msgid "Only moderators can refresh remote objects."
 msgstr "モデレーターのみがリモートオブジェクトを再取得できます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1954
+#: src/routes/(root)/[handle]/settings/account.tsx:1957
 msgid "Only organization admins can delete this organization."
 msgstr "この組織を削除できるのは組織管理者だけです。"
 
@@ -3869,11 +3913,11 @@ msgstr "選択肢 {0}"
 msgid "Options"
 msgstr "選択肢"
 
-#: src/routes/(root)/sign/index.tsx:438
+#: src/routes/(root)/sign/index.tsx:450
 msgid "Or"
 msgstr "または"
 
-#: src/routes/(root)/sign/index.tsx:468
+#: src/routes/(root)/sign/index.tsx:480
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
@@ -3881,34 +3925,34 @@ msgstr "またはメールのコードを入力してください"
 msgid "Organization accounts"
 msgstr "組織アカウント"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:837
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1209
-#: src/routes/(root)/[handle]/settings/account.tsx:1244
+#: src/routes/(root)/[handle]/settings/account.tsx:840
+#: src/routes/(root)/[handle]/settings/account.tsx:933
+#: src/routes/(root)/[handle]/settings/account.tsx:1212
+#: src/routes/(root)/[handle]/settings/account.tsx:1247
 msgid "Organization admin"
 msgstr "組織管理者"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:755
+#: src/routes/(root)/[handle]/settings/account.tsx:758
 msgid "Organization created"
 msgstr "組織を作成しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1917
+#: src/routes/(root)/[handle]/settings/account.tsx:1920
 msgid "Organization deleted"
 msgstr "組織を削除しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1931
+#: src/routes/(root)/[handle]/settings/account.tsx:1934
 msgid "Organization deletion is unavailable"
 msgstr "組織を削除できません"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:669
+#: src/routes/(root)/[handle]/settings/account.tsx:672
 msgid "Organization invitations"
 msgstr "組織の招待"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1505
+#: src/routes/(root)/[handle]/settings/account.tsx:1508
 msgid "Organization members"
 msgstr "組織メンバー"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1303
+#: src/components/article-translations/ArticleTranslationManager.tsx:1307
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "原文"
@@ -3945,7 +3989,7 @@ msgstr "自分の変更で上書き"
 msgid "Page not found"
 msgstr "ページが見つかりません"
 
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:394
 msgid "Passkey authentication failed"
 msgstr "パスキー認証に失敗しました"
 
@@ -3976,7 +4020,7 @@ msgstr "ペナルティを解除しました。"
 
 #: src/components/admin/ModerationCaseList.tsx:99
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:653
-#: src/routes/(root)/[handle]/settings/account.tsx:1577
+#: src/routes/(root)/[handle]/settings/account.tsx:1580
 #: src/routes/(root)/admin/moderation/appeals.tsx:158
 #: src/routes/(root)/admin/moderation/appeals.tsx:223
 #: src/routes/(root)/admin/moderation/index.tsx:125
@@ -3996,11 +4040,11 @@ msgstr "審査待ち"
 msgid "People you might want to follow"
 msgstr "フォローのおすすめ"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:566
+#: src/routes/(root)/[handle]/settings/account.tsx:569
 msgid "Permanently delete this organization account and its content."
 msgstr "この組織アカウントとそのコンテンツを完全に削除します。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:542
+#: src/routes/(root)/[handle]/settings/account.tsx:545
 msgid "Permanently delete your account and sign out of this session."
 msgstr "アカウントを完全に削除し、このセッションからサインアウトします。"
 
@@ -4059,8 +4103,8 @@ msgstr "エラーを修正して、もう一度お試しください。"
 msgid "Please enter your Fediverse handle."
 msgstr "フェディバースのハンドルを入力してください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1703
-#: src/routes/(root)/[handle]/settings/account.tsx:1752
+#: src/routes/(root)/[handle]/settings/account.tsx:1706
+#: src/routes/(root)/[handle]/settings/account.tsx:1755
 msgid "Please sign in again before changing account migration settings."
 msgstr "アカウント移行設定を変更する前にもう一度サインインしてください。"
 
@@ -4069,7 +4113,7 @@ msgstr "アカウント移行設定を変更する前にもう一度サインイ
 #~ msgid "Please sign in again before changing migration aliases."
 #~ msgstr "移行エイリアスを変更する前にもう一度ログインしてください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1943
+#: src/routes/(root)/[handle]/settings/account.tsx:1946
 msgid "Please sign in again before deleting your account."
 msgstr "アカウントを削除する前に、もう一度サインインしてください。"
 
@@ -4188,12 +4232,12 @@ msgstr "優先共有者を削除しました。"
 msgid "Preferred sharers"
 msgstr "優先共有者"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1641
+#: src/routes/(root)/[handle]/settings/account.tsx:1644
 msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "このアカウントをMastodon式の移行先として準備します。"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1313
+#: src/components/article-translations/ArticleTranslationManager.tsx:1317
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "プレビュー"
@@ -4202,17 +4246,25 @@ msgstr "プレビュー"
 #~ msgid "Previous account"
 #~ msgstr "以前のアカウント"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1695
+#: src/routes/(root)/[handle]/settings/account.tsx:1698
 msgid "Previous account added"
 msgstr "古いアカウントを追加しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1744
+#: src/routes/(root)/[handle]/settings/account.tsx:1747
 msgid "Previous account removed"
 msgstr "古いアカウントを削除しました"
 
 #: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "前の画像"
+
+#: src/components/AccountEmailSettings.tsx:300
+msgid "Primary"
+msgstr "メイン"
+
+#: src/components/AccountEmailSettings.tsx:254
+msgid "Primary email address changed"
+msgstr "メインメールアドレスを変更しました"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:334
 msgid "Prior violations"
@@ -4274,7 +4326,7 @@ msgstr "公開"
 msgid "Publish article"
 msgstr "記事を公開"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1345
+#: src/components/article-translations/ArticleTranslationManager.tsx:1349
 msgid "Publish changes"
 msgstr "変更を公開"
 
@@ -4290,7 +4342,7 @@ msgstr "公開設定"
 msgid "Publish this as a note?"
 msgstr "これを投稿として公開しますか？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1344
+#: src/components/article-translations/ArticleTranslationManager.tsx:1348
 msgid "Publish translation"
 msgstr "翻訳を公開"
 
@@ -4303,7 +4355,7 @@ msgctxt "publication state"
 msgid "Published"
 msgstr "公開済み"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1106
+#: src/components/article-translations/ArticleTranslationManager.tsx:1110
 msgid "Published; unpublished changes"
 msgstr "公開済み、未公開の変更あり"
 
@@ -4408,7 +4460,7 @@ msgstr "記事全文を読む"
 msgid "Read the original"
 msgstr "原文を読む"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1385
+#: src/components/article-translations/ArticleTranslationManager.tsx:1396
 msgid "Readers here and on other servers will no longer see this language. Any private draft of it is kept, so you can publish it again later."
 msgstr "このサイトや他のインスタンスの読者は、この言語を読めなくなります。この言語の非公開の下書きは残るため、後で再び公開できます。"
 
@@ -4554,20 +4606,24 @@ msgstr "リモートフォロー"
 msgid "Remote followers at publication"
 msgstr "公開時のリモートフォロワー"
 
+#: src/components/AccountEmailSettings.tsx:337
+#: src/components/AccountEmailSettings.tsx:471
 #: src/components/LanguageList.tsx:223
-#: src/routes/(root)/[handle]/settings/account.tsx:1614
-#: src/routes/(root)/[handle]/settings/account.tsx:1865
+#: src/routes/(root)/[handle]/settings/account.tsx:1617
+#: src/routes/(root)/[handle]/settings/account.tsx:1868
 #: src/routes/(root)/admin/news.tsx:672
 #: src/routes/(root)/admin/news.tsx:812
 msgid "Remove"
 msgstr "削除"
 
+#. placeholder {0}: address.email
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/AccountEmailSettings.tsx:336
 #: src/components/EmojiReactionPopover.tsx:572
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1861
+#: src/routes/(root)/[handle]/settings/account.tsx:1864
 msgid "Remove {alias}"
 msgstr "{alias}を削除"
 
@@ -4575,6 +4631,10 @@ msgstr "{alias}を削除"
 #: src/components/BookmarkButton.tsx:151
 msgid "Remove bookmark"
 msgstr "ブックマークを削除"
+
+#: src/components/AccountEmailSettings.tsx:458
+msgid "Remove email address?"
+msgstr "メールアドレスを削除しますか？"
 
 #: src/components/ProfileActionMenu.tsx:569
 #: src/components/RemoveFollowerButton.tsx:149
@@ -4614,7 +4674,7 @@ msgstr "アンケートを削除"
 msgid "Remove quote"
 msgstr "引用を削除"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1039
+#: src/components/article-translations/ArticleTranslationManager.tsx:1043
 msgid "Removed line:"
 msgstr "削除された行:"
 
@@ -4626,8 +4686,9 @@ msgstr "作成から十分な時間が経過し、アイコン、投稿、記事
 msgid "Removing reaction…"
 msgstr "リアクションを削除中…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1609
-#: src/routes/(root)/[handle]/settings/account.tsx:1865
+#: src/components/AccountEmailSettings.tsx:471
+#: src/routes/(root)/[handle]/settings/account.tsx:1612
+#: src/routes/(root)/[handle]/settings/account.tsx:1868
 msgid "Removing…"
 msgstr "削除中…"
 
@@ -4717,11 +4778,11 @@ msgstr "{0}さんのコンテンツを通報しました"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "あなたが提出した通報を新しい順に表示します。通報の対象、記入した理由、現在の状態を確認できます。詳しい処理結果は表示されず、通報されたユーザーが誰の通報かを知ることは決してありません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1190
+#: src/routes/(root)/[handle]/settings/account.tsx:1193
 msgid "Request conversion"
 msgstr "変換をリクエスト"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1190
+#: src/routes/(root)/[handle]/settings/account.tsx:1193
 msgid "Requesting…"
 msgstr "リクエスト中…"
 
@@ -4764,7 +4825,7 @@ msgstr "審査理由（申立人に表示）"
 msgid "Review request"
 msgstr "リクエストを確認"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:581
+#: src/components/article-translations/ArticleTranslationManager.tsx:585
 msgid "Reviewed"
 msgstr "確認済み"
 
@@ -4791,12 +4852,12 @@ msgstr "引用を取り消す"
 msgid "Revoke this quote?"
 msgstr "この引用を取り消しますか？"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1232
-#: src/routes/(root)/[handle]/settings/account.tsx:1536
+#: src/routes/(root)/[handle]/settings/account.tsx:1235
+#: src/routes/(root)/[handle]/settings/account.tsx:1539
 msgid "Role"
 msgstr "役割"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1407
+#: src/routes/(root)/[handle]/settings/account.tsx:1410
 msgid "Role updated"
 msgstr "役割を更新しました"
 
@@ -4835,7 +4896,7 @@ msgid "Save changes"
 msgstr "変更を保存"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1333
+#: src/components/article-translations/ArticleTranslationManager.tsx:1337
 msgid "Save draft"
 msgstr "下書きを保存"
 
@@ -4843,7 +4904,8 @@ msgstr "下書きを保存"
 #~ msgid "Save draft to see preview"
 #~ msgstr "下書きを保存するとプレビューが表示されます"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:962
+#: src/components/article-translations/ArticleTranslationManager.tsx:966
+#: src/components/article-translations/ArticleTranslationManager.tsx:1375
 msgid "Save or discard your unsaved changes first."
 msgstr "未保存の変更をまず保存するか破棄してください。"
 
@@ -4913,7 +4975,7 @@ msgstr "{0}の検索結果"
 msgid "Searching…"
 msgstr "検索中…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1266
+#: src/components/article-translations/ArticleTranslationManager.tsx:1270
 msgid "Select a language to edit its translation."
 msgstr "編集する言語を選択してください。"
 
@@ -4954,6 +5016,11 @@ msgstr "未読通知が残っている間、1日に1通メールを送信しま�
 msgid "Send one email per week while unread notifications remain."
 msgstr "未読通知が残っている間、1週間に1通メールを送信します。"
 
+#: src/components/AccountEmailSettings.tsx:396
+msgid "Send verification code"
+msgstr "認証コードを送信"
+
+#: src/components/AccountEmailSettings.tsx:396
 #: src/routes/(root)/[handle]/invite/[id].tsx:412
 #: src/routes/(root)/[handle]/settings/invite.tsx:416
 msgid "Sending…"
@@ -5075,17 +5142,21 @@ msgid "Shown to the user"
 msgstr "ユーザーに表示"
 
 #: src/components/AppSidebar.tsx:864
-#: src/routes/(root)/sign/index.tsx:428
+#: src/routes/(root)/sign/index.tsx:440
 msgid "Sign in"
 msgstr "ログイン"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1702
-#: src/routes/(root)/[handle]/settings/account.tsx:1751
-#: src/routes/(root)/[handle]/settings/account.tsx:1942
+#: src/components/AccountEmailSettings.tsx:353
+msgid "Sign in again"
+msgstr "再度サインイン"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1705
+#: src/routes/(root)/[handle]/settings/account.tsx:1754
+#: src/routes/(root)/[handle]/settings/account.tsx:1945
 msgid "Sign in required"
 msgstr "サインインが必要です"
 
-#: src/routes/(root)/sign/index.tsx:396
+#: src/routes/(root)/sign/index.tsx:408
 #: src/routes/applink/sign/in/[token].tsx:38
 #: src/routes/applink/sign/in/[token].tsx:40
 msgid "Sign in to Hackers' Pub"
@@ -5099,7 +5170,11 @@ msgstr "ログインして投稿"
 msgid "Sign in to vote"
 msgstr "ログインして投票"
 
-#: src/routes/(root)/sign/index.tsx:452
+#: src/components/AccountEmailSettings.tsx:290
+msgid "Sign in with any verified email address. Notification digests are sent to your primary address."
+msgstr "認証済みのどのメールアドレスでもサインインできます。通知ダイジェストはメインアドレスに送信されます。"
+
+#: src/routes/(root)/sign/index.tsx:464
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
@@ -5116,11 +5191,11 @@ msgstr "登録"
 msgid "Signed in as"
 msgstr "ログイン中："
 
-#: src/routes/(root)/sign/index.tsx:400
+#: src/routes/(root)/sign/index.tsx:412
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/routes/(root)/sign/index.tsx:428
+#: src/routes/(root)/sign/index.tsx:440
 msgid "Signing in…"
 msgstr "ログイン中…"
 
@@ -5129,11 +5204,11 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:999
+#: src/components/article-translations/ArticleTranslationManager.tsx:1003
 msgid "Since the published version was last reviewed"
 msgstr "公開中の翻訳を最後に確認して以降"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1000
+#: src/components/article-translations/ArticleTranslationManager.tsx:1004
 msgid "Since this draft was written"
 msgstr "この下書きを書いて以降"
 
@@ -5170,11 +5245,11 @@ msgstr "ローカルに保存された一部の画像は利用できなくなっ
 msgid "Some posts in this thread cannot be shown."
 msgstr "このスレッドの一部のコンテンツは表示できません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:707
-#: src/components/article-translations/ArticleTranslationManager.tsx:759
-#: src/components/article-translations/ArticleTranslationManager.tsx:826
-#: src/components/article-translations/ArticleTranslationManager.tsx:854
-#: src/components/article-translations/ArticleTranslationManager.tsx:887
+#: src/components/article-translations/ArticleTranslationManager.tsx:711
+#: src/components/article-translations/ArticleTranslationManager.tsx:763
+#: src/components/article-translations/ArticleTranslationManager.tsx:830
+#: src/components/article-translations/ArticleTranslationManager.tsx:858
+#: src/components/article-translations/ArticleTranslationManager.tsx:891
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "他のユーザーがこの翻訳を保存しました。再読み込みしてやり直してください。"
 
@@ -5182,7 +5257,7 @@ msgstr "他のユーザーがこの翻訳を保存しました。再読み込み
 msgid "Something went wrong"
 msgstr "問題が発生しました"
 
-#: src/routes/(root)/sign/index.tsx:263
+#: src/routes/(root)/sign/index.tsx:275
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
@@ -5330,11 +5405,11 @@ msgstr "タグ"
 msgid "Take action"
 msgstr "対応する"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:811
+#: src/routes/(root)/[handle]/settings/account.tsx:814
 msgid "Team name"
 msgstr "チーム名"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:800
+#: src/routes/(root)/[handle]/settings/account.tsx:803
 msgid "team-name"
 msgstr "team-name"
 
@@ -5370,12 +5445,12 @@ msgstr "有効なリレーアクターのURLではありません。"
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:756
-#: src/components/article-translations/ArticleTranslationManager.tsx:823
+#: src/components/article-translations/ArticleTranslationManager.tsx:760
+#: src/components/article-translations/ArticleTranslationManager.tsx:827
 msgid "That language is not available or the input is invalid."
 msgstr "この言語は利用できないか、入力が正しくありません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1194
+#: src/routes/(root)/[handle]/settings/account.tsx:1197
 msgid "The accepting admin will receive a notification with a review link."
 msgstr "承認する管理者には確認リンク付きの通知が届きます。"
 
@@ -5396,15 +5471,24 @@ msgstr "この通報の自動分析は利用できませんでした。"
 msgid "The browser did not provide a complete push subscription."
 msgstr "ブラウザーから完全なプッシュ通知サブスクリプションが提供されませんでした。"
 
+#. placeholder {0}: new Date(challenge().expires).toLocaleTimeString(i18n.locale, { hour: "numeric", minute: "2-digit" })
+#: src/components/AccountEmailSettings.tsx:413
+msgid "The code expires at {0}."
+msgstr "コードは{0}に期限切れになります。"
+
+#: src/components/AccountEmailSettings.tsx:165
+msgid "The code is incorrect, expired, or no longer available. Request a new code if needed."
+msgstr "コードが正しくないか、期限切れなどで利用できません。必要に応じて新しいコードをリクエストしてください。"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1109
 #~ msgid "The conversion request could not be accepted. Please try again."
 #~ msgstr "変換リクエストを承諾できませんでした。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1135
+#: src/routes/(root)/[handle]/settings/account.tsx:1138
 msgid "The conversion request could not be created. Please try again."
 msgstr "変換リクエストを作成できませんでした。もう一度お試しください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:807
+#: src/components/article-translations/ArticleTranslationManager.tsx:811
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "クレジットされている翻訳者はこの記事を編集できなくなっているため、この下書きではあなたが翻訳者としてクレジットされます。公開中の翻訳は、あなたが公開するまで元のクレジットのままです。"
 
@@ -5424,9 +5508,9 @@ msgstr "共有のデフォルト公開設定です。"
 msgid "The default quote permission for your notes."
 msgstr "投稿のデフォルト引用許可設定です。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1909
-#: src/routes/(root)/[handle]/settings/account.tsx:1973
-#: src/routes/(root)/[handle]/settings/account.tsx:1984
+#: src/routes/(root)/[handle]/settings/account.tsx:1912
+#: src/routes/(root)/[handle]/settings/account.tsx:1976
+#: src/routes/(root)/[handle]/settings/account.tsx:1987
 msgid "The deletion request could not be completed. Please try again."
 msgstr "削除リクエストを完了できませんでした。もう一度お試しください。"
 
@@ -5443,8 +5527,8 @@ msgstr "メールアドレスは招待状を受け取るだけでなく、アカ
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:865
-#: src/routes/(root)/[handle]/settings/account.tsx:875
+#: src/routes/(root)/[handle]/settings/account.tsx:868
+#: src/routes/(root)/[handle]/settings/account.tsx:878
 msgid "The invitation could not be accepted. Please try again."
 msgstr "招待を承諾できませんでした。もう一度お試しください。"
 
@@ -5476,18 +5560,18 @@ msgstr "招待リンクが正常に削除されました。"
 msgid "The link to this story is added to your post automatically."
 msgstr "この話題のリンクは自動的にコンテンツに追加されます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1351
-#: src/routes/(root)/[handle]/settings/account.tsx:1361
+#: src/routes/(root)/[handle]/settings/account.tsx:1354
+#: src/routes/(root)/[handle]/settings/account.tsx:1364
 msgid "The member could not be invited. Please try again."
 msgstr "メンバーを招待できませんでした。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1480
-#: src/routes/(root)/[handle]/settings/account.tsx:1494
+#: src/routes/(root)/[handle]/settings/account.tsx:1483
+#: src/routes/(root)/[handle]/settings/account.tsx:1497
 msgid "The member could not be removed. Please try again."
 msgstr "メンバーを削除できませんでした。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1420
-#: src/routes/(root)/[handle]/settings/account.tsx:1430
+#: src/routes/(root)/[handle]/settings/account.tsx:1423
+#: src/routes/(root)/[handle]/settings/account.tsx:1433
 msgid "The member role could not be updated. Please try again."
 msgstr "メンバーの役割を更新できませんでした。もう一度お試しください。"
 
@@ -5504,18 +5588,18 @@ msgstr "メンバーの役割を更新できませんでした。もう一度お
 msgid "The moderation team will review your appeal and notify you."
 msgstr "モデレーションチームが異議を審査し、あなたに通知します。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1918
+#: src/routes/(root)/[handle]/settings/account.tsx:1921
 msgid "The organization account was deleted."
 msgstr "組織アカウントを削除しました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:776
+#: src/routes/(root)/[handle]/settings/account.tsx:779
 msgid "The organization could not be created. Please try again."
 msgstr "組織を作成できませんでした。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:957
-#: src/routes/(root)/[handle]/settings/account.tsx:967
-#: src/routes/(root)/[handle]/settings/account.tsx:1479
-#: src/routes/(root)/[handle]/settings/account.tsx:1493
+#: src/routes/(root)/[handle]/settings/account.tsx:960
+#: src/routes/(root)/[handle]/settings/account.tsx:970
+#: src/routes/(root)/[handle]/settings/account.tsx:1482
+#: src/routes/(root)/[handle]/settings/account.tsx:1496
 msgid "The organization could not be left. Please try again."
 msgstr "組織から脱退できませんでした。もう一度お試しください。"
 
@@ -5536,7 +5620,7 @@ msgstr "投稿権限を持つ組織のメンバーがこの下書きにアクセ
 msgid "The original has changed"
 msgstr "原文が変更されました"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:939
+#: src/components/article-translations/ArticleTranslationManager.tsx:943
 msgid "The original has changed since this translation was last reviewed."
 msgstr "この翻訳を最後に確認したあと、原文が変更されました。"
 
@@ -5554,12 +5638,12 @@ msgstr "お探しのページは存在しないか、移動された可能性が
 msgid "The passkey has been successfully revoked."
 msgstr "パスキーを正常に取り消しました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1723
+#: src/routes/(root)/[handle]/settings/account.tsx:1726
 msgid "The previous account could not be added. Please try again."
 msgstr "古いアカウントを追加できませんでした。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1765
-#: src/routes/(root)/[handle]/settings/account.tsx:1773
+#: src/routes/(root)/[handle]/settings/account.tsx:1768
+#: src/routes/(root)/[handle]/settings/account.tsx:1776
 msgid "The previous account could not be removed. Please try again."
 msgstr "古いアカウントを削除できませんでした。もう一度お試しください。"
 
@@ -5599,6 +5683,10 @@ msgstr "対象の累積モデレーション履歴です。累積した履歴は
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
+#: src/components/AccountEmailSettings.tsx:173
+msgid "The verification email could not be sent. Please try again later."
+msgstr "認証メールを送信できませんでした。しばらくしてからもう一度お試しください。"
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:107
 msgid "The Web Push public key is invalid."
@@ -5608,25 +5696,29 @@ msgstr "Web Push の公開鍵が無効です。"
 msgid "There are no moderation actions on your account."
 msgstr "あなたのアカウントに対するモデレーション対応はありません。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:979
+#: src/components/article-translations/ArticleTranslationManager.tsx:983
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "比較できる以前の原文がないため、現在の原文のみを表示します。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:710
+#: src/components/article-translations/ArticleTranslationManager.tsx:714
 msgid "There is nothing to review for this language."
 msgstr "この言語には確認すべき翻訳がありません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1935
+#: src/routes/(root)/[handle]/settings/account.tsx:1938
 msgid "This account cannot be deleted right now. Please contact the instance administrators."
 msgstr "現在、このアカウントは削除できません。インスタンス管理者にお問い合わせください。"
 
-#: src/routes/(root)/sign/index.tsx:258
+#: src/routes/(root)/sign/index.tsx:270
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "このアカウントは永久停止されており、ログインできません。"
 
 #: src/components/ProfileCard.tsx:251
 msgid "This account has moved."
 msgstr "このアカウントは移行しました。"
+
+#: src/routes/(root)/sign/index.tsx:268
+msgid "This account has no verified email address, so it cannot sign in by email. If you have a registered passkey, use it to sign in."
+msgstr "このアカウントには認証済みのメールアドレスがないため、メールではログインできません。登録済みのパスキーがある場合は、パスキーでログインしてください。"
 
 #: src/routes/(root)/tree/index.tsx:168
 msgid "This account is hidden because they want to keep their identity private."
@@ -5645,8 +5737,8 @@ msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:235
-#: src/routes/(root)/[handle]/settings/account.tsx:1147
-#: src/routes/(root)/[handle]/settings/account.tsx:1996
+#: src/routes/(root)/[handle]/settings/account.tsx:1150
+#: src/routes/(root)/[handle]/settings/account.tsx:1999
 msgid "This action is permanent."
 msgstr "この操作は永続的です。"
 
@@ -5663,11 +5755,11 @@ msgstr "このブラウザーにはすでにローカル投稿下書きがあり
 msgid "This browser does not support Web Push."
 msgstr "このブラウザーは Web Push に対応していません。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2042
+#: src/routes/(root)/[handle]/settings/account.tsx:2045
 msgid "This cannot be undone. The organization account will be deleted, but you will stay signed in."
 msgstr "この操作は元に戻せません。組織アカウントは削除されますが、ログイン状態は維持されます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2043
+#: src/routes/(root)/[handle]/settings/account.tsx:2046
 msgid "This cannot be undone. Your account will be deleted and you will be signed out."
 msgstr "この操作は元に戻せません。アカウントが削除され、サインアウトされます。"
 
@@ -5730,6 +5822,18 @@ msgstr "他の人がこの下書きを変更しました。削除する前にリ
 msgid "This draft was changed by someone else. Your edits are kept locally; choose how to resolve the conflict."
 msgstr "他の人がこの下書きを変更しました。編集内容はローカルに保持されています。競合の解決方法を選んでください。"
 
+#: src/components/AccountEmailSettings.tsx:153
+msgid "This email address is already verified on your account."
+msgstr "このメールアドレスは、このアカウントで認証済みです。"
+
+#: src/components/AccountEmailSettings.tsx:157
+msgid "This email address is not on your account."
+msgstr "このメールアドレスは、このアカウントに登録されていません。"
+
+#: src/components/AccountEmailSettings.tsx:155
+msgid "This email address is unavailable."
+msgstr "このメールアドレスは利用できません。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:192
 #: src/routes/(root)/[handle]/invite/[id].tsx:196
 msgid "This email is already associated with an existing account."
@@ -5765,7 +5869,7 @@ msgstr "長すぎます（最大{MAX_REASON_LENGTH}文字）。"
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "この言語は非公開の下書きなしで公開されています。ここで確認するか、翻訳を追加して編集を始めてください。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1231
+#: src/components/article-translations/ArticleTranslationManager.tsx:1235
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "この言語は非公開の下書きなしで公開されています。ここで確認するか、編集を開始して非公開の変更を作成してください。"
 
@@ -5773,19 +5877,19 @@ msgstr "この言語は非公開の下書きなしで公開されています。
 msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 msgstr "この投稿は長くなっています。記事にすると、長い文章にタイトル、専用の下書き、読みやすいページを用意できます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1934
+#: src/routes/(root)/[handle]/settings/account.tsx:1937
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
 msgstr "現在、この組織は削除できません。インスタンス管理者にお問い合わせください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2000
+#: src/routes/(root)/[handle]/settings/account.tsx:2003
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
 msgstr "この組織のプロフィール、コンテンツ、下書き、フォロー、設定、メンバーシップは削除されます。ユーザー名は引き続き予約されます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1784
+#: src/routes/(root)/[handle]/settings/account.tsx:1787
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 msgstr "このページでは、Hackers' Pub側の移行準備だけを行います。移行の開始は古いサーバーから行います。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1166
+#: src/routes/(root)/[handle]/settings/account.tsx:1169
 msgid "This personal account will accept the request and become the first organization admin."
 msgstr "この個人アカウントがリクエストを承諾し、最初の組織管理者になります。"
 
@@ -5847,7 +5951,7 @@ msgstr "タイムライン"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:1008
+#: src/components/article-translations/ArticleTranslationManager.tsx:1012
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "タイトル"
@@ -5867,6 +5971,10 @@ msgstr "{0}さんをフォローするには、フェディバースのハンド
 msgid "Toggle sidebar"
 msgstr "サイドバーを切り替える"
 
+#: src/components/AccountEmailSettings.tsx:163
+msgid "Too many verification emails were requested. Please try again later."
+msgstr "認証メールのリクエスト回数が多すぎます。しばらくしてからもう一度お試しください。"
+
 #: src/routes/(root)/admin/moderation/statistics.tsx:117
 msgid "Total reports"
 msgstr "通報総数"
@@ -5876,12 +5984,12 @@ msgstr "通報総数"
 msgid "Total: {0}"
 msgstr "合計：{0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1296
+#: src/components/article-translations/ArticleTranslationManager.tsx:1300
 msgid "Translated body"
 msgstr "翻訳本文"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1096
-#: src/components/article-translations/ArticleTranslationManager.tsx:1157
+#: src/components/article-translations/ArticleTranslationManager.tsx:1100
+#: src/components/article-translations/ArticleTranslationManager.tsx:1161
 msgid "Translated by"
 msgstr "翻訳者:"
 
@@ -5906,7 +6014,7 @@ msgstr "投稿者による翻訳"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1285
+#: src/components/article-translations/ArticleTranslationManager.tsx:1289
 msgid "Translated title"
 msgstr "翻訳タイトル"
 
@@ -5964,22 +6072,22 @@ msgstr "ツリー"
 msgid "Try again"
 msgstr "再試行"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:699
+#: src/routes/(root)/[handle]/settings/account.tsx:702
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "この個人アカウントを組織アカウントに変換します。これは元に戻せません。"
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:2016
+#: src/routes/(root)/[handle]/settings/account.tsx:2019
 msgid "Type {0} to confirm account deletion."
 msgstr "アカウント削除を確認するには{0}と入力してください。"
 
 #. placeholder {0}: props.account.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1183
+#: src/routes/(root)/[handle]/settings/account.tsx:1186
 msgid "Type {0} to confirm conversion."
 msgstr "{0}と入力して変換を確認してください。"
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:2015
+#: src/routes/(root)/[handle]/settings/account.tsx:2018
 msgid "Type {0} to confirm organization deletion."
 msgstr "組織の削除を確認するには {0} と入力してください。"
 
@@ -6051,6 +6159,10 @@ msgstr "購読解除"
 msgid "Unsubscribed from the relay."
 msgstr "リレーの購読を解除しました。"
 
+#: src/components/AccountEmailSettings.tsx:303
+msgid "Unverified"
+msgstr "未認証"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
 msgid "Update how this article is described and discovered."
 msgstr "この記事の説明方法と見つけられ方を更新します。"
@@ -6087,7 +6199,7 @@ msgstr "URLパターン"
 #~ msgid "Use the old account's handle or actor URL."
 #~ msgstr "古いアカウントのハンドルまたはアクターURLを使用してください。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:803
+#: src/routes/(root)/[handle]/settings/account.tsx:806
 msgid "Used for the profile URL and WebFinger handle."
 msgstr "プロフィールURLとWebFingerハンドルに使われます。"
 
@@ -6113,13 +6225,13 @@ msgstr "ユーザーのブロックを解除しました"
 msgid "User unmuted"
 msgstr "ユーザーのミュートを解除しました"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1159
+#: src/routes/(root)/[handle]/settings/account.tsx:1162
 msgid "username"
 msgstr "ユーザー名"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:795
-#: src/routes/(root)/[handle]/settings/account.tsx:1516
-#: src/routes/(root)/[handle]/settings/account.tsx:2006
+#: src/routes/(root)/[handle]/settings/account.tsx:798
+#: src/routes/(root)/[handle]/settings/account.tsx:1519
+#: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
@@ -6149,15 +6261,32 @@ msgstr "ユーザー名が長すぎます。最大50文字です。"
 msgid "Users you have invited"
 msgstr "招待したユーザー"
 
+#: src/components/AccountEmailSettings.tsx:419
+msgid "Verification code"
+msgstr "認証コード"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:400
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
+#: src/components/AccountEmailSettings.tsx:323
+#: src/components/AccountEmailSettings.tsx:434
+msgid "Verify email"
+msgstr "メールを認証"
+
+#: src/components/AccountEmailSettings.tsx:159
+msgid "Verify this email address before making it primary."
+msgstr "メインにする前に、このメールアドレスを認証してください。"
+
 #: src/routes/(root)/sign/up/[token].tsx:298
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
+
+#: src/components/AccountEmailSettings.tsx:434
+msgid "Verifying…"
+msgstr "認証中…"
 
 #: src/components/AppSidebar.tsx:1166
 msgid "View all drafts →"
@@ -6203,7 +6332,7 @@ msgstr "リクエストを表示"
 msgid "View shares"
 msgstr "共有を見る"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
 msgid "View source changes"
 msgstr "原文の変更を見る"
 
@@ -6330,7 +6459,7 @@ msgstr "有効にすると、AIがこの記事を他の言語に自動翻訳す�
 msgid "When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles."
 msgstr "有効にすると、あなたのアカウントは招待ツリーに匿名で表示され、あなたに関わる招待関係はプロフィールで非表示になります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1386
+#: src/components/article-translations/ArticleTranslationManager.tsx:1397
 msgid "While automatic translation is allowed for this article, readers can still request an automatic translation of this language."
 msgstr "この記事で自動翻訳が許可されている間は、読者がこの言語の自動翻訳を依頼できます。"
 
@@ -6346,13 +6475,13 @@ msgstr "この決定はなぜ不当ですか？"
 msgid "Withdraw decision"
 msgstr "決定を撤回"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1383
+#: src/components/article-translations/ArticleTranslationManager.tsx:1394
 msgid "Withdraw the published translation?"
 msgstr "公開中の翻訳を取り下げますか？"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1247
-#: src/components/article-translations/ArticleTranslationManager.tsx:1369
-#: src/components/article-translations/ArticleTranslationManager.tsx:1396
+#: src/components/article-translations/ArticleTranslationManager.tsx:1251
+#: src/components/article-translations/ArticleTranslationManager.tsx:1380
+#: src/components/article-translations/ArticleTranslationManager.tsx:1407
 msgid "Withdraw translation"
 msgstr "翻訳を取り下げる"
 
@@ -6415,7 +6544,7 @@ msgstr "このユーザーをブロックしています。このユーザーは
 msgid "You are now an admin of {0}."
 msgstr "あなたは{0}の管理者になりました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:756
+#: src/routes/(root)/[handle]/settings/account.tsx:759
 msgid "You are now an admin of the new organization."
 msgstr "あなたは新しい組織の管理者になりました。"
 
@@ -6440,7 +6569,7 @@ msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユ�
 #~ msgid "You can change migration aliases only for your own account."
 #~ msgstr "自分のアカウントの移行エイリアスのみ変更できます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1955
+#: src/routes/(root)/[handle]/settings/account.tsx:1958
 msgid "You can delete only your own account."
 msgstr "自分のアカウントのみ削除できます。"
 
@@ -6454,7 +6583,7 @@ msgid "You can leave this field empty."
 msgstr "このフィールドは空欄でも構いません。"
 
 #. placeholder {0}: result.membership.organization.username
-#: src/routes/(root)/[handle]/settings/account.tsx:855
+#: src/routes/(root)/[handle]/settings/account.tsx:858
 msgid "You can now act as {0}."
 msgstr "{0}として操作できるようになりました。"
 
@@ -6494,12 +6623,26 @@ msgstr "自分のブックマークのみ表示できます"
 #~ msgid "You can only view your own drafts"
 #~ msgstr "自分の下書きのみ表示できます"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1710
-#: src/routes/(root)/[handle]/settings/account.tsx:1759
+#: src/routes/(root)/[handle]/settings/account.tsx:1713
+#: src/routes/(root)/[handle]/settings/account.tsx:1762
 msgid "You can prepare migration only for accounts you can manage."
 msgstr "管理できるアカウントでのみ移行を準備できます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:980
+#: src/components/AccountEmailSettings.tsx:161
+#: src/components/AccountEmailSettings.tsx:399
+msgid "You can register up to five verified email addresses."
+msgstr "認証済みメールアドレスは最大5件まで登録できます。"
+
+#. placeholder {0}: retrySeconds()
+#: src/components/AccountEmailSettings.tsx:365
+msgid "You can request another code in {0} seconds."
+msgstr "{0}秒後に新しいコードをリクエストできます。"
+
+#: src/components/AccountEmailSettings.tsx:171
+msgid "You cannot remove your last verified email address."
+msgstr "最後の認証済みメールアドレスは削除できません。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:983
 msgid "You do not belong to any organizations yet."
 msgstr "まだどの組織にも所属していません。"
 
@@ -6508,7 +6651,7 @@ msgid "You don't have any passkeys registered yet."
 msgstr "まだパスキーが登録されていません。"
 
 #. placeholder {0}: props.invitationsLeft
-#: src/routes/(root)/[handle]/settings/account.tsx:787
+#: src/routes/(root)/[handle]/settings/account.tsx:790
 msgid "You have {0} invitations available."
 msgstr "利用できる招待が{0}件あります。"
 
@@ -6533,24 +6676,24 @@ msgstr "ミュートしているアカウントはありません。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "すでに異議を申し立てたか、異議申し立て期間が終了している可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:859
+#: src/components/article-translations/ArticleTranslationManager.tsx:863
 msgid "You may not have permission to delete this translation."
 msgstr "この翻訳を削除する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:892
+#: src/components/article-translations/ArticleTranslationManager.tsx:896
 msgid "You may not have permission to publish this translation."
 msgstr "この翻訳を公開する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:712
+#: src/components/article-translations/ArticleTranslationManager.tsx:716
 msgid "You may not have permission to review this translation."
 msgstr "この翻訳を確認する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:762
-#: src/components/article-translations/ArticleTranslationManager.tsx:829
+#: src/components/article-translations/ArticleTranslationManager.tsx:766
+#: src/components/article-translations/ArticleTranslationManager.tsx:833
 msgid "You may not have permission to save this translation."
 msgstr "この翻訳を保存する権限がない可能性があります。"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:556
+#: src/components/article-translations/ArticleTranslationManager.tsx:560
 msgid "You may not have permission to withdraw this translation."
 msgstr "この翻訳を取り下げる権限がない可能性があります。"
 
@@ -6603,8 +6746,8 @@ msgstr "下書きを保存するにはログインする必要があります"
 msgid "You must be signed in."
 msgstr "ログインが必要です。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:947
-#: src/routes/(root)/[handle]/settings/account.tsx:1461
+#: src/routes/(root)/[handle]/settings/account.tsx:950
+#: src/routes/(root)/[handle]/settings/account.tsx:1464
 msgid "You no longer belong to that organization."
 msgstr "この組織にはもう所属していません。"
 
@@ -6625,6 +6768,11 @@ msgstr "あなたが元の対応を行いました。別のモデレーターに
 #: src/routes/(root)/sign/up/[token].tsx:434
 msgid "You were invited by"
 msgstr "あなたを招待した方"
+
+#. placeholder {0}: removeTarget() ?? ""
+#: src/components/AccountEmailSettings.tsx:459
+msgid "You will no longer be able to sign in with {0}."
+msgstr "{0}ではサインインできなくなります。"
 
 #: src/routes/(root)/sign/up/[token].tsx:451
 msgid "You'll automatically follow each other when you sign up."
@@ -6670,6 +6818,10 @@ msgstr "接続が不安定なようです。ネットワークをご確認のう
 msgid "Your email address will be used to sign in to your account."
 msgstr "メールアドレスはアカウントへのログインに使用されます。"
 
+#: src/components/AccountEmailSettings.tsx:175
+msgid "Your email settings could not be updated. Please try again."
+msgstr "メール設定を変更できませんでした。もう一度お試しください。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
 msgid "Your friend will see this message in the invitation email."
 msgstr "友達は招待メールでこのメッセージを見ることができます。"
@@ -6683,7 +6835,7 @@ msgstr "通報者の身元は厳重に保護されます。誰が通報したか
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:683
+#: src/routes/(root)/[handle]/settings/account.tsx:686
 msgid "Your organizations"
 msgstr "あなたの組織"
 
@@ -6705,7 +6857,7 @@ msgstr "優先言語が更新されました。"
 msgid "Your profile settings have been updated successfully."
 msgstr "プロフィール設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2001
+#: src/routes/(root)/[handle]/settings/account.tsx:2004
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "プロフィール、コンテンツ、下書き、フォロー、設定、ログイン認証情報が削除されます。現在のユーザー名は引き続き予約されます。"
 

@@ -112,6 +112,13 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
         sinks: loggerSinks,
       },
       {
+        // Log-only development emails contain complete authentication messages.
+        category: ["hackerspub", "email", "development"],
+        lowestLevel: "debug",
+        parentSinks: "override",
+        sinks: ["console", ...(logFile != null ? ["file"] : [])],
+      },
+      {
         category: "drizzle-orm",
         lowestLevel: logQuery ? "trace" : "info",
         sinks: loggerSinks,

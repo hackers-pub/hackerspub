@@ -51,6 +51,11 @@ test("sendNotificationDigests sends one daily digest across unread notification 
       name: "Digest User",
       email: "digestuser@example.com",
     });
+    await tx.insert(accountEmailTable).values({
+      accountId: account.account.id,
+      email: "digestbackup@example.com",
+      verified: new Date(),
+    });
     const actor = await insertAccountWithActor(tx, {
       username: "digestactor",
       name: "Digest Actor",
@@ -320,6 +325,10 @@ test("sendNotificationDigests does not resend to successful recipients after par
       name: "Digest Retry Partial",
       email: "digestretrypartial@example.com",
     });
+    await tx
+      .update(accountEmailTable)
+      .set({ primary: false })
+      .where(eq(accountEmailTable.accountId, account.account.id));
     const actor = await insertAccountWithActor(tx, {
       username: "digestretrypartialactor",
       name: "Digest Retry Partial Actor",

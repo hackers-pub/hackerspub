@@ -155,6 +155,7 @@ export async function insertAccountWithActor(
 
   await tx.insert(accountEmailTable).values({
     email: values.email,
+    primary: true,
     accountId,
     public: false,
     verified: timestamp,

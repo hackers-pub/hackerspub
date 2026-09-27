@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { LogRecord } from "@logtape/logtape";
+import { getLogger, type LogRecord, reset } from "@logtape/logtape";
 import { redactByField } from "@logtape/redaction";
 import { isRoutineFederationError } from "./logFilter.ts";
-import { redactDeviceToken, SENTRY_REDACT_FIELDS } from "./logging-config.ts";
+import {
+  configureLogging,
+  redactDeviceToken,
+  SENTRY_REDACT_FIELDS,
+} from "./logging-config.ts";
 
 test("device token redaction preserves only the correlation suffix", () => {
   assert.equal(redactDeviceToken("short"), "[REDACTED]");
@@ -70,4 +74,59 @@ test("Sentry redaction preserves transactional outbox classification", async () 
       .statusCode,
     "[REDACTED]",
   );
+});
+
+test("development email contents reach the console without becoming Sentry events or breadcrumbs", async () => {
+  const consoleChunks: string[] = [];
+  const sentryEvents: unknown[] = [];
+  const breadcrumbs: unknown[] = [];
+  await configureLogging({
+    environment: { SENTRY_DSN: "enabled" },
+    stderr: new WritableStream({
+      write(chunk) {
+        consoleChunks.push(new TextDecoder().decode(chunk));
+      },
+    }),
+    sentry: {
+      captureMessage(message) {
+        sentryEvents.push(message);
+        return "event";
+      },
+      captureException(exception) {
+        sentryEvents.push(exception);
+        return "event";
+      },
+      getActiveSpan() {
+        return undefined;
+      },
+      getClient() {
+        return { getOptions: () => ({ enableLogs: true }) };
+      },
+      getIsolationScope() {
+        return {
+          addBreadcrumb: (breadcrumb) => {
+            breadcrumbs.push(breadcrumb);
+          },
+        };
+      },
+      logger: {
+        info(message) {
+          sentryEvents.push(message);
+        },
+      },
+    },
+  });
+  try {
+    getLogger(["hackerspub", "email", "development"]).info(
+      "Development email: {body}",
+      { body: "verification-code-ABC123" },
+    );
+    getLogger(["hackerspub", "runtime"]).info("Ordinary runtime log");
+  } finally {
+    await reset();
+  }
+  assert.match(consoleChunks.join(""), /verification-code-ABC123/);
+  assert.match(JSON.stringify(sentryEvents), /Ordinary runtime log/);
+  assert.doesNotMatch(JSON.stringify(sentryEvents), /verification-code-ABC123/);
+  assert.doesNotMatch(JSON.stringify(breadcrumbs), /verification-code-ABC123/);
 });

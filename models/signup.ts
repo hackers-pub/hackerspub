@@ -2,7 +2,7 @@ import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
 import type Keyv from "keyv";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   type Account,
   type AccountEmail,
@@ -76,30 +76,37 @@ export async function deleteSignupToken(kv: Keyv, token: Uuid): Promise<void> {
 }
 
 export async function createAccount(
-  db: Database,
+  db: Database | Transaction,
   token: SignupToken,
   account: Omit<NewAccount, "id"> & Pick<Partial<NewAccount>, "id">,
 ): Promise<(Account & { emails: AccountEmail[] }) | undefined> {
-  const accounts = await db
-    .insert(accountTable)
-    .values({
-      ...account,
-      id: account.id ?? generateUuidV7(),
-      inviterId: token.inviterId,
-    })
-    .returning();
-  if (accounts.length !== 1) {
-    logger.error("Failed to create account: {account}", { account });
-    return undefined;
-  }
-  const emails = await db
-    .insert(accountEmailTable)
-    .values({
-      email: token.email,
-      accountId: accounts[0].id,
-      public: false,
-      verified: sql`CURRENT_TIMESTAMP`,
-    })
-    .returning();
-  return { ...accounts[0], emails };
+  return await db.transaction(async (tx) => {
+    const accounts = await tx
+      .insert(accountTable)
+      .values({
+        ...account,
+        id: account.id ?? generateUuidV7(),
+        inviterId: token.inviterId,
+      })
+      .returning();
+    if (accounts.length !== 1) {
+      logger.error("Failed to create account: {account}", { account });
+      return undefined;
+    }
+    const emails = await tx
+      .insert(accountEmailTable)
+      .values({
+        email: token.email,
+        accountId: accounts[0].id,
+        public: false,
+        primary: true,
+        verified: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (emails.length === 0) throw new EmailAlreadyRegisteredError();
+    return { ...accounts[0], emails };
+  });
 }
+
+export class EmailAlreadyRegisteredError extends Error {}

@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./account": "./account.ts",
+    "./account-email": "./account-email.ts",
     "./actor": "./actor.ts",
     "./admin": "./admin.ts",
     "./apns": "./apns.ts",

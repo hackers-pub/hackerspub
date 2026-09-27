@@ -59,5 +59,13 @@
       "emailSubject": "Hackers' Pubの異議申し立てが審査されました",
       "emailContent": "Hackers' Pubのモデレーション措置に対する異議申し立てが審査されました。\n\n結果: {{result}}\n\nモデレーションチームからのメッセージ:\n{{rationale}}\n\n— Hackers' Pubモデレーションチーム\n"
     }
+  },
+  "accountEmailVerification": {
+    "emailSubject": "Hackers' Pubのメールアドレス認証",
+    "emailContent": "Hackers' Pubの@{{username}}アカウントにこのメールアドレスを追加するには、認証をリクエストしたブラウザーの設定 → アカウントページで次のコードを入力してください。\n\n{{code}}\n\nこのコードは15分後に期限切れになります。リクエストしていない場合は、このメールを無視してください。\n"
+  },
+  "accountEmailChange": {
+    "emailSubject": "Hackers' Pubのメール設定が変更されました",
+    "emailContent": "Hackers' Pubの@{{username}}アカウントのメール設定が変更されました。心当たりがない場合は、既存のメールアドレスまたはパスキーでサインインし、インスタンス管理者にお問い合わせください。\n"
   }
 }

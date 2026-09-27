@@ -88,6 +88,9 @@ export const accountTable = pgTable(
     kind: accountKindEnum().notNull().default("personal"),
     username: varchar({ length: 50 }).notNull().unique(),
     oldUsername: varchar("old_username", { length: 50 }),
+    emailCredentialsChanged: timestamp("email_credentials_changed", {
+      withTimezone: true,
+    }),
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
@@ -318,13 +321,54 @@ export const accountEmailTable = pgTable(
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
     public: boolean().notNull().default(false),
+    primary: boolean().notNull().default(false),
     verified: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
   },
   (table) => [
-    index("idx_account_email_lower_email").on(sql`lower(${table.email})`),
+    uniqueIndex("idx_account_email_lower_email").on(sql`lower(${table.email})`),
+    uniqueIndex("account_email_primary_idx")
+      .on(table.accountId)
+      .where(sql`${table.primary}`),
+    check(
+      "account_email_primary_verified_check",
+      sql`NOT ${table.primary} OR ${table.verified} IS NOT NULL`,
+    ),
+  ],
+);
+
+export const accountEmailChallengeTable = pgTable(
+  "account_email_challenge",
+  {
+    token: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id").$type<Uuid>().notNull(),
+    email: text().notNull(),
+    codeHash: text("code_hash").notNull(),
+    attempts: integer().notNull().default(0),
+    used: boolean().notNull().default(false),
+    expires: timestamp({ withTimezone: true }).notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("account_email_challenge_account_created_idx").on(
+      table.accountId,
+      table.created,
+    ),
+    index("account_email_challenge_email_created_idx").on(
+      sql`lower(${table.email})`,
+      table.created,
+    ),
+    uniqueIndex("account_email_challenge_active_idx")
+      .on(table.accountId)
+      .where(sql`NOT ${table.used}`),
   ],
 );
 

@@ -1,5 +1,6 @@
 import type { GraphQLSchema } from "graphql";
 import "./account.ts";
+import "./account-email.ts";
 import "./admin.ts";
 import "./actor.ts";
 import "./article-analytics.ts";

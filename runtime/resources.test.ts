@@ -1,5 +1,8 @@
-import { assertEquals, assertInstanceOf } from "@std/assert";
+import { assert, assertEquals, assertInstanceOf } from "@std/assert";
 import { MockTransport } from "@upyo/mock";
+import { LogTapeTransport } from "@upyo/logtape";
+import { createMessage } from "@upyo/core";
+import { configure, type LogRecord, reset } from "@logtape/logtape";
 import { mkdtemp, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -141,9 +144,8 @@ test("createEmailResource warns when Maileroo is unconfigured", () => {
   const warnings: string[] = [];
   const transport = createEmailResource(
     {
-      transport: "mock",
+      transport: "logtape",
       from: "noreply@hackers.pub",
-      reason: "maileroo-unconfigured",
     },
     {
       warning(message) {
@@ -152,15 +154,15 @@ test("createEmailResource warns when Maileroo is unconfigured", () => {
     },
   );
 
-  assertInstanceOf(transport, MockTransport);
+  assertInstanceOf(transport, LogTapeTransport);
   assertEquals(warnings, [
-    "MAILEROO_KEY is not configured; using MockTransport. Emails will not be delivered.",
+    "MAILEROO_KEY is not configured; using LogTapeTransport. Emails will be logged instead of delivered.",
   ]);
 });
 
 test("createEmailResource does not warn when CI selects the mock transport", () => {
   const warnings: string[] = [];
-  createEmailResource(
+  const transport = createEmailResource(
     {
       transport: "mock",
       from: "noreply@hackers.pub",
@@ -173,5 +175,55 @@ test("createEmailResource does not warn when CI selects the mock transport", () 
     },
   );
 
+  assertInstanceOf(transport, MockTransport);
   assertEquals(warnings, []);
+});
+
+test("development email logs render the subject and authentication body without external delivery", async () => {
+  const records: LogRecord[] = [];
+  await configure({
+    sinks: {
+      buffer: (record) => {
+        records.push(record);
+      },
+    },
+    loggers: [
+      {
+        category: ["logtape", "meta"],
+        lowestLevel: "warning",
+        sinks: ["buffer"],
+      },
+      {
+        category: ["hackerspub", "email", "development"],
+        lowestLevel: "debug",
+        sinks: ["buffer"],
+      },
+    ],
+  });
+  try {
+    const transport = createEmailResource(
+      { transport: "logtape", from: "noreply@example.com" },
+      { warning() {} },
+    );
+    const message = createMessage({
+      from: "noreply@example.com",
+      to: "developer@example.com",
+      subject: "Development sign-in",
+      content: {
+        text: "Code: ABC123\nhttp://localhost:5173/sign/in/test?code=ABC123",
+      },
+    });
+    const receipt = await transport.send(message);
+    assert(receipt.successful);
+    assertEquals(receipt.provider, "logtape");
+    const sent = records.find(
+      (record) => record.properties.event === "email.sent",
+    );
+    assert(sent);
+    assertEquals(sent.properties.message, message);
+    assert(sent.message.join("").includes(message.subject));
+    assert(sent.message.join("").includes(message.content.text!));
+  } finally {
+    await reset();
+  }
 });

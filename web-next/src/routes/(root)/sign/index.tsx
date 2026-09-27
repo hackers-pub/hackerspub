@@ -53,6 +53,9 @@ const signByEmailMutation = graphql`
       ... on AccountNotFoundError {
         __typename
       }
+      ... on EmailLoginUnavailableError {
+        __typename
+      }
     }
   }
 `;
@@ -78,6 +81,9 @@ const signByUsernameMutation = graphql`
         token
       }
       ... on AccountNotFoundError {
+        __typename
+      }
+      ... on EmailLoginUnavailableError {
         __typename
       }
     }
@@ -127,6 +133,7 @@ const signByPasskeyMutation = graphql`
 const LoginError = {
   ACCOUNT_NOT_FOUND: "ACCOUNT_NOT_FOUND",
   ACCOUNT_BANNED: "ACCOUNT_BANNED",
+  EMAIL_LOGIN_UNAVAILABLE: "EMAIL_LOGIN_UNAVAILABLE",
   UNKNOWN: "UNKNOWN",
 } as const;
 type LoginError = (typeof LoginError)[keyof typeof LoginError];
@@ -230,6 +237,9 @@ export default function SignPage() {
     if (data.__typename === "LoginChallenge") {
       setToken(data.token);
       codeInput?.focus();
+    } else if (data.__typename === "EmailLoginUnavailableError") {
+      setToken(undefined);
+      setErrorCode(LoginError.EMAIL_LOGIN_UNAVAILABLE);
     } else if (data.__typename === "AccountNotFoundError") {
       setErrorCode(LoginError.ACCOUNT_NOT_FOUND);
     } else {
@@ -254,6 +264,8 @@ export default function SignPage() {
     switch (currentErrorCode) {
       case LoginError.ACCOUNT_NOT_FOUND:
         return t`No such account in Hackers' Pub—please try again.`;
+      case LoginError.EMAIL_LOGIN_UNAVAILABLE:
+        return t`This account has no verified email address, so it cannot sign in by email. If you have a registered passkey, use it to sign in.`;
       case LoginError.ACCOUNT_BANNED:
         return t`This account has been permanently suspended and can no longer sign in.`;
       case undefined:

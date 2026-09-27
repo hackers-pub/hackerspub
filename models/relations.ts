@@ -4,6 +4,7 @@ import * as schema from "./schema.ts";
 export const relations = defineRelations(schema, (r) => ({
   accountTable: {
     emails: r.many.accountEmailTable(),
+    emailChallenges: r.many.accountEmailChallengeTable(),
     passkeys: r.many.passkeyTable(),
     keys: r.many.accountKeyTable(),
     links: r.many.accountLinkTable(),
@@ -104,6 +105,13 @@ export const relations = defineRelations(schema, (r) => ({
   },
   deletedAccountTable: {
     keys: r.many.deletedAccountKeyTable(),
+  },
+  accountEmailChallengeTable: {
+    account: r.one.accountTable({
+      from: r.accountEmailChallengeTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
   },
   accountEmailTable: {
     account: r.one.accountTable({

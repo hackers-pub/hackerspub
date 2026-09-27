@@ -311,6 +311,18 @@ export const builder = new SchemaBuilder<PothosTypes>({
   },
   relay: {
     clientMutationId: "optional",
+    clientMutationIdInputOptions: {
+      description:
+        "Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.",
+    },
+    clientMutationIdFieldOptions: {
+      description:
+        "The caller's correlation identifier, or `null` when omitted. This is not a database identifier.",
+    },
+    mutationInputArgOptions: {
+      description:
+        "Mutation-specific parameters and an optional `clientMutationId` for response correlation.",
+    },
   },
   errors: {
     directResult: true,

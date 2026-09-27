@@ -2,6 +2,9 @@
 Accept a pending organization conversion request. The authenticated personal account must match the admin chosen by the converting account.
 """
 input AcceptOrganizationConversionInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """UUID of the pending `OrganizationConversionRequest` to accept."""
@@ -9,6 +12,9 @@ input AcceptOrganizationConversionInput {
 }
 
 type AcceptOrganizationConversionPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The accepting admin's organization membership."""
@@ -24,6 +30,9 @@ union AcceptOrganizationConversionResult = AcceptOrganizationConversionPayload |
 Accept a pending organization invitation for the authenticated personal account.
 """
 input AcceptOrganizationInvitationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -33,6 +42,9 @@ input AcceptOrganizationInvitationInput {
 }
 
 type AcceptOrganizationInvitationPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The accepted organization membership."""
@@ -81,6 +93,16 @@ type Account implements Node {
   The visibility applied to new boosts/shares when the user does not choose one explicitly at creation time.
   """
   defaultShareVisibility: PostVisibility!
+
+  """
+  The deadline for requesting an email addition, changing the primary address, or removing an address after a recent sign-in. `null` for stale sessions, non-owners and organizations. Native clients can obtain a fresh bearer session through the existing login mutations.
+  """
+  emailManagementAvailableUntil: DateTime
+
+  """
+  Private email credentials, visible only to this authenticated personal account's owner; `null` for other viewers and organizations. New registrations are limited to five verified addresses; existing legacy addresses remain visible.
+  """
+  emails: [AccountEmail!]
 
   """
   Whether the viewer follows the given hashtag. Always `false` for unauthenticated requests or when the account is not the viewer.
@@ -281,6 +303,90 @@ type AccountDeletionUnavailableError {
   unavailable: String!
 }
 
+"""
+A private email credential on a personal account. Unverified legacy addresses cannot authenticate or receive notifications.
+"""
+type AccountEmail {
+  """
+  The stored address, preserving its original spelling. Visible only to its account owner.
+  """
+  email: String!
+
+  """
+  Whether ordinary notification digests are sent here. The primary address must be verified.
+  """
+  primary: Boolean!
+
+  """
+  When ownership was confirmed; `null` for a legacy address awaiting verification.
+  """
+  verified: DateTime
+}
+
+"""
+An expected failure managing the authenticated personal account's email addresses. No ownership change occurred.
+"""
+type AccountEmailError {
+  """The reason the requested email operation could not complete."""
+  code: AccountEmailErrorCode!
+
+  """
+  Seconds until another verification request is allowed; `null` unless this is a rate-limit error.
+  """
+  retryAfter: Int
+}
+
+"""
+Expected email-management failures. Clients should localize these codes rather than display server messages.
+"""
+enum AccountEmailErrorCode {
+  """This account already has this verified address."""
+  ALREADY_REGISTERED
+
+  """
+  The verification email could not be sent. The request still counts toward sending limits.
+  """
+  DELIVERY_FAILED
+
+  """
+  The challenge or code is incorrect, expired, exhausted, consumed, or belongs to another session.
+  """
+  INVALID_CODE
+
+  """The address has an invalid format or exceeds the supported length."""
+  INVALID_EMAIL
+
+  """
+  The last verified email address cannot be removed, even when a passkey exists.
+  """
+  LAST_EMAIL
+
+  """The account has reached the limit of five verified email addresses."""
+  LIMIT_REACHED
+
+  """The requested address does not belong to this personal account."""
+  NOT_FOUND
+
+  """Choose another primary address before removing the current one."""
+  PRIMARY_EMAIL
+
+  """
+  Too many verification emails were requested. Wait for `retryAfter` seconds.
+  """
+  RATE_LIMITED
+
+  """Sign in again with an existing credential before making this change."""
+  REAUTHENTICATION_REQUIRED
+
+  """
+  The address is unavailable for this account, including a concurrent ownership claim.
+  """
+  UNAVAILABLE
+
+  """Only a verified address can become the primary notification address."""
+  UNVERIFIED
+}
+
 type AccountInviteesConnection {
   edges: [AccountInviteesConnectionEdge!]!
   pageInfo: PageInfo!
@@ -416,6 +522,10 @@ input AcknowledgeArticleTranslationSourceInput {
   The unpublished `ArticleDraft.uuid` whose translation drafts are being reviewed. Pass exactly one of this and `sourceId`.
   """
   articleDraftId: UUID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -440,6 +550,9 @@ input AcknowledgeArticleTranslationSourceInput {
 }
 
 type AcknowledgeArticleTranslationSourcePayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """
@@ -958,6 +1071,10 @@ input AddAccountMigrationAliasInput {
   Previous account to import from, written as `@user@host`, `user@host`, or an HTTP(S) actor/profile URL. The value is resolved before storage so aliases always contain actor IRIs.
   """
   actor: String!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
@@ -966,6 +1083,10 @@ type AddAccountMigrationAliasPayload {
   The updated local account. Read `Account.actor.aliases` for the canonical set of previous actor IRIs now advertised as `alsoKnownAs`.
   """
   account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -983,6 +1104,10 @@ input AddReactionToPostInput {
   Optional `Account` id to react as. Omit to react as the authenticated personal account; pass an organization account where the viewer is an accepted member to react as that organization.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   customEmojiId: ID
   emoji: String
@@ -990,6 +1115,9 @@ input AddReactionToPostInput {
 }
 
 type AddReactionToPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   reaction: Reaction
 }
@@ -2025,6 +2153,9 @@ union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedErr
 Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. A missing draft is created unless `createIfMissing` is `false`, which keeps pre-upgrade composers working while the current composer requires the draft it already created. The viewer must own the draft or be an accepted member of its owning organization. Re-attaching the same key to the same medium is idempotent; pointing an existing key at a different medium is rejected. Requires authentication.
 """
 input AttachArticleDraftMediumInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -2039,6 +2170,9 @@ input AttachArticleDraftMediumInput {
 }
 
 type AttachArticleDraftMediumPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   key: String!
   medium: Medium!
@@ -2059,6 +2193,10 @@ input AttachArticleSourceMediumInput {
   UUID of the `ArticleSource` to attach the medium to. The viewer must be the article's author.
   """
   articleSourceId: UUID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
@@ -2069,6 +2207,9 @@ input AttachArticleSourceMediumInput {
 }
 
 type AttachArticleSourceMediumPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """
@@ -2088,12 +2229,20 @@ input BlockActorInput {
   """
   actingAccountId: ID
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type BlockActorPayload {
   blockee: Actor!
   blocker: Actor!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -2103,11 +2252,17 @@ union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticate
 Save a post to the viewer's bookmarks. Bookmarks are private and not federated. Idempotent. Requires authentication.
 """
 input BookmarkPostInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   postId: ID!
 }
 
 type BookmarkPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   post: Post!
 }
@@ -2174,6 +2329,9 @@ union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | N
 Import a media object from a remote URL and store it locally. Use this instead of the two-step `startMediumUpload` / `finishMediumUpload` flow when the image is already accessible via URL. Requires authentication.
 """
 input CreateMediumInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Image URL to import. Data URLs, HTTP, and HTTPS are supported."""
@@ -2181,6 +2339,9 @@ input CreateMediumInput {
 }
 
 type CreateMediumPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   medium: Medium!
 }
@@ -2200,6 +2361,10 @@ input CreateNoteInput {
   How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
   """
   attributionMode: PostAttributionMode
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   content: Markdown!
   language: Locale!
@@ -2221,6 +2386,9 @@ input CreateNoteMediumInput {
 }
 
 type CreateNotePayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   note: Note!
 }
@@ -2235,6 +2403,10 @@ input CreateOrganizationInput {
   Markdown profile bio for the organization account. Pass an empty string for no bio.
   """
   bio: String!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Display name for the organization profile."""
@@ -2247,6 +2419,9 @@ input CreateOrganizationInput {
 }
 
 type CreateOrganizationPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The creator's accepted administrator membership in the organization."""
@@ -2271,6 +2446,10 @@ input CreateQuestionInput {
   How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
   """
   attributionMode: PostAttributionMode
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -2309,6 +2488,9 @@ input CreateQuestionInput {
 }
 
 type CreateQuestionPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The newly published `Question` post."""
@@ -2369,6 +2551,9 @@ scalar DateTime
 Permanently delete the authenticated viewer's personal account, or an organization account administered by the viewer. This hard-deletes the local account data, reserves the account's current `username`, and enqueues one actor-level ActivityPub `Delete` to followers in the same transaction as the deleted actor's tombstone and preserved keys. If that durable enqueue fails, the deletion is rolled back. Personal account deletion also fails if it would leave an accepted organization membership with no members or no administrators. Session-store cleanup is best-effort and only applies when the viewer deletes their own personal account.
 """
 input DeleteAccountInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -2378,6 +2563,9 @@ input DeleteAccountInput {
 }
 
 type DeleteAccountPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """When the account was deleted."""
@@ -2400,6 +2588,9 @@ union DeleteAccountResult = AccountDeletionUnavailableError | DeleteAccountPaylo
 Permanently delete an article draft. The draft's owner (or an accepted member of its owning organization) may delete it. Pass `revision` to delete only the exact version the client saw. Requires authentication.
 """
 input DeleteArticleDraftInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   id: ID!
 
@@ -2410,6 +2601,9 @@ input DeleteArticleDraftInput {
 }
 
 type DeleteArticleDraftPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   deletedDraftId: ID!
 }
@@ -2420,12 +2614,18 @@ union DeleteArticleDraftResult = ArticleDraftConflictError | DeleteArticleDraftP
 Delete a private translation draft. This never removes an already published translation: the public version stays until it is explicitly replaced or withdrawn. Requires authentication.
 """
 input DeleteArticleTranslationDraftInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   id: UUID!
   revision: Int
 }
 
 type DeleteArticleTranslationDraftPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   deletedDraftId: UUID!
 }
@@ -2456,6 +2656,10 @@ input DeletePostInput {
   Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global ID of the post to delete."""
@@ -2463,6 +2667,9 @@ input DeletePostInput {
 }
 
 type DeletePostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   deletedPostId: ID!
 }
@@ -2494,6 +2701,16 @@ type DuplicateReportError {
 
 scalar Email
 
+"""
+Returned by `loginByUsername` when a personal account exists but has no verified email address. Email sign-in is unavailable; an already registered passkey may still authenticate the account. Email-address lookup retains its generic not-found response.
+"""
+type EmailLoginUnavailableError {
+  """
+  Always `true`: no verification code was issued because the account has no verified email address.
+  """
+  emailLoginUnavailable: Boolean!
+}
+
 type EmojiReactionGroup implements ReactionGroup {
   emoji: String!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
@@ -2508,11 +2725,17 @@ type EmptySearchQueryError {
 Step 2 of direct image upload: confirm that the PUT to the pre-signed URL from `startMediumUpload` has completed, returning the resulting `Medium`. Requires authentication.
 """
 input FinishMediumUploadInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   uploadId: UUID!
 }
 
 type FinishMediumUploadPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   medium: Medium!
 }
@@ -2834,10 +3057,17 @@ input FollowActorInput {
   """
   actingAccountId: ID
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type FollowActorPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   followee: Actor!
   follower: Actor!
@@ -2847,6 +3077,9 @@ union FollowActorResult = ActorSuspendedError | FollowActorPayload | InvalidInpu
 
 """Follow a hashtag. Requires authentication."""
 input FollowHashtagInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Hashtag name to follow (with or without leading `#`)."""
@@ -2854,6 +3087,9 @@ input FollowHashtagInput {
 }
 
 type FollowHashtagPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The normalized hashtag name that was followed."""
@@ -3010,6 +3246,9 @@ enum InviteInviterError {
 Invite a personal account to join an organization. Only accepted organization administrators can invite or re-read a pending invite.
 """
 input InviteOrganizationMemberInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global `Account` id of the organization that will receive the member."""
@@ -3023,6 +3262,9 @@ input InviteOrganizationMemberInput {
 }
 
 type InviteOrganizationMemberPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The pending or existing organization membership invitation."""
@@ -3071,6 +3313,9 @@ type LastOrganizationMemberError {
 Leave an organization as the authenticated member. The last member or last administrator cannot leave; delete the organization or add another administrator first.
 """
 input LeaveOrganizationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global `Account` id of the organization to leave."""
@@ -3078,6 +3323,9 @@ input LeaveOrganizationInput {
 }
 
 type LeaveOrganizationPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The membership row that was removed."""
@@ -3117,12 +3365,15 @@ type LoginChallenge {
   token: UUID!
 }
 
-union LoginResult = AccountNotFoundError | LoginChallenge
+union LoginResult = AccountNotFoundError | EmailLoginUnavailableError | LoginChallenge
 
 """
 Advance this member's read marker for one organization and return the resulting badge state.
 """
 input MarkOrganizationNotificationsAsReadInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -3149,6 +3400,10 @@ input MarkOrganizationNotificationsAsReadInput {
 type MarkOrganizationNotificationsAsReadPayload {
   """Badge state after storing the member read marker."""
   badge: OrganizationNotificationBadge!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -3315,6 +3570,9 @@ type ModerationStatistics {
 Move a personally owned article draft to an organization you can post for, so its accepted members gain access and it publishes as the organization. The draft's creator record and attached media are preserved. Organization-to-personal and organization-to-organization moves are not supported. Requires authentication.
 """
 input MoveArticleDraftToOrganizationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global ID of the personally owned draft to move."""
@@ -3328,6 +3586,9 @@ input MoveArticleDraftToOrganizationInput {
 }
 
 type MoveArticleDraftToOrganizationPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """
@@ -3339,14 +3600,34 @@ type MoveArticleDraftToOrganizationPayload {
 union MoveArticleDraftToOrganizationResult = ArticleDraftConflictError | InvalidInputError | MoveArticleDraftToOrganizationPayload | NotAuthenticatedError | OrganizationPermissionError
 
 type Mutation {
-  acceptOrganizationConversion(input: AcceptOrganizationConversionInput!): AcceptOrganizationConversionResult!
-  acceptOrganizationInvitation(input: AcceptOrganizationInvitationInput!): AcceptOrganizationInvitationResult!
+  acceptOrganizationConversion(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AcceptOrganizationConversionInput!
+  ): AcceptOrganizationConversionResult!
+  acceptOrganizationInvitation(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AcceptOrganizationInvitationInput!
+  ): AcceptOrganizationInvitationResult!
 
   """
   Acknowledge that a translation needs no change for a given source revision. Requires authentication.
   """
-  acknowledgeArticleTranslationSource(input: AcknowledgeArticleTranslationSourceInput!): AcknowledgeArticleTranslationSourceResult!
-  addAccountMigrationAlias(input: AddAccountMigrationAliasInput!): AddAccountMigrationAliasResult!
+  acknowledgeArticleTranslationSource(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AcknowledgeArticleTranslationSourceInput!
+  ): AcknowledgeArticleTranslationSourceResult!
+  addAccountMigrationAlias(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AddAccountMigrationAliasInput!
+  ): AddAccountMigrationAliasResult!
 
   """
   Add a news feed exclusion pattern (a `URLPattern` string) and hide matching links from the feed list.  Idempotent on the pattern string.  Requires a moderator account.  An invalid pattern raises `InvalidInputError`.
@@ -3374,7 +3655,12 @@ type Mutation {
     """How strongly to lift the sharer's links.  Defaults to `NORMAL`."""
     promotion: NewsPromotion = NORMAL
   ): AddNewsPreferredSharerResult!
-  addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+  addReactionToPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AddReactionToPostInput!
+  ): AddReactionToPostResult!
 
   """
   File an appeal against a moderation action taken on you (`Sanction.uuid` is the `sanctionId`).  Only the sanctioned user can appeal, within 14 days of the action, once per action; dismissals cannot be appealed.  The review outcome arrives as a moderation notification.  Requires authentication.  Banned users cannot sign in to appeal, so they appeal by replying to the sanction email; a moderator then files the appeal on their behalf via `onBehalfOf`.
@@ -3409,10 +3695,30 @@ type Mutation {
     """
     moderatorId: ID
   ): AssignFlagCaseResult
-  attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
-  attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
-  blockActor(input: BlockActorInput!): BlockActorResult!
-  bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
+  attachArticleDraftMedium(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AttachArticleDraftMediumInput!
+  ): AttachArticleDraftMediumResult!
+  attachArticleSourceMedium(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: AttachArticleSourceMediumInput!
+  ): AttachArticleSourceMediumResult!
+  blockActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: BlockActorInput!
+  ): BlockActorResult!
+  bookmarkPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: BookmarkPostInput!
+  ): BookmarkPostResult!
 
   """
   Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match, and `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
@@ -3441,21 +3747,56 @@ type Mutation {
   Create a new shareable invitation link. Deducts `invitationsLeft` from the authenticated account's balance immediately. Requires authentication.
   """
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
-  createMedium(input: CreateMediumInput!): CreateMediumResult!
-  createNote(input: CreateNoteInput!): CreateNoteResult!
-  createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
-  createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
-  deleteAccount(input: DeleteAccountInput!): DeleteAccountResult!
+  createMedium(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: CreateMediumInput!
+  ): CreateMediumResult!
+  createNote(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: CreateNoteInput!
+  ): CreateNoteResult!
+  createOrganization(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: CreateOrganizationInput!
+  ): CreateOrganizationResult!
+  createQuestion(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: CreateQuestionInput!
+  ): CreateQuestionResult!
+  deleteAccount(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: DeleteAccountInput!
+  ): DeleteAccountResult!
 
   """
   Permanently delete an article draft. The draft's owner or an accepted member of its owning organization may delete it, and an optional `revision` guards against deleting a newer version. Requires authentication.
   """
-  deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deleteArticleDraft(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: DeleteArticleDraftInput!
+  ): DeleteArticleDraftResult!
 
   """
   Delete a private translation draft without touching any published version. Requires authentication.
   """
-  deleteArticleTranslationDraft(input: DeleteArticleTranslationDraftInput!): DeleteArticleTranslationDraftResult!
+  deleteArticleTranslationDraft(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: DeleteArticleTranslationDraftInput!
+  ): DeleteArticleTranslationDraftResult!
 
   """
   Delete an invitation link and refund its remaining `invitationsLeft` back to the creator's account balance. Only the link's creator may delete it.
@@ -3466,10 +3807,30 @@ type Mutation {
   Delete unreferenced media older than the grace period.  Requires a moderator account.
   """
   deleteOrphanMedia: DeleteOrphanMediaResult!
-  deletePost(input: DeletePostInput!): DeletePostResult!
-  finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
-  followActor(input: FollowActorInput!): FollowActorResult!
-  followHashtag(input: FollowHashtagInput!): FollowHashtagResult!
+  deletePost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: DeletePostInput!
+  ): DeletePostResult!
+  finishMediumUpload(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: FinishMediumUploadInput!
+  ): FinishMediumUploadResult!
+  followActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: FollowActorInput!
+  ): FollowActorResult!
+  followHashtag(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: FollowHashtagInput!
+  ): FollowHashtagResult!
 
   """
   Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
@@ -3493,8 +3854,18 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): InviteResult!
-  inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult!
-  leaveOrganization(input: LeaveOrganizationInput!): LeaveOrganizationResult!
+  inviteOrganizationMember(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: InviteOrganizationMemberInput!
+  ): InviteOrganizationMemberResult!
+  leaveOrganization(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: LeaveOrganizationInput!
+  ): LeaveOrganizationResult!
 
   """
   Initiate passwordless email sign-in. Sends a magic link to the matching account's email address. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
@@ -3525,7 +3896,7 @@ type Mutation {
   ): LoginByPasskeyResult
 
   """
-  Initiate passwordless sign-in by username. Sends a magic link to all email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
+  Initiate passwordless sign-in by username. Sends a magic link to all verified email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.
   """
   loginByUsername(
     """The locale for the sign-in email."""
@@ -3559,29 +3930,64 @@ type Mutation {
     """
     upTo: UUID
   ): DateTime!
-  markOrganizationNotificationsAsRead(input: MarkOrganizationNotificationsAsReadInput!): MarkOrganizationNotificationsAsReadResult!
+  markOrganizationNotificationsAsRead(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: MarkOrganizationNotificationsAsReadInput!
+  ): MarkOrganizationNotificationsAsReadResult!
 
   """
   Move a personally owned article draft to an organization you can post for, so its accepted members gain access and it publishes as the organization. The draft's creator record and attached media are preserved. Requires authentication.
   """
-  moveArticleDraftToOrganization(input: MoveArticleDraftToOrganizationInput!): MoveArticleDraftToOrganizationResult!
+  moveArticleDraftToOrganization(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: MoveArticleDraftToOrganizationInput!
+  ): MoveArticleDraftToOrganizationResult!
 
   """
   Mutes an actor on behalf of the selected viewer account. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
   """
-  muteActor(input: MuteActorInput!): MuteActorResult!
-  pinHashtag(input: PinHashtagInput!): PinHashtagResult!
-  pinPost(input: PinPostInput!): PinPostResult!
+  muteActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: MuteActorInput!
+  ): MuteActorResult!
+  pinHashtag(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: PinHashtagInput!
+  ): PinHashtagResult!
+  pinPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: PinPostInput!
+  ): PinPostResult!
 
   """
   Publish an article draft as its owning workspace account, deleting the draft and sending an ActivityPub `Create` activity. An optional `revision` rejects a concurrent edit, and `attributionMode` with `attributionAccountId` choose the credited co-author for an organization draft. Requires authentication.
   """
-  publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+  publishArticleDraft(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: PublishArticleDraftInput!
+  ): PublishArticleDraftResult!
 
   """
   Publish a private translation draft to the article's public content and send an ActivityPub `Update`. Requires authentication.
   """
-  publishArticleTranslation(input: PublishArticleTranslationInput!): PublishArticleTranslationResult!
+  publishArticleTranslation(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: PublishArticleTranslationInput!
+  ): PublishArticleTranslationResult!
 
   """
   Recompute popularity scores for every news link.  Requires a moderator account.  Idempotent: safe to trigger at any time, and running it twice on unchanged data yields identical scores.  Normally scores stay fresh on their own (incrementally on share, plus a periodic sweep); this is the manual full rebuild and dev backstop.
@@ -3615,7 +4021,12 @@ type Mutation {
   """
   Re-fetch a remote actor or post and overwrite its cached row. Moderator-only; raises `NotAuthenticatedError` for guests, `NotAuthorizedError` for non-moderators, and `InvalidInputError` when the URI cannot be resolved, resolves to neither an actor nor a post, or points at a local object.
   """
-  refreshRemoteObject(input: RefreshRemoteObjectInput!): RefreshRemoteObjectResult!
+  refreshRemoteObject(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RefreshRemoteObjectInput!
+  ): RefreshRemoteObjectResult!
 
   """
   Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp.
@@ -3625,23 +4036,58 @@ type Mutation {
   """
   Deprecated APNS-only registration mutation kept for existing iOS clients. New clients should call `registerPushNotificationTarget`.
   """
-  registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult! @deprecated(reason: "Use `registerPushNotificationTarget` with `service: APNS` instead.")
+  registerApnsDeviceToken(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RegisterApnsDeviceTokenInput!
+  ): RegisterApnsDeviceTokenResult! @deprecated(reason: "Use `registerPushNotificationTarget` with `service: APNS` instead.")
 
   """
   Deprecated FCM-only registration mutation kept for existing Android clients. New clients should call `registerPushNotificationTarget`.
   """
-  registerFcmDeviceToken(input: RegisterFcmDeviceTokenInput!): RegisterFcmDeviceTokenResult! @deprecated(reason: "Use `registerPushNotificationTarget` with `service: FCM` instead.")
+  registerFcmDeviceToken(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RegisterFcmDeviceTokenInput!
+  ): RegisterFcmDeviceTokenResult! @deprecated(reason: "Use `registerPushNotificationTarget` with `service: FCM` instead.")
 
   """
   Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
   """
-  registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
-  removeAccountMigrationAlias(input: RemoveAccountMigrationAliasInput!): RemoveAccountMigrationAliasResult!
+  registerPushNotificationTarget(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RegisterPushNotificationTargetInput!
+  ): RegisterPushNotificationTargetResult!
+
+  """
+  Remove a secondary address from the authenticated personal account after authentication within ten minutes. The primary and last verified addresses cannot be removed; login links issued to a removed address are invalidated. Existing signed-in sessions remain valid.
+  """
+  removeAccountEmail(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RemoveAccountEmailInput!
+  ): RemoveAccountEmailResult!
+  removeAccountMigrationAlias(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RemoveAccountMigrationAliasInput!
+  ): RemoveAccountMigrationAliasResult!
 
   """
   Remove an `Actor` from the selected viewer account's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
   """
-  removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
+  removeFollower(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RemoveFollowerInput!
+  ): RemoveFollowerResult!
 
   """
   Remove a news feed exclusion pattern by id, un-hiding links it no longer matches.  Requires a moderator account.
@@ -3658,8 +4104,18 @@ type Mutation {
     """The curation row's UUID (`NewsPreferredSharer.id`)."""
     id: UUID!
   ): RemoveNewsPreferredSharerResult!
-  removeOrganizationMember(input: RemoveOrganizationMemberInput!): RemoveOrganizationMemberResult!
-  removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
+  removeOrganizationMember(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RemoveOrganizationMemberInput!
+  ): RemoveOrganizationMemberResult!
+  removeReactionFromPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RemoveReactionFromPostInput!
+  ): RemoveReactionFromPostResult!
 
   """
   Report a post (`Note`, `Article`, or `Question`) or a user (`Actor`) for violating the code of conduct.  Requires authentication.  The free-form `reason` needs no knowledge of specific provisions; it must be between 10 and 4096 characters. Reports on the same target are grouped into one case for moderators, but each reporter can have only one open report per target (`DuplicateReportError` otherwise).  The reporter's identity is kept strictly confidential.
@@ -3680,8 +4136,28 @@ type Mutation {
     """
     targetId: ID!
   ): ReportContentResult!
-  requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
-  requestOrganizationConversion(input: RequestOrganizationConversionInput!): RequestOrganizationConversionResult!
+
+  """
+  Send a verification code to a new or legacy unverified email address. Requires a personal account and a session authenticated within ten minutes; the request does not reserve the address or enable sign-in. Sending is limited per account and recipient.
+  """
+  requestAccountEmailVerification(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RequestAccountEmailVerificationInput!
+  ): RequestAccountEmailVerificationResult!
+  requestArticleTranslation(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RequestArticleTranslationInput!
+  ): RequestArticleTranslationResult!
+  requestOrganizationConversion(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RequestOrganizationConversionInput!
+  ): RequestOrganizationConversionResult!
 
   """
   Resolve an appeal: `DISMISSED` keeps the original action, `WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` replace it with the given `replacement` action on the same case. The appellant is notified under the moderation team's collective identity.  Preferably reviewed by a different moderator than the original decision-maker; the UI surfaces a warning via `FlagAppeal.action.moderator`, but this is not enforced.  Requires a moderator account.
@@ -3708,7 +4184,12 @@ type Mutation {
   Delete a passkey from the account. Returns the deleted passkey's global ID, or `null` if the passkey was not found. Requires authentication and ownership of the passkey.
   """
   revokePasskey(passkeyId: ID!): ID
-  revokeQuote(input: RevokeQuoteInput!): RevokeQuoteResult!
+  revokeQuote(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RevokeQuoteInput!
+  ): RevokeQuoteResult!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -3719,12 +4200,22 @@ type Mutation {
   """
   Create or update an article draft. Omit `id` and `uuid` to create a new draft. Pass `actingAccountId` to create it in an organization workspace you can post for, and `revision` to reject a concurrent edit with `ArticleDraftConflictError`. Requires authentication.
   """
-  saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
+  saveArticleDraft(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: SaveArticleDraftInput!
+  ): SaveArticleDraftResult!
 
   """
   Create or update a private translation draft, returning it and the existing draft for its language when one is already present. Requires authentication.
   """
-  saveArticleTranslationDraft(input: SaveArticleTranslationDraftInput!): SaveArticleTranslationDraftResult!
+  saveArticleTranslationDraft(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: SaveArticleTranslationDraftInput!
+  ): SaveArticleTranslationDraftResult!
 
   """
   Set (or clear with `NONE`) a moderator score penalty on a news link, demoting it in the `POPULAR` feed.  Requires a moderator account.  Returns the updated link, or `null` if no link has that id.
@@ -3736,8 +4227,28 @@ type Mutation {
     """The penalty level to apply (`NONE` clears it)."""
     penalty: NewsPenalty!
   ): SetNewsScorePenaltyResult
-  sharePost(input: SharePostInput!): SharePostResult!
-  startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
+
+  """
+  Choose a verified address for ordinary notification digests. Requires a personal account and authentication within ten minutes; other verified addresses remain usable for sign-in. When using Gravatar, the public avatar is synchronized from this address.
+  """
+  setPrimaryAccountEmail(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: SetPrimaryAccountEmailInput!
+  ): SetPrimaryAccountEmailResult!
+  sharePost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: SharePostInput!
+  ): SharePostResult!
+  startMediumUpload(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: StartMediumUploadInput!
+  ): StartMediumUploadResult!
 
   """
   Subscribe this instance's instance actor to an ActivityPub relay by its actor URL (the `Follow`'s `object` is the relay actor itself). After acceptance, initial public local Article `Create` activities are also sent to the relay. Requires a moderator account. The relay actor is resolved (and persisted) via ActivityPub if not already known. Idempotent: subscribing to an already-subscribed relay returns the existing subscription. Raises `InvalidInputError` (`actorUrl`) when the URL does not resolve to a remote actor (a local actor cannot be a relay).
@@ -3785,33 +4296,88 @@ type Mutation {
     """
     violatedProvisions: [String!]
   ): TakeModerationActionResult!
-  unblockActor(input: UnblockActorInput!): UnblockActorResult!
-  unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
-  unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
-  unfollowHashtag(input: UnfollowHashtagInput!): UnfollowHashtagResult!
+  unblockActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnblockActorInput!
+  ): UnblockActorResult!
+  unbookmarkPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnbookmarkPostInput!
+  ): UnbookmarkPostResult!
+  unfollowActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnfollowActorInput!
+  ): UnfollowActorResult!
+  unfollowHashtag(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnfollowHashtagInput!
+  ): UnfollowHashtagResult!
 
   """
   Removes a mute previously created by `muteActor` on behalf of the selected viewer account. Idempotent: unmuting an actor that was not muted succeeds. Rejects targeting yourself with `InvalidInputError`.
   """
-  unmuteActor(input: UnmuteActorInput!): UnmuteActorResult!
-  unpinHashtag(input: UnpinHashtagInput!): UnpinHashtagResult!
-  unpinPost(input: UnpinPostInput!): UnpinPostResult!
+  unmuteActor(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnmuteActorInput!
+  ): UnmuteActorResult!
+  unpinHashtag(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnpinHashtagInput!
+  ): UnpinHashtagResult!
+  unpinPost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnpinPostInput!
+  ): UnpinPostResult!
 
   """
   Deprecated APNS-only unregister mutation kept for existing iOS clients. New clients should call `unregisterPushNotificationTarget`.
   """
-  unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult! @deprecated(reason: "Use `unregisterPushNotificationTarget` with `service: APNS` instead.")
+  unregisterApnsDeviceToken(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnregisterApnsDeviceTokenInput!
+  ): UnregisterApnsDeviceTokenResult! @deprecated(reason: "Use `unregisterPushNotificationTarget` with `service: APNS` instead.")
 
   """
   Deprecated FCM-only unregister mutation kept for existing Android clients. New clients should call `unregisterPushNotificationTarget`.
   """
-  unregisterFcmDeviceToken(input: UnregisterFcmDeviceTokenInput!): UnregisterFcmDeviceTokenResult! @deprecated(reason: "Use `unregisterPushNotificationTarget` with `service: FCM` instead.")
+  unregisterFcmDeviceToken(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnregisterFcmDeviceTokenInput!
+  ): UnregisterFcmDeviceTokenResult! @deprecated(reason: "Use `unregisterPushNotificationTarget` with `service: FCM` instead.")
 
   """
   Remove a push notification target owned by the authenticated viewer. `APNS` and `FCM` identify targets by `token`; `WEB_PUSH` identifies targets by `endpoint`.
   """
-  unregisterPushNotificationTarget(input: UnregisterPushNotificationTargetInput!): UnregisterPushNotificationTargetResult!
-  unsharePost(input: UnsharePostInput!): UnsharePostResult!
+  unregisterPushNotificationTarget(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnregisterPushNotificationTargetInput!
+  ): UnregisterPushNotificationTargetResult!
+  unsharePost(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UnsharePostInput!
+  ): UnsharePostResult!
 
   """
   Unsubscribe this instance's instance actor from a relay (sends an `Undo` of the original `Follow` and removes the subscription). Requires a moderator account. Returns the removed subscription's global id, or `null` when no subscription has that id.
@@ -3820,8 +4386,18 @@ type Mutation {
     """The `RelaySubscription`'s global id."""
     id: ID!
   ): UnsubscribeRelayResult
-  updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
-  updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
+  updateAccount(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UpdateAccountInput!
+  ): UpdateAccountPayload!
+  updateArticle(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UpdateArticleInput!
+  ): UpdateArticleResult!
 
   """
   Move an open moderation case between `PENDING` and `REVIEWING`. Resolution happens exclusively through `takeModerationAction`. Requires a moderator account.  Returns `null` when the case is not open.
@@ -3833,9 +4409,34 @@ type Mutation {
     """The new status; only `PENDING` or `REVIEWING`."""
     status: FlagStatus!
   ): UpdateFlagCaseStatusResult
-  updateNote(input: UpdateNoteInput!): UpdateNoteResult!
-  updateNotificationEmailDigestSettings(input: UpdateNotificationEmailDigestSettingsInput!): UpdateNotificationEmailDigestSettingsPayload!
-  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): UpdateOrganizationMemberRoleResult!
+  updateNote(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UpdateNoteInput!
+  ): UpdateNoteResult!
+  updateNotificationEmailDigestSettings(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UpdateNotificationEmailDigestSettingsInput!
+  ): UpdateNotificationEmailDigestSettingsPayload!
+  updateOrganizationMemberRole(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: UpdateOrganizationMemberRoleInput!
+  ): UpdateOrganizationMemberRoleResult!
+
+  """
+  Confirm the emailed code and add the verified address, or verify an existing legacy row. Requires the initiating session but does not require renewed authentication while its approved challenge is still valid. Five incorrect attempts exhaust the request.
+  """
+  verifyAccountEmail(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: VerifyAccountEmailInput!
+  ): VerifyAccountEmailResult!
 
   """
   Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication.
@@ -3850,12 +4451,22 @@ type Mutation {
     platform: String = "web"
     registrationResponse: JSON!
   ): PasskeyRegistrationResult!
-  voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
+  voteOnPoll(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: VoteOnPollInput!
+  ): VoteOnPollResult!
 
   """
   Withdraw a published translation from an article and send an ActivityPub `Update`. Requires authentication.
   """
-  withdrawArticleTranslation(input: WithdrawArticleTranslationInput!): WithdrawArticleTranslationResult!
+  withdrawArticleTranslation(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: WithdrawArticleTranslationInput!
+  ): WithdrawArticleTranslationResult!
 }
 
 input MuteActorInput {
@@ -3866,10 +4477,17 @@ input MuteActorInput {
 
   """The global ID of the `Actor` to mute."""
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type MuteActorPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The actor that was muted."""
@@ -4626,6 +5244,9 @@ type PasskeyRegistrationResult {
 Pin a followed hashtag to the sidebar. The hashtag must already be followed. Requires authentication.
 """
 input PinHashtagInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Hashtag name to pin (with or without leading `#`)."""
@@ -4633,6 +5254,9 @@ input PinHashtagInput {
 }
 
 type PinHashtagPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The normalized hashtag name that was pinned."""
@@ -4652,6 +5276,10 @@ input PinPostInput {
   Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global ID of the post to pin."""
@@ -4659,6 +5287,9 @@ input PinPostInput {
 }
 
 type PinPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   post: Post!
 }
@@ -5539,6 +6170,10 @@ input PublishArticleDraftInput {
   How to display the credited personal member when the draft is owned by an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when the draft is personally owned.
   """
   attributionMode: PostAttributionMode
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   id: ID!
   language: Locale!
@@ -5558,6 +6193,10 @@ input PublishArticleDraftInput {
 
 type PublishArticleDraftPayload {
   article: Article!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   deletedDraftId: ID!
 }
@@ -5568,6 +6207,9 @@ union PublishArticleDraftResult = ActorSuspendedError | ArticleDraftConflictErro
 Publish one private translation draft into an already-published article's public content, replacing the language version that readers currently see. The stored revision is checked so a concurrent edit returns `ArticleDraftConflictError`. The credited translator, provenance and reviewed baseline come from the draft; the original post's title, body and summary are untouched. Requires authentication.
 """
 input PublishArticleTranslationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   id: UUID!
 
@@ -5582,6 +6224,10 @@ input PublishArticleTranslationInput {
 
 type PublishArticleTranslationPayload {
   article: Article!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   language: Locale!
 }
@@ -6605,6 +7251,9 @@ enum RedeemVerifyUrlError {
 Force a re-fetch of a remote actor or post from its origin server and overwrite the cached copy, for when the local copy is stale or broken (a renamed profile, an edited post, a missing avatar). Requires a moderator account. The fetched object only: it does not pull the actor's outbox or the post's reply tree.
 """
 input RefreshRemoteObjectInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -6619,6 +7268,10 @@ The refreshed object. Exactly one of `actor` or `post` is non-`null`, matching w
 type RefreshRemoteObjectPayload {
   """The refreshed remote actor, or `null` when the URI resolved to a post."""
   actor: Actor
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """
@@ -6661,6 +7314,9 @@ type RegisterApnsDeviceTokenFailedError {
 Legacy input for registering an APNS device token. Use `RegisterPushNotificationTargetInput` for new clients.
 """
 input RegisterApnsDeviceTokenInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """APNS device token. Hex tokens are normalized before storage."""
@@ -6671,6 +7327,9 @@ input RegisterApnsDeviceTokenInput {
 Legacy APNS registration payload. New clients should read the unified `RegisterPushNotificationTargetPayload` fields instead.
 """
 type RegisterApnsDeviceTokenPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """When this APNS token was first registered."""
@@ -6700,6 +7359,9 @@ type RegisterFcmDeviceTokenFailedError {
 Legacy input for registering an FCM device token. Use `RegisterPushNotificationTargetInput` for new clients.
 """
 input RegisterFcmDeviceTokenInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """FCM registration token. Surrounding whitespace is trimmed."""
@@ -6710,6 +7372,9 @@ input RegisterFcmDeviceTokenInput {
 Legacy FCM registration payload. New clients should read the unified `RegisterPushNotificationTargetPayload` fields instead.
 """
 type RegisterFcmDeviceTokenPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """When this FCM token was first registered."""
@@ -6730,6 +7395,10 @@ Register or refresh a push notification target for the authenticated viewer. `AP
 input RegisterPushNotificationTargetInput {
   """URL-safe Base64 `auth` secret from `PushSubscription`."""
   auth: String
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -6756,6 +7425,9 @@ input RegisterPushNotificationTargetInput {
 Successful response for `registerPushNotificationTarget`. Contains the normalized `token` or `endpoint` that was stored.
 """
 type RegisterPushNotificationTargetPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """When this target was first registered."""
@@ -6801,6 +7473,35 @@ type RelaySubscription implements Node {
   uuid: UUID!
 }
 
+"""Input for `removeAccountEmail` on the authenticated personal account."""
+input RemoveAccountEmailInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """
+  Secondary address to remove. A legacy unverified address may also be removed.
+  """
+  email: Email!
+}
+
+"""The account after a secondary email credential was removed."""
+type RemoveAccountEmailPayload {
+  """Updated account without the removed credential."""
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+}
+
+"""
+The removed address payload or an authentication or email-management error.
+"""
+union RemoveAccountEmailResult = AccountEmailError | NotAuthenticatedError | RemoveAccountEmailPayload
+
 """
 Remove one ActivityPub migration alias from a local account the authenticated viewer can manage: their own personal account, or an `ORGANIZATION` account they are an accepted `admin` of. Removing an alias only changes the account's `alsoKnownAs` list; it does not send or retract a remote `Move` activity.
 """
@@ -6814,6 +7515,10 @@ input RemoveAccountMigrationAliasInput {
   The exact previous actor IRI to remove from `Account.actor.aliases`. Missing aliases are accepted so clients can retry safely.
   """
   alias: URL!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
@@ -6822,6 +7527,10 @@ type RemoveAccountMigrationAliasPayload {
   The updated local account. Read `Account.actor.aliases` for the canonical set of previous actor IRIs now advertised as `alsoKnownAs`.
   """
   account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -6840,6 +7549,10 @@ input RemoveFollowerInput {
   `Actor` global ID for the follower to remove from the selected viewer account's followers. Passing the selected viewer account's own actor or an unknown actor returns `InvalidInputError`.
   """
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
@@ -6847,6 +7560,9 @@ input RemoveFollowerInput {
 Payload returned after successfully removing a follower. Contains the updated viewer `Actor` and removed follower `Actor` so clients can refresh counts and relationship state.
 """
 type RemoveFollowerPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The selected viewer account's `Actor` whose follower list changed."""
@@ -6883,6 +7599,9 @@ union RemoveNewsPreferredSharerResult = NotAuthenticatedError | NotAuthorizedErr
 Remove an accepted member or cancel a pending invitation from an organization. Only accepted organization administrators can remove members, and the last accepted member or administrator cannot be removed.
 """
 input RemoveOrganizationMemberInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global `Account` id of the personal member or invitee to remove."""
@@ -6895,6 +7614,9 @@ input RemoveOrganizationMemberInput {
 }
 
 type RemoveOrganizationMemberPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The organization membership that was removed."""
@@ -6911,6 +7633,10 @@ input RemoveReactionFromPostInput {
   Optional `Account` id to remove the reaction as. Omit to use the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's reaction.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   customEmojiId: ID
   emoji: String
@@ -6918,6 +7644,9 @@ input RemoveReactionFromPostInput {
 }
 
 type RemoveReactionFromPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   success: Boolean!
 }
@@ -6964,16 +7693,67 @@ type ReplyNotification implements Node & Notification {
 union ReportContentResult = DuplicateReportError | Flag | InvalidInputError | NotAuthenticatedError
 
 """
+Input for `requestAccountEmailVerification` on the authenticated personal account.
+"""
+input RequestAccountEmailVerificationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """
+  Address whose ownership to verify. Addresses belonging to another account are unavailable.
+  """
+  email: Email!
+
+  """
+  Preferred language for the verification email, with an English fallback.
+  """
+  locale: Locale!
+}
+
+"""
+A code was sent to the requested address. Enter it in the session that initiated the request.
+"""
+type RequestAccountEmailVerificationPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+
+  """Deadline for completing this request, fifteen minutes after issuance."""
+  expires: DateTime!
+
+  """
+  Opaque identifier of the session-bound verification request. The code is delivered only by email.
+  """
+  token: UUID!
+}
+
+"""
+The verification request payload or an authentication or email-management error.
+"""
+union RequestAccountEmailVerificationResult = AccountEmailError | NotAuthenticatedError | RequestAccountEmailVerificationPayload
+
+"""
 Request an LLM translation of an article into the given target language. Returns immediately; the translated `ArticleContent` appears asynchronously (check `beingTranslated`). Returns `LlmTranslationNotAllowedError` if translation is disabled on the article or the target language matches the source language.
 """
 input RequestArticleTranslationInput {
   articleId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   targetLanguage: Locale!
 }
 
 type RequestArticleTranslationPayload {
   article: Article!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -6990,6 +7770,10 @@ input RequestOrganizationConversionInput {
   Username of the personal account that may accept the conversion and become the first organization administrator.
   """
   adminUsername: String!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -6999,6 +7783,9 @@ input RequestOrganizationConversionInput {
 }
 
 type RequestOrganizationConversionPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """
@@ -7019,6 +7806,10 @@ input RevokeQuoteInput {
   Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global ID of the quote post to revoke."""
@@ -7026,6 +7817,9 @@ input RevokeQuoteInput {
 }
 
 type RevokeQuotePayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   quote: Post!
   quotedPost: Post!
@@ -7084,6 +7878,10 @@ input SaveArticleDraftInput {
   Workspace `Account` to create the draft in: your personal account or an organization you can post for. Only used when creating; when updating it must match the stored owner.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   content: Markdown!
   id: ID
@@ -7105,6 +7903,9 @@ input SaveArticleDraftInput {
 }
 
 type SaveArticleDraftPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   draft: ArticleDraft!
 }
@@ -7116,6 +7917,10 @@ Create or update a private translation draft attached to an article draft (`arti
 """
 input SaveArticleTranslationDraftInput {
   articleDraftId: UUID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   content: Markdown!
   id: UUID
@@ -7133,6 +7938,9 @@ input SaveArticleTranslationDraftInput {
 }
 
 type SaveArticleTranslationDraftPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   draft: ArticleTranslationDraft!
 }
@@ -7167,6 +7975,37 @@ type Session {
 
 union SetNewsScorePenaltyResult = NotAuthenticatedError | NotAuthorizedError | PostLink
 
+"""
+Input for `setPrimaryAccountEmail` on the authenticated personal account.
+"""
+input SetPrimaryAccountEmailInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """
+  Verified address already belonging to the authenticated personal account.
+  """
+  email: Email!
+}
+
+"""The account after selecting its primary notification address."""
+type SetPrimaryAccountEmailPayload {
+  """Updated account with the selected primary address."""
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+}
+
+"""
+The updated primary address payload or an authentication or email-management error.
+"""
+union SetPrimaryAccountEmailResult = AccountEmailError | NotAuthenticatedError | SetPrimaryAccountEmailPayload
+
 """A lowercase hex-encoded SHA-256 digest."""
 scalar Sha256
 
@@ -7190,11 +8029,18 @@ input SharePostInput {
   Optional `Account` id to boost as. Omit to boost as the authenticated personal account; pass an organization account where the viewer is an accepted member to boost as that organization.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   postId: ID!
 }
 
 type SharePostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   originalPost: Post!
   share: Post!
@@ -7270,6 +8116,9 @@ type StandardEmoji {
 Step 1 of direct image upload: obtain a pre-signed URL and headers for a PUT request. After uploading, call `finishMediumUpload` with the returned `uploadId`. Filesystem-backed upload URLs use the configured canonical `ORIGIN`, which must be browser-reachable. Requires authentication.
 """
 input StartMediumUploadInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Exact number of bytes the client will upload."""
@@ -7280,6 +8129,9 @@ input StartMediumUploadInput {
 }
 
 type StartMediumUploadPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   expires: DateTime!
   headers: [MediumUploadHeader!]!
@@ -7312,12 +8164,20 @@ input UnblockActorInput {
   """
   actingAccountId: ID
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type UnblockActorPayload {
   blockee: Actor!
   blocker: Actor!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -7327,11 +8187,17 @@ union UnblockActorResult = InvalidInputError | NotAuthenticatedError | Organizat
 Remove a post from the viewer's bookmarks. Idempotent. Requires authentication.
 """
 input UnbookmarkPostInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   postId: ID!
 }
 
 type UnbookmarkPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   post: Post
   unbookmarkedPostId: ID!
@@ -7345,10 +8211,17 @@ input UnfollowActorInput {
   """
   actingAccountId: ID
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type UnfollowActorPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   followee: Actor!
   follower: Actor!
@@ -7360,6 +8233,9 @@ union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | Organiza
 Unfollow a hashtag. Idempotent: unfollowing a tag not followed succeeds silently. Requires authentication.
 """
 input UnfollowHashtagInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Hashtag name to unfollow (with or without leading `#`)."""
@@ -7367,6 +8243,9 @@ input UnfollowHashtagInput {
 }
 
 type UnfollowHashtagPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The normalized hashtag name that was unfollowed."""
@@ -7386,10 +8265,17 @@ input UnmuteActorInput {
 
   """The global ID of the `Actor` to unmute."""
   actorId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 }
 
 type UnmuteActorPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The actor that was unmuted."""
@@ -7405,6 +8291,9 @@ union UnmuteActorResult = InvalidInputError | NotAuthenticatedError | Organizati
 Remove a hashtag from the sidebar. Idempotent: unpinning an already-unpinned tag succeeds silently. Requires authentication.
 """
 input UnpinHashtagInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Hashtag name to unpin (with or without leading `#`)."""
@@ -7412,6 +8301,9 @@ input UnpinHashtagInput {
 }
 
 type UnpinHashtagPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The normalized hashtag name that was unpinned."""
@@ -7431,6 +8323,10 @@ input UnpinPostInput {
   Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global ID of the post to unpin."""
@@ -7438,6 +8334,9 @@ input UnpinPostInput {
 }
 
 type UnpinPostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   post: Post!
   unpinnedPostId: ID!
@@ -7449,6 +8348,9 @@ union UnpinPostResult = InvalidInputError | NotAuthenticatedError | Organization
 Legacy input for unregistering an APNS device token. Use `UnregisterPushNotificationTargetInput` for new clients.
 """
 input UnregisterApnsDeviceTokenInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """APNS device token. Hex tokens are normalized before removal."""
@@ -7459,6 +8361,9 @@ input UnregisterApnsDeviceTokenInput {
 Legacy APNS unregister payload. New clients should read the unified `UnregisterPushNotificationTargetPayload` fields instead.
 """
 type UnregisterApnsDeviceTokenPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """Normalized APNS device token requested for removal."""
@@ -7476,6 +8381,9 @@ union UnregisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedErro
 Legacy input for unregistering an FCM device token. Use `UnregisterPushNotificationTargetInput` for new clients.
 """
 input UnregisterFcmDeviceTokenInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """FCM registration token. Surrounding whitespace is trimmed."""
@@ -7486,6 +8394,9 @@ input UnregisterFcmDeviceTokenInput {
 Legacy FCM unregister payload. New clients should read the unified `UnregisterPushNotificationTargetPayload` fields instead.
 """
 type UnregisterFcmDeviceTokenPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """Trimmed FCM registration token requested for removal."""
@@ -7503,6 +8414,9 @@ union UnregisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError
 Remove a push notification target owned by the authenticated viewer. `APNS` and `FCM` identify targets by `token`; `WEB_PUSH` identifies targets by `endpoint`.
 """
 input UnregisterPushNotificationTargetInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -7521,6 +8435,9 @@ input UnregisterPushNotificationTargetInput {
 Successful response for `unregisterPushNotificationTarget`. Identifies the target requested for removal and whether it was owned by the viewer.
 """
 type UnregisterPushNotificationTargetPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """`WEB_PUSH` endpoint requested for removal."""
@@ -7551,11 +8468,18 @@ input UnsharePostInput {
   Optional `Account` id to undo a boost as. Omit to use the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's boost.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   postId: ID!
 }
 
 type UnsharePostPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
   originalPost: Post!
 }
@@ -7579,6 +8503,10 @@ input UpdateAccountInput {
   avatarMediumId: UUID
   avatarUrl: URL @deprecated(reason: "Use avatarMediumId instead.")
   bio: String
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility
 
@@ -7604,6 +8532,10 @@ input UpdateAccountInput {
 
 type UpdateAccountPayload {
   account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -7619,6 +8551,10 @@ input UpdateArticleInput {
 
   """Global ID of the article to update."""
   articleId: ID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
   content: Markdown
   language: Locale
@@ -7641,6 +8577,10 @@ input UpdateArticleMediumInput {
 
 type UpdateArticlePayload {
   article: Article!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -7656,6 +8596,10 @@ input UpdateNoteInput {
   Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """New Markdown body. Omit to keep the existing content."""
@@ -7672,6 +8616,9 @@ input UpdateNoteInput {
 }
 
 type UpdateNotePayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The note after the update has been applied."""
@@ -7684,6 +8631,9 @@ union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | Organizatio
 Update private email digest settings for the authenticated personal account. This does not publish an ActivityPub `Update`.
 """
 input UpdateNotificationEmailDigestSettingsInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Whether to send a daily digest email when unread notifications remain."""
@@ -7703,6 +8653,10 @@ input UpdateNotificationEmailDigestSettingsInput {
 type UpdateNotificationEmailDigestSettingsPayload {
   """Account with the updated digest settings."""
   account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 }
 
@@ -7710,6 +8664,9 @@ type UpdateNotificationEmailDigestSettingsPayload {
 Change the role of an accepted organization member. Only accepted organization administrators can update roles, and the last administrator cannot be demoted.
 """
 input UpdateOrganizationMemberRoleInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """Global `Account` id of the accepted personal member to update."""
@@ -7725,6 +8682,9 @@ input UpdateOrganizationMemberRoleInput {
 }
 
 type UpdateOrganizationMemberRolePayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The updated organization membership."""
@@ -7732,6 +8692,40 @@ type UpdateOrganizationMemberRolePayload {
 }
 
 union UpdateOrganizationMemberRoleResult = LastOrganizationAdminError | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError | OrganizationPermissionError | UpdateOrganizationMemberRolePayload
+
+"""Input for `verifyAccountEmail` on the authenticated personal account."""
+input VerifyAccountEmailInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """Eight-character verification code received at the requested address."""
+  code: String!
+
+  """
+  Identifier returned by `requestAccountEmailVerification` in this same session.
+  """
+  token: UUID!
+}
+
+"""
+The authenticated account after a successful email ownership verification.
+"""
+type VerifyAccountEmailPayload {
+  """Updated account; select `emails` to refresh the client's private list."""
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+}
+
+"""
+The verified account payload or an authentication or verification error.
+"""
+union VerifyAccountEmailResult = AccountEmailError | NotAuthenticatedError | VerifyAccountEmailPayload
 
 """
 The selected viewer account's follow relationship to an `Actor`. Use this instead of `viewerFollows` when pending follow requests need a distinct UI state.
@@ -7759,6 +8753,10 @@ input VoteOnPollInput {
   Optional `Account` global id to vote as an organization account. Omit this to vote as the signed-in personal account.
   """
   actingAccountId: ID
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """
@@ -7773,6 +8771,9 @@ input VoteOnPollInput {
 }
 
 type VoteOnPollPayload {
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The updated poll after replacing the viewer's previous votes."""
@@ -7838,6 +8839,9 @@ type WebFingerResult {
 Withdraw a published, human-managed translation from an article. Readers stop seeing that language, and the ActivityPub `Update` sent for the article omits both its `contentMap` entry and its [FEP-22cd](https://w3id.org/fep/22cd) translation metadata, which peers read as a withdrawal; the article itself keeps its identity, replies and reactions. The language's private translation draft, if any, is kept and becomes unpublished. Automatic translations cannot be withdrawn this way (they follow `allowLlmTranslation`), and while that setting stays enabled a reader can request an automatic translation of the withdrawn language again. Requires authentication and the same authority that governs editing the article.
 """
 input WithdrawArticleTranslationInput {
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
   clientMutationId: ID
 
   """The translated language to withdraw, never the original language."""
@@ -7850,6 +8854,10 @@ input WithdrawArticleTranslationInput {
 type WithdrawArticleTranslationPayload {
   """The article the translation was withdrawn from."""
   article: Article!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
   clientMutationId: ID
 
   """The withdrawn language."""

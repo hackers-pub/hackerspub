@@ -124,9 +124,12 @@ Cutover
     verified Maileroo sending domain before it starts.  Give the API and
     worker `MAILEROO_KEY` (the domain's sending key) and set `EMAIL_FROM` to an
     address on that domain; `MAILGUN_FROM` is no longer read.  The new image
-    refuses to start in production without `MAILEROO_KEY`.  Leave the
-    `MAILGUN_*` variables in place until the rollback window closes, because
-    the previous image still needs them.
+    refuses to start in production without `MAILEROO_KEY`.  In development,
+    test, and build modes without this key, emails are logged with their
+    subject and body instead of sent, so verification codes and sign-in links
+    can be read in the console or local log file.  CI uses `MockTransport`.
+    Leave the `MAILGUN_*` variables in place until the rollback window closes,
+    because the previous image still needs them.
 
 6.  Run database migrations once, from the new image, before starting any
     service on it:
@@ -227,3 +230,50 @@ Rehearse this before you need it: deploy the current tag, then redeploy the
 previous one, and confirm the checks pass at both ends.
 
 [#351]: https://github.com/hackers-pub/hackerspub/issues/351
+
+### Multiple email addresses
+
+The migration for multiple email addresses selects the earliest verified
+address (ordered by creation time, then address) as each personal account's
+primary notification address.  Notification digests subsequently go to that
+address.  Existing unverified addresses remain private and cannot sign in.
+Owners can verify or remove them in Settings → Account.
+
+Before applying this migration, check for addresses that differ only in case:
+
+~~~~ sql
+SELECT lower(email), array_agg(account_id), count(*)
+FROM account_email
+GROUP BY lower(email)
+HAVING count(*) > 1;
+~~~~
+
+The new unique index rejects such collisions rather than merging credentials.
+If the query returns rows, confirm ownership and reconcile them manually before
+retrying the migration.  Do not transfer an address between accounts without
+establishing ownership.  Retain the verified address when consolidating rows
+belonging to the same account.
+
+Also check for personal accounts that have no usable sign-in credential:
+
+~~~~ sql
+SELECT a.id, a.username
+FROM account a
+WHERE a.kind = 'personal'
+  AND NOT EXISTS (SELECT 1 FROM account_email e
+                  WHERE e.account_id = a.id AND e.verified IS NOT NULL)
+  AND NOT EXISTS (SELECT 1 FROM passkey p WHERE p.account_id = a.id);
+~~~~
+
+Reconcile these accounts before deploying: email sign-in now requires a
+verified address.  Verify ownership through an established trusted channel;
+do not mark an address verified solely to make the query return no rows.
+Accounts with no remaining credentials cannot use Settings to repair their
+access.  This feature does not provide a standard recovery procedure.
+
+Gravatar now uses the primary verified address only, so adding a secondary
+address does not publish its hash or change the avatar.  Legacy accounts with
+several addresses may see a different Gravatar after the migration; cached
+federation avatars are refreshed on the next profile synchronization.  Choosing
+a different primary address synchronizes the avatar immediately when no
+uploaded avatar exists.

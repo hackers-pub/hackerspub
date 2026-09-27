@@ -620,7 +620,9 @@ export async function getAvatarUrl(
   if (account.avatarMedium != null) {
     return await disk.getUrl(account.avatarMedium.key);
   }
-  const emails = account.emails.filter((e) => e.verified != null);
+  const verifiedEmails = account.emails.filter((e) => e.verified != null);
+  const primary = verifiedEmails.find((email) => email.primary);
+  const emails = primary == null ? verifiedEmails : [primary];
   emails.sort((a, b) => (a.public ? 1 : b.public ? -1 : 0));
   const textEncoder = new TextEncoder();
   let url = "mp";
