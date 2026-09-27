@@ -19,9 +19,15 @@
 // appearing where it was placed.  Both cost real debugging time because the
 // class that causes them looks like it only concerns the entrance.
 //
-// The fix is always to be explicit: `transition-none` when the timing is only
-// meant for the `animate-*` entrance, or the property list that should
-// genuinely transition (`transition-colors`, `transition-transform`, ...).
+// The fix depends on what the timing was for.  For an `animate-*` animation,
+// tw-animate-css's `animation-duration-*` sets only `animation-duration` and
+// leaves transitions alone.  Animations with a fixed duration (`animate-spin`,
+// `animate-caret-blink`, ...) never read `--tw-duration`, so a `duration-*`
+// beside them does nothing but cause the problem above and should be dropped.
+// When something should genuinely transition, name it (`transition-colors`,
+// `transition-transform`, ...).  tw-animate-css has no `animation-ease-*`, so a
+// custom `ease-*` for an animation is the one case that needs
+// `transition-none`.
 //
 // Scope and deliberate blind spots:
 //
@@ -197,10 +203,13 @@ const MESSAGE =
   "This element sets transition timing (`duration-*` / `ease-*`) without a " +
   "`transition-*` utility, so `transition-property` keeps its initial value " +
   "of `all` and every property change on the element -- hover colors, " +
-  "JS-assigned positions -- transitions with that duration and easing. Add " +
-  "`transition-none` when the timing is only meant for an `animate-*` " +
-  "entrance, or name the properties that should transition (e.g. " +
-  "`transition-colors`).";
+  "JS-assigned positions, theme color switches -- transitions with that " +
+  "duration and easing. If the timing is for an `animate-*` animation, use " +
+  "`animation-duration-*` instead, which leaves transitions alone; animations " +
+  "with a fixed duration such as `animate-spin` or `animate-caret-blink` " +
+  "ignore `duration-*` entirely, so just drop it. If something should really " +
+  "transition, name the properties (e.g. `transition-colors`). Keep a custom " +
+  "`ease-*` for an animation only together with `transition-none`.";
 
 const plugin = {
   meta: {
