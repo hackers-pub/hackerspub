@@ -9,6 +9,7 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { EmojiReactionPopoverAddMutation } from "./__generated__/EmojiReactionPopoverAddMutation.graphql.ts";
 import type { EmojiReactionPopoverRemoveMutation } from "./__generated__/EmojiReactionPopoverRemoveMutation.graphql.ts";
+import { reactionMutationSucceeded } from "./reactionMutationResult.ts";
 
 interface NoteData {
   id: string;
@@ -46,6 +47,7 @@ function viewerReactionArgs(actingAccountId: string | null | undefined) {
 const addReactionToPostMutation = graphql`
   mutation EmojiReactionPopoverAddMutation($input: AddReactionToPostInput!) {
     addReactionToPost(input: $input) {
+      __typename
       ... on AddReactionToPostPayload {
         reaction {
           id
@@ -66,6 +68,7 @@ const removeReactionFromPostMutation = graphql`
     $input: RemoveReactionFromPostInput!
   ) {
     removeReactionFromPost(input: $input) {
+      __typename
       ... on RemoveReactionFromPostPayload {
         success
       }
@@ -153,7 +156,12 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             ...(actingAccountId == null ? {} : { actingAccountId }),
           },
         },
-        updater: (store) => {
+        updater: (store, result) => {
+          // Relay runs updaters for error union members too.
+          if (
+            !reactionMutationSucceeded("remove", result?.removeReactionFromPost)
+          )
+            return;
           // Handle undo reaction
           const postRecord = store.get(postId);
           if (postRecord) {
@@ -237,7 +245,10 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             ...(actingAccountId == null ? {} : { actingAccountId }),
           },
         },
-        updater: (store) => {
+        updater: (store, result) => {
+          // Relay runs updaters for error union members too.
+          if (!reactionMutationSucceeded("add", result?.addReactionToPost))
+            return;
           // Handle add reaction
           const postRecord = store.get(postId);
           if (postRecord) {
@@ -357,7 +368,12 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             ...(actingAccountId == null ? {} : { actingAccountId }),
           },
         },
-        updater: (store) => {
+        updater: (store, result) => {
+          // Relay runs updaters for error union members too.
+          if (
+            !reactionMutationSucceeded("remove", result?.removeReactionFromPost)
+          )
+            return;
           const postRecord = store.get(postId);
           if (postRecord) {
             const engagementStats =
@@ -431,7 +447,10 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             ...(actingAccountId == null ? {} : { actingAccountId }),
           },
         },
-        updater: (store) => {
+        updater: (store, result) => {
+          // Relay runs updaters for error union members too.
+          if (!reactionMutationSucceeded("add", result?.addReactionToPost))
+            return;
           const postRecord = store.get(postId);
           if (postRecord) {
             const engagementStats =
