@@ -137,6 +137,11 @@ msgstr "{0, plural, other {コンテンツをあと#件表示}}"
 msgid "{0, plural, one {Show # reply} other {Show # replies}}"
 msgstr "{0, plural, other {返信を#件表示}}"
 
+#. placeholder {0}: retrySeconds()
+#: src/components/AccountEmailSettings.tsx:367
+msgid "{0, plural, one {You can request another code in # second.} other {You can request another code in # seconds.}}"
+msgstr "{0, plural, other {#秒後に新しいコードをリクエストできます。}}"
+
 #. placeholder {0}: account.inviteesCount.totalCount
 #: src/routes/(root)/[handle]/settings/invite.tsx:447
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
@@ -1156,8 +1161,8 @@ msgstr "通報者 {0}"
 msgid "By {0}"
 msgstr "{0}さんによる記事"
 
-#: src/components/AccountEmailSettings.tsx:444
-#: src/components/AccountEmailSettings.tsx:464
+#: src/components/AccountEmailSettings.tsx:451
+#: src/components/AccountEmailSettings.tsx:471
 #: src/components/AppealDialog.tsx:182
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:264
 #: src/components/article-translations/ArticleTranslationManager.tsx:1401
@@ -1896,7 +1901,7 @@ msgid "Enter the account you are moving from, such as @old@example.com or its ac
 msgstr "移行元のアカウントを入力してください。@old@example.comやアクターURLを使用できます。"
 
 #. placeholder {0}: challenge().email
-#: src/components/AccountEmailSettings.tsx:412
+#: src/components/AccountEmailSettings.tsx:419
 msgid "Enter the verification code sent to {0} in this tab."
 msgstr "{0}に送信された認証コードをこのタブで入力してください。"
 
@@ -2948,7 +2953,7 @@ msgstr "{0}に参加"
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
-#: src/components/AccountEmailSettings.tsx:449
+#: src/components/AccountEmailSettings.tsx:456
 msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 msgstr "認証済みメールアドレスまたはパスキーの少なくとも一つを使える状態にしておいてください。すべての認証手段を失うと、原則としてアカウントを復旧できません。"
 
@@ -3519,7 +3524,7 @@ msgstr "新しい管理者のユーザー名"
 msgid "New article"
 msgstr "新しい記事"
 
-#: src/components/AccountEmailSettings.tsx:382
+#: src/components/AccountEmailSettings.tsx:389
 msgid "New email address"
 msgstr "新しいメールアドレス"
 
@@ -4607,7 +4612,7 @@ msgid "Remote followers at publication"
 msgstr "公開時のリモートフォロワー"
 
 #: src/components/AccountEmailSettings.tsx:337
-#: src/components/AccountEmailSettings.tsx:471
+#: src/components/AccountEmailSettings.tsx:478
 #: src/components/LanguageList.tsx:223
 #: src/routes/(root)/[handle]/settings/account.tsx:1617
 #: src/routes/(root)/[handle]/settings/account.tsx:1868
@@ -4632,7 +4637,7 @@ msgstr "{alias}を削除"
 msgid "Remove bookmark"
 msgstr "ブックマークを削除"
 
-#: src/components/AccountEmailSettings.tsx:458
+#: src/components/AccountEmailSettings.tsx:465
 msgid "Remove email address?"
 msgstr "メールアドレスを削除しますか？"
 
@@ -4686,7 +4691,7 @@ msgstr "作成から十分な時間が経過し、アイコン、投稿、記事
 msgid "Removing reaction…"
 msgstr "リアクションを削除中…"
 
-#: src/components/AccountEmailSettings.tsx:471
+#: src/components/AccountEmailSettings.tsx:478
 #: src/routes/(root)/[handle]/settings/account.tsx:1612
 #: src/routes/(root)/[handle]/settings/account.tsx:1868
 msgid "Removing…"
@@ -5016,11 +5021,11 @@ msgstr "未読通知が残っている間、1日に1通メールを送信しま�
 msgid "Send one email per week while unread notifications remain."
 msgstr "未読通知が残っている間、1週間に1通メールを送信します。"
 
-#: src/components/AccountEmailSettings.tsx:396
+#: src/components/AccountEmailSettings.tsx:403
 msgid "Send verification code"
 msgstr "認証コードを送信"
 
-#: src/components/AccountEmailSettings.tsx:396
+#: src/components/AccountEmailSettings.tsx:403
 #: src/routes/(root)/[handle]/invite/[id].tsx:412
 #: src/routes/(root)/[handle]/settings/invite.tsx:416
 msgid "Sending…"
@@ -5472,7 +5477,7 @@ msgid "The browser did not provide a complete push subscription."
 msgstr "ブラウザーから完全なプッシュ通知サブスクリプションが提供されませんでした。"
 
 #. placeholder {0}: new Date(challenge().expires).toLocaleTimeString(i18n.locale, { hour: "numeric", minute: "2-digit" })
-#: src/components/AccountEmailSettings.tsx:413
+#: src/components/AccountEmailSettings.tsx:420
 msgid "The code expires at {0}."
 msgstr "コードは{0}に期限切れになります。"
 
@@ -6261,7 +6266,7 @@ msgstr "ユーザー名が長すぎます。最大50文字です。"
 msgid "Users you have invited"
 msgstr "招待したユーザー"
 
-#: src/components/AccountEmailSettings.tsx:419
+#: src/components/AccountEmailSettings.tsx:426
 msgid "Verification code"
 msgstr "認証コード"
 
@@ -6272,7 +6277,7 @@ msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
 #: src/components/AccountEmailSettings.tsx:323
-#: src/components/AccountEmailSettings.tsx:434
+#: src/components/AccountEmailSettings.tsx:441
 msgid "Verify email"
 msgstr "メールを認証"
 
@@ -6284,7 +6289,7 @@ msgstr "メインにする前に、このメールアドレスを認証してく
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AccountEmailSettings.tsx:434
+#: src/components/AccountEmailSettings.tsx:441
 msgid "Verifying…"
 msgstr "認証中…"
 
@@ -6629,14 +6634,14 @@ msgid "You can prepare migration only for accounts you can manage."
 msgstr "管理できるアカウントでのみ移行を準備できます。"
 
 #: src/components/AccountEmailSettings.tsx:161
-#: src/components/AccountEmailSettings.tsx:399
+#: src/components/AccountEmailSettings.tsx:406
 msgid "You can register up to five verified email addresses."
 msgstr "認証済みメールアドレスは最大5件まで登録できます。"
 
 #. placeholder {0}: retrySeconds()
 #: src/components/AccountEmailSettings.tsx:365
-msgid "You can request another code in {0} seconds."
-msgstr "{0}秒後に新しいコードをリクエストできます。"
+#~ msgid "You can request another code in {0} seconds."
+#~ msgstr "{0}秒後に新しいコードをリクエストできます。"
 
 #: src/components/AccountEmailSettings.tsx:171
 msgid "You cannot remove your last verified email address."
@@ -6770,7 +6775,7 @@ msgid "You were invited by"
 msgstr "あなたを招待した方"
 
 #. placeholder {0}: removeTarget() ?? ""
-#: src/components/AccountEmailSettings.tsx:459
+#: src/components/AccountEmailSettings.tsx:466
 msgid "You will no longer be able to sign in with {0}."
 msgstr "{0}ではサインインできなくなります。"
 

@@ -34,7 +34,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
-import { useLingui } from "~/lib/i18n/macro.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { AccountEmailSettings_account$key } from "./__generated__/AccountEmailSettings_account.graphql.ts";
 import type { AccountEmailSettingsRequestMutation } from "./__generated__/AccountEmailSettingsRequestMutation.graphql.ts";
 import type { AccountEmailSettingsVerifyMutation } from "./__generated__/AccountEmailSettingsVerifyMutation.graphql.ts";
@@ -359,10 +359,14 @@ export function AccountEmailSettings(props: AccountEmailSettingsProps) {
           </p>
         </Show>
         <Show when={retrySeconds() > 0}>
-          <p
-            role="status"
-            class="text-sm text-muted-foreground"
-          >{t`You can request another code in ${retrySeconds()} seconds.`}</p>
+          <p role="status" class="text-sm text-muted-foreground">
+            {i18n._(
+              msg`${plural(retrySeconds(), {
+                one: "You can request another code in # second.",
+                other: "You can request another code in # seconds.",
+              })}`,
+            )}
+          </p>
         </Show>
         <Show
           when={pending()}
