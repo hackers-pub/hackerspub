@@ -112,6 +112,14 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
         sinks: loggerSinks,
       },
       {
+        // Treat the local console as the development inbox. Never persist
+        // complete authentication messages in LOG_FILE or send them to Sentry.
+        category: ["hackerspub", "email", "development"],
+        lowestLevel: "debug",
+        parentSinks: "override",
+        sinks: ["console"],
+      },
+      {
         category: "drizzle-orm",
         lowestLevel: logQuery ? "trace" : "info",
         sinks: loggerSinks,

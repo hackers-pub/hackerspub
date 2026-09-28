@@ -1,3 +1,5 @@
+import { accountTable } from "@hackerspub/models/schema";
+import { eq } from "drizzle-orm";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import {
   getAuthenticationOptions,
@@ -12,7 +14,8 @@ import {
   getSession,
 } from "@hackerspub/models/session";
 import {
-  createSigninToken,
+  createEmailSigninToken,
+  EmailLoginUnavailableError,
   deleteSigninToken,
   EXPIRATION,
   getSigninToken,
@@ -49,6 +52,19 @@ builder.objectType(AccountNotFoundError, {
   name: "AccountNotFoundError",
   fields: (t) => ({
     query: t.exposeString("query"),
+  }),
+});
+
+builder.objectType(EmailLoginUnavailableError, {
+  name: "EmailLoginUnavailableError",
+  description:
+    "Returned by `loginByUsername` when a personal account exists but has no verified email address. Email sign-in is unavailable; an already registered passkey may still authenticate the account. Email-address lookup retains its generic not-found response.",
+  fields: (t) => ({
+    emailLoginUnavailable: t.boolean({
+      description:
+        "Always `true`: no verification code was issued because the account has no verified email address.",
+      resolve: () => true,
+    }),
   }),
 });
 
@@ -111,11 +127,11 @@ builder.mutationFields((t) => ({
     type: LoginChallengeRef,
     description:
       "Initiate passwordless sign-in by username. Sends a magic link to " +
-      "all email addresses on the account. The link embeds `{token}` and " +
+      "all verified email addresses on the account. The link embeds `{token}` and " +
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
-      "flow by calling `completeLoginChallenge` with those values.",
+      "flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.",
     errors: {
-      types: [AccountNotFoundError],
+      types: [AccountNotFoundError, EmailLoginUnavailableError],
       union: {
         name: "LoginResult",
       },
@@ -151,9 +167,10 @@ builder.mutationFields((t) => ({
       if (account == null) {
         throw new AccountNotFoundError(args.username);
       }
-      const token = await createSigninToken(ctx.kv, account.id);
+      const token = await createEmailSigninToken(ctx.db, ctx.kv, account.id);
+      if (token == null) throw new AccountNotFoundError(args.username);
       const messages: Message[] = [];
-      for (const { email } of account.emails) {
+      for (const email of token.emails) {
         const message = await getEmailMessage({
           from: ctx.emailFrom,
           locale: args.locale,
@@ -186,7 +203,7 @@ builder.mutationFields((t) => ({
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
       "flow by calling `completeLoginChallenge` with those values.",
     errors: {
-      types: [AccountNotFoundError],
+      types: [AccountNotFoundError, EmailLoginUnavailableError],
       union: {
         name: "LoginResult",
       },
@@ -219,7 +236,7 @@ builder.mutationFields((t) => ({
         with: { emails: true },
         where: {
           kind: "personal",
-          emails: { email: args.email },
+          emails: { email: args.email, verified: { isNotNull: true } },
         },
       });
       if (account == null) {
@@ -227,6 +244,7 @@ builder.mutationFields((t) => ({
           where: {
             kind: "personal",
             emails: {
+              verified: { isNotNull: true },
               RAW(t) {
                 return sql`lower(${t.email}) = lower(${args.email})`;
               },
@@ -238,9 +256,15 @@ builder.mutationFields((t) => ({
       if (account == null) {
         throw new AccountNotFoundError(args.email);
       }
-      const token = await createSigninToken(ctx.kv, account.id);
+      const token = await createEmailSigninToken(
+        ctx.db,
+        ctx.kv,
+        account.id,
+        args.email,
+      );
+      if (token == null) throw new AccountNotFoundError(args.email);
       const messages: Message[] = [];
-      for (const { email } of account.emails) {
+      for (const email of token.emails) {
         const message = await getEmailMessage({
           from: ctx.emailFrom,
           locale: args.locale,
@@ -299,30 +323,59 @@ builder.mutationFields((t) => ({
     async resolve(_, args, ctx) {
       const token = await getSigninToken(ctx.kv, args.token);
       if (token == null || token.code !== args.code) return null;
-      const account = await ctx.db.query.accountTable.findFirst({
-        where: { id: token.accountId },
-        columns: { kind: true },
-      });
-      if (account?.kind !== "personal") {
+      return await ctx.db.transaction(async (tx) => {
+        await tx
+          .select({ id: accountTable.id })
+          .from(accountTable)
+          .where(eq(accountTable.id, token.accountId))
+          .for("update");
+        const currentToken = await getSigninToken(ctx.kv, args.token);
+        if (currentToken == null || currentToken.code !== args.code)
+          return null;
+        const account = await tx.query.accountTable.findFirst({
+          where: { id: token.accountId },
+          columns: { kind: true, emailCredentialsChanged: true },
+          with: { emails: true },
+        });
+        if (account?.kind !== "personal") {
+          await deleteSigninToken(ctx.kv, token.token);
+          return null;
+        }
+        const tokenCreated = new Date(token.created).getTime();
+        const credentialRemoved = account.emailCredentialsChanged;
+        if (
+          !Number.isFinite(tokenCreated) ||
+          (token.emailCredentialsChanged !== undefined
+            ? token.emailCredentialsChanged !==
+              (credentialRemoved?.getTime() ?? null)
+            : credentialRemoved != null &&
+              tokenCreated <= credentialRemoved.getTime()) ||
+          (token.emails != null &&
+            !account.emails.some(
+              (email) =>
+                email.verified != null && token.emails!.includes(email.email),
+            ))
+        ) {
+          await deleteSigninToken(ctx.kv, token.token);
+          return null;
+        }
+        // A permanently suspended (banned) account cannot log in at all;
+        // temporary suspension only restricts writing, not signing in.
+        const actor = await tx.query.actorTable.findFirst({
+          where: { accountId: token.accountId },
+          columns: { id: true, suspended: true, suspendedUntil: true },
+        });
+        if (actor != null && isActorBanned(actor)) {
+          throw new AccountBannedError(actor.suspended!);
+        }
+        const remoteAddr = ctx.connectionInfo?.remoteAddr;
         await deleteSigninToken(ctx.kv, token.token);
-        return null;
-      }
-      // A permanently suspended (banned) account cannot log in at all;
-      // temporary suspension only restricts writing, not signing in.
-      const actor = await ctx.db.query.actorTable.findFirst({
-        where: { accountId: token.accountId },
-        columns: { id: true, suspended: true, suspendedUntil: true },
-      });
-      if (actor != null && isActorBanned(actor)) {
-        throw new AccountBannedError(actor.suspended!);
-      }
-      const remoteAddr = ctx.connectionInfo?.remoteAddr;
-      await deleteSigninToken(ctx.kv, token.token);
-      return await createSession(ctx.kv, {
-        accountId: token.accountId,
-        ipAddress:
-          remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
-        userAgent: ctx.request.headers.get("User-Agent"),
+        return await createSession(ctx.kv, {
+          accountId: token.accountId,
+          ipAddress:
+            remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
+          userAgent: ctx.request.headers.get("User-Agent"),
+        });
       });
     },
   }),

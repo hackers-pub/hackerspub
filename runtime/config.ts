@@ -37,7 +37,11 @@ export type EmailConfig =
   | {
       readonly transport: "mock";
       readonly from: string;
-      readonly reason: "ci" | "maileroo-unconfigured";
+      readonly reason: "ci";
+    }
+  | {
+      readonly transport: "logtape";
+      readonly from: string;
     }
   | {
       readonly transport: "maileroo";
@@ -208,9 +212,8 @@ export function loadServerConfig(env: Environment): ServerConfig {
     (mode === "development" || mode === "test" || mode === "build")
   ) {
     email = {
-      transport: "mock",
+      transport: "logtape",
       from: configuredFrom || defaultFrom,
-      reason: "maileroo-unconfigured",
     };
   } else {
     const from = configuredFrom;

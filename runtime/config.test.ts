@@ -89,15 +89,15 @@ test("loadGraphqlApiConfig permits file KV only when explicitly allowed", () => 
   assertEquals(config.kv.url.href, required.KV_URL);
 });
 
-test("loadServerConfig uses mock email in development without Maileroo", () => {
+test("loadServerConfig uses LogTape email in development without Maileroo", () => {
   const { CI: _ci, EMAIL_FROM: _emailFrom, ...withoutEmail } = required;
-  const config = loadServerConfig({ ...withoutEmail, MODE: "development" });
-
-  assertEquals(config.email, {
-    transport: "mock",
-    from: "noreply@hackers.pub",
-    reason: "maileroo-unconfigured",
-  });
+  for (const mode of ["development", "test", "build"]) {
+    const config = loadServerConfig({ ...withoutEmail, MODE: mode });
+    assertEquals(config.email, {
+      transport: "logtape",
+      from: "noreply@hackers.pub",
+    });
+  }
 });
 
 test("loadServerConfig keeps the sender when Maileroo is unconfigured", () => {
@@ -109,9 +109,8 @@ test("loadServerConfig keeps the sender when Maileroo is unconfigured", () => {
   });
 
   assertEquals(config.email, {
-    transport: "mock",
+    transport: "logtape",
     from: "admin@hackers.pub",
-    reason: "maileroo-unconfigured",
   });
 });
 

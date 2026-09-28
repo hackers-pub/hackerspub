@@ -33,7 +33,7 @@ interface DigestAccount {
   locales: string[] | null;
   notificationEmailDigestDaily: boolean;
   notificationEmailDigestWeekly: boolean;
-  emails: { email: string; verified: Date | null }[];
+  emails: { email: string; verified: Date | null; primary: boolean }[];
 }
 
 interface DigestItem {
@@ -189,9 +189,13 @@ export async function sendNotificationDigests(
     ) {
       continue;
     }
-    const recipients = account.emails
-      .filter((email) => email.verified != null)
-      .map((email) => email.email);
+    const verifiedEmails = account.emails.filter(
+      (email) => email.verified != null,
+    );
+    const primaryEmail = verifiedEmails.find((email) => email.primary);
+    const recipients = (
+      primaryEmail == null ? verifiedEmails : [primaryEmail]
+    ).map((email) => email.email);
     if (recipients.length < 1) continue;
 
     const snapshot = await getUnreadDigestSnapshot(options.db, account.id);

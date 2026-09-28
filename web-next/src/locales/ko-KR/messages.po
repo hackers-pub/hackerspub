@@ -137,13 +137,18 @@ msgstr "{0, plural, other {콘텐츠 #개 더 보기}}"
 msgid "{0, plural, one {Show # reply} other {Show # replies}}"
 msgstr "{0, plural, other {댓글 #개 보기}}"
 
+#. placeholder {0}: retrySeconds()
+#: src/components/AccountEmailSettings.tsx:367
+msgid "{0, plural, one {You can request another code in # second.} other {You can request another code in # seconds.}}"
+msgstr "{0, plural, other {#초 후에 새 코드를 요청할 수 있습니다.}}"
+
 #. placeholder {0}: account.inviteesCount.totalCount
 #: src/routes/(root)/[handle]/settings/invite.tsx:447
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {지금까지 총 #명을 초대하셨습니다.}}"
 
 #. placeholder {0}: organizationCount()
-#: src/routes/(root)/[handle]/settings/account.tsx:645
+#: src/routes/(root)/[handle]/settings/account.tsx:648
 msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 msgstr "{0, plural, other {아직 조직 #개에 속해 있습니다.}}"
 
@@ -233,7 +238,7 @@ msgid "{0} asked you to become the first admin of this organization account."
 msgstr "{0} 님이 이 조직 계정의 첫 관리자가 되어 달라고 요청했습니다."
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1341
+#: src/routes/(root)/[handle]/settings/account.tsx:1344
 msgid "{0} can now accept the organization invitation."
 msgstr "{0} 님이 이제 조직 초대를 수락할 수 있습니다."
 
@@ -278,7 +283,7 @@ msgstr "{0} 님은 이미 Hackers' Pub의 회원입니다."
 
 #. placeholder {0}: result.membership.member.username
 #. placeholder {1}: roleLabel( result.membership.role, )
-#: src/routes/(root)/[handle]/settings/account.tsx:1408
+#: src/routes/(root)/[handle]/settings/account.tsx:1411
 msgid "{0} is now {1}."
 msgstr "이제 {0} 님의 역할은 {1}입니다."
 
@@ -288,12 +293,12 @@ msgid "{0} mentioned you"
 msgstr "{0} 님이 언급했습니다"
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1462
+#: src/routes/(root)/[handle]/settings/account.tsx:1465
 msgid "{0} no longer belongs to this organization."
 msgstr "{0} 님은 더 이상 이 조직에 속하지 않습니다."
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1459
+#: src/routes/(root)/[handle]/settings/account.tsx:1462
 msgid "{0} no longer has a pending organization invitation."
 msgstr "{0} 님에게 대기 중인 조직 초대가 더 이상 없습니다."
 
@@ -353,7 +358,7 @@ msgid "{0} updated a post you shared"
 msgstr "{0} 님이 회원님이 공유한 콘텐츠를 업데이트했습니다"
 
 #. placeholder {0}: result.request.admin.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1116
+#: src/routes/(root)/[handle]/settings/account.tsx:1119
 msgid "{0} will receive a notification to review it."
 msgstr "{0} 님에게 검토 알림이 전송됩니다."
 
@@ -441,7 +446,7 @@ msgstr "{name}(원문)"
 msgid "{name} (translation)"
 msgstr "{name}(번역)"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1815
+#: src/routes/(root)/[handle]/settings/account.tsx:1818
 msgid "@old@example.com or actor URL"
 msgstr "@old@example.com 또는 액터 URL"
 
@@ -530,7 +535,7 @@ msgstr "신고자가 전달에 동의하여 원격 인스턴스로 전송됩니�
 msgid "A review rationale is required."
 msgstr "검토 사유를 입력해야 합니다."
 
-#: src/routes/(root)/sign/index.tsx:251
+#: src/routes/(root)/sign/index.tsx:261
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
@@ -542,7 +547,7 @@ msgstr "이 신고는 전달되므로 요약이 필요합니다."
 msgid "A user (profile) report."
 msgstr "사용자(프로필) 신고입니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:914
+#: src/routes/(root)/[handle]/settings/account.tsx:917
 msgid "Accept"
 msgstr "수락"
 
@@ -558,7 +563,7 @@ msgstr "전환 수락"
 msgid "Accept organization conversion"
 msgstr "조직 전환 수락"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:671
+#: src/routes/(root)/[handle]/settings/account.tsx:674
 msgid "Accept pending invitations from organization administrators."
 msgstr "조직 관리자가 보낸 대기 중인 초대를 수락합니다."
 
@@ -567,7 +572,7 @@ msgid "Accepted"
 msgstr "수락"
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:267
-#: src/routes/(root)/[handle]/settings/account.tsx:913
+#: src/routes/(root)/[handle]/settings/account.tsx:916
 msgid "Accepting…"
 msgstr "수락 중…"
 
@@ -581,7 +586,7 @@ msgstr "계정"
 msgid "Account converted"
 msgstr "계정이 전환되었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1932
+#: src/routes/(root)/[handle]/settings/account.tsx:1935
 msgid "Account deletion is unavailable"
 msgstr "계정 삭제를 사용할 수 없습니다"
 
@@ -593,7 +598,7 @@ msgstr "계정 핸들"
 msgid "Account kind"
 msgstr "계정 종류"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1639
+#: src/routes/(root)/[handle]/settings/account.tsx:1642
 msgid "Account migration"
 msgstr "계정 이전"
 
@@ -601,8 +606,8 @@ msgstr "계정 이전"
 msgid "Account permanently suspended"
 msgstr "계정 영구 정지됨"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:523
 #: src/routes/(root)/[handle]/settings/account.tsx:525
+#: src/routes/(root)/[handle]/settings/account.tsx:527
 msgid "Account settings"
 msgstr "계정 설정"
 
@@ -641,8 +646,8 @@ msgstr "활성화 시점:"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "현재 정지 또는 연합 차단 중인 액터입니다. 만료된 정지는 자동으로 제외됩니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1205
-#: src/routes/(root)/[handle]/settings/account.tsx:1835
+#: src/components/article-translations/ArticleTranslationManager.tsx:1209
+#: src/routes/(root)/[handle]/settings/account.tsx:1838
 #: src/routes/(root)/[handle]/settings/language.tsx:186
 #: src/routes/(root)/admin/news.tsx:642
 #: src/routes/(root)/admin/news.tsx:755
@@ -667,7 +672,7 @@ msgstr "선택지 추가"
 msgid "Add poll"
 msgstr "설문 추가"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1788
+#: src/routes/(root)/[handle]/settings/account.tsx:1791
 msgid "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 msgstr "예전 계정을 여기에 추가하세요. Hackers' Pub은 이 계정을 회원님의 다른 계정으로 공개합니다."
 
@@ -675,11 +680,11 @@ msgstr "예전 계정을 여기에 추가하세요. Hackers' Pub은 이 계정�
 msgid "Add to sidebar"
 msgstr "사이드바에 추가"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1183
+#: src/components/article-translations/ArticleTranslationManager.tsx:1187
 msgid "Add translation"
 msgstr "번역 추가"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1040
+#: src/components/article-translations/ArticleTranslationManager.tsx:1044
 msgid "Added line:"
 msgstr "추가된 줄:"
 
@@ -687,7 +692,7 @@ msgstr "추가된 줄:"
 msgid "Adding reaction…"
 msgstr "반응을 추가하는 중…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1835
+#: src/routes/(root)/[handle]/settings/account.tsx:1838
 #: src/routes/(root)/admin/news.tsx:642
 #: src/routes/(root)/admin/news.tsx:755
 msgid "Adding…"
@@ -709,11 +714,11 @@ msgstr "관리"
 msgid "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
 msgstr "수락하면 이 계정은 조직 계정이 되며, 직접 로그인할 수 없고 개인 계정으로 되돌릴 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1150
+#: src/routes/(root)/[handle]/settings/account.tsx:1153
 msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
 msgstr "전환 후에는 이 계정으로 직접 로그인할 수 없으며 개인 계정으로 되돌릴 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1794
+#: src/routes/(root)/[handle]/settings/account.tsx:1797
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "예전 서버가 이전 대상을 확인하면 Move 액티비티를 보내며, 호환되는 서버는 팔로워를 이곳으로 이전할 수 있습니다."
 
@@ -1002,7 +1007,7 @@ msgstr "이미지 첨부"
 msgid "Attempted servers"
 msgstr "전송을 시도한 서버"
 
-#: src/routes/(root)/sign/index.tsx:451
+#: src/routes/(root)/sign/index.tsx:463
 msgid "Authenticating…"
 msgstr "인증중…"
 
@@ -1019,7 +1024,7 @@ msgstr "자동 입력"
 msgid "Auto-fill alt text"
 msgstr "대체 텍스트 자동 입력"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1151
+#: src/components/article-translations/ArticleTranslationManager.tsx:1155
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
 msgstr "자동 번역"
@@ -1156,9 +1161,11 @@ msgstr "신고자 {0}"
 msgid "By {0}"
 msgstr "{0} 작성"
 
+#: src/components/AccountEmailSettings.tsx:451
+#: src/components/AccountEmailSettings.tsx:471
 #: src/components/AppealDialog.tsx:182
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:264
-#: src/components/article-translations/ArticleTranslationManager.tsx:1390
+#: src/components/article-translations/ArticleTranslationManager.tsx:1401
 #: src/components/note-composer/MediaEditor.tsx:94
 #: src/components/note-composer/MediaEditor.tsx:95
 #: src/components/NoteComposer.tsx:1268
@@ -1173,14 +1180,14 @@ msgstr "{0} 작성"
 #: src/components/RemoveFollowerButton.tsx:157
 #: src/components/ReportDialog.tsx:220
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
-#: src/routes/(root)/[handle]/settings/account.tsx:2048
+#: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1611
+#: src/routes/(root)/[handle]/settings/account.tsx:1614
 msgid "Cancel invitation"
 msgstr "초대 취소"
 
@@ -1188,7 +1195,7 @@ msgstr "초대 취소"
 msgid "Cancel request"
 msgstr "요청 취소"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1606
+#: src/routes/(root)/[handle]/settings/account.tsx:1609
 msgid "Canceling…"
 msgstr "취소 중…"
 
@@ -1196,17 +1203,17 @@ msgstr "취소 중…"
 msgid "Cannot change the language because translations already exist"
 msgstr "번역이 이미 존재하므로 언어를 변경할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1952
-#: src/routes/(root)/[handle]/settings/account.tsx:1965
+#: src/routes/(root)/[handle]/settings/account.tsx:1955
+#: src/routes/(root)/[handle]/settings/account.tsx:1968
 msgid "Cannot delete this account"
 msgstr "이 계정을 삭제할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1951
+#: src/routes/(root)/[handle]/settings/account.tsx:1954
 msgid "Cannot delete this organization"
 msgstr "이 조직을 삭제할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1709
-#: src/routes/(root)/[handle]/settings/account.tsx:1758
+#: src/routes/(root)/[handle]/settings/account.tsx:1712
+#: src/routes/(root)/[handle]/settings/account.tsx:1761
 msgid "Cannot update this account"
 msgstr "이 계정을 업데이트할 수 없습니다"
 
@@ -1227,11 +1234,11 @@ msgstr "모더레이터가 검열했습니다."
 msgid "Check again"
 msgstr "다시 확인"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1125
+#: src/routes/(root)/[handle]/settings/account.tsx:1128
 msgid "Check the admin username and confirmation, then try again."
 msgstr "관리자 아이디와 확인 입력을 확인한 다음 다시 시도하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:766
+#: src/routes/(root)/[handle]/settings/account.tsx:769
 msgid "Check the username and your remaining invitations, then try again."
 msgstr "아이디와 남은 초대장을 확인한 다음 다시 시도하세요."
 
@@ -1254,6 +1261,10 @@ msgstr "조치를 선택하세요."
 #: src/components/admin/AppealResolveForm.tsx:222
 msgid "Choose an outcome."
 msgstr "결과를 선택하세요."
+
+#: src/components/AccountEmailSettings.tsx:169
+msgid "Choose another primary email address before removing this one."
+msgstr "이 주소를 삭제하기 전에 다른 기본 이메일 주소를 지정하세요."
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:58
 msgid "Choose how this article appears and who can interact with it."
@@ -1368,11 +1379,11 @@ msgstr "타임라인에서 이 게시글을 인용할 수 있는 대상을 설�
 msgid "Conversion already accepted"
 msgstr "전환이 이미 수락되었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1115
+#: src/routes/(root)/[handle]/settings/account.tsx:1118
 msgid "Conversion request created"
 msgstr "전환 요청이 생성되었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:697
+#: src/routes/(root)/[handle]/settings/account.tsx:700
 msgid "Convert to organization"
 msgstr "조직으로 전환"
 
@@ -1389,8 +1400,8 @@ msgstr "복사"
 msgid "Could not accept conversion"
 msgstr "전환을 수락할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:861
-#: src/routes/(root)/[handle]/settings/account.tsx:873
+#: src/routes/(root)/[handle]/settings/account.tsx:864
+#: src/routes/(root)/[handle]/settings/account.tsx:876
 msgid "Could not accept invitation"
 msgstr "초대를 수락할 수 없습니다"
 
@@ -1399,8 +1410,8 @@ msgstr "초대를 수락할 수 없습니다"
 #~ msgid "Could not add migration alias"
 #~ msgstr "이전 별칭을 추가할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1716
-#: src/routes/(root)/[handle]/settings/account.tsx:1722
+#: src/routes/(root)/[handle]/settings/account.tsx:1719
+#: src/routes/(root)/[handle]/settings/account.tsx:1725
 msgid "Could not add previous account"
 msgstr "예전 계정을 추가할 수 없습니다"
 
@@ -1408,8 +1419,8 @@ msgstr "예전 계정을 추가할 수 없습니다"
 msgid "Could not copy the link to the clipboard."
 msgstr "클립보드에 링크를 복사할 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:762
-#: src/routes/(root)/[handle]/settings/account.tsx:774
+#: src/routes/(root)/[handle]/settings/account.tsx:765
+#: src/routes/(root)/[handle]/settings/account.tsx:777
 msgid "Could not create organization"
 msgstr "조직을 만들 수 없습니다"
 
@@ -1417,15 +1428,15 @@ msgstr "조직을 만들 수 없습니다"
 #~ msgid "Could not find a post at this URL"
 #~ msgstr "이 URL에서 콘텐츠를 찾을 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1347
-#: src/routes/(root)/[handle]/settings/account.tsx:1359
+#: src/routes/(root)/[handle]/settings/account.tsx:1350
+#: src/routes/(root)/[handle]/settings/account.tsx:1362
 msgid "Could not invite member"
 msgstr "구성원을 초대할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:953
-#: src/routes/(root)/[handle]/settings/account.tsx:965
-#: src/routes/(root)/[handle]/settings/account.tsx:1473
-#: src/routes/(root)/[handle]/settings/account.tsx:1489
+#: src/routes/(root)/[handle]/settings/account.tsx:956
+#: src/routes/(root)/[handle]/settings/account.tsx:968
+#: src/routes/(root)/[handle]/settings/account.tsx:1476
+#: src/routes/(root)/[handle]/settings/account.tsx:1492
 msgid "Could not leave organization"
 msgstr "조직에서 탈퇴할 수 없습니다"
 
@@ -1443,8 +1454,8 @@ msgstr "조치를 기록하지 못했습니다"
 msgid "Could not refresh this from its origin."
 msgstr "이 항목을 원본에서 새로 고치지 못했습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1474
-#: src/routes/(root)/[handle]/settings/account.tsx:1490
+#: src/routes/(root)/[handle]/settings/account.tsx:1477
+#: src/routes/(root)/[handle]/settings/account.tsx:1493
 msgid "Could not remove member"
 msgstr "구성원을 제거할 수 없습니다"
 
@@ -1453,13 +1464,13 @@ msgstr "구성원을 제거할 수 없습니다"
 #~ msgid "Could not remove migration alias"
 #~ msgstr "이전 별칭을 제거할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1764
-#: src/routes/(root)/[handle]/settings/account.tsx:1772
+#: src/routes/(root)/[handle]/settings/account.tsx:1767
+#: src/routes/(root)/[handle]/settings/account.tsx:1775
 msgid "Could not remove previous account"
 msgstr "예전 계정을 제거할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1121
-#: src/routes/(root)/[handle]/settings/account.tsx:1133
+#: src/routes/(root)/[handle]/settings/account.tsx:1124
+#: src/routes/(root)/[handle]/settings/account.tsx:1136
 msgid "Could not request conversion"
 msgstr "전환을 요청할 수 없습니다"
 
@@ -1482,8 +1493,8 @@ msgstr "인용을 취소하지 못했습니다"
 msgid "Could not submit the appeal"
 msgstr "이의 제기를 제출하지 못했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1416
-#: src/routes/(root)/[handle]/settings/account.tsx:1428
+#: src/routes/(root)/[handle]/settings/account.tsx:1419
+#: src/routes/(root)/[handle]/settings/account.tsx:1431
 msgid "Could not update role"
 msgstr "역할을 변경할 수 없습니다"
 
@@ -1495,7 +1506,7 @@ msgstr "로컬에 저장된 이미지를 확인할 수 없습니다. 게시할 �
 msgid "Could not vote on this poll"
 msgstr "이 설문에 투표할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:657
+#: src/routes/(root)/[handle]/settings/account.tsx:660
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
 msgstr "아이디 네임스페이스를 공유하고 초대장 하나를 사용하는 조직 계정을 만듭니다."
 
@@ -1515,8 +1526,8 @@ msgstr "초대 링크 생성"
 msgid "Create note"
 msgstr "단문 작성"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:655
-#: src/routes/(root)/[handle]/settings/account.tsx:825
+#: src/routes/(root)/[handle]/settings/account.tsx:658
+#: src/routes/(root)/[handle]/settings/account.tsx:828
 msgid "Create organization"
 msgstr "조직 만들기"
 
@@ -1542,7 +1553,7 @@ msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
 #: src/components/NoteComposer.tsx:1301
-#: src/routes/(root)/[handle]/settings/account.tsx:825
+#: src/routes/(root)/[handle]/settings/account.tsx:828
 #: src/routes/(root)/[handle]/settings/invite.tsx:831
 msgid "Creating…"
 msgstr "생성 중…"
@@ -1555,7 +1566,7 @@ msgstr "자르기"
 msgid "Crop your new avatar"
 msgstr "새 프로필 사진 자르기"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1175
+#: src/routes/(root)/[handle]/settings/account.tsx:1178
 msgid "Current username"
 msgstr "현재 아이디"
 
@@ -1612,18 +1623,18 @@ msgstr "기본 공유 공개 범위"
 msgid "Delete"
 msgstr "삭제"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:540
-#: src/routes/(root)/[handle]/settings/account.tsx:2028
-#: src/routes/(root)/[handle]/settings/account.tsx:2061
+#: src/routes/(root)/[handle]/settings/account.tsx:543
+#: src/routes/(root)/[handle]/settings/account.tsx:2031
+#: src/routes/(root)/[handle]/settings/account.tsx:2064
 msgid "Delete account"
 msgstr "계정 삭제"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2038
+#: src/routes/(root)/[handle]/settings/account.tsx:2041
 msgid "Delete account permanently?"
 msgstr "계정을 영구적으로 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/components/article-translations/ArticleTranslationManager.tsx:1354
+#: src/components/article-translations/ArticleTranslationManager.tsx:1358
 #: src/components/NoteComposer.tsx:1331
 msgid "Delete draft"
 msgstr "초고 삭제"
@@ -1636,13 +1647,13 @@ msgstr "로컬 초고 삭제"
 msgid "Delete local draft?"
 msgstr "로컬 초고를 삭제하시겠습니까?"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:564
-#: src/routes/(root)/[handle]/settings/account.tsx:2028
-#: src/routes/(root)/[handle]/settings/account.tsx:2060
+#: src/routes/(root)/[handle]/settings/account.tsx:567
+#: src/routes/(root)/[handle]/settings/account.tsx:2031
+#: src/routes/(root)/[handle]/settings/account.tsx:2063
 msgid "Delete organization"
 msgstr "조직 삭제"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2037
+#: src/routes/(root)/[handle]/settings/account.tsx:2040
 msgid "Delete organization permanently?"
 msgstr "조직을 영구적으로 삭제할까요?"
 
@@ -1656,7 +1667,7 @@ msgid "Delete post?"
 msgstr "콘텐츠를 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:250
-#: src/routes/(root)/[handle]/settings/account.tsx:2058
+#: src/routes/(root)/[handle]/settings/account.tsx:2061
 #: src/routes/(root)/[handle]/settings/invite.tsx:729
 #: src/routes/(root)/admin/media.tsx:185
 msgid "Deleting…"
@@ -1687,7 +1698,7 @@ msgstr "기각됨"
 msgid "Deny (uphold decision)"
 msgstr "기각 (원결정 유지)"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:816
+#: src/routes/(root)/[handle]/settings/account.tsx:819
 msgid "Description"
 msgstr "설명"
 
@@ -1742,7 +1753,7 @@ msgstr "닫기"
 msgid "Dismissed"
 msgstr "기각됨"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:807
+#: src/routes/(root)/[handle]/settings/account.tsx:810
 #: src/routes/(root)/[handle]/settings/index.tsx:478
 #: src/routes/(root)/sign/up/[token].tsx:382
 msgid "Display name"
@@ -1752,7 +1763,7 @@ msgstr "이름"
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "이 게시글의 공동 저자로 기록된 멤버를 조직 옆에 표시합니다. 기본적으로 발행한 사람이 아니라 초고를 만든 사람이 공동 저자로 기록됩니다."
 
-#: src/routes/(root)/sign/index.tsx:457
+#: src/routes/(root)/sign/index.tsx:469
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
@@ -1824,7 +1835,7 @@ msgstr "단문 수정"
 msgid "Edit original"
 msgstr "원문 수정"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1238
+#: src/components/article-translations/ArticleTranslationManager.tsx:1242
 #: src/components/PostActionMenu.tsx:404
 msgid "Edit this translation"
 msgstr "이 번역 수정"
@@ -1835,11 +1846,23 @@ msgstr "이 번역 수정"
 msgid "Email address"
 msgstr "이메일 주소"
 
+#: src/components/AccountEmailSettings.tsx:277
+msgid "Email address removed"
+msgstr "이메일 주소 삭제됨"
+
+#: src/components/AccountEmailSettings.tsx:233
+msgid "Email address verified"
+msgstr "이메일 주소 인증됨"
+
+#: src/components/AccountEmailSettings.tsx:289
+msgid "Email addresses"
+msgstr "이메일 주소"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:444
 msgid "Email digests"
 msgstr "이메일 알림 요약"
 
-#: src/routes/(root)/sign/index.tsx:412
+#: src/routes/(root)/sign/index.tsx:424
 msgid "Email or username"
 msgstr "이메일 또는 아이디"
 
@@ -1861,23 +1884,32 @@ msgstr "종료됨"
 msgid "Ends"
 msgstr "종료까지"
 
+#: src/components/AccountEmailSettings.tsx:151
+msgid "Enter a valid email address."
+msgstr "유효한 이메일 주소를 입력하세요."
+
 #: src/routes/(root)/[handle]/settings/account.tsx:284
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "유효한 예전 계정 핸들 또는 액터 URL을 입력해 주세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1822
+#: src/routes/(root)/[handle]/settings/account.tsx:1825
 msgid "Enter the account you are moving from, for example @old@example.com."
 msgstr "이전해 오려는 계정을 입력하세요. 예: @old@example.com."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1714
+#: src/routes/(root)/[handle]/settings/account.tsx:1717
 msgid "Enter the account you are moving from, such as @old@example.com or its actor URL."
 msgstr "이전해 오려는 계정을 입력하세요. @old@example.com 또는 액터 URL을 사용할 수 있습니다."
+
+#. placeholder {0}: challenge().email
+#: src/components/AccountEmailSettings.tsx:419
+msgid "Enter the verification code sent to {0} in this tab."
+msgstr "{0}에 보낸 인증 코드를 이 탭에서 입력하세요."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:295
 msgid "Enter your email address below to get started."
 msgstr "아래에 이메일 주소를 입력하여 시작하세요."
 
-#: src/routes/(root)/sign/index.tsx:261
+#: src/routes/(root)/sign/index.tsx:273
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
@@ -2038,9 +2070,9 @@ msgstr "복사 실패"
 msgid "Failed to create invitation link"
 msgstr "초대 링크 생성에 실패했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1908
-#: src/routes/(root)/[handle]/settings/account.tsx:1972
-#: src/routes/(root)/[handle]/settings/account.tsx:1982
+#: src/routes/(root)/[handle]/settings/account.tsx:1911
+#: src/routes/(root)/[handle]/settings/account.tsx:1975
+#: src/routes/(root)/[handle]/settings/account.tsx:1985
 msgid "Failed to delete account"
 msgstr "계정 삭제 실패"
 
@@ -2058,8 +2090,8 @@ msgstr "연결되지 않은 미디어 삭제에 실패했습니다."
 msgid "Failed to delete post"
 msgstr "콘텐츠 삭제에 실패했습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:857
-#: src/components/article-translations/ArticleTranslationManager.tsx:863
+#: src/components/article-translations/ArticleTranslationManager.tsx:861
+#: src/components/article-translations/ArticleTranslationManager.tsx:867
 msgid "Failed to delete the translation draft."
 msgstr "번역 초고를 삭제하지 못했습니다."
 
@@ -2202,8 +2234,8 @@ msgstr "사용자를 뮤트하지 못했습니다"
 msgid "Failed to pin post"
 msgstr "콘텐츠를 고정하지 못했습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:890
-#: src/components/article-translations/ArticleTranslationManager.tsx:897
+#: src/components/article-translations/ArticleTranslationManager.tsx:894
+#: src/components/article-translations/ArticleTranslationManager.tsx:901
 msgid "Failed to publish the translation."
 msgstr "번역을 공개하지 못했습니다."
 
@@ -2222,7 +2254,7 @@ msgstr "반응 실패"
 msgid "Failed to recompute news scores."
 msgstr "뉴스 점수를 다시 계산하지 못했습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:716
+#: src/components/article-translations/ArticleTranslationManager.tsx:720
 msgid "Failed to record the review."
 msgstr "검토 내용을 기록하지 못했습니다."
 
@@ -2296,8 +2328,8 @@ msgstr "설정 저장 실패"
 msgid "Failed to save the draft."
 msgstr "초고를 저장하지 못했습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:766
-#: src/components/article-translations/ArticleTranslationManager.tsx:833
+#: src/components/article-translations/ArticleTranslationManager.tsx:770
+#: src/components/article-translations/ArticleTranslationManager.tsx:837
 msgid "Failed to save the translation."
 msgstr "번역을 저장하지 못했습니다."
 
@@ -2394,8 +2426,8 @@ msgstr "이미지 업로드에 실패했습니다"
 msgid "Failed to vote"
 msgstr "투표에 실패했습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:553
-#: src/components/article-translations/ArticleTranslationManager.tsx:562
+#: src/components/article-translations/ArticleTranslationManager.tsx:557
+#: src/components/article-translations/ArticleTranslationManager.tsx:566
 msgid "Failed to withdraw the translation."
 msgstr "번역을 철회하지 못했습니다."
 
@@ -2470,6 +2502,11 @@ msgstr "팔로잉"
 msgid "Following you"
 msgstr "당신을 팔로합니다"
 
+#: src/components/AccountEmailSettings.tsx:167
+#: src/components/AccountEmailSettings.tsx:346
+msgid "For security, adding or removing an email address or changing your primary address requires a sign-in within the last 10 minutes. Sign in again with a registered email address or passkey."
+msgstr "보안을 위해 이메일을 추가·삭제하거나 기본 이메일을 변경하려면 최근 10분 이내에 로그인한 상태여야 합니다. 마지막 로그인 후 10분이 지났다면 등록된 이메일 주소나 패스키로 다시 로그인하세요."
+
 #: src/components/ui/markdown-editor.tsx:538
 msgid "Formatting"
 msgstr "서식"
@@ -2478,7 +2515,7 @@ msgstr "서식"
 msgid "Forwarded to the remote instance"
 msgstr "원격 인스턴스로 전달됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:580
+#: src/components/article-translations/ArticleTranslationManager.tsx:584
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:972
 msgid "Freshness unverified"
 msgstr "최신 여부 미확인"
@@ -2556,11 +2593,11 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 #~ msgid "Hackers' Pub no longer publishes that account as an alias."
 #~ msgstr "Hackers' Pub은 더 이상 그 계정을 별칭으로 공개하지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1745
+#: src/routes/(root)/[handle]/settings/account.tsx:1748
 msgid "Hackers' Pub no longer publishes that account as another account that belongs to you."
 msgstr "Hackers' Pub은 더 이상 그 계정을 회원님의 다른 계정으로 공개하지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1696
+#: src/routes/(root)/[handle]/settings/account.tsx:1699
 msgid "Hackers' Pub now publishes the old account as another account that belongs to you."
 msgstr "Hackers' Pub은 이제 예전 계정을 회원님의 다른 계정으로 공개합니다."
 
@@ -2713,7 +2750,7 @@ msgstr "초대 족보에서 숨기기"
 msgid "Hide replies"
 msgstr "댓글 숨기기"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
 msgid "Hide source changes"
 msgstr "원문 변경 사항 숨기기"
 
@@ -2725,7 +2762,7 @@ msgstr "원문 변경 사항 숨기기"
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1209
+#: src/components/article-translations/ArticleTranslationManager.tsx:1213
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "이미 해당 언어의 비공개 초고가 있으면 중복으로 만들지 않고 기존 초고를 엽니다."
 
@@ -2805,11 +2842,11 @@ msgstr "잘못된 입력: {0}"
 msgid "Invalid input: {inputPath}"
 msgstr "잘못된 입력: {inputPath}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:854
+#: src/routes/(root)/[handle]/settings/account.tsx:857
 msgid "Invitation accepted"
 msgstr "초대를 수락했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1454
+#: src/routes/(root)/[handle]/settings/account.tsx:1457
 msgid "Invitation canceled"
 msgstr "초대를 취소했습니다"
 
@@ -2834,7 +2871,7 @@ msgstr "초대 링크가 삭제되었습니다"
 msgid "Invitation links"
 msgstr "초대 링크"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1340
+#: src/routes/(root)/[handle]/settings/account.tsx:1343
 #: src/routes/(root)/[handle]/settings/invite.tsx:273
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
@@ -2865,15 +2902,15 @@ msgstr "초대"
 msgid "Invite a friend"
 msgstr "친구 초대하기"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1524
+#: src/routes/(root)/[handle]/settings/account.tsx:1527
 msgid "Invite a personal account by its local username."
 msgstr "개인 계정의 로컬 아이디로 초대합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1542
+#: src/routes/(root)/[handle]/settings/account.tsx:1545
 msgid "Invite member"
 msgstr "구성원 초대"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1507
+#: src/routes/(root)/[handle]/settings/account.tsx:1510
 msgid "Invite members and choose who can manage this organization."
 msgstr "구성원을 초대하고 이 조직을 관리할 사람을 선택합니다."
 
@@ -2890,7 +2927,7 @@ msgstr "초대한 사람"
 msgid "Invited by {0}"
 msgstr "{0} 님이 초대했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1542
+#: src/routes/(root)/[handle]/settings/account.tsx:1545
 msgid "Inviting…"
 msgstr "초대 중…"
 
@@ -2915,6 +2952,10 @@ msgstr "{0}에 가입"
 #: src/routes/(root)/[handle]/settings/invite.tsx:993
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
+
+#: src/components/AccountEmailSettings.tsx:456
+msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
+msgstr "인증된 이메일 주소나 패스키 중 하나 이상을 사용할 수 있도록 유지하세요. 모든 인증 수단을 잃으면 원칙적으로 계정을 복구할 수 없습니다."
 
 #: src/components/NoteComposer.tsx:1326
 msgid "Keep draft"
@@ -2951,7 +2992,7 @@ msgstr "언어 설정"
 msgid "Language shown when the view was counted."
 msgstr "조회가 집계될 때 표시된 언어입니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1071
+#: src/components/article-translations/ArticleTranslationManager.tsx:1075
 #: src/components/SettingsTabs.tsx:65
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:475
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1020
@@ -2989,26 +3030,26 @@ msgstr "마지막 업데이트"
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1007
-#: src/routes/(root)/[handle]/settings/account.tsx:1613
+#: src/routes/(root)/[handle]/settings/account.tsx:1010
+#: src/routes/(root)/[handle]/settings/account.tsx:1616
 msgid "Leave"
 msgstr "탈퇴"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:710
+#: src/routes/(root)/[handle]/settings/account.tsx:713
 msgid "Leave every organization listed under \"Your organizations\" above before you can convert this account."
 msgstr "이 계정을 전환하려면 먼저 위 「내 조직」에 표시된 모든 조직에서 탈퇴해야 합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:685
+#: src/routes/(root)/[handle]/settings/account.tsx:688
 msgid "Leave organizations you no longer work with. The last member or last admin cannot leave."
 msgstr "더 이상 함께하지 않는 조직에서 탈퇴합니다. 마지막 구성원이나 마지막 관리자는 탈퇴할 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1006
-#: src/routes/(root)/[handle]/settings/account.tsx:1608
+#: src/routes/(root)/[handle]/settings/account.tsx:1009
+#: src/routes/(root)/[handle]/settings/account.tsx:1611
 msgid "Leaving…"
 msgstr "탈퇴 중…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:946
-#: src/routes/(root)/[handle]/settings/account.tsx:1456
+#: src/routes/(root)/[handle]/settings/account.tsx:949
+#: src/routes/(root)/[handle]/settings/account.tsx:1459
 msgid "Left organization"
 msgstr "조직에서 탈퇴했습니다"
 
@@ -3140,7 +3181,7 @@ msgstr "뉴스 더 불러오기"
 msgid "Loading draft…"
 msgstr "초고 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1551
+#: src/routes/(root)/[handle]/settings/account.tsx:1554
 msgid "Loading members…"
 msgstr "구성원 불러오는 중…"
 
@@ -3271,6 +3312,10 @@ msgstr "사용자 조회"
 msgid "Looking up user…"
 msgstr "사용자 정보를 조회 중입니다…"
 
+#: src/components/AccountEmailSettings.tsx:314
+msgid "Make primary"
+msgstr "기본 주소로 지정"
+
 #: src/routes/(root)/admin/relay.tsx:229
 msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 msgstr "인스턴스 액터가 ActivityPub 릴레이를 팔로하도록 합니다. 승인되면 릴레이는 연합우주 곳곳의 공개 콘텐츠를 이곳으로 전달하고, 이 인스턴스에 새로 공개된 게시글을 받습니다. 릴레이 액터의 URL(예: https://relay.example/actor)을 입력하세요."
@@ -3300,22 +3345,22 @@ msgstr "Markdown 사용 가능"
 msgid "Media"
 msgstr "미디어"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1517
+#: src/routes/(root)/[handle]/settings/account.tsx:1520
 msgid "member"
 msgstr "member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:837
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1209
-#: src/routes/(root)/[handle]/settings/account.tsx:1244
+#: src/routes/(root)/[handle]/settings/account.tsx:840
+#: src/routes/(root)/[handle]/settings/account.tsx:933
+#: src/routes/(root)/[handle]/settings/account.tsx:1212
+#: src/routes/(root)/[handle]/settings/account.tsx:1247
 msgid "Member"
 msgstr "구성원"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1457
+#: src/routes/(root)/[handle]/settings/account.tsx:1460
 msgid "Member removed"
 msgstr "구성원을 제거했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1312
+#: src/routes/(root)/[handle]/settings/account.tsx:1315
 msgid "Members could not be loaded."
 msgstr "구성원을 불러올 수 없습니다."
 
@@ -3444,7 +3489,7 @@ msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Native name"
 msgstr "현지명"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:578
+#: src/components/article-translations/ArticleTranslationManager.tsx:582
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:971
 msgid "Needs review"
 msgstr "검토 필요"
@@ -3470,7 +3515,7 @@ msgstr "사용된 적 없음"
 msgid "New"
 msgstr "신규"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1158
+#: src/routes/(root)/[handle]/settings/account.tsx:1161
 msgid "New admin username"
 msgstr "새 관리자 아이디"
 
@@ -3478,6 +3523,10 @@ msgstr "새 관리자 아이디"
 #: src/routes/(root)/[handle]/drafts/index.tsx:307
 msgid "New article"
 msgstr "새 게시글"
+
+#: src/components/AccountEmailSettings.tsx:389
+msgid "New email address"
+msgstr "새 이메일 주소"
 
 #: src/components/WebPushNotificationSettings.tsx:233
 msgid "New notifications can now appear even when Hackers' Pub is not open."
@@ -3536,7 +3585,7 @@ msgstr "아직 처리된 분석 신고가 없습니다."
 msgid "No appeals match these filters."
 msgstr "조건에 맞는 이의 제기가 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:940
+#: src/components/article-translations/ArticleTranslationManager.tsx:944
 msgid "No baseline was recorded for this translation, so its freshness cannot be verified."
 msgstr "이 번역에는 기준 원문이 기록되어 있지 않아 최신 여부를 확인할 수 없습니다."
 
@@ -3590,7 +3639,7 @@ msgstr "남은 초대장이 없습니다"
 msgid "No matching object found"
 msgstr "일치하는 객체를 찾을 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1561
+#: src/routes/(root)/[handle]/settings/account.tsx:1564
 msgid "No members found."
 msgstr "구성원을 찾을 수 없습니다."
 
@@ -3624,7 +3673,7 @@ msgstr "아직 아무도 공유하지 않았습니다."
 msgid "No penalized links."
 msgstr "패널티가 적용된 링크가 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:888
+#: src/routes/(root)/[handle]/settings/account.tsx:891
 msgid "No pending organization invitations."
 msgstr "대기 중인 조직 초대가 없습니다."
 
@@ -3644,7 +3693,7 @@ msgstr "아직 우대 공유자가 없습니다."
 msgid "No previews"
 msgstr "미리보기 없음"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1844
+#: src/routes/(root)/[handle]/settings/account.tsx:1847
 msgid "No previous accounts added yet."
 msgstr "아직 예전 계정이 추가되지 않았습니다."
 
@@ -3665,16 +3714,16 @@ msgstr "불러온 반응자가 없습니다."
 msgid "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 msgstr "아직 공유된 링크가 없습니다. 연합우주에서 링크가 퍼지기 시작하면 여기에 표시됩니다."
 
-#: src/routes/(root)/sign/index.tsx:256
+#: src/routes/(root)/sign/index.tsx:266
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:967
+#: src/components/article-translations/ArticleTranslationManager.tsx:971
 msgid "No translation changes needed"
 msgstr "번역 수정 불필요"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1092
-#: src/components/article-translations/ArticleTranslationManager.tsx:1152
+#: src/components/article-translations/ArticleTranslationManager.tsx:1096
+#: src/components/article-translations/ArticleTranslationManager.tsx:1156
 msgid "No translator credit"
 msgstr "번역자 표시 없음"
 
@@ -3736,7 +3785,7 @@ msgstr "찾을 수 없음"
 #~ msgid "Not found."
 #~ msgstr "찾을 수 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1107
+#: src/components/article-translations/ArticleTranslationManager.tsx:1111
 msgid "Not published"
 msgstr "미공개"
 
@@ -3804,7 +3853,7 @@ msgstr "브라우저 설정에서 알림이 차단되어 있습니다."
 msgid "Number of invitations"
 msgstr "초대 횟수"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1809
+#: src/routes/(root)/[handle]/settings/account.tsx:1812
 msgid "Old account"
 msgstr "예전 계정"
 
@@ -3812,11 +3861,11 @@ msgstr "예전 계정"
 msgid "Oldest signups"
 msgstr "오래된 가입순"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1791
+#: src/routes/(root)/[handle]/settings/account.tsx:1794
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "예전 서버에서 계정 이전 설정을 열고 이 Hackers' Pub 계정을 새 계정으로 지정하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:990
+#: src/components/article-translations/ArticleTranslationManager.tsx:994
 msgid "One of these versions has no recorded baseline, so its changes cannot be shown."
 msgstr "이 버전 중 하나에는 기준 원문이 기록되어 있지 않아 변경 사항을 표시할 수 없습니다."
 
@@ -3829,7 +3878,7 @@ msgstr "조회 수가 충분한 호스트 이름만 표시합니다. 경로와 �
 msgid "Only moderators can refresh remote objects."
 msgstr "모더레이터만 원격 객체를 새로 고칠 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1954
+#: src/routes/(root)/[handle]/settings/account.tsx:1957
 msgid "Only organization admins can delete this organization."
 msgstr "조직 관리자만 이 조직을 삭제할 수 있습니다."
 
@@ -3869,11 +3918,11 @@ msgstr "선택지 {0}"
 msgid "Options"
 msgstr "선택지"
 
-#: src/routes/(root)/sign/index.tsx:438
+#: src/routes/(root)/sign/index.tsx:450
 msgid "Or"
 msgstr "또는"
 
-#: src/routes/(root)/sign/index.tsx:468
+#: src/routes/(root)/sign/index.tsx:480
 msgid "Or enter the code from the email"
 msgstr "또는 이메일의 코드를 입력하세요"
 
@@ -3881,34 +3930,34 @@ msgstr "또는 이메일의 코드를 입력하세요"
 msgid "Organization accounts"
 msgstr "조직 계정"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:837
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1209
-#: src/routes/(root)/[handle]/settings/account.tsx:1244
+#: src/routes/(root)/[handle]/settings/account.tsx:840
+#: src/routes/(root)/[handle]/settings/account.tsx:933
+#: src/routes/(root)/[handle]/settings/account.tsx:1212
+#: src/routes/(root)/[handle]/settings/account.tsx:1247
 msgid "Organization admin"
 msgstr "조직 관리자"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:755
+#: src/routes/(root)/[handle]/settings/account.tsx:758
 msgid "Organization created"
 msgstr "조직을 만들었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1917
+#: src/routes/(root)/[handle]/settings/account.tsx:1920
 msgid "Organization deleted"
 msgstr "조직이 삭제되었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1931
+#: src/routes/(root)/[handle]/settings/account.tsx:1934
 msgid "Organization deletion is unavailable"
 msgstr "조직 삭제를 사용할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:669
+#: src/routes/(root)/[handle]/settings/account.tsx:672
 msgid "Organization invitations"
 msgstr "조직 초대"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1505
+#: src/routes/(root)/[handle]/settings/account.tsx:1508
 msgid "Organization members"
 msgstr "조직 구성원"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1303
+#: src/components/article-translations/ArticleTranslationManager.tsx:1307
 #: src/components/ArticleTranslationCredit.tsx:28
 msgid "Original"
 msgstr "원문"
@@ -3945,7 +3994,7 @@ msgstr "내 변경 사항으로 덮어쓰기"
 msgid "Page not found"
 msgstr "페이지를 찾을 수 없습니다"
 
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:394
 msgid "Passkey authentication failed"
 msgstr "패스키 인증 실패"
 
@@ -3976,7 +4025,7 @@ msgstr "패널티를 해제했습니다."
 
 #: src/components/admin/ModerationCaseList.tsx:99
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:653
-#: src/routes/(root)/[handle]/settings/account.tsx:1577
+#: src/routes/(root)/[handle]/settings/account.tsx:1580
 #: src/routes/(root)/admin/moderation/appeals.tsx:158
 #: src/routes/(root)/admin/moderation/appeals.tsx:223
 #: src/routes/(root)/admin/moderation/index.tsx:125
@@ -3996,11 +4045,11 @@ msgstr "검토 대기 중"
 msgid "People you might want to follow"
 msgstr "팔로 추천"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:566
+#: src/routes/(root)/[handle]/settings/account.tsx:569
 msgid "Permanently delete this organization account and its content."
 msgstr "이 조직 계정과 해당 콘텐츠를 영구적으로 삭제합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:542
+#: src/routes/(root)/[handle]/settings/account.tsx:545
 msgid "Permanently delete your account and sign out of this session."
 msgstr "계정을 영구적으로 삭제하고 이 세션에서 로그아웃합니다."
 
@@ -4059,8 +4108,8 @@ msgstr "오류를 수정하고 다시 시도해주세요."
 msgid "Please enter your Fediverse handle."
 msgstr "연합우주 핸들을 입력해 주세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1703
-#: src/routes/(root)/[handle]/settings/account.tsx:1752
+#: src/routes/(root)/[handle]/settings/account.tsx:1706
+#: src/routes/(root)/[handle]/settings/account.tsx:1755
 msgid "Please sign in again before changing account migration settings."
 msgstr "계정 이전 설정을 변경하기 전에 다시 로그인해 주세요."
 
@@ -4069,7 +4118,7 @@ msgstr "계정 이전 설정을 변경하기 전에 다시 로그인해 주세�
 #~ msgid "Please sign in again before changing migration aliases."
 #~ msgstr "이전 별칭을 변경하기 전에 다시 로그인해 주세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1943
+#: src/routes/(root)/[handle]/settings/account.tsx:1946
 msgid "Please sign in again before deleting your account."
 msgstr "계정을 삭제하기 전에 다시 로그인해 주세요."
 
@@ -4188,12 +4237,12 @@ msgstr "우대 공유자를 제거했습니다."
 msgid "Preferred sharers"
 msgstr "우대 공유자"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1641
+#: src/routes/(root)/[handle]/settings/account.tsx:1644
 msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "이 계정을 Mastodon 방식 이전의 대상 계정으로 준비합니다."
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:74
-#: src/components/article-translations/ArticleTranslationManager.tsx:1313
+#: src/components/article-translations/ArticleTranslationManager.tsx:1317
 #: src/components/MarkdownEditor.tsx:162
 msgid "Preview"
 msgstr "미리보기"
@@ -4202,17 +4251,25 @@ msgstr "미리보기"
 #~ msgid "Previous account"
 #~ msgstr "예전 계정"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1695
+#: src/routes/(root)/[handle]/settings/account.tsx:1698
 msgid "Previous account added"
 msgstr "예전 계정이 추가되었습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1744
+#: src/routes/(root)/[handle]/settings/account.tsx:1747
 msgid "Previous account removed"
 msgstr "예전 계정이 제거되었습니다"
 
 #: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "이전 이미지"
+
+#: src/components/AccountEmailSettings.tsx:300
+msgid "Primary"
+msgstr "기본"
+
+#: src/components/AccountEmailSettings.tsx:254
+msgid "Primary email address changed"
+msgstr "기본 이메일 주소 변경됨"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:334
 msgid "Prior violations"
@@ -4274,7 +4331,7 @@ msgstr "공개"
 msgid "Publish article"
 msgstr "게시글 공개"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1345
+#: src/components/article-translations/ArticleTranslationManager.tsx:1349
 msgid "Publish changes"
 msgstr "변경 사항 공개"
 
@@ -4290,7 +4347,7 @@ msgstr "공개 설정"
 msgid "Publish this as a note?"
 msgstr "이 글을 단문으로 공개할까요?"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1344
+#: src/components/article-translations/ArticleTranslationManager.tsx:1348
 msgid "Publish translation"
 msgstr "번역 공개"
 
@@ -4303,7 +4360,7 @@ msgctxt "publication state"
 msgid "Published"
 msgstr "공개됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1106
+#: src/components/article-translations/ArticleTranslationManager.tsx:1110
 msgid "Published; unpublished changes"
 msgstr "공개됨, 미공개 변경 사항 있음"
 
@@ -4408,7 +4465,7 @@ msgstr "게시글 전체 읽기"
 msgid "Read the original"
 msgstr "원문 읽기"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1385
+#: src/components/article-translations/ArticleTranslationManager.tsx:1396
 msgid "Readers here and on other servers will no longer see this language. Any private draft of it is kept, so you can publish it again later."
 msgstr "이곳과 다른 인스턴스의 독자는 더 이상 이 언어를 볼 수 없습니다. 이 언어의 비공개 초고는 남아 있으므로 나중에 다시 공개할 수 있습니다."
 
@@ -4554,20 +4611,24 @@ msgstr "원격 팔로"
 msgid "Remote followers at publication"
 msgstr "발행 당시 원격 팔로워"
 
+#: src/components/AccountEmailSettings.tsx:337
+#: src/components/AccountEmailSettings.tsx:478
 #: src/components/LanguageList.tsx:223
-#: src/routes/(root)/[handle]/settings/account.tsx:1614
-#: src/routes/(root)/[handle]/settings/account.tsx:1865
+#: src/routes/(root)/[handle]/settings/account.tsx:1617
+#: src/routes/(root)/[handle]/settings/account.tsx:1868
 #: src/routes/(root)/admin/news.tsx:672
 #: src/routes/(root)/admin/news.tsx:812
 msgid "Remove"
 msgstr "제거"
 
+#. placeholder {0}: address.email
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/AccountEmailSettings.tsx:336
 #: src/components/EmojiReactionPopover.tsx:572
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1861
+#: src/routes/(root)/[handle]/settings/account.tsx:1864
 msgid "Remove {alias}"
 msgstr "{alias} 제거"
 
@@ -4575,6 +4636,10 @@ msgstr "{alias} 제거"
 #: src/components/BookmarkButton.tsx:151
 msgid "Remove bookmark"
 msgstr "북마크 해제"
+
+#: src/components/AccountEmailSettings.tsx:465
+msgid "Remove email address?"
+msgstr "이메일 주소를 삭제하시겠습니까?"
 
 #: src/components/ProfileActionMenu.tsx:569
 #: src/components/RemoveFollowerButton.tsx:149
@@ -4614,7 +4679,7 @@ msgstr "설문 삭제"
 msgid "Remove quote"
 msgstr "인용 삭제"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1039
+#: src/components/article-translations/ArticleTranslationManager.tsx:1043
 msgid "Removed line:"
 msgstr "삭제된 줄:"
 
@@ -4626,8 +4691,9 @@ msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시
 msgid "Removing reaction…"
 msgstr "반응을 제거하는 중…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1609
-#: src/routes/(root)/[handle]/settings/account.tsx:1865
+#: src/components/AccountEmailSettings.tsx:478
+#: src/routes/(root)/[handle]/settings/account.tsx:1612
+#: src/routes/(root)/[handle]/settings/account.tsx:1868
 msgid "Removing…"
 msgstr "제거 중…"
 
@@ -4717,11 +4783,11 @@ msgstr "{0}님의 콘텐츠 신고함"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "회원님이 제출한 신고를 최신순으로 보여 줍니다. 신고 대상, 작성한 사유, 현재 상태를 확인할 수 있습니다. 자세한 처리 결과는 표시되지 않으며, 신고당한 사용자는 누가 신고했는지 절대 알 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1190
+#: src/routes/(root)/[handle]/settings/account.tsx:1193
 msgid "Request conversion"
 msgstr "전환 요청"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1190
+#: src/routes/(root)/[handle]/settings/account.tsx:1193
 msgid "Requesting…"
 msgstr "요청 중…"
 
@@ -4764,7 +4830,7 @@ msgstr "검토 사유 (이의 제기자에게 표시됨)"
 msgid "Review request"
 msgstr "요청 검토"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:581
+#: src/components/article-translations/ArticleTranslationManager.tsx:585
 msgid "Reviewed"
 msgstr "검토됨"
 
@@ -4791,12 +4857,12 @@ msgstr "인용 취소"
 msgid "Revoke this quote?"
 msgstr "이 인용을 취소하시겠습니까?"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1232
-#: src/routes/(root)/[handle]/settings/account.tsx:1536
+#: src/routes/(root)/[handle]/settings/account.tsx:1235
+#: src/routes/(root)/[handle]/settings/account.tsx:1539
 msgid "Role"
 msgstr "역할"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1407
+#: src/routes/(root)/[handle]/settings/account.tsx:1410
 msgid "Role updated"
 msgstr "역할을 변경했습니다"
 
@@ -4835,7 +4901,7 @@ msgid "Save changes"
 msgstr "변경사항 저장"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:138
-#: src/components/article-translations/ArticleTranslationManager.tsx:1333
+#: src/components/article-translations/ArticleTranslationManager.tsx:1337
 msgid "Save draft"
 msgstr "초고 저장"
 
@@ -4843,7 +4909,8 @@ msgstr "초고 저장"
 #~ msgid "Save draft to see preview"
 #~ msgstr "미리보기를 보려면 초고로 저장하세요"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:962
+#: src/components/article-translations/ArticleTranslationManager.tsx:966
+#: src/components/article-translations/ArticleTranslationManager.tsx:1375
 msgid "Save or discard your unsaved changes first."
 msgstr "저장하지 않은 변경 사항을 먼저 저장하거나 취소하세요."
 
@@ -4913,7 +4980,7 @@ msgstr "{0}의 검색 결과"
 msgid "Searching…"
 msgstr "검색 중…"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1266
+#: src/components/article-translations/ArticleTranslationManager.tsx:1270
 msgid "Select a language to edit its translation."
 msgstr "편집할 언어를 선택하세요."
 
@@ -4954,6 +5021,11 @@ msgstr "읽지 않은 알림이 남아 있는 동안 하루에 한 번 이메일
 msgid "Send one email per week while unread notifications remain."
 msgstr "읽지 않은 알림이 남아 있는 동안 일주일에 한 번 이메일을 보냅니다."
 
+#: src/components/AccountEmailSettings.tsx:403
+msgid "Send verification code"
+msgstr "인증 코드 보내기"
+
+#: src/components/AccountEmailSettings.tsx:403
 #: src/routes/(root)/[handle]/invite/[id].tsx:412
 #: src/routes/(root)/[handle]/settings/invite.tsx:416
 msgid "Sending…"
@@ -5075,17 +5147,21 @@ msgid "Shown to the user"
 msgstr "사용자에게 표시됨"
 
 #: src/components/AppSidebar.tsx:864
-#: src/routes/(root)/sign/index.tsx:428
+#: src/routes/(root)/sign/index.tsx:440
 msgid "Sign in"
 msgstr "로그인"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1702
-#: src/routes/(root)/[handle]/settings/account.tsx:1751
-#: src/routes/(root)/[handle]/settings/account.tsx:1942
+#: src/components/AccountEmailSettings.tsx:353
+msgid "Sign in again"
+msgstr "다시 로그인"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1705
+#: src/routes/(root)/[handle]/settings/account.tsx:1754
+#: src/routes/(root)/[handle]/settings/account.tsx:1945
 msgid "Sign in required"
 msgstr "로그인이 필요합니다"
 
-#: src/routes/(root)/sign/index.tsx:396
+#: src/routes/(root)/sign/index.tsx:408
 #: src/routes/applink/sign/in/[token].tsx:38
 #: src/routes/applink/sign/in/[token].tsx:40
 msgid "Sign in to Hackers' Pub"
@@ -5099,7 +5175,11 @@ msgstr "로그인하고 작성"
 msgid "Sign in to vote"
 msgstr "로그인 후 투표"
 
-#: src/routes/(root)/sign/index.tsx:452
+#: src/components/AccountEmailSettings.tsx:290
+msgid "Sign in with any verified email address. Notification digests are sent to your primary address."
+msgstr "인증된 이메일 주소 중 어느 것으로든 로그인할 수 있습니다. 알림 요약은 기본 주소로 발송됩니다."
+
+#: src/routes/(root)/sign/index.tsx:464
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
@@ -5116,11 +5196,11 @@ msgstr "가입"
 msgid "Signed in as"
 msgstr "로그인 중인 계정:"
 
-#: src/routes/(root)/sign/index.tsx:400
+#: src/routes/(root)/sign/index.tsx:412
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pub에 로그인"
 
-#: src/routes/(root)/sign/index.tsx:428
+#: src/routes/(root)/sign/index.tsx:440
 msgid "Signing in…"
 msgstr "로그인 중…"
 
@@ -5129,11 +5209,11 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:999
+#: src/components/article-translations/ArticleTranslationManager.tsx:1003
 msgid "Since the published version was last reviewed"
 msgstr "공개된 번역을 마지막으로 검토한 이후"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1000
+#: src/components/article-translations/ArticleTranslationManager.tsx:1004
 msgid "Since this draft was written"
 msgstr "이 초고를 작성한 이후"
 
@@ -5170,11 +5250,11 @@ msgstr "로컬에 저장된 일부 이미지를 더 이상 사용할 수 없어 
 msgid "Some posts in this thread cannot be shown."
 msgstr "이 스레드의 일부 콘텐츠는 표시할 수 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:707
-#: src/components/article-translations/ArticleTranslationManager.tsx:759
-#: src/components/article-translations/ArticleTranslationManager.tsx:826
-#: src/components/article-translations/ArticleTranslationManager.tsx:854
-#: src/components/article-translations/ArticleTranslationManager.tsx:887
+#: src/components/article-translations/ArticleTranslationManager.tsx:711
+#: src/components/article-translations/ArticleTranslationManager.tsx:763
+#: src/components/article-translations/ArticleTranslationManager.tsx:830
+#: src/components/article-translations/ArticleTranslationManager.tsx:858
+#: src/components/article-translations/ArticleTranslationManager.tsx:891
 msgid "Someone else saved this translation. Reload and try again."
 msgstr "다른 사용자가 이 번역을 저장했습니다. 새로 고친 후 다시 시도하세요."
 
@@ -5182,7 +5262,7 @@ msgstr "다른 사용자가 이 번역을 저장했습니다. 새로 고친 후 
 msgid "Something went wrong"
 msgstr "문제가 발생했습니다"
 
-#: src/routes/(root)/sign/index.tsx:263
+#: src/routes/(root)/sign/index.tsx:275
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
@@ -5330,11 +5410,11 @@ msgstr "태그"
 msgid "Take action"
 msgstr "조치 취하기"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:811
+#: src/routes/(root)/[handle]/settings/account.tsx:814
 msgid "Team name"
 msgstr "팀 이름"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:800
+#: src/routes/(root)/[handle]/settings/account.tsx:803
 msgid "team-name"
 msgstr "team-name"
 
@@ -5370,12 +5450,12 @@ msgstr "올바른 릴레이 액터 URL이 아닙니다."
 msgid "That is not a valid URL pattern."
 msgstr "올바른 URL 패턴이 아닙니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:756
-#: src/components/article-translations/ArticleTranslationManager.tsx:823
+#: src/components/article-translations/ArticleTranslationManager.tsx:760
+#: src/components/article-translations/ArticleTranslationManager.tsx:827
 msgid "That language is not available or the input is invalid."
 msgstr "해당 언어를 사용할 수 없거나 입력이 올바르지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1194
+#: src/routes/(root)/[handle]/settings/account.tsx:1197
 msgid "The accepting admin will receive a notification with a review link."
 msgstr "수락할 관리자에게 검토 링크가 포함된 알림이 전송됩니다."
 
@@ -5396,15 +5476,24 @@ msgstr "이 신고에 대한 자동 분석을 사용할 수 없습니다."
 msgid "The browser did not provide a complete push subscription."
 msgstr "브라우저가 완전한 푸시 알림 구독 정보를 제공하지 않았습니다."
 
+#. placeholder {0}: new Date(challenge().expires).toLocaleTimeString(i18n.locale, { hour: "numeric", minute: "2-digit" })
+#: src/components/AccountEmailSettings.tsx:420
+msgid "The code expires at {0}."
+msgstr "코드는 {0}에 만료됩니다."
+
+#: src/components/AccountEmailSettings.tsx:165
+msgid "The code is incorrect, expired, or no longer available. Request a new code if needed."
+msgstr "코드가 올바르지 않거나 만료되어 사용할 수 없습니다. 필요한 경우 새 코드를 요청하세요."
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1109
 #~ msgid "The conversion request could not be accepted. Please try again."
 #~ msgstr "전환 요청을 수락할 수 없습니다. 다시 시도하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1135
+#: src/routes/(root)/[handle]/settings/account.tsx:1138
 msgid "The conversion request could not be created. Please try again."
 msgstr "전환 요청을 만들 수 없습니다. 다시 시도하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:807
+#: src/components/article-translations/ArticleTranslationManager.tsx:811
 msgid "The credited translator can no longer edit this article, so this draft is credited to you. The published version keeps its original credit until you publish."
 msgstr "표시된 번역자가 더 이상 이 게시글을 수정할 수 없어 이 초고는 회원님 이름으로 기록됩니다. 공개된 번역은 회원님이 공개하기 전까지 기존 번역자 표시를 유지합니다."
 
@@ -5424,9 +5513,9 @@ msgstr "공유의 기본 공개 설정입니다."
 msgid "The default quote permission for your notes."
 msgstr "단문의 기본 인용 권한 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1909
-#: src/routes/(root)/[handle]/settings/account.tsx:1973
-#: src/routes/(root)/[handle]/settings/account.tsx:1984
+#: src/routes/(root)/[handle]/settings/account.tsx:1912
+#: src/routes/(root)/[handle]/settings/account.tsx:1976
+#: src/routes/(root)/[handle]/settings/account.tsx:1987
 msgid "The deletion request could not be completed. Please try again."
 msgstr "삭제 요청을 완료할 수 없습니다. 다시 시도해 주세요."
 
@@ -5443,8 +5532,8 @@ msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:865
-#: src/routes/(root)/[handle]/settings/account.tsx:875
+#: src/routes/(root)/[handle]/settings/account.tsx:868
+#: src/routes/(root)/[handle]/settings/account.tsx:878
 msgid "The invitation could not be accepted. Please try again."
 msgstr "초대를 수락할 수 없습니다. 다시 시도하세요."
 
@@ -5476,18 +5565,18 @@ msgstr "초대 링크가 성공적으로 삭제되었습니다."
 msgid "The link to this story is added to your post automatically."
 msgstr "이 이야기의 링크가 콘텐츠에 자동으로 추가됩니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1351
-#: src/routes/(root)/[handle]/settings/account.tsx:1361
+#: src/routes/(root)/[handle]/settings/account.tsx:1354
+#: src/routes/(root)/[handle]/settings/account.tsx:1364
 msgid "The member could not be invited. Please try again."
 msgstr "구성원을 초대할 수 없습니다. 다시 시도하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1480
-#: src/routes/(root)/[handle]/settings/account.tsx:1494
+#: src/routes/(root)/[handle]/settings/account.tsx:1483
+#: src/routes/(root)/[handle]/settings/account.tsx:1497
 msgid "The member could not be removed. Please try again."
 msgstr "구성원을 제거할 수 없습니다. 다시 시도하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1420
-#: src/routes/(root)/[handle]/settings/account.tsx:1430
+#: src/routes/(root)/[handle]/settings/account.tsx:1423
+#: src/routes/(root)/[handle]/settings/account.tsx:1433
 msgid "The member role could not be updated. Please try again."
 msgstr "구성원 역할을 변경할 수 없습니다. 다시 시도하세요."
 
@@ -5504,18 +5593,18 @@ msgstr "구성원 역할을 변경할 수 없습니다. 다시 시도하세요."
 msgid "The moderation team will review your appeal and notify you."
 msgstr "모더레이션 팀이 이의 제기를 검토하고 회원님에게 통지할 예정입니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1918
+#: src/routes/(root)/[handle]/settings/account.tsx:1921
 msgid "The organization account was deleted."
 msgstr "조직 계정이 삭제되었습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:776
+#: src/routes/(root)/[handle]/settings/account.tsx:779
 msgid "The organization could not be created. Please try again."
 msgstr "조직을 만들 수 없습니다. 다시 시도하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:957
-#: src/routes/(root)/[handle]/settings/account.tsx:967
-#: src/routes/(root)/[handle]/settings/account.tsx:1479
-#: src/routes/(root)/[handle]/settings/account.tsx:1493
+#: src/routes/(root)/[handle]/settings/account.tsx:960
+#: src/routes/(root)/[handle]/settings/account.tsx:970
+#: src/routes/(root)/[handle]/settings/account.tsx:1482
+#: src/routes/(root)/[handle]/settings/account.tsx:1496
 msgid "The organization could not be left. Please try again."
 msgstr "조직에서 탈퇴할 수 없습니다. 다시 시도하세요."
 
@@ -5536,7 +5625,7 @@ msgstr "게시 권한이 있는 조직 멤버가 이 초고에 접근할 수 있
 msgid "The original has changed"
 msgstr "원문이 변경되었습니다"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:939
+#: src/components/article-translations/ArticleTranslationManager.tsx:943
 msgid "The original has changed since this translation was last reviewed."
 msgstr "이 번역을 마지막으로 검토한 뒤 원문이 변경되었습니다."
 
@@ -5554,12 +5643,12 @@ msgstr "찾으시는 페이지가 존재하지 않거나 이동되었습니다."
 msgid "The passkey has been successfully revoked."
 msgstr "성공적으로 패스키를 취소했습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1723
+#: src/routes/(root)/[handle]/settings/account.tsx:1726
 msgid "The previous account could not be added. Please try again."
 msgstr "예전 계정을 추가하지 못했습니다. 다시 시도해 주세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1765
-#: src/routes/(root)/[handle]/settings/account.tsx:1773
+#: src/routes/(root)/[handle]/settings/account.tsx:1768
+#: src/routes/(root)/[handle]/settings/account.tsx:1776
 msgid "The previous account could not be removed. Please try again."
 msgstr "예전 계정을 제거하지 못했습니다. 다시 시도해 주세요."
 
@@ -5599,6 +5688,10 @@ msgstr "대상의 누적 모더레이션 이력입니다. 누적된 이력은 �
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
+#: src/components/AccountEmailSettings.tsx:173
+msgid "The verification email could not be sent. Please try again later."
+msgstr "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도하세요."
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:107
 msgid "The Web Push public key is invalid."
@@ -5608,25 +5701,29 @@ msgstr "Web Push 공개 키가 올바르지 않습니다."
 msgid "There are no moderation actions on your account."
 msgstr "회원님의 계정에 대한 모더레이션 조치가 없습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:979
+#: src/components/article-translations/ArticleTranslationManager.tsx:983
 msgid "There is no earlier version of the original to compare with, so only the current original is shown."
 msgstr "비교할 이전 원문이 없어 현재 원문만 표시합니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:710
+#: src/components/article-translations/ArticleTranslationManager.tsx:714
 msgid "There is nothing to review for this language."
 msgstr "이 언어에는 검토할 번역이 없습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1935
+#: src/routes/(root)/[handle]/settings/account.tsx:1938
 msgid "This account cannot be deleted right now. Please contact the instance administrators."
 msgstr "지금은 이 계정을 삭제할 수 없습니다. 인스턴스 관리자에게 문의해 주세요."
 
-#: src/routes/(root)/sign/index.tsx:258
+#: src/routes/(root)/sign/index.tsx:270
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "이 계정은 영구 정지되어 더 이상 로그인할 수 없습니다."
 
 #: src/components/ProfileCard.tsx:251
 msgid "This account has moved."
 msgstr "이 계정은 이전되었습니다."
+
+#: src/routes/(root)/sign/index.tsx:268
+msgid "This account has no verified email address, so it cannot sign in by email. If you have a registered passkey, use it to sign in."
+msgstr "이 계정에는 인증된 이메일 주소가 없어 이메일로 로그인할 수 없습니다. 등록된 패스키가 있다면 패스키로 로그인하세요."
 
 #: src/routes/(root)/tree/index.tsx:168
 msgid "This account is hidden because they want to keep their identity private."
@@ -5645,8 +5742,8 @@ msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:235
-#: src/routes/(root)/[handle]/settings/account.tsx:1147
-#: src/routes/(root)/[handle]/settings/account.tsx:1996
+#: src/routes/(root)/[handle]/settings/account.tsx:1150
+#: src/routes/(root)/[handle]/settings/account.tsx:1999
 msgid "This action is permanent."
 msgstr "이 작업은 되돌릴 수 없습니다."
 
@@ -5663,11 +5760,11 @@ msgstr "이 브라우저에 이미 로컬 단문 초고가 있습니다. 바꾸�
 msgid "This browser does not support Web Push."
 msgstr "이 브라우저는 Web Push를 지원하지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2042
+#: src/routes/(root)/[handle]/settings/account.tsx:2045
 msgid "This cannot be undone. The organization account will be deleted, but you will stay signed in."
 msgstr "이 작업은 되돌릴 수 없습니다. 조직 계정은 삭제되지만 로그인 상태는 유지됩니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2043
+#: src/routes/(root)/[handle]/settings/account.tsx:2046
 msgid "This cannot be undone. Your account will be deleted and you will be signed out."
 msgstr "이 작업은 취소할 수 없습니다. 계정이 삭제되고 로그아웃됩니다."
 
@@ -5730,6 +5827,18 @@ msgstr "다른 사람이 이 초고를 변경했습니다. 삭제하기 전에 �
 msgid "This draft was changed by someone else. Your edits are kept locally; choose how to resolve the conflict."
 msgstr "다른 사람이 이 초고를 변경했습니다. 편집 내용은 로컬에 보관되며, 충돌을 해결할 방법을 선택하세요."
 
+#: src/components/AccountEmailSettings.tsx:153
+msgid "This email address is already verified on your account."
+msgstr "이 이메일 주소는 이미 계정에서 인증되었습니다."
+
+#: src/components/AccountEmailSettings.tsx:157
+msgid "This email address is not on your account."
+msgstr "이 이메일 주소는 계정에 등록되어 있지 않습니다."
+
+#: src/components/AccountEmailSettings.tsx:155
+msgid "This email address is unavailable."
+msgstr "이 이메일 주소를 사용할 수 없습니다."
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:192
 #: src/routes/(root)/[handle]/invite/[id].tsx:196
 msgid "This email is already associated with an existing account."
@@ -5765,7 +5874,7 @@ msgstr "너무 깁니다 (최대 {MAX_REASON_LENGTH}자)."
 #~ msgid "This language is published without a private draft. Review it here, or add a translation to start editing it."
 #~ msgstr "이 언어는 비공개 초고 없이 공개되어 있습니다. 여기에서 검토하거나, 번역을 추가해 편집을 시작하세요."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1231
+#: src/components/article-translations/ArticleTranslationManager.tsx:1235
 msgid "This language is published without a private draft. Review it here, or start editing to make private changes."
 msgstr "이 언어는 비공개 초고 없이 공개되어 있습니다. 여기에서 검토하거나, 수정을 시작해 비공개 변경 사항을 만드세요."
 
@@ -5773,19 +5882,19 @@ msgstr "이 언어는 비공개 초고 없이 공개되어 있습니다. 여기�
 msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 msgstr "이 단문이 길어지고 있습니다. 게시글은 긴 글에 제목, 전용 초고, 더 읽기 좋은 페이지를 제공합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1934
+#: src/routes/(root)/[handle]/settings/account.tsx:1937
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
 msgstr "지금은 이 조직을 삭제할 수 없습니다. 인스턴스 관리자에게 문의하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2000
+#: src/routes/(root)/[handle]/settings/account.tsx:2003
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
 msgstr "이 조직의 프로필, 콘텐츠, 초고, 팔로, 설정, 구성원 정보가 삭제됩니다. 아이디는 계속 예약됩니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1784
+#: src/routes/(root)/[handle]/settings/account.tsx:1787
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 msgstr "이 페이지는 Hackers' Pub 쪽 이전 준비만 합니다. 이전 시작은 예전 서버에서 해야 합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1166
+#: src/routes/(root)/[handle]/settings/account.tsx:1169
 msgid "This personal account will accept the request and become the first organization admin."
 msgstr "이 개인 계정이 요청을 수락하고 첫 조직 관리자가 됩니다."
 
@@ -5847,7 +5956,7 @@ msgstr "타임라인"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:82
 #: src/components/article-composer/shared/ComposerTitleField.tsx:22
-#: src/components/article-translations/ArticleTranslationManager.tsx:1008
+#: src/components/article-translations/ArticleTranslationManager.tsx:1012
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:618
 msgid "Title"
 msgstr "제목"
@@ -5867,6 +5976,10 @@ msgstr "{0}님을 팔로하려면 연합우주 핸들을 입력해 주세요."
 msgid "Toggle sidebar"
 msgstr "사이드바 전환"
 
+#: src/components/AccountEmailSettings.tsx:163
+msgid "Too many verification emails were requested. Please try again later."
+msgstr "인증 메일을 너무 많이 요청했습니다. 잠시 후 다시 시도하세요."
+
 #: src/routes/(root)/admin/moderation/statistics.tsx:117
 msgid "Total reports"
 msgstr "총 신고"
@@ -5876,12 +5989,12 @@ msgstr "총 신고"
 msgid "Total: {0}"
 msgstr "전체: {0}"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1296
+#: src/components/article-translations/ArticleTranslationManager.tsx:1300
 msgid "Translated body"
 msgstr "번역 본문"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1096
-#: src/components/article-translations/ArticleTranslationManager.tsx:1157
+#: src/components/article-translations/ArticleTranslationManager.tsx:1100
+#: src/components/article-translations/ArticleTranslationManager.tsx:1161
 msgid "Translated by"
 msgstr "번역자:"
 
@@ -5906,7 +6019,7 @@ msgstr "작성자가 직접 번역"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1285
+#: src/components/article-translations/ArticleTranslationManager.tsx:1289
 msgid "Translated title"
 msgstr "번역 제목"
 
@@ -5964,22 +6077,22 @@ msgstr "트리"
 msgid "Try again"
 msgstr "다시 시도"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:699
+#: src/routes/(root)/[handle]/settings/account.tsx:702
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "이 개인 계정을 조직 계정으로 전환합니다. 이 작업은 되돌릴 수 없습니다."
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:2016
+#: src/routes/(root)/[handle]/settings/account.tsx:2019
 msgid "Type {0} to confirm account deletion."
 msgstr "계정 삭제를 확인하려면 {0}을(를) 입력하세요."
 
 #. placeholder {0}: props.account.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1183
+#: src/routes/(root)/[handle]/settings/account.tsx:1186
 msgid "Type {0} to confirm conversion."
 msgstr "전환을 확인하려면 {0}을 입력하세요."
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:2015
+#: src/routes/(root)/[handle]/settings/account.tsx:2018
 msgid "Type {0} to confirm organization deletion."
 msgstr "조직 삭제를 확인하려면 {0}을 입력하세요."
 
@@ -6051,6 +6164,10 @@ msgstr "구독 취소"
 msgid "Unsubscribed from the relay."
 msgstr "릴레이 구독을 취소했습니다."
 
+#: src/components/AccountEmailSettings.tsx:303
+msgid "Unverified"
+msgstr "미인증"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:527
 msgid "Update how this article is described and discovered."
 msgstr "이 게시글이 어떻게 설명되고 발견되는지 업데이트하세요."
@@ -6087,7 +6204,7 @@ msgstr "URL 패턴"
 #~ msgid "Use the old account's handle or actor URL."
 #~ msgstr "예전 계정의 핸들 또는 액터 URL을 사용하세요."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:803
+#: src/routes/(root)/[handle]/settings/account.tsx:806
 msgid "Used for the profile URL and WebFinger handle."
 msgstr "프로필 URL과 WebFinger 핸들에 사용됩니다."
 
@@ -6113,13 +6230,13 @@ msgstr "사용자 차단을 해제했습니다"
 msgid "User unmuted"
 msgstr "사용자 뮤트를 해제했습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1159
+#: src/routes/(root)/[handle]/settings/account.tsx:1162
 msgid "username"
 msgstr "아이디"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:795
-#: src/routes/(root)/[handle]/settings/account.tsx:1516
-#: src/routes/(root)/[handle]/settings/account.tsx:2006
+#: src/routes/(root)/[handle]/settings/account.tsx:798
+#: src/routes/(root)/[handle]/settings/account.tsx:1519
+#: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
@@ -6149,15 +6266,32 @@ msgstr "아이디가 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Users you have invited"
 msgstr "초대한 사용자"
 
+#: src/components/AccountEmailSettings.tsx:426
+msgid "Verification code"
+msgstr "인증 코드"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:400
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
+#: src/components/AccountEmailSettings.tsx:323
+#: src/components/AccountEmailSettings.tsx:441
+msgid "Verify email"
+msgstr "이메일 인증"
+
+#: src/components/AccountEmailSettings.tsx:159
+msgid "Verify this email address before making it primary."
+msgstr "기본 주소로 지정하기 전에 이 이메일 주소를 인증하세요."
+
 #: src/routes/(root)/sign/up/[token].tsx:298
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
+
+#: src/components/AccountEmailSettings.tsx:441
+msgid "Verifying…"
+msgstr "인증 중…"
 
 #: src/components/AppSidebar.tsx:1166
 msgid "View all drafts →"
@@ -6203,7 +6337,7 @@ msgstr "요청 보기"
 msgid "View shares"
 msgstr "공유 보기"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:950
+#: src/components/article-translations/ArticleTranslationManager.tsx:954
 msgid "View source changes"
 msgstr "원문 변경 사항 보기"
 
@@ -6330,7 +6464,7 @@ msgstr "활성화하면 AI가 이 게시글을 다른 언어로 자동 번역할
 msgid "When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles."
 msgstr "활성화하면 내 계정이 초대 족보에 익명으로 표시되고, 나와 관련된 초대 관계가 프로필에서 숨겨집니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1386
+#: src/components/article-translations/ArticleTranslationManager.tsx:1397
 msgid "While automatic translation is allowed for this article, readers can still request an automatic translation of this language."
 msgstr "이 게시글에 자동 번역이 허용되어 있는 동안에는 독자가 이 언어의 자동 번역을 요청할 수 있습니다."
 
@@ -6346,13 +6480,13 @@ msgstr "이 결정이 왜 부당한가요?"
 msgid "Withdraw decision"
 msgstr "결정 철회"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1383
+#: src/components/article-translations/ArticleTranslationManager.tsx:1394
 msgid "Withdraw the published translation?"
 msgstr "공개된 번역을 철회하시겠습니까?"
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:1247
-#: src/components/article-translations/ArticleTranslationManager.tsx:1369
-#: src/components/article-translations/ArticleTranslationManager.tsx:1396
+#: src/components/article-translations/ArticleTranslationManager.tsx:1251
+#: src/components/article-translations/ArticleTranslationManager.tsx:1380
+#: src/components/article-translations/ArticleTranslationManager.tsx:1407
 msgid "Withdraw translation"
 msgstr "번역 철회"
 
@@ -6415,7 +6549,7 @@ msgstr "이 사용자를 차단했습니다. 이 사용자는 회원님을 팔�
 msgid "You are now an admin of {0}."
 msgstr "이제 {0}의 관리자입니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:756
+#: src/routes/(root)/[handle]/settings/account.tsx:759
 msgid "You are now an admin of the new organization."
 msgstr "이제 새 조직의 관리자입니다."
 
@@ -6440,7 +6574,7 @@ msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 �
 #~ msgid "You can change migration aliases only for your own account."
 #~ msgstr "자신의 계정에서만 이전 별칭을 변경할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1955
+#: src/routes/(root)/[handle]/settings/account.tsx:1958
 msgid "You can delete only your own account."
 msgstr "자신의 계정만 삭제할 수 있습니다."
 
@@ -6454,7 +6588,7 @@ msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
 #. placeholder {0}: result.membership.organization.username
-#: src/routes/(root)/[handle]/settings/account.tsx:855
+#: src/routes/(root)/[handle]/settings/account.tsx:858
 msgid "You can now act as {0}."
 msgstr "이제 {0}으로 활동할 수 있습니다."
 
@@ -6494,12 +6628,26 @@ msgstr "자신의 북마크만 볼 수 있습니다"
 #~ msgid "You can only view your own drafts"
 #~ msgstr "자신의 초고만 볼 수 있습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1710
-#: src/routes/(root)/[handle]/settings/account.tsx:1759
+#: src/routes/(root)/[handle]/settings/account.tsx:1713
+#: src/routes/(root)/[handle]/settings/account.tsx:1762
 msgid "You can prepare migration only for accounts you can manage."
 msgstr "관리할 수 있는 계정에서만 이전을 준비할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:980
+#: src/components/AccountEmailSettings.tsx:161
+#: src/components/AccountEmailSettings.tsx:406
+msgid "You can register up to five verified email addresses."
+msgstr "인증된 이메일 주소는 최대 다섯 개까지 등록할 수 있습니다."
+
+#. placeholder {0}: retrySeconds()
+#: src/components/AccountEmailSettings.tsx:365
+#~ msgid "You can request another code in {0} seconds."
+#~ msgstr "{0}초 후에 새 코드를 요청할 수 있습니다."
+
+#: src/components/AccountEmailSettings.tsx:171
+msgid "You cannot remove your last verified email address."
+msgstr "마지막 인증된 이메일 주소는 삭제할 수 없습니다."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:983
 msgid "You do not belong to any organizations yet."
 msgstr "아직 속한 조직이 없습니다."
 
@@ -6508,7 +6656,7 @@ msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
 
 #. placeholder {0}: props.invitationsLeft
-#: src/routes/(root)/[handle]/settings/account.tsx:787
+#: src/routes/(root)/[handle]/settings/account.tsx:790
 msgid "You have {0} invitations available."
 msgstr "사용 가능한 초대장이 {0}장 있습니다."
 
@@ -6533,24 +6681,24 @@ msgstr "뮤트한 계정이 없습니다."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "이미 이의를 제기했거나 이의 제기 기간이 종료되었을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:859
+#: src/components/article-translations/ArticleTranslationManager.tsx:863
 msgid "You may not have permission to delete this translation."
 msgstr "이 번역을 삭제할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:892
+#: src/components/article-translations/ArticleTranslationManager.tsx:896
 msgid "You may not have permission to publish this translation."
 msgstr "이 번역을 공개할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:712
+#: src/components/article-translations/ArticleTranslationManager.tsx:716
 msgid "You may not have permission to review this translation."
 msgstr "이 번역을 검토할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:762
-#: src/components/article-translations/ArticleTranslationManager.tsx:829
+#: src/components/article-translations/ArticleTranslationManager.tsx:766
+#: src/components/article-translations/ArticleTranslationManager.tsx:833
 msgid "You may not have permission to save this translation."
 msgstr "이 번역을 저장할 권한이 없을 수 있습니다."
 
-#: src/components/article-translations/ArticleTranslationManager.tsx:556
+#: src/components/article-translations/ArticleTranslationManager.tsx:560
 msgid "You may not have permission to withdraw this translation."
 msgstr "이 번역을 철회할 권한이 없을 수 있습니다."
 
@@ -6603,8 +6751,8 @@ msgstr "초고로 저장하려면 로그인해야 합니다"
 msgid "You must be signed in."
 msgstr "로그인이 필요합니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:947
-#: src/routes/(root)/[handle]/settings/account.tsx:1461
+#: src/routes/(root)/[handle]/settings/account.tsx:950
+#: src/routes/(root)/[handle]/settings/account.tsx:1464
 msgid "You no longer belong to that organization."
 msgstr "더 이상 해당 조직에 속하지 않습니다."
 
@@ -6625,6 +6773,11 @@ msgstr "회원님이 원래 조치를 취했습니다. 다른 모더레이터가
 #: src/routes/(root)/sign/up/[token].tsx:434
 msgid "You were invited by"
 msgstr "당신을 초대한 분"
+
+#. placeholder {0}: removeTarget() ?? ""
+#: src/components/AccountEmailSettings.tsx:466
+msgid "You will no longer be able to sign in with {0}."
+msgstr "더 이상 {0}으로 로그인할 수 없게 됩니다."
 
 #: src/routes/(root)/sign/up/[token].tsx:451
 msgid "You'll automatically follow each other when you sign up."
@@ -6670,6 +6823,10 @@ msgstr "연결이 불안정한 것 같습니다. 네트워크를 확인하고 �
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 
+#: src/components/AccountEmailSettings.tsx:175
+msgid "Your email settings could not be updated. Please try again."
+msgstr "이메일 설정을 변경하지 못했습니다. 다시 시도하세요."
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
 msgid "Your friend will see this message in the invitation email."
 msgstr "초대장을 받는 친구가 볼 수 있는 메시지입니다."
@@ -6683,7 +6840,7 @@ msgstr "신고자의 신원은 엄격히 보호됩니다. 누가 신고했는지
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:683
+#: src/routes/(root)/[handle]/settings/account.tsx:686
 msgid "Your organizations"
 msgstr "내 조직"
 
@@ -6705,7 +6862,7 @@ msgstr "선호 언어가 업데이트되었습니다."
 msgid "Your profile settings have been updated successfully."
 msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2001
+#: src/routes/(root)/[handle]/settings/account.tsx:2004
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "프로필, 콘텐츠, 초고, 팔로, 설정, 로그인 인증 정보가 삭제됩니다. 현재 아이디는 계속 예약됩니다."
 

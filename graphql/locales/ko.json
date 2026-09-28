@@ -59,5 +59,13 @@
       "emailSubject": "Hackers' Pub 이의 제기가 검토되었습니다",
       "emailContent": "Hackers' Pub 모더레이션 조치에 대한 회원님의 이의 제기가 검토되었습니다.\n\n결과: {{result}}\n\n모더레이션 팀의 메시지:\n{{rationale}}\n\n— Hackers' Pub 모더레이션 팀\n"
     }
+  },
+  "accountEmailVerification": {
+    "emailSubject": "Hackers' Pub 이메일 주소 인증",
+    "emailContent": "Hackers' Pub의 @{{username}} 계정에 이 이메일 주소를 추가하려면 인증을 요청한 브라우저의 설정 → 계정 페이지에서 다음 코드를 입력하세요:\n\n{{code}}\n\n이 코드는 15분 후에 만료됩니다. 직접 요청하지 않았다면 이 메일을 무시하세요.\n"
+  },
+  "accountEmailChange": {
+    "emailSubject": "Hackers' Pub 이메일 설정 변경",
+    "emailContent": "Hackers' Pub의 @{{username}} 계정의 이메일 설정이 변경되었습니다. 직접 변경하지 않았다면 기존 이메일 주소나 패스키로 로그인한 뒤 인스턴스 운영자에게 문의하세요.\n"
   }
 }

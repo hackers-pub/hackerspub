@@ -13,6 +13,7 @@ import {
   type Account,
   type AccountEmail,
   accountEmailTable,
+  accountEmailChallengeTable,
   type AccountLink,
   accountTable,
   type Actor,
@@ -919,6 +920,20 @@ async function acceptOrganizationConversionOperation(
         },
       },
     );
+    if (request != null) {
+      await tx
+        .select({ id: accountTable.id })
+        .from(accountTable)
+        .where(eq(accountTable.id, request.accountId))
+        .for("update");
+      const lockedAccount = await tx.query.accountTable.findFirst({
+        where: { id: request.accountId },
+      });
+      if (lockedAccount?.kind !== "personal")
+        throw new OrganizationConversionError(
+          "The conversion request is invalid.",
+        );
+    }
     if (request == null || request.account.kind !== "personal") {
       throw new OrganizationConversionError(
         "The conversion request is invalid.",
@@ -957,6 +972,9 @@ async function acceptOrganizationConversionOperation(
       request.accountId,
     );
 
+    await tx
+      .delete(accountEmailChallengeTable)
+      .where(eq(accountEmailChallengeTable.accountId, request.accountId));
     await tx
       .delete(accountEmailTable)
       .where(eq(accountEmailTable.accountId, request.accountId));

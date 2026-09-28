@@ -36,3 +36,21 @@ export function getSession(
 export function deleteSession(kv: Keyv, sessionId: Uuid): Promise<boolean> {
   return kv.delete(`${KV_NAMESPACE}/${sessionId}`);
 }
+
+/** Recent authentication authorizes sensitive email changes for ten minutes. */
+export function getSessionFreshUntil(
+  session: Session,
+  now = new Date(),
+): Date | undefined {
+  // Persistent Keyv adapters deserialize Date values as ISO strings.
+  const created = new Date(session.created).getTime();
+  const deadline = created + 10 * 60 * 1000;
+  if (
+    !Number.isFinite(created) ||
+    // A fresh session can originate on another API replica.
+    created > now.getTime() + 60 * 1000 ||
+    deadline <= now.getTime()
+  )
+    return undefined;
+  return new Date(deadline);
+}

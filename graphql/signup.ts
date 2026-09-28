@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { isUsernameReserved } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
@@ -8,6 +9,7 @@ import {
 import { createSession } from "@hackerspub/models/session";
 import {
   createAccount,
+  EmailAlreadyRegisteredError,
   deleteSignupToken,
   getSignupToken,
 } from "@hackerspub/models/signup";
@@ -170,7 +172,10 @@ builder.queryFields((t) => ({
       }
 
       const existingAccount = await ctx.db.query.accountEmailTable.findFirst({
-        where: { email: signupToken.email },
+        where: {
+          RAW: (table) =>
+            sql`lower(${table.email}) = lower(${signupToken.email})`,
+        },
       });
 
       if (existingAccount) {
@@ -221,7 +226,10 @@ builder.mutationFields((t) => ({
       }
 
       const existingAccount = await ctx.db.query.accountEmailTable.findFirst({
-        where: { email: signupToken.email },
+        where: {
+          RAW: (table) =>
+            sql`lower(${table.email}) = lower(${signupToken.email})`,
+        },
       });
 
       if (existingAccount) {
@@ -274,6 +282,10 @@ builder.mutationFields((t) => ({
         name: trimmedName,
         bio,
         leftInvitations: 0,
+      }).catch((error) => {
+        if (error instanceof EmailAlreadyRegisteredError)
+          throw createGraphQLError("Email is already registered");
+        throw error;
       });
 
       if (!account) {

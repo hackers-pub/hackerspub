@@ -461,7 +461,9 @@ builder.mutationField("redeemInvitationLink", (t) =>
       }
       if (email != null) {
         const existing = await ctx.db.query.accountEmailTable.findFirst({
-          where: { email },
+          where: {
+            RAW: (table) => sql`lower(${table.email}) = lower(${email})`,
+          },
         });
         if (existing != null) {
           errors.email = "EMAIL_ALREADY_TAKEN";
