@@ -127,7 +127,8 @@ Cutover
     refuses to start in production without `MAILEROO_KEY`.  In development,
     test, and build modes without this key, emails are logged with their
     subject and body instead of sent, so verification codes and sign-in links
-    can be read in the console or local log file.  CI uses `MockTransport`.
+    can be read in the local console.  These messages bypass `LOG_FILE` and
+    Sentry; keep the development console private.  CI uses `MockTransport`.
     Leave the `MAILGUN_*` variables in place until the rollback window closes,
     because the previous image still needs them.
 

@@ -112,11 +112,12 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
         sinks: loggerSinks,
       },
       {
-        // Log-only development emails contain complete authentication messages.
+        // Treat the local console as the development inbox. Never persist
+        // complete authentication messages in LOG_FILE or send them to Sentry.
         category: ["hackerspub", "email", "development"],
         lowestLevel: "debug",
         parentSinks: "override",
-        sinks: ["console", ...(logFile != null ? ["file"] : [])],
+        sinks: ["console"],
       },
       {
         category: "drizzle-orm",

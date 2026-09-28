@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { getLogger, type LogRecord, reset } from "@logtape/logtape";
 import { redactByField } from "@logtape/redaction";
@@ -76,12 +79,15 @@ test("Sentry redaction preserves transactional outbox classification", async () 
   );
 });
 
-test("development email contents reach the console without becoming Sentry events or breadcrumbs", async () => {
+test("development email contents reach only the console, not log files or Sentry", async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-email-logs-"));
+  const logFile = join(directory, "application.jsonl");
+  t.after(() => rm(directory, { recursive: true, force: true }));
   const consoleChunks: string[] = [];
   const sentryEvents: unknown[] = [];
   const breadcrumbs: unknown[] = [];
   await configureLogging({
-    environment: { SENTRY_DSN: "enabled" },
+    environment: { SENTRY_DSN: "enabled", LOG_FILE: logFile },
     stderr: new WritableStream({
       write(chunk) {
         consoleChunks.push(new TextDecoder().decode(chunk));
@@ -125,6 +131,9 @@ test("development email contents reach the console without becoming Sentry event
   } finally {
     await reset();
   }
+  const fileContents = await readFile(logFile, "utf8");
+  assert.match(fileContents, /Ordinary runtime log/);
+  assert.doesNotMatch(fileContents, /verification-code-ABC123/);
   assert.match(consoleChunks.join(""), /verification-code-ABC123/);
   assert.match(JSON.stringify(sentryEvents), /Ordinary runtime log/);
   assert.doesNotMatch(JSON.stringify(sentryEvents), /verification-code-ABC123/);
