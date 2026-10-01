@@ -1,4 +1,5 @@
 import type { Context, RequestContext } from "@fedify/fedify";
+import { quoteInteraction } from "@fedify/interaction-controls";
 import { LanguageString, PUBLIC_COLLECTION } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
@@ -918,9 +919,9 @@ builder
       // validating an already-issued quote of moderation-hidden content.
       // Reversible by design: lifting the censorship serves it again.
       if (authorization.quotedPost.censored != null) return null;
-      return new vocab.QuoteAuthorization({
+      return quoteInteraction.createAuthorization({
         id: new URL(authorization.iri),
-        attribution: new URL(authorization.quotedPost.actor.iri),
+        attributedTo: new URL(authorization.quotedPost.actor.iri),
         interactingObject: new URL(authorization.quotePostIri),
         interactionTarget: new URL(authorization.quotedPost.iri),
       });

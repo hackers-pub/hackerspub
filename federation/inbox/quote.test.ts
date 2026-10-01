@@ -36,6 +36,126 @@ import {
   onQuoteRequestRejected,
 } from "./quote.ts";
 
+test("quote responses preserve compatible instruments, wire format, and authorization IDs", async () => {
+  for (const variant of [
+    "quoteUrl",
+    "conflicting quoteUrl",
+    "conflicting quote",
+    "multiple authors",
+  ]) {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "quotecompatowner",
+        name: "Quote Compatibility Owner",
+        email: "quotecompatowner@example.com",
+      });
+      const requester = await insertRemoteActor(tx, {
+        username: "quotecompatrequester",
+        name: "Quote Compatibility Requester",
+        host: "remote.example",
+      });
+      const { post: target } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Compatible quote target",
+        quotePolicy: "everyone",
+      });
+      const instrumentIri = "https://remote.example/objects/compatible-quote";
+      const otherTarget = new URL("https://remote.example/objects/other");
+      const instrument = new Note({
+        id: new URL(instrumentIri),
+        attributions:
+          variant === "multiple authors"
+            ? [
+                new URL("https://remote.example/actors/other"),
+                new URL(requester.iri),
+              ]
+            : [new URL(requester.iri)],
+        quote:
+          variant === "quoteUrl"
+            ? null
+            : variant === "conflicting quote"
+              ? otherTarget
+              : new URL(target.iri),
+        quoteUrl:
+          variant === "conflicting quoteUrl"
+            ? otherTarget
+            : new URL(target.iri),
+        content: "Compatible instrument",
+      });
+      const request = new QuoteRequest({
+        id: new URL(`${instrumentIri}#quote-request`),
+        actor: new URL(requester.iri),
+        object: new URL(target.iri),
+        instrument,
+      });
+      const sent: unknown[][] = [];
+      const fedCtx = {
+        ...createFedCtx(tx),
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      } as unknown as InboxContext<ContextData>;
+
+      await onQuoteRequested(fedCtx, request);
+      const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+        where: { quotePostIri: instrumentIri },
+      });
+      assert.ok(authorization != null, variant);
+      const expectedAccept = new Accept({
+        id: new URL("#accept", `${instrumentIri}#quote-request`),
+        actor: new URL(author.actor.iri),
+        object: request,
+        result: new URL(authorization.iri),
+      });
+      const response = sent[0]?.[2];
+      assert.ok(response instanceof Accept, variant);
+      assert.deepEqual(
+        await response.toJsonLd(),
+        await expectedAccept.toJsonLd(),
+        variant,
+      );
+      assert.equal(
+        sent[0][3] != null &&
+          (sent[0][3] as { orderingKey: string }).orderingKey,
+        target.iri,
+      );
+
+      await onQuoteRequested(fedCtx, request);
+      const repeated = await tx.query.quoteAuthorizationTable.findMany({
+        where: { quotePostIri: instrumentIri },
+      });
+      assert.deepEqual(
+        repeated.map((row) => row.iri),
+        [authorization.iri],
+        variant,
+      );
+      assert.ok(sent[1][2] instanceof Accept);
+      assert.deepEqual(
+        await sent[1][2].toJsonLd(),
+        await expectedAccept.toJsonLd(),
+        variant,
+      );
+
+      await tx
+        .update(postTable)
+        .set({ censored: new Date() })
+        .where(eq(postTable.id, target.id));
+      await onQuoteRequested(fedCtx, request);
+      const rejection = sent[2][2];
+      assert.ok(rejection instanceof Reject);
+      assert.deepEqual(
+        await rejection.toJsonLd(),
+        await new Reject({
+          id: new URL("#reject", `${instrumentIri}#quote-request`),
+          actor: new URL(author.actor.iri),
+          object: request,
+        }).toJsonLd(),
+      );
+    });
+  }
+});
+
 test("onQuoteRequestReceived dereferences the instrument before opening a transaction", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -760,7 +880,9 @@ test("onQuoteRequested unwraps local share targets", async () => {
   });
 });
 
-test("onQuoteRequestAccepted federates updated quote authorization", async () => {
+async function assertQuoteRequestAccepted(
+  authorizationOrigin: string,
+): Promise<void> {
   await withTagsPubRelayEnabled(async () => {
     await withRollback(async (tx) => {
       const remoteActor = await insertRemoteActor(tx, {
@@ -797,7 +919,7 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
         where: { id: quote.noteSourceId },
       });
       assert.ok(originalNoteSource != null);
-      const authorizationIri = "https://remote.example/quote-authorization/1";
+      const authorizationIri = `${authorizationOrigin}/quote-authorization/1`;
       const request = new QuoteRequest({
         id: new URL("https://localhost/quote-requests/1"),
         actor: new URL(quoter.actor.iri),
@@ -867,7 +989,13 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
       );
     });
   });
-});
+}
+
+test("onQuoteRequestAccepted federates updated quote authorization", () =>
+  assertQuoteRequestAccepted("https://remote.example"));
+
+test("onQuoteRequestAccepted accepts author-approved authorization aliases", () =>
+  assertQuoteRequestAccepted("https://approval.example"));
 
 test("onQuoteRequestAccepted ignores mismatched quote authorization IDs", async () => {
   await withRollback(async (tx) => {

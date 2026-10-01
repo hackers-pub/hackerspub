@@ -61,6 +61,8 @@ export function quotePoliciesFromInteractionPolicy(
     return { quotePolicy: "self", quoteRequestPolicy: null };
   }
   const policy = post.interactionPolicy?.canQuote;
+  // Legacy public posts without canQuote remain quotable.  evaluatePolicy()
+  // defaults to denial, so retain our visibility-aware policy normalization.
   if (policy == null) {
     return {
       quotePolicy: normalizeQuotePolicyForVisibility(visibility, undefined),

@@ -1,11 +1,12 @@
 import type { InboxContext } from "@fedify/fedify";
+import { quoteInteraction } from "@fedify/interaction-controls";
 import {
-  Accept,
+  type Accept,
   type Delete,
   isActor,
   QuoteAuthorization,
   QuoteRequest,
-  Reject,
+  type Reject,
   Update,
 } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
@@ -161,10 +162,12 @@ export async function onQuoteRequested(
       fedCtx,
       { identifier: quotedPost.actor.accountId },
       { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
-      new Reject({
+      quoteInteraction.createReject({
+        mode: "polite",
         id: new URL(`#reject`, request.id),
         actor: new URL(quotedPost.actor.iri),
-        object: request,
+        request,
+        to: [],
       }),
       { preferSharedInbox: false, orderingKey: request.objectId.href },
     );
@@ -223,11 +226,13 @@ export async function onQuoteRequested(
   const authorizationIri =
     existingAuthorization?.iri ??
     fedCtx.getObjectUri(QuoteAuthorization, { id: authId }).href;
-  const response = new Accept({
+  const response = quoteInteraction.createAccept({
+    mode: "polite",
     id: new URL(`#accept`, request.id),
     actor: new URL(quotedPost.actor.iri),
-    object: request,
-    result: new URL(authorizationIri),
+    request,
+    to: [],
+    authorization: new URL(authorizationIri),
   });
   await fedCtx.data.db
     .insert(quoteAuthorizationTable)
@@ -288,6 +293,10 @@ function quoteRequestTargetRelations(actor: Actor) {
   } as const;
 }
 
+// Keep request verification here: verifyRequest() fetches the target, checks
+// only the first attribution, and rejects conflicting quote/quoteUrl values.
+// We accept either matching quote reference and any matching attribution,
+// trust actor-origin instruments, and resolve local share targets via the DB.
 async function getValidQuoteRequestInstrument(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
@@ -460,6 +469,10 @@ export async function onQuoteRequestAccepted(
           suppressError: true,
         })
       : resolved.result;
+  // The signed Accept comes from the quoted author (checked above); its
+  // result is resolved separately from the embedded request.  Keep these
+  // checks: verifyAuthorization() additionally requires the authorization ID
+  // to share the author's origin, excluding existing author-approved aliases.
   const validAuthorization =
     authorization instanceof QuoteAuthorization &&
     authorization.id?.href === accept.resultId.href &&

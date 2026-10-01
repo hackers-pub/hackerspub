@@ -527,6 +527,10 @@ export async function persistPost(
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
     const authorization = await post.getQuoteAuthorization(opts);
+    // Keep this verification separate from verifyAuthorization(): the helper
+    // requires an ID on the author's origin.  Existing fetched authorizations
+    // may omit an ID or redirect to another origin; remote authenticity below
+    // checks the referenced IRI, while local authenticity uses issued DB rows.
     let validAuthorization =
       authorization instanceof vocab.QuoteAuthorization &&
       authorization.interactingObjectId?.href === post.id.href &&

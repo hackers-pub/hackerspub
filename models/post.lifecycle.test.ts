@@ -308,6 +308,14 @@ test("revokeQuote() federates an Update for locally authored quotes", async () =
         .find((activity) => activity instanceof Delete);
       assert.ok(del instanceof Delete);
       assert.deepEqual(del.objectId?.href, authorizationIri);
+      assert.deepEqual(
+        await del.toJsonLd(),
+        await new Delete({
+          id: new URL("#delete", authorizationIri),
+          actor: fedCtx.getActorUri(owner.account.id),
+          object: new URL(authorizationIri),
+        }).toJsonLd(),
+      );
       assert.ok(
         sent.some(
           (args) =>
@@ -415,14 +423,29 @@ test("revokeQuote() keeps a remote quote's own version timestamp", async () => {
       published: version,
       updated: version,
     });
+    const authorizationIri = `http://localhost/ap/quote-authorizations/${quote.id}`;
+    await tx
+      .update(postTable)
+      .set({ quoteAuthorizationIri: authorizationIri })
+      .where(eq(postTable.id, quote.id));
+    await tx.insert(quoteAuthorizationTable).values({
+      id: quote.id,
+      iri: authorizationIri,
+      quotePostIri: quote.iri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+      attributedActorId: owner.actor.id,
+    });
     const quoteWithActor = await tx.query.postTable.findFirst({
       where: { id: quote.id },
       with: { actor: true },
     });
     assert.ok(quoteWithActor != null);
+    const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      sendActivity() {
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
         return Promise.resolve(undefined);
       },
     };
@@ -433,6 +456,29 @@ test("revokeQuote() keeps a remote quote's own version timestamp", async () => {
       where: { id: quote.id },
     });
     assert.equal(stored?.quotedPostId, null);
+    assert.equal(stored?.quoteAuthorizationIri, null);
+    assert.equal(stored?.quoteTargetState, "denied");
+    assert.equal(sent.length, 1);
+    assert.deepEqual(sent[0][0], { identifier: owner.account.id });
+    assert.equal((sent[0][1] as { id: URL }).id.href, remote.iri);
+    const del = sent[0][2];
+    assert.ok(del instanceof Delete);
+    assert.deepEqual(
+      await del.toJsonLd(),
+      await new Delete({
+        id: new URL("#delete", authorizationIri),
+        actor: fedCtx.getActorUri(owner.account.id),
+        object: new URL(authorizationIri),
+      }).toJsonLd(),
+    );
+    assert.equal(
+      (sent[0][3] as { orderingKey: string }).orderingKey,
+      authorizationIri,
+    );
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { iri: authorizationIri },
+    });
+    assert.equal(authorization?.revoked, true);
     // The publisher's version is untouched, so their next edit (versioned
     // after `version`) is not mistaken for an older one.
     assert.equal(stored?.updated.toISOString(), version.toISOString());
