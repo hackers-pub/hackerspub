@@ -257,6 +257,7 @@ export async function syncPostFromNoteSource(
   const rendered = await renderMarkup(fedCtx, noteSource.content, {
     docId: noteSource.id,
     kv,
+    preserveLineBreaks: true,
   });
   const externalLinks = extractExternalLinks(rendered.html);
   const link =

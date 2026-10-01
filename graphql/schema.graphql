@@ -6604,6 +6604,11 @@ type Query {
     Markdown source text to render into sanitized `HTML`. Used by client-side previews while composing or editing posts.
     """
     content: String!
+
+    """
+    Whether every line break in `content` is rendered as a line break (`true`) or follows standard Markdown soft break behavior (`false`, the default).
+    """
+    preserveLineBreaks: Boolean = false
   ): HTML!
 
   """

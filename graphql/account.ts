@@ -479,6 +479,7 @@ export const Account = builder.drizzleNode("accountTable", {
         const avatarUrl = await getAvatarUrl(ctx.disk, account);
         const bio = await renderMarkup(ctx.fedCtx, account.bio, {
           kv: ctx.kv,
+          preserveLineBreaks: true,
         });
         const key = await putProfileOgImage(ctx.disk, account.ogImageKey, {
           avatarKey: account.avatarMedium?.key ?? avatarUrl,

@@ -82,6 +82,7 @@ export const InvitationLink = builder.drizzleNode("invitationLinkTable", {
         const rendered = await renderMarkup(ctx.fedCtx, link.message, {
           kv: ctx.kv,
           docId: link.id,
+          preserveLineBreaks: true,
         });
         return rendered.html;
       },

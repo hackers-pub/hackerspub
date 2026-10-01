@@ -165,7 +165,11 @@ export async function syncActorFromAccount(
     accountId: account.id,
     name: account.name,
     bioHtml: (
-      await renderMarkup(fedCtx, account.bio, { docId: account.id, kv })
+      await renderMarkup(fedCtx, account.bio, {
+        docId: account.id,
+        kv,
+        preserveLineBreaks: true,
+      })
     ).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,

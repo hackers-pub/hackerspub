@@ -161,6 +161,16 @@ const renderRawHtml = (tokens: { content: string }[], idx: number): string =>
 md.renderer.rules.html_block = renderRawHtml;
 md.renderer.rules.html_inline = renderRawHtml;
 
+md.core.ruler.before("cjk_breaks", "preserve_line_breaks", (state) => {
+  if (!state.env.preserveLineBreaks) return;
+  for (const block of state.tokens) {
+    if (block.type !== "inline") continue;
+    for (const child of block.children ?? []) {
+      if (child.type === "softbreak") child.type = "hardbreak";
+    }
+  }
+});
+
 // This is a workaround for the fact that shiki turns into a strange state
 // when the first invocation of codeToHtml is with a wrong lang name:
 await codeToHtml("", { lang: "javascript", theme: "vitesse-light" });
@@ -183,6 +193,7 @@ interface Env {
   mentionedActors: Record<string, Actor>;
   hashtags: string[];
   macros: Record<string, unknown>;
+  preserveLineBreaks: boolean;
 }
 
 export interface RenderMarkupOptions {
@@ -191,6 +202,7 @@ export interface RenderMarkupOptions {
   refresh?: boolean;
   mediumUrls?: Record<string, string>;
   missingMediumLabel?: string;
+  preserveLineBreaks?: boolean;
 }
 
 function canonicalizeMediumUrls(mediumUrls: Record<string, string>): string {
@@ -211,6 +223,7 @@ export async function renderMarkup(
   const mediumUrls = options.mediumUrls ?? {};
   const missingMediumLabel =
     options.missingMediumLabel ?? DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
+  const preserveLineBreaks = options.preserveLineBreaks ?? false;
   let cacheKey: string | undefined;
   if (options.kv != null) {
     const digest = await crypto.subtle.digest(
@@ -218,7 +231,7 @@ export async function renderMarkup(
       new TextEncoder().encode(
         `${JSON.stringify(options.docId ?? null)}\n${canonicalizeMediumUrls(
           mediumUrls,
-        )}\n${JSON.stringify(missingMediumLabel)}\n${markup}`,
+        )}\n${JSON.stringify(missingMediumLabel)}\n${preserveLineBreaks}\n${markup}`,
       ),
     );
     cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${encodeAscii85(
@@ -251,6 +264,7 @@ export async function renderMarkup(
     mentionedActors,
     hashtags: [],
     macros: {},
+    preserveLineBreaks,
   };
   const rawHtml = (await md.renderAsync(markup, env))
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")

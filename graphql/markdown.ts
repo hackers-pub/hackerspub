@@ -25,6 +25,14 @@ builder.queryField("renderMarkdown", (t) =>
           "Markdown source text to render into sanitized `HTML`. Used by " +
           "client-side previews while composing or editing posts.",
       }),
+      preserveLineBreaks: t.arg.boolean({
+        required: false,
+        defaultValue: false,
+        description:
+          "Whether every line break in `content` is rendered as a line break " +
+          "(`true`) or follows standard Markdown soft break behavior " +
+          "(`false`, the default).",
+      }),
       articleSourceId: t.arg({
         type: "UUID",
         required: false,
@@ -69,6 +77,7 @@ builder.queryField("renderMarkdown", (t) =>
       const rendered = await renderMarkup(ctx.fedCtx, args.content, {
         mediumUrls,
         missingMediumLabel,
+        preserveLineBreaks: args.preserveLineBreaks ?? false,
       });
       return rendered.html;
     },

@@ -63,6 +63,7 @@ export async function getAccountActor(
   const bio = await renderMarkup(toApplicationContext(ctx), account.bio, {
     docId: account.id,
     kv: ctx.data.kv,
+    preserveLineBreaks: true,
   });
   return new ActorClass({
     ...common,

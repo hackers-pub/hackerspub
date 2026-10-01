@@ -499,6 +499,7 @@ export async function getNote(
   const rendered = await renderMarkup(toApplicationContext(ctx), note.content, {
     docId: note.id,
     kv: ctx.data.kv,
+    preserveLineBreaks: true,
   });
   const { disk } = ctx.data;
   const attachments: vocab.Document[] = [];
@@ -615,6 +616,7 @@ export async function getQuestion(
   const rendered = await renderMarkup(toApplicationContext(ctx), note.content, {
     docId: note.id,
     kv: ctx.data.kv,
+    preserveLineBreaks: true,
   });
   const { disk } = ctx.data;
   const attachments: vocab.Document[] = [];

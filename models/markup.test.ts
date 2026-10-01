@@ -41,6 +41,36 @@ Welcome to #HackersPub.`;
   assert.deepEqual(second, first);
 });
 
+test("renderMarkup() renders single line breaks as <br> only with preserveLineBreaks", async () => {
+  const standard = await renderMarkup(null, "first\nsecond");
+  assert.doesNotMatch(standard.html, /<br/);
+
+  const preserved = await renderMarkup(
+    null,
+    "first\nsecond\n\n日本語の一行目\n二行目です",
+    { preserveLineBreaks: true },
+  );
+  assert.match(
+    preserved.html,
+    /<p>first<br>\s*second<\/p>\s*<p>日本語の一行目<br>\s*二行目です<\/p>/,
+  );
+});
+
+test("renderMarkup() caches line break modes separately", async () => {
+  const { kv } = createTestKv();
+  const options = { kv: kv as never, docId: "doc-1" };
+  const markup = "first\nsecond";
+
+  const standard = await renderMarkup(null, markup, options);
+  const preserved = await renderMarkup(null, markup, {
+    ...options,
+    preserveLineBreaks: true,
+  });
+
+  assert.doesNotMatch(standard.html, /<br/);
+  assert.match(preserved.html, /<br/);
+});
+
 test("renderMarkup() canonicalizes medium URLs before caching", async () => {
   const { kv, store } = createTestKv();
   const markup = `![a](hp-medium:a)

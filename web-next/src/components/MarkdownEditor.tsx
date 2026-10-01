@@ -21,7 +21,7 @@ import type { MarkdownEditorRenderMarkdownQuery } from "./__generated__/Markdown
 
 const renderMarkdownQuery = graphql`
   query MarkdownEditorRenderMarkdownQuery($content: String!) {
-    renderMarkdown(content: $content)
+    renderMarkdown(content: $content, preserveLineBreaks: true)
   }
 `;
 
