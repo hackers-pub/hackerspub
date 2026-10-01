@@ -19,6 +19,9 @@
 # npm + other dependencies
 node_modules/
 
+# Local FEP MCP tooling lockfile
+/deno.lock
+
 # media in fs
 /media
 /web/media
