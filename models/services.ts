@@ -1,4 +1,5 @@
 import type * as vocab from "@fedify/vocab";
+import type { DocumentLoader } from "@fedify/vocab-runtime";
 import type { ApplicationModel } from "./context.ts";
 import type { CocProvision } from "./coc.ts";
 import type { ReactionEmoji } from "./emoji.ts";
@@ -79,6 +80,21 @@ export interface SendArticleRelayOptions extends Omit<
 > {}
 
 export interface FederationServices<TContext> {
+  readonly evaluateQuotePolicy: (
+    context: TContext,
+    subject: vocab.Object,
+    requester: URL,
+    matchesApprovalCollection: (collection: URL) => boolean,
+  ) => Promise<"automatic" | "manual" | "denied">;
+  readonly verifyQuoteAuthorization: (
+    context: TContext,
+    authorization: URL,
+    interactingObject: URL,
+    interactionTarget: URL,
+    attributedTo: URL,
+    documentLoader: DocumentLoader,
+    contextLoader?: DocumentLoader,
+  ) => Promise<boolean>;
   readonly subscribeTagsPubHashtag: (
     context: TContext,
     tag: string,

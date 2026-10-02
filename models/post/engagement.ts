@@ -1,3 +1,4 @@
+import { quoteInteraction } from "@fedify/interaction-controls";
 import * as vocab from "@fedify/vocab";
 import { and, count, eq } from "drizzle-orm";
 import { toRecipient } from "../actor.ts";
@@ -144,10 +145,11 @@ async function revokeQuoteOperation(
       .set({ revoked: true, updated: revoked })
       .where(eq(quoteAuthorizationTable.iri, quotePost.quoteAuthorizationIri));
     if (quotePost.actor.accountId == null) {
-      const activity = new vocab.Delete({
+      const activity = quoteInteraction.createRevocation({
         id: new URL("#delete", quotePost.quoteAuthorizationIri),
         actor: fedCtx.getActorUri(account.id),
-        object: new URL(quotePost.quoteAuthorizationIri),
+        authorization: new URL(quotePost.quoteAuthorizationIri),
+        to: [],
       });
       await fedCtx.sendActivity(
         { identifier: account.id },
@@ -181,10 +183,11 @@ async function sendLocalQuoteAuthorizationDelete(
   quote: QuoteUpdatePost,
   quoteAuthorizationIri: string,
 ): Promise<void> {
-  const activity = new vocab.Delete({
+  const activity = quoteInteraction.createRevocation({
     id: new URL("#delete", quoteAuthorizationIri),
     actor: fedCtx.getActorUri(account.id),
-    object: new URL(quoteAuthorizationIri),
+    authorization: new URL(quoteAuthorizationIri),
+    to: [],
   });
   const excludeBaseUris = [
     new URL(fedCtx.origin),

@@ -1,4 +1,5 @@
 import type { Context, RequestContext } from "@fedify/fedify";
+import { quoteInteraction } from "@fedify/interaction-controls";
 import { LanguageString, PUBLIC_COLLECTION } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
@@ -17,6 +18,7 @@ import {
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
+  getQuoteInteractionPolicy as buildQuoteInteractionPolicy,
   getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
@@ -408,26 +410,12 @@ function getQuoteInteractionPolicy(
   quotePolicy: QuotePolicy,
   quoteRequestPolicy: QuotePolicy | null = null,
 ): vocab.InteractionPolicy {
-  const automaticApproval =
-    quotePolicy === "everyone"
-      ? PUBLIC_COLLECTION
-      : quotePolicy === "followers"
-        ? ctx.getFollowersUri(accountId)
-        : ctx.getActorUri(accountId);
-  const manualApproval =
-    quoteRequestPolicy == null
-      ? null
-      : quoteRequestPolicy === "everyone"
-        ? PUBLIC_COLLECTION
-        : quoteRequestPolicy === "followers"
-          ? ctx.getFollowersUri(accountId)
-          : ctx.getActorUri(accountId);
-  return new vocab.InteractionPolicy({
-    canQuote: new vocab.InteractionRule({
-      automaticApproval,
-      manualApproval: manualApproval ?? undefined,
-    }),
-  });
+  return buildQuoteInteractionPolicy(
+    ctx.getActorUri(accountId),
+    ctx.getFollowersUri(accountId),
+    quotePolicy,
+    quoteRequestPolicy,
+  );
 }
 
 builder.setObjectDispatcher(
@@ -918,9 +906,9 @@ builder
       // validating an already-issued quote of moderation-hidden content.
       // Reversible by design: lifting the censorship serves it again.
       if (authorization.quotedPost.censored != null) return null;
-      return new vocab.QuoteAuthorization({
+      return quoteInteraction.createAuthorization({
         id: new URL(authorization.iri),
-        attribution: new URL(authorization.quotedPost.actor.iri),
+        attributedTo: new URL(authorization.quotedPost.actor.iri),
         interactingObject: new URL(authorization.quotePostIri),
         interactionTarget: new URL(authorization.quotedPost.iri),
       });

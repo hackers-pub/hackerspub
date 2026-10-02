@@ -1,3 +1,4 @@
+import { quoteInteraction } from "@fedify/interaction-controls";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
@@ -371,7 +372,7 @@ export async function createNote(
   if (relations.quotedPost != null) {
     const actor = await syncActorFromAccount(fedCtx, account);
     const allowedQuoteTarget = await getAllowedQuoteTargetForActor(
-      db,
+      fedCtx,
       actor,
       relations.quotedPost,
     );
@@ -457,7 +458,7 @@ export async function createNote(
         quoteRequestPolicy: post.quoteRequestPolicy,
       },
     );
-    const request = new vocab.QuoteRequest({
+    const request = quoteInteraction.createRequest({
       id: requestId,
       actor: fedCtx.getActorUri(source.accountId),
       object: new URL(quoteRequestTarget.iri),

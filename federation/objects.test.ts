@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { MemoryKvStore } from "@fedify/fedify";
+import { QuoteAuthorization } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import { createQuestion } from "@hackerspub/models/question";
 import {
@@ -1043,6 +1044,20 @@ test("the quote-authorization dispatcher hides censored posts", async () => {
       services,
     };
     const url = `http://localhost/ap/quote-authorizations/${authId}`;
+    const context = federation.createContext(new Request(url), contextData);
+    const authorization = await context.getObject(QuoteAuthorization, {
+      id: authId,
+    });
+    assert.ok(authorization instanceof QuoteAuthorization);
+    assert.deepEqual(
+      await authorization.toJsonLd(),
+      await new QuoteAuthorization({
+        id: new URL(url),
+        attribution: new URL(author.actor.iri),
+        interactingObject: new URL("https://remote.example/objects/quote"),
+        interactionTarget: new URL(post.iri),
+      }).toJsonLd(),
+    );
 
     await tx
       .update(postTable)

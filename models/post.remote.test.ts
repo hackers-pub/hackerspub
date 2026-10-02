@@ -1225,7 +1225,9 @@ test("persistPost() rejects forged quote authorizations for local targets", asyn
   });
 });
 
-test("persistPost() accepts locally issued quote authorizations", async () => {
+async function assertLocallyIssuedQuoteAuthorization(
+  authorizationOrigin: string,
+): Promise<void> {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "issuedquoteauthauthor",
@@ -1244,8 +1246,7 @@ test("persistPost() accepts locally issued quote authorizations", async () => {
     });
     const quoteIri =
       "https://remote.example/objects/issued-quote-authorization";
-    const authorizationIri =
-      "http://localhost/objects/issued-quote-authorization";
+    const authorizationIri = `${authorizationOrigin}/objects/issued-quote-authorization`;
     await tx.insert(quoteAuthorizationTable).values({
       id: generateUuidV7(),
       iri: authorizationIri,
@@ -1278,6 +1279,93 @@ test("persistPost() accepts locally issued quote authorizations", async () => {
       });
     assert.equal(storedAuthorization?.quotePostId, persisted.id);
   });
+}
+
+test("persistPost() accepts locally issued quote authorizations", () =>
+  assertLocallyIssuedQuoteAuthorization("http://localhost"));
+
+test("persistPost() accepts DB-issued authorization aliases", () =>
+  assertLocallyIssuedQuoteAuthorization("https://approval.example"));
+
+test("persistPost() rejects redirected and ID-less remote authorizations", async () => {
+  for (const variant of [
+    "off-origin reference",
+    "other-origin document",
+    "idless document",
+    "matching document",
+  ]) {
+    await withRollback(async (tx) => {
+      const quoter = await insertRemoteActor(tx, {
+        username: "redirectquotequoter",
+        name: "Redirect Quote Quoter",
+        host: "remote.example",
+      });
+      const author = await insertRemoteActor(tx, {
+        username: "redirectquoteauthor",
+        name: "Redirect Quote Author",
+        host: "quoted.example",
+      });
+      const target = await insertRemotePost(tx, {
+        actorId: author.id,
+        contentHtml: "<p>Restricted redirect target</p>",
+        quotePolicy: "self",
+      });
+      const quoteIri = "https://remote.example/objects/redirect-quote";
+      const reference =
+        variant === "off-origin reference"
+          ? "https://evil.example/authorization"
+          : "https://quoted.example/authorization";
+      const documentUrl =
+        variant === "other-origin document"
+          ? "https://approval.example/authorization"
+          : variant === "matching document"
+            ? reference
+            : "https://quoted.example/resolved-authorization";
+      const authorization = new QuoteAuthorization({
+        id: variant === "idless document" ? null : new URL(documentUrl),
+        attribution: new URL(author.iri),
+        interactingObject: new URL(quoteIri),
+        interactionTarget: new URL(target.iri),
+      });
+      const document = await authorization.toJsonLd();
+      const quote = new Note({
+        id: new URL(quoteIri),
+        attribution: new URL(quoter.iri),
+        to: PUBLIC_COLLECTION,
+        content: "Quote with redirected authorization",
+        quote: new URL(target.iri),
+        quoteAuthorization: new URL(reference),
+      });
+      const fetched: string[] = [];
+      const documentLoader = async (url: string) => {
+        assert.equal(url, reference);
+        fetched.push(url);
+        // Simulate the final URL after a redirect, so Fedify accepts the
+        // document and the application's referenced-origin guard is exercised.
+        return { document, documentUrl, contextUrl: null };
+      };
+      const fedCtx = createFedCtx(tx);
+      const resolved = await new Note({
+        quoteAuthorization: new URL(reference),
+      }).getQuoteAuthorization({ documentLoader });
+      assert.ok(resolved instanceof QuoteAuthorization, variant);
+
+      const persisted = await persistPost(fedCtx, quote, { documentLoader });
+      assert.ok(persisted != null, variant);
+      assert.ok(fetched.includes(reference));
+      const allowed = variant === "matching document";
+      assert.equal(
+        persisted.quotedPost?.id ?? null,
+        allowed ? target.id : null,
+        variant,
+      );
+      assert.equal(
+        persisted.quoteAuthorizationIri,
+        allowed ? reference : null,
+        variant,
+      );
+    });
+  }
 });
 
 test("persistPost() rejects remote quote authorizations from the quote origin", async () => {
@@ -1424,7 +1512,7 @@ test("getAllowedQuoteTargetForActor() unwraps local share chains", async () => {
     });
 
     const target = await getAllowedQuoteTargetForActor(
-      tx,
+      createFedCtx(tx),
       quoter.actor,
       secondSharePost,
     );

@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@fedify/fedify": "catalog:",
+    "@fedify/interaction-controls": "catalog:",
     "@fedify/vocab": "catalog:",
     "@hackerspub/models": "workspace:*",
     "@logtape/logtape": "catalog:",

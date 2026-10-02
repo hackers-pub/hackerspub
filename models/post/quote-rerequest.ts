@@ -1,3 +1,4 @@
+import { quoteInteraction } from "@fedify/interaction-controls";
 import * as vocab from "@fedify/vocab";
 import {
   aliasedTable,
@@ -324,7 +325,7 @@ export async function rerequestQuoteAuthorization(
       ccs: [...instrument.ccIds, targetActorId],
       object: instrument,
     });
-    const request = new vocab.QuoteRequest({
+    const request = quoteInteraction.createRequest({
       id: requestId,
       actor: txCtx.getActorUri(post.noteSource.accountId),
       object: new URL(quotedPost.iri),

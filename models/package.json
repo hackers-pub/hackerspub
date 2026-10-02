@@ -83,6 +83,7 @@
   },
   "dependencies": {
     "@fedify/fedify": "catalog:",
+    "@fedify/interaction-controls": "catalog:",
     "@fedify/markdown-it-hashtag": "catalog:",
     "@fedify/markdown-it-mention": "catalog:",
     "@fedify/vocab": "catalog:",

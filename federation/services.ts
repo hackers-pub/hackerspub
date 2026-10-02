@@ -1,3 +1,5 @@
+import { getDocumentLoader } from "@fedify/fedify";
+import { quoteInteraction } from "@fedify/interaction-controls";
 import type { ApplicationContext } from "@hackerspub/models/context";
 import type { FederationServices } from "@hackerspub/models/services";
 import { sendArticleRelayActivity } from "./article-relay.ts";
@@ -17,6 +19,40 @@ import {
 } from "./tags-pub.ts";
 
 export const federationServices: FederationServices<ApplicationContext> = {
+  evaluateQuotePolicy: async (
+    context,
+    subject,
+    requester,
+    matchesApprovalCollection,
+  ) =>
+    (
+      await quoteInteraction.evaluatePolicy(getFedifyContext(context), {
+        subject,
+        requester,
+        matchesApprovalCollection,
+      })
+    ).result,
+  verifyQuoteAuthorization: async (
+    context,
+    authorization,
+    interactingObject,
+    interactionTarget,
+    attributedTo,
+    documentLoader,
+    contextLoader,
+  ) =>
+    (
+      await quoteInteraction.verifyAuthorization(getFedifyContext(context), {
+        authorization,
+        interactingObject,
+        interactionTarget,
+        attributedTo,
+        documentLoader: (url) =>
+          url === authorization.href
+            ? documentLoader(url)
+            : (contextLoader ?? getDocumentLoader())(url),
+      })
+    ).verified,
   subscribeTagsPubHashtag: (context, tag) =>
     subscribeTagsPubHashtag(getFedifyContext(context), tag),
   unsubscribeTagsPubHashtag: (context, tag) =>

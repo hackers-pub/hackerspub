@@ -667,6 +667,20 @@ test("createNote() keeps pending quote requests out of confirmed quote state", a
       sent.some((args) => args[2] instanceof QuoteRequest),
       true,
     );
+    const request = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof QuoteRequest);
+    assert.ok(request instanceof QuoteRequest);
+    assert.equal(request.id?.href, `${quote.iri}#quote-request`);
+    assert.equal(requestRow?.iri, request.id?.href);
+    assert.equal(
+      request.actorId?.href,
+      fedCtx.getActorUri(quoter.account.id).href,
+    );
+    assert.equal(request.objectId?.href, target.iri);
+    assert.equal(request.instrumentId?.href, quote.iri);
+    assert.deepEqual(request.toIds, []);
+    assert.deepEqual(request.ccIds, []);
     const quoteNotification = await tx.query.notificationTable.findFirst({
       where: {
         accountId: targetAuthor.account.id,

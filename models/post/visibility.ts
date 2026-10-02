@@ -1,4 +1,10 @@
-import { PUBLIC_COLLECTION } from "@fedify/vocab";
+import {
+  InteractionPolicy,
+  InteractionRule,
+  Note,
+  PUBLIC_COLLECTION,
+} from "@fedify/vocab";
+import type { ApplicationContext } from "../context.ts";
 import type { Database, RelationsFilter } from "../db.ts";
 import type {
   Actor,
@@ -61,6 +67,8 @@ export function quotePoliciesFromInteractionPolicy(
     return { quotePolicy: "self", quoteRequestPolicy: null };
   }
   const policy = post.interactionPolicy?.canQuote;
+  // Legacy public posts without canQuote remain quotable.  evaluatePolicy()
+  // defaults to denial, so retain our visibility-aware policy normalization.
   if (policy == null) {
     return {
       quotePolicy: normalizeQuotePolicyForVisibility(visibility, undefined),
@@ -82,63 +90,89 @@ export function quotePoliciesFromInteractionPolicy(
   return { quotePolicy, quoteRequestPolicy };
 }
 
-function canActorQuoteByPolicy(
-  post: Post & { actor: Actor & { followers: Following[] } },
-  actor: Actor,
-  policy: QuotePolicy,
-): boolean {
-  if (post.actorId === actor.id) return true;
-  if (policy === "everyone") return true;
-  if (policy === "followers") {
-    return post.actor.followers.some(
-      (follower) =>
-        follower.followerId === actor.id && follower.accepted != null,
-    );
-  }
-  return false;
+export function getQuoteInteractionPolicy(
+  author: URL,
+  followers: URL | null,
+  quotePolicy: QuotePolicy,
+  quoteRequestPolicy: QuotePolicy | null = null,
+): InteractionPolicy {
+  const approval = (policy: QuotePolicy | null) =>
+    policy === "everyone"
+      ? PUBLIC_COLLECTION
+      : policy === "followers"
+        ? followers
+        : policy === "self"
+          ? author
+          : null;
+  return new InteractionPolicy({
+    canQuote: new InteractionRule({
+      automaticApproval: approval(quotePolicy),
+      manualApproval: approval(quoteRequestPolicy),
+    }),
+  });
 }
 
-export function canActorQuotePost(
-  post: Post & {
-    actor: Actor & {
-      followers: Following[];
-      blockees: Blocking[];
-      blockers: Blocking[];
-    };
-    mentions: Mention[];
-  },
+export async function evaluateQuotePolicy(
+  ctx: ApplicationContext,
+  post: QuotePolicyPost,
   actor: Actor,
-): boolean {
-  if (post.sharedPostId != null) return false;
-  if (post.visibility === "direct" || post.visibility === "none") return false;
-  if (!isPostVisibleTo(post, actor)) return false;
-  return canActorQuoteByPolicy(post, actor, post.quotePolicy);
+): Promise<"automatic" | "manual" | "denied"> {
+  if (
+    post.sharedPostId != null ||
+    post.visibility === "direct" ||
+    post.visibility === "none" ||
+    !isPostVisibleTo(post, actor)
+  )
+    return "denied";
+  // Older actor rows can lack the collection URL; membership still comes
+  // from the DB, so this internal fallback is never dereferenced.
+  const followers = new URL(
+    post.actor.followersUrl ?? "#followers",
+    post.actor.iri,
+  );
+  return await ctx.services.federation.evaluateQuotePolicy(
+    ctx,
+    new Note({
+      attribution: new URL(post.actor.iri),
+      interactionPolicy: getQuoteInteractionPolicy(
+        new URL(post.actor.iri),
+        followers,
+        post.quotePolicy,
+        post.quoteRequestPolicy,
+      ),
+    }),
+    new URL(actor.iri),
+    (collection) =>
+      collection.href === followers?.href &&
+      post.actor.followers.some(
+        (following) =>
+          following.followerId === actor.id && following.accepted != null,
+      ),
+  );
 }
 
-export function canActorRequestQuotePost(
-  post: Post & {
-    actor: Actor & {
-      followers: Following[];
-      blockees: Blocking[];
-      blockers: Blocking[];
-    };
-    mentions: Mention[];
-  },
+export async function canActorQuotePost(
+  ctx: ApplicationContext,
+  post: QuotePolicyPost,
   actor: Actor,
-): boolean {
-  if (canActorQuotePost(post, actor)) return true;
-  if (post.sharedPostId != null) return false;
-  if (post.visibility === "direct" || post.visibility === "none") return false;
-  if (!isPostVisibleTo(post, actor)) return false;
-  if (post.quoteRequestPolicy == null) return false;
-  return canActorQuoteByPolicy(post, actor, post.quoteRequestPolicy);
+): Promise<boolean> {
+  return (await evaluateQuotePolicy(ctx, post, actor)) === "automatic";
+}
+
+export async function canActorRequestQuotePost(
+  ctx: ApplicationContext,
+  post: QuotePolicyPost,
+  actor: Actor,
+): Promise<boolean> {
+  return (await evaluateQuotePolicy(ctx, post, actor)) !== "denied";
 }
 
 export async function getAllowedQuoteTargetForActor(
-  db: Database,
+  ctx: ApplicationContext,
   actor: Actor,
   post: Post,
 ): Promise<QuotePolicyPost | undefined> {
+  const { db } = ctx;
   const targetPostId = await getOriginalPostId(db, post);
   if (targetPostId == null) return undefined;
   const quotedPost: QuotePolicyPost | undefined =
@@ -163,7 +197,7 @@ export async function getAllowedQuoteTargetForActor(
   if (post.censored != null || quotedPost.censored != null) {
     return undefined;
   }
-  const allowed = canActorRequestQuotePost(quotedPost, actor);
+  const allowed = await canActorRequestQuotePost(ctx, quotedPost, actor);
   return allowed ? quotedPost : undefined;
 }
 
@@ -305,13 +339,17 @@ const DENY_ALL: PostInteractionPolicy = {
 };
 
 export async function getPostInteractionPolicies(
-  db: Database,
+  ctx: ApplicationContext,
   postIds: readonly Uuid[],
   viewer: Actor | null,
 ): Promise<Map<Uuid, PostInteractionPolicy>> {
+  const { db } = ctx;
   const result = new Map<Uuid, PostInteractionPolicy>();
   for (const id of postIds) result.set(id, DENY_ALL);
   if (postIds.length < 1 || viewer == null) return result;
+  viewer =
+    (await db.query.actorTable.findFirst({ where: { id: viewer.id } })) ?? null;
+  if (viewer == null) return result;
 
   // Filter each viewer-relevant relation down to the viewer's row only.
   // `isPostVisibleTo` just checks `.some(... === viewer.id ...)`, so loading
@@ -366,7 +404,7 @@ export async function getPostInteractionPolicies(
       !censored &&
       effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
-      canActorRequestQuotePost(effective, viewer);
+      (await canActorRequestQuotePost(ctx, effective, viewer));
     result.set(post.id, {
       canReply: true,
       canQuote,

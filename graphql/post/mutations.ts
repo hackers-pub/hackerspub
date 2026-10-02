@@ -377,7 +377,11 @@ builder.relayMutationField(
           throw new InvalidInputError("quotedPostId");
         }
         if (
-          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+          !(await canActorRequestQuotePost(
+            ctx.fedCtx,
+            effectivePost,
+            actingAccount.account.actor,
+          ))
         ) {
           throw new InvalidInputError("quotedPostId");
         }
@@ -704,7 +708,11 @@ builder.relayMutationField(
           throw new InvalidInputError("quotedPostId");
         }
         if (
-          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+          !(await canActorRequestQuotePost(
+            ctx.fedCtx,
+            effectivePost,
+            actingAccount.account.actor,
+          ))
         ) {
           throw new InvalidInputError("quotedPostId");
         }
