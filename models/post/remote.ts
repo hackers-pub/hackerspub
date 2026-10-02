@@ -526,38 +526,40 @@ export async function persistPost(
     where: { iri: post.id.href },
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
-    const authorization = await post.getQuoteAuthorization(opts);
-    // Keep this verification separate from verifyAuthorization(): the helper
-    // requires an ID on the author's origin.  Existing fetched authorizations
-    // may omit an ID or redirect to another origin; remote authenticity below
-    // checks the referenced IRI, while local authenticity uses issued DB rows.
-    let validAuthorization =
-      authorization instanceof vocab.QuoteAuthorization &&
-      authorization.interactingObjectId?.href === post.id.href &&
-      authorization.interactionTargetId?.href === quotedPost.iri &&
-      authorization.attributionId?.href === quotedPost.actor.iri;
-    if (validAuthorization && quotedPost.actor.accountId != null) {
-      const issuedAuthorization = await db
-        .select({
-          id: quoteAuthorizationTable.id,
-        })
-        .from(quoteAuthorizationTable)
-        .where(
-          and(
-            eq(quoteAuthorizationTable.iri, quoteAuthorizationIri),
-            eq(quoteAuthorizationTable.quotePostIri, post.id.href),
-            eq(quoteAuthorizationTable.quotedPostId, quotedPost.id),
-            eq(quoteAuthorizationTable.attributedActorId, quotedPost.actorId),
-            eq(quoteAuthorizationTable.revoked, false),
-          ),
-        )
-        .limit(1);
-      validAuthorization = issuedAuthorization.length > 0;
-    } else if (validAuthorization) {
-      // Fedify dereferences cross-origin embedded authorizations before this.
+    let validAuthorization: boolean;
+    if (quotedPost.actor.accountId != null) {
+      // Locally issued aliases are authenticated by the stored, unrevoked row.
+      const authorization = await post.getQuoteAuthorization(opts);
+      const issuedAuthorization =
+        await db.query.quoteAuthorizationTable.findFirst({
+          columns: { id: true },
+          where: {
+            iri: quoteAuthorizationIri,
+            quotePostIri: post.id.href,
+            quotedPostId: quotedPost.id,
+            attributedActorId: quotedPost.actorId,
+            revoked: false,
+          },
+        });
       validAuthorization =
-        new URL(quoteAuthorizationIri).origin ===
-        new URL(quotedPost.actor.iri).origin;
+        issuedAuthorization != null &&
+        authorization instanceof vocab.QuoteAuthorization &&
+        authorization.id?.href === quoteAuthorizationIri &&
+        authorization.interactingObjectId?.href === post.id.href &&
+        authorization.interactionTargetId?.href === quotedPost.iri &&
+        authorization.attributionId?.href === quotedPost.actor.iri;
+    } else {
+      // Fetch independently: an embedded authorization is not proof of consent.
+      validAuthorization =
+        await ctx.services.federation.verifyQuoteAuthorization(
+          ctx,
+          new URL(quoteAuthorizationIri),
+          post.id,
+          new URL(quotedPost.iri),
+          new URL(quotedPost.actor.iri),
+          opts.documentLoader,
+          opts.contextLoader ?? ctx.contextLoader,
+        );
     }
     if (!validAuthorization) {
       logger.debug("Ignoring invalid quote authorization: {iri}", {
@@ -591,7 +593,7 @@ export async function persistPost(
   if (
     quotedPost != null &&
     quoteAuthorizationIri == null &&
-    !(await canPersistIncomingQuote(db, quotedPost.id, actor))
+    !(await canPersistIncomingQuote(ctx, quotedPost.id, actor))
   ) {
     logger.debug("Ignoring quoted post denied by quote policy: {iri}", {
       iri: quotedPost.iri,
@@ -1224,11 +1226,11 @@ export async function persistSharedPost(
   });
 }
 async function canPersistIncomingQuote(
-  db: Database,
+  ctx: ApplicationContext,
   quotedPostId: Uuid,
   actor: Actor,
 ): Promise<boolean> {
-  const quotedPost = await db.query.postTable.findFirst({
+  const quotedPost = await ctx.db.query.postTable.findFirst({
     with: {
       actor: {
         with: {
@@ -1244,7 +1246,9 @@ async function canPersistIncomingQuote(
   // Quote *policy* only; the censored (moderation) gate lives at the caller so
   // it also applies to the quote-authorization path, which legitimately
   // overrides policy but must never override censorship.
-  return quotedPost != null && canActorQuotePost(quotedPost, actor);
+  return (
+    quotedPost != null && (await canActorQuotePost(ctx, quotedPost, actor))
+  );
 }
 
 async function getPersistedQuoteTargetState(

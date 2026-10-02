@@ -87,7 +87,7 @@ export async function createQuestion(
   if (relations.quotedPost != null) {
     const actor = await syncActorFromAccount(fedCtx, account);
     const allowedQuoteTarget = await getAllowedQuoteTargetForActor(
-      db,
+      fedCtx,
       actor,
       relations.quotedPost,
     );

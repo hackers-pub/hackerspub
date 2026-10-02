@@ -239,7 +239,7 @@ export async function syncPostFromNoteSource(
   let quotedPost: QuotePolicyPost | undefined;
   if (relations.quotedPost != null) {
     quotedPost = await getAllowedQuoteTargetForActor(
-      db,
+      fedCtx,
       actor,
       relations.quotedPost,
     );
@@ -281,7 +281,7 @@ export async function syncPostFromNoteSource(
     quotedPost != null &&
     quotedPost.actorId !== actor.id &&
     (quotedPost.actor.accountId == null ||
-      !canActorQuotePost(quotedPost, actor)) &&
+      !(await canActorQuotePost(fedCtx, quotedPost, actor))) &&
     existingQuoteAuthorizationIri == null;
   const quotedPostId =
     !hasQuotedPostRelation && existingPost != null

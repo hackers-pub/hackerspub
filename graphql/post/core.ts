@@ -1211,7 +1211,7 @@ export async function loadViewerActionPolicies(
     // matching the `loaderOptions: { cache: false }` semantics on the
     // viewer-state fields.
     const missingIds = [...missing];
-    const batch = getPostInteractionPolicies(ctx.db, missingIds, {
+    const batch = getPostInteractionPolicies(ctx.fedCtx, missingIds, {
       id: viewerActorId,
     } as schema.Actor);
     const cleanup = () => {

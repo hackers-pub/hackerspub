@@ -18,6 +18,7 @@ import {
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
+  getQuoteInteractionPolicy as buildQuoteInteractionPolicy,
   getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
@@ -409,26 +410,12 @@ function getQuoteInteractionPolicy(
   quotePolicy: QuotePolicy,
   quoteRequestPolicy: QuotePolicy | null = null,
 ): vocab.InteractionPolicy {
-  const automaticApproval =
-    quotePolicy === "everyone"
-      ? PUBLIC_COLLECTION
-      : quotePolicy === "followers"
-        ? ctx.getFollowersUri(accountId)
-        : ctx.getActorUri(accountId);
-  const manualApproval =
-    quoteRequestPolicy == null
-      ? null
-      : quoteRequestPolicy === "everyone"
-        ? PUBLIC_COLLECTION
-        : quoteRequestPolicy === "followers"
-          ? ctx.getFollowersUri(accountId)
-          : ctx.getActorUri(accountId);
-  return new vocab.InteractionPolicy({
-    canQuote: new vocab.InteractionRule({
-      automaticApproval,
-      manualApproval: manualApproval ?? undefined,
-    }),
-  });
+  return buildQuoteInteractionPolicy(
+    ctx.getActorUri(accountId),
+    ctx.getFollowersUri(accountId),
+    quotePolicy,
+    quoteRequestPolicy,
+  );
 }
 
 builder.setObjectDispatcher(

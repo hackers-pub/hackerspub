@@ -4,6 +4,7 @@ import {
   type Accept,
   type Delete,
   isActor,
+  Note,
   QuoteAuthorization,
   QuoteRequest,
   type Reject,
@@ -26,8 +27,7 @@ import { isPostObject, type PostObject } from "@hackerspub/models/post/core";
 import { updateQuotesCount } from "@hackerspub/models/post/engagement";
 import { persistPost } from "@hackerspub/models/post/remote";
 import {
-  canActorQuotePost,
-  canActorRequestQuotePost,
+  evaluateQuotePolicy,
   getOriginalPostId,
 } from "@hackerspub/models/post/visibility";
 import {
@@ -107,7 +107,12 @@ async function prepareQuoteRequest(
   );
   if (quotedPost?.actor.accountId == null) return;
   const requestAllowed =
-    quotedPost.censored == null && canActorRequestQuotePost(quotedPost, actor);
+    quotedPost.censored == null &&
+    (await evaluateQuotePolicy(
+      toApplicationContext(fedCtx),
+      quotedPost,
+      actor,
+    )) !== "denied";
   const validInstrument = requestAllowed
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;
@@ -148,12 +153,15 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
-  // A censored post cannot be quoted (the local create-note path enforces the
-  // same), so a remote QuoteRequest for it is denied: granting a
-  // QuoteAuthorization would let federated users re-amplify content the
-  // moderation action makes unquotable.
-  const requestAllowed =
-    quotedPost.censored == null && canActorRequestQuotePost(quotedPost, actor);
+  const decision =
+    quotedPost.censored != null
+      ? "denied"
+      : await evaluateQuotePolicy(
+          toApplicationContext(fedCtx),
+          quotedPost,
+          actor,
+        );
+  const requestAllowed = decision !== "denied";
   const validInstrument = requestAllowed
     ? preparedRequest.validInstrument
     : undefined;
@@ -174,7 +182,7 @@ export async function onQuoteRequested(
     return;
   }
   const { instrument, instrumentIri } = validInstrument;
-  if (!canActorQuotePost(quotedPost, actor)) {
+  if (decision === "manual") {
     const existingQuotePost = await fedCtx.data.db.query.postTable.findFirst({
       columns: { id: true },
       where: { iri: instrumentIri },
@@ -293,93 +301,51 @@ function quoteRequestTargetRelations(actor: Actor) {
   } as const;
 }
 
-// Keep request verification here: verifyRequest() fetches the target, checks
-// only the first attribution, and rejects conflicting quote/quoteUrl values.
-// We accept either matching quote reference and any matching attribution,
-// trust actor-origin instruments, and resolve local share targets via the DB.
 async function getValidQuoteRequestInstrument(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
 ): Promise<ValidQuoteRequestInstrument | undefined> {
-  if (request.actorId == null || request.instrumentId == null) return undefined;
-  const instrumentId = request.instrumentId;
-  if (instrumentId.origin !== request.actorId.origin) {
-    logger.warn(
-      "Rejecting quote request with cross-origin instrument: {instrument}",
-      {
-        instrument: instrumentId.href,
-        actor: request.actorId.href,
-      },
-    );
-    return undefined;
-  }
+  if (
+    request.actorId == null ||
+    request.instrumentId == null ||
+    request.instrumentId.origin !== request.actorId.origin
+  )
+    return;
+  const instrumentIri = request.instrumentId.href;
   const instrument = await request.getInstrument({
     ...fedCtx,
     suppressError: true,
-    crossOrigin: "trust", // We validate the instrument against actor origin.
+    crossOrigin: "trust", // The signed requester owns this origin.
   });
-  if (instrument == null) {
-    logger.warn("Failed to get quote request instrument: {instrument}", {
-      instrument: instrumentId.href,
-    });
-    return undefined;
-  }
-  if (!isPostObject(instrument)) {
-    logger.warn("Rejecting quote request with invalid instrument: {iri}", {
-      iri: instrumentId.href,
-    });
-    return undefined;
-  }
-  return validateQuoteRequestInstrument(request, instrument, instrumentId);
-}
-
-function validateQuoteRequestInstrument(
-  request: QuoteRequest,
-  instrument: PostObject,
-  instrumentId: URL,
-): ValidQuoteRequestInstrument | undefined {
-  if (request.actorId == null || request.instrumentId == null) return undefined;
   if (
+    !isPostObject(instrument) ||
     instrument.id == null ||
     instrument.id.origin !== request.actorId.origin
-  ) {
-    logger.warn(
-      "Rejecting quote request whose instrument id is not on actor origin.",
-      {
-        instrument: instrument.id?.href,
-        actor: request.actorId.href,
-      },
-    );
-    return undefined;
-  }
-  const quotesTarget =
-    instrument.quoteId?.href === request.objectId?.href ||
-    instrument.quoteUrl?.href === request.objectId?.href;
-  if (!quotesTarget) {
-    logger.warn(
-      "Rejecting quote request whose instrument does not quote the object.",
-      {
-        instrument: instrumentId.href,
-        object: request.objectId?.href,
-      },
-    );
-    return undefined;
-  }
-  const belongsToActor = instrument.attributionIds.some(
-    (id) => id.href === request.actorId?.href,
+  )
+    return;
+  // Preserve quoteUrl and multi-attribution compatibility while letting the
+  // helper validate the normalized request. The original object is persisted.
+  const matchingTarget = [instrument.quoteId, instrument.quoteUrl].find(
+    (id) => id?.href === request.objectId?.href,
   );
-  if (!belongsToActor) {
-    logger.warn(
-      "Rejecting quote request whose instrument is not attributed to actor.",
-      {
-        instrument: instrumentId.href,
-        actor: request.actorId.href,
-      },
-    );
-  }
-  return belongsToActor
-    ? { instrument, instrumentIri: instrumentId.href }
-    : undefined;
+  const normalized = instrument.clone({
+    quote: matchingTarget ?? instrument.quoteId,
+    quoteUrl: matchingTarget ?? instrument.quoteUrl,
+    attributions: instrument.attributionIds.some(
+      (id) => id.href === request.actorId!.href,
+    )
+      ? [request.actorId]
+      : instrument.attributionIds,
+  });
+  // The local target was resolved from the DB, including share wrappers;
+  // embed its requested ID so verification never fetches our own public URL.
+  const result = await quoteInteraction.verifyRequest(fedCtx, {
+    request: request.clone({
+      object: new Note({ id: request.objectId }),
+      instrument: normalized,
+    }),
+  });
+  return result.verified ? { instrument, instrumentIri } : undefined;
 }
 
 export async function onQuoteRequestAccepted(
@@ -469,10 +435,7 @@ export async function onQuoteRequestAccepted(
           suppressError: true,
         })
       : resolved.result;
-  // The signed Accept comes from the quoted author (checked above); its
-  // result is resolved separately from the embedded request.  Keep these
-  // checks: verifyAuthorization() additionally requires the authorization ID
-  // to share the author's origin, excluding existing author-approved aliases.
+  // Signed author approval permits authorization aliases on another origin.
   const validAuthorization =
     authorization instanceof QuoteAuthorization &&
     authorization.id?.href === accept.resultId.href &&

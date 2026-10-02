@@ -1287,11 +1287,12 @@ test("persistPost() accepts locally issued quote authorizations", () =>
 test("persistPost() accepts DB-issued authorization aliases", () =>
   assertLocallyIssuedQuoteAuthorization("https://approval.example"));
 
-test("persistPost() keeps the referenced authorization origin rule across redirects", async () => {
+test("persistPost() rejects redirected and ID-less remote authorizations", async () => {
   for (const variant of [
     "off-origin reference",
     "other-origin document",
     "idless document",
+    "matching document",
   ]) {
     await withRollback(async (tx) => {
       const quoter = await insertRemoteActor(tx, {
@@ -1317,7 +1318,9 @@ test("persistPost() keeps the referenced authorization origin rule across redire
       const documentUrl =
         variant === "other-origin document"
           ? "https://approval.example/authorization"
-          : "https://quoted.example/resolved-authorization";
+          : variant === "matching document"
+            ? reference
+            : "https://quoted.example/resolved-authorization";
       const authorization = new QuoteAuthorization({
         id: variant === "idless document" ? null : new URL(documentUrl),
         attribution: new URL(author.iri),
@@ -1350,7 +1353,7 @@ test("persistPost() keeps the referenced authorization origin rule across redire
       const persisted = await persistPost(fedCtx, quote, { documentLoader });
       assert.ok(persisted != null, variant);
       assert.ok(fetched.includes(reference));
-      const allowed = variant !== "off-origin reference";
+      const allowed = variant === "matching document";
       assert.equal(
         persisted.quotedPost?.id ?? null,
         allowed ? target.id : null,
@@ -1509,7 +1512,7 @@ test("getAllowedQuoteTargetForActor() unwraps local share chains", async () => {
     });
 
     const target = await getAllowedQuoteTargetForActor(
-      tx,
+      createFedCtx(tx),
       quoter.actor,
       secondSharePost,
     );
