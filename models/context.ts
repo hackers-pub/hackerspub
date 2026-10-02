@@ -4,6 +4,10 @@ import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database } from "./db.ts";
 import type { ApplicationServices } from "./services.ts";
+import type {
+  ApplicationTask,
+  ApplicationTaskEnqueueOptions,
+} from "./tasks.ts";
 
 export type AfterCommitTask = () => Promise<void> | void;
 
@@ -67,6 +71,12 @@ export interface ContextData<D extends Database = Database> {
  */
 export interface ApplicationContext<D extends Database = Database> {
   db: D;
+  /** Persist work in this database transaction, never in an after-commit callback. */
+  enqueueTask<T>(
+    task: ApplicationTask<T>,
+    data: NoInfer<T>,
+    options?: ApplicationTaskEnqueueOptions,
+  ): Promise<void>;
   /** Rebind every adapter capability to a different database handle. */
   withDatabase(db: Database): ApplicationContext;
   rootDb?: Database;

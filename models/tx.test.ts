@@ -22,6 +22,7 @@ function createContext(
   };
   return {
     db,
+    enqueueTask: never,
     withDatabase: (nextDb) => createContext(nextDb, capabilityDbs, services),
     storage: {} as never,
     kv: {} as never,

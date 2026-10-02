@@ -278,3 +278,170 @@ several addresses may see a different Gravatar after the migration; cached
 federation avatars are refreshed on the next profile synchronization.  Choosing
 a different primary address synchronizes the avatar immediately when no
 uploaded avatar exists.
+
+
+Application tasks
+-----------------
+
+The API is a producer.  Both roles register the same versioned tasks before
+building Fedify; only the standalone worker starts consumers.  Tasks use a
+separate `application.task` queue in PostgreSQL's logged `outbox_event` table,
+with `taskQueueResolution: "strict"`.  Inbox, fanout, and delivery consumers
+cannot claim these rows.  Redis remains required for the worker's shared KV;
+task correctness does not depend on Redis deduplication markers or CAS.
+
+Model code dispatches through `ApplicationContext.enqueueTask()`.  Put the
+state change and dispatch inside `withTransaction()` and await dispatch there.
+The Fedify envelope is inserted using that same database transaction, before
+commit.  Rollback removes both state and intent; enqueue failure propagates
+and rolls back the transaction.  After commit there is no separate enqueue
+step to lose: a worker can poll the intent even if the API crashes immediately.
+Do not move this dispatch into the in-memory after-commit callbacks or catch
+an enqueue error and continue the transaction.
+
+Payloads are plain JSON identifiers, revisions, and job tokens, validated by
+an idempotent Standard Schema on enqueue and dequeue.  Avoid credentials,
+vocabulary objects, and other values whose encoding could perform network
+I/O inside a transaction.  The application descriptor resolves to the exact
+Fedify handle registered on the shared builder.  The handler receives
+`(ApplicationContext, payload, { signal, attempt })`; it must await execution,
+result persistence, and any follow-up dispatch, and pass `signal` to
+cancellable I/O.
+
+Delivery is **at least once**.  Every new enqueue has a new transport ID;
+the DB unique index suppresses replay of that transport ID, not independent
+requests for the same job.  Each workload must enforce DB-backed claims,
+revision checks, and side-effect guards.  Enqueue deduplication is not execution
+idempotency.  The `application.probe.v1` task demonstrates this with an
+`application_task_receipt` UUID primary key and an idempotent insert.  Receipts
+are retained independently of the queue's completed-message retention.
+
+Ordering keys are optional and are namespaced separately from ActivityPub
+keys.  The advisory lock taken during enqueue lasts until the caller's
+transaction commits.  Acquire multiple keys in a consistent order: otherwise
+PostgreSQL can abort a deadlock victim, rolling back its state and intents.
+A delayed retry blocks later work with the same key; choose keys only when
+that FIFO behavior is required.
+
+### Retries, timeouts, and shutdown
+
+Two queue-owned claim loops execute tasks concurrently, each awaiting its real
+handler before acknowledging or claiming another row.  Do not wrap this queue
+in Fedify's `ParallelMessageQueue`: that wrapper returns to the backend before
+the real handler finishes.
+
+The task backend declares `nativeRetrial: true`, so Fedify rethrows handler
+failures and the DB queue owns the retry budget.  The default is three attempts,
+with 5-second and 10-second delays before retries.  A hard worker termination
+consumes its claimed attempt; repeated terminations cannot cause unlimited
+execution.  Per-task Fedify `retryPolicy` does not run on this backend.  Future
+workloads needing another budget must configure a dedicated task queue with
+`maximumProcessingAttempts` rather than layering a second retry mechanism.
+
+Each task has a 30-minute deadline, a 3-minute lease, and 60-second renewal.
+Custom renewal intervals must be shorter than half the lease duration.
+A deadline aborts the execution signal with `ApplicationTaskTimeoutError` and
+counts as a failure.  Definitive lease loss cancels execution; transient
+renewal errors are logged and tolerated until the last successful renewal is
+within one heartbeat interval of expiry.  Old lease tokens cannot complete,
+retry, or fail a row reclaimed by another worker.  This fence protects queue
+state; workload guards must also protect application writes and external
+side effects during a network partition.
+
+SIGINT/SIGTERM stops new claims and cancels running handlers.  The worker
+waits for the **actual handlers and outstanding lease writes** before closing
+resources.  Drained interrupted rows return to `pending` without spending a
+failure attempt, including an interruption on the last allowed attempt.
+If a deadline or lease failure already cancelled execution before shutdown,
+that failure still consumes its attempt.
+`last_error.details.interruptions` and structured release logs expose repeated
+interruption/starvation.  A handler that returns after cancellation is also
+released rather than acknowledged, so an effect committed during drain may
+execute again.  Make the entire operation idempotent.
+
+A handler ignoring cancellation can delay shutdown indefinitely.  Its lease
+continues renewing while it drains, avoiding overlap with a still-live worker.
+Timeout logs identify the event immediately, and later renewal ticks warn
+that it is still draining.  The worker health file proves process liveness,
+not task progress.  Give the supervisor a stop grace slightly longer than
+30 minutes for long LLM jobs, or explicitly accept restart when choosing a
+shorter grace.  If draining never ends, terminate the worker with SIGKILL and
+restart it; recovery takes up to three minutes after its last successful
+renewal.  Plan deploy cadence so long tasks can finish, or pause producers
+and drain before deployment.
+
+### Observability and recovery
+
+Fedify emits `fedify.task` spans with `fedify.task.name` and the zero-based
+`fedify.task.attempt`, plus the `fedify.queue.task.*` metrics.  The backend
+presents its DB attempt count to Fedify without rewriting the stored payload.
+On this native-retry backend a retryable handler error records a failed span
+on each attempt; a queue retry log and `processing_attempts` distinguish those
+from terminal dead letters.  Unknown names and codec/schema failures still
+emit Fedify's `unknown_task`, `deserialization`, or `validation` failure reason.
+The registered-handler entry guard retains those dropped messages as `dead`
+with `TaskDispatchRejectedError`, rather than clearing them as completed.
+
+Use the operator CLI (with the same environment as the API/worker):
+
+~~~~ bash
+mise run tasks:application -- enqueue
+mise run tasks:application -- receipt JOB_UUID
+mise run tasks:application -- dead
+mise run tasks:application -- replay EVENT_UUID
+~~~~
+
+`enqueue` uses the API's resource/context path and returns a probe job UUID;
+`receipt` returns `null` until the worker persists completion.  `dead` lists
+IDs, task names, attempts, and errors without decoding opaque payloads.
+`replay` accepts only a dead `application.task` event with a retained payload
+and resets its DB attempt count.  Restore compatible registrations/schemas
+before replaying dropped messages; replay alone cannot repair schema drift.
+
+Dead tasks are excluded from automatic outbox pruning.  Inspect backlog and
+stale leases directly when diagnosing a stuck worker:
+
+~~~~ sql
+SELECT id, status, payload->>'taskName' AS task_name,
+       processing_attempts, available, leased, last_error
+FROM outbox_event
+WHERE event_type = 'application.task'
+ORDER BY created;
+~~~~
+
+If a dead task is deliberately abandoned, record the reason in the operational
+incident and remove only its exact ID:
+
+~~~~ sql
+DELETE FROM outbox_event
+WHERE id = 'EVENT_UUID'::uuid
+  AND event_type = 'application.task'
+  AND status = 'dead';
+~~~~
+
+### Rollout and rollback compatibility
+
+Apply the additive receipt-table migration first.  Upgrade the **entire worker
+fleet before API producers**, retaining registrations and schemas for all
+queued payload versions.  A pre-infrastructure worker ignores task rows,
+leaving them pending.  An older task-capable worker can consume a new name or
+schema and drop it; the adapter preserves that row as dead for recovery, but
+operators must restore compatibility and replay it.
+
+For rollback, stop/revert the newer producers first and retain compatible
+workers until their pending/processing tasks drain.  Do not rename/remove a
+task or narrow its schema while pending, processing, or recoverable dead rows
+still require it.  The receipt migration can remain in place.  Review
+retained dead rows before retiring a registration.  Restore a compatible
+worker and replay affected IDs after a mistaken incompatible deployment.
+
+The infrastructure regression suite runs a separate producer and task-only
+worker against the test PostgreSQL backend, including SIGKILL both before
+persistence and after persistence but before acknowledgment.  It deliberately
+runs no cron, email, ActivityPub delivery, or LLM calls; translation, summary,
+and scheduled workload migrations remain separate work items.
+
+See [Fedify's task documentation] for the serialization, retry, and telemetry
+contracts.
+
+[Fedify's task documentation]: https://fedify.dev/manual/tasks

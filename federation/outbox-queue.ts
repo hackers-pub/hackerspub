@@ -17,12 +17,17 @@ import {
   type OutboxDatabase,
   type OutboxEventType,
   renewOutboxLease,
+  releaseApplicationTask,
   retryOutboxEvent,
 } from "@hackerspub/models/outbox";
 import type {
   ArticleDeliveryChannel,
   OutboxEventError,
 } from "@hackerspub/models/schema";
+import {
+  taskExecutionStorage,
+  type TaskExecutionState,
+} from "./task-execution.ts";
 
 const logger = getLogger(["hackerspub", "federation", "transactional-outbox"]);
 
@@ -106,7 +111,7 @@ export function recordOutboxDeliveryError(error: unknown): void {
 }
 
 interface QueueMessage {
-  readonly type: "fanout" | "outbox";
+  readonly type: "fanout" | "outbox" | "task";
   readonly id: string;
   readonly activityId?: string;
   readonly activityType?: string;
@@ -121,6 +126,8 @@ export interface TransactionalOutboxQueueOptions {
   readonly heartbeatInterval?: Temporal.Duration | Temporal.DurationLike;
   readonly handlerTimeout?: Temporal.Duration | Temporal.DurationLike;
   readonly maximumProcessingAttempts?: number;
+  /** Task consumers only; delivery/fanout remain sequential. */
+  readonly concurrency?: number;
 }
 
 export class OutboxHandlerTimeoutError extends Error {
@@ -150,6 +157,7 @@ function durationMilliseconds(
 }
 
 function expectedMessageType(eventType: OutboxEventType): QueueMessage["type"] {
+  if (eventType === "application.task") return "task";
   return eventType === "activitypub.fanout" ? "fanout" : "outbox";
 }
 
@@ -225,7 +233,7 @@ async function runHandlerBounded<T>(
 }
 
 export class TransactionalOutboxQueue implements MessageQueue {
-  readonly nativeRetrial = false;
+  readonly nativeRetrial: boolean;
   readonly #db: OutboxDatabase;
   readonly #eventType: OutboxEventType;
   readonly #now: () => Date;
@@ -234,6 +242,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
   readonly #heartbeatIntervalMilliseconds: number;
   readonly #handlerTimeoutMilliseconds: number;
   readonly #maximumProcessingAttempts: number;
+  readonly #concurrency: number;
 
   constructor(
     db: OutboxDatabase,
@@ -242,6 +251,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
   ) {
     this.#db = db;
     this.#eventType = eventType;
+    this.nativeRetrial = eventType === "application.task";
     this.#now = options.now ?? (() => new Date());
     this.#pollIntervalMilliseconds = durationMilliseconds(
       options.pollInterval ?? { seconds: 5 },
@@ -253,9 +263,34 @@ export class TransactionalOutboxQueue implements MessageQueue {
       options.heartbeatInterval ?? { seconds: 60 },
     );
     this.#handlerTimeoutMilliseconds = durationMilliseconds(
-      options.handlerTimeout ?? { seconds: 180 },
+      options.handlerTimeout ??
+        (this.nativeRetrial ? { minutes: 30 } : { seconds: 180 }),
     );
-    this.#maximumProcessingAttempts = options.maximumProcessingAttempts ?? 10;
+    this.#maximumProcessingAttempts =
+      options.maximumProcessingAttempts ?? (this.nativeRetrial ? 3 : 10);
+    this.#concurrency = this.nativeRetrial ? (options.concurrency ?? 2) : 1;
+    if (
+      !Number.isSafeInteger(this.#concurrency) ||
+      this.#concurrency < 1 ||
+      !Number.isSafeInteger(this.#maximumProcessingAttempts) ||
+      this.#maximumProcessingAttempts < 1
+    ) {
+      throw new RangeError(
+        "Queue concurrency and attempt limits must be positive integers.",
+      );
+    }
+    if (
+      this.nativeRetrial &&
+      (this.#pollIntervalMilliseconds <= 0 ||
+        this.#handlerTimeoutMilliseconds <= 0 ||
+        this.#heartbeatIntervalMilliseconds <= 0 ||
+        this.#heartbeatIntervalMilliseconds >=
+          this.#leaseDuration.total("milliseconds") / 2)
+    ) {
+      throw new RangeError(
+        "Task durations must be positive and heartbeat shorter than half the lease.",
+      );
+    }
   }
 
   enqueue(
@@ -289,6 +324,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
     );
 
     if (
+      !this.nativeRetrial &&
       processing != null &&
       processing.event.eventType === this.#eventType &&
       processing.event.messageId === message.id
@@ -367,7 +403,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
         },
       ],
       {
-        orderingKey: options?.orderingKey,
+        orderingKey: this.#orderingKey(options?.orderingKey),
         now,
         available,
         ...(processing == null
@@ -422,7 +458,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
         articleDeliveryChannel: context?.articleDeliveryChannel,
       })),
       {
-        orderingKey: options?.orderingKey,
+        orderingKey: this.#orderingKey(options?.orderingKey),
         now,
         available,
         ...(processing == null
@@ -446,9 +482,24 @@ export class TransactionalOutboxQueue implements MessageQueue {
     return await getOutboxDepth(this.#db, this.#eventType, this.#now());
   }
 
+  #orderingKey(key?: string): string | undefined {
+    return key == null || !this.nativeRetrial ? key : `application.task:${key}`;
+  }
+
   async listen(
     handler: (message: unknown) => Promise<void> | void,
     options: MessageQueueListenOptions = {},
+  ): Promise<void> {
+    await Promise.all(
+      Array.from({ length: this.#concurrency }, () =>
+        this.#listen(handler, options),
+      ),
+    );
+  }
+
+  async #listen(
+    handler: (message: unknown) => Promise<void> | void,
+    options: MessageQueueListenOptions,
   ): Promise<void> {
     const { signal } = options;
     while (!signal?.aborted) {
@@ -484,6 +535,10 @@ export class TransactionalOutboxQueue implements MessageQueue {
     handler: (message: unknown) => Promise<void> | void,
     signal?: AbortSignal,
   ): Promise<void> {
+    if (this.nativeRetrial) {
+      await this.#processTask(event, handler, signal);
+      return;
+    }
     let heartbeatActive = true;
     const heartbeat = setInterval(() => {
       void renewOutboxLease(this.#db, event, this.#now())
@@ -615,5 +670,243 @@ export class TransactionalOutboxQueue implements MessageQueue {
       heartbeatActive = false;
       clearInterval(heartbeat);
     }
+  }
+
+  async #processTask(
+    event: ClaimedOutboxEvent,
+    handler: (message: unknown) => Promise<void> | void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const controller = new AbortController();
+    const execution: TaskExecutionState = {
+      signal: controller.signal,
+      attempt: event.processingAttempts - 1,
+      entered: false,
+    };
+    const started = this.#now();
+    let lastRenewal = started.getTime();
+    let renewal: Promise<void> | undefined;
+    let heartbeat: ReturnType<typeof setInterval> | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let shutdownCancellation = false;
+    const abort = () => {
+      if (controller.signal.aborted) return;
+      shutdownCancellation = true;
+      controller.abort(getAbortError(signal!));
+    };
+    const context: OutboxContext = { db: this.#db, pending: [] };
+    let failure: unknown;
+    let failed = false;
+    let invalid = false;
+    try {
+      if (signal?.aborted) abort();
+      else signal?.addEventListener("abort", abort, { once: true });
+      controller.signal.throwIfAborted();
+      if (event.processingAttempts > this.#maximumProcessingAttempts) {
+        invalid = true;
+        throw new Error(
+          "Application task exhausted its attempts after worker termination.",
+        );
+      }
+      if (event.payloadVersion !== 1) {
+        invalid = true;
+        throw new TypeError(
+          `Unsupported application task payload version ${event.payloadVersion}.`,
+        );
+      }
+      let message: QueueMessage;
+      try {
+        message = validateMessage("application.task", event.payload);
+      } catch (error) {
+        invalid = true;
+        throw error;
+      }
+      const leaseMilliseconds = this.#leaseDuration.total("milliseconds");
+      heartbeat = setInterval(() => {
+        const now = this.#now();
+        if (
+          now.getTime() - lastRenewal >=
+          leaseMilliseconds - this.#heartbeatIntervalMilliseconds
+        ) {
+          controller.abort(
+            new Error("Application task lease could not be renewed safely."),
+          );
+        }
+        if (controller.signal.reason instanceof ApplicationTaskTimeoutError) {
+          logger.warning(
+            "Application task {eventId} is still draining after its deadline.",
+            () => ({
+              eventId: event.id,
+              taskName: message.taskName,
+              elapsedMilliseconds: now.getTime() - started.getTime(),
+            }),
+          );
+        }
+        if (renewal != null) return;
+        renewal = renewOutboxLease(this.#db, event, now)
+          .then((renewed) => {
+            if (renewed) lastRenewal = now.getTime();
+            else
+              controller.abort(new Error("Application task lease was lost."));
+          })
+          .catch((error) => {
+            logger.error(
+              "Failed to renew application task {eventId}: {error}",
+              { eventId: event.id, error },
+            );
+          })
+          .finally(() => {
+            renewal = undefined;
+          });
+      }, this.#heartbeatIntervalMilliseconds);
+      timeout = setTimeout(() => {
+        const error = new ApplicationTaskTimeoutError(
+          this.#handlerTimeoutMilliseconds,
+        );
+        logger.error(
+          "Application task {eventId} exceeded its deadline; draining its handler.",
+          {
+            eventId: event.id,
+            taskName: message.taskName,
+            error,
+          },
+        );
+        controller.abort(error);
+      }, this.#handlerTimeoutMilliseconds);
+      await contextStorage.run(context, () =>
+        taskExecutionStorage.run(execution, async () => {
+          const handled = await Promise.resolve()
+            .then(() => handler({ ...message, attempt: execution.attempt }))
+            .then(
+              () => ({ successful: true as const }),
+              (error: unknown) => ({ successful: false as const, error }),
+            );
+          // Even failed handlers may have started queue writes: drain them.
+          const writes = await Promise.allSettled(context.pending);
+          if (!handled.successful) throw handled.error;
+          const rejected = writes.find(
+            (result) => result.status === "rejected",
+          );
+          if (rejected?.status === "rejected") throw rejected.reason;
+        }),
+      );
+      controller.signal.throwIfAborted();
+      if (!execution.entered) {
+        invalid = true;
+        throw new TaskDispatchRejectedError();
+      }
+    } catch (error) {
+      failed = true;
+      failure = controller.signal.aborted ? controller.signal.reason : error;
+    } finally {
+      if (timeout != null) clearTimeout(timeout);
+      if (heartbeat != null) clearInterval(heartbeat);
+      signal?.removeEventListener("abort", abort);
+      await renewal;
+    }
+
+    if (!failed) {
+      const completed = await completeOutboxEvent(this.#db, event, this.#now());
+      logger.debug(
+        "Completed application task {eventId} on attempt {attempt}.",
+        () => ({
+          eventId: event.id,
+          attempt: execution.attempt,
+          staleLease: !completed,
+        }),
+      );
+      return;
+    }
+    const error = serializeOutboxError(failure);
+    if (shutdownCancellation && failure === controller.signal.reason) {
+      const released = await releaseApplicationTask(
+        this.#db,
+        event,
+        error,
+        this.#now(),
+      );
+      logger.info(
+        "Released drained application task {eventId} during shutdown.",
+        () => ({
+          eventId: event.id,
+          attempt: execution.attempt,
+          interruptions:
+            Number(event.lastError?.details?.interruptions ?? 0) + 1,
+          staleLease: !released,
+        }),
+      );
+      return;
+    }
+    const retainedError = {
+      ...error,
+      details: {
+        ...error.details,
+        interruptions: event.lastError?.details?.interruptions ?? 0,
+        ...(event.processingAttempts > this.#maximumProcessingAttempts
+          ? { previous: event.lastError }
+          : {}),
+      },
+    };
+    if (
+      invalid ||
+      event.processingAttempts >= this.#maximumProcessingAttempts
+    ) {
+      const saved = await failOutboxEvent(
+        this.#db,
+        event,
+        retainedError,
+        this.#now(),
+      );
+      logger.error(
+        "Application task {eventId} is dead; operator recovery is required.",
+        {
+          eventId: event.id,
+          attempt: execution.attempt,
+          error: retainedError,
+          staleLease: !saved,
+        },
+      );
+    } else {
+      const available = new Date(
+        this.#now().getTime() +
+          Math.min(300, 5 * 2 ** execution.attempt) * 1000,
+      );
+      const saved = await retryOutboxEvent(
+        this.#db,
+        event,
+        {
+          payload: event.payload,
+          available,
+          error: retainedError,
+        },
+        this.#now(),
+      );
+      logger.warning(
+        "Application task {eventId} will retry after attempt {attempt}.",
+        {
+          eventId: event.id,
+          attempt: execution.attempt,
+          available,
+          error: retainedError,
+          staleLease: !saved,
+        },
+      );
+    }
+  }
+}
+
+export class ApplicationTaskTimeoutError extends Error {
+  constructor(milliseconds: number) {
+    super(`Application task exceeded ${milliseconds} milliseconds.`);
+    this.name = "ApplicationTaskTimeoutError";
+  }
+}
+
+class TaskDispatchRejectedError extends Error {
+  constructor() {
+    super(
+      "Fedify dropped the task: unknown registration, invalid schema, or undecodable payload.",
+    );
+    this.name = "TaskDispatchRejectedError";
   }
 }

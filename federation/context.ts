@@ -5,7 +5,9 @@ import type {
   ContextData,
 } from "@hackerspub/models/context";
 import { withTransaction } from "@hackerspub/models/tx";
+import { assertApplicationTaskPayload } from "@hackerspub/models/tasks";
 import { runWithOutboxContext } from "./outbox-queue.ts";
+import { getApplicationTaskHandle } from "./task-registry.ts";
 
 export function sendActivityWithOutbox(
   context: Context<ContextData>,
@@ -111,6 +113,16 @@ export function toApplicationContext(
       : undefined;
   const applicationContext: ApplicationContext = {
     db: context.data.db,
+    enqueueTask(task, data, options) {
+      assertApplicationTaskPayload(data);
+      const handle = getApplicationTaskHandle(task);
+      return runWithOutboxContext(this.db, () =>
+        context.enqueueTask(handle, data, {
+          delay: options?.delay,
+          orderingKey: options?.orderingKey,
+        }),
+      );
+    },
     withDatabase(db) {
       return toApplicationContext(
         context.clone({

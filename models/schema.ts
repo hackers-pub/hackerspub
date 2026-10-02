@@ -2423,6 +2423,14 @@ export const outboxEventTable = pgTable(
 export type OutboxEvent = typeof outboxEventTable.$inferSelect;
 export type NewOutboxEvent = typeof outboxEventTable.$inferInsert;
 
+// A small, DB-idempotent task for exercising producer/worker delivery.
+export const applicationTaskReceiptTable = pgTable("application_task_receipt", {
+  jobId: uuid("job_id").$type<Uuid>().primaryKey(),
+  completed: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+});
+
 export const pollTable = pgTable(
   "poll",
   {
