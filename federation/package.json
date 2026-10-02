@@ -14,7 +14,8 @@
     "./outbox-queue": "./outbox-queue.ts",
     "./services": "./services.ts",
     "./tags-pub": "./tags-pub.ts",
-    "./webfinger": "./webfinger.ts"
+    "./webfinger": "./webfinger.ts",
+    "./task-registry": "./task-registry.ts"
   },
   "dependencies": {
     "@fedify/fedify": "catalog:",

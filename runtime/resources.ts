@@ -323,6 +323,7 @@ export async function createFederationResource(
   );
   const fanoutQueue = new TransactionalOutboxQueue(db, "activitypub.fanout");
   const outboxQueue = new TransactionalOutboxQueue(db, "activitypub.delivery");
+  const taskQueue = new TransactionalOutboxQueue(db, "application.task");
   let federation: Federation<ContextData>;
   try {
     federation = await builder.build({
@@ -331,7 +332,9 @@ export async function createFederationResource(
         inbox: inboxQueue,
         fanout: fanoutQueue,
         outbox: outboxQueue,
+        task: taskQueue,
       },
+      taskQueueResolution: "strict",
       onOutboxError: (error) => recordOutboxDeliveryError(error),
       ...getFederationBehaviorOptions(options),
       origin: config.origin.href,

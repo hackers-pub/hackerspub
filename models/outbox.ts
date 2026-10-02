@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, lt, ne, or, sql } from "drizzle-orm";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   recordArticleDeliveries,
@@ -16,6 +16,7 @@ import type { Uuid } from "./uuid.ts";
 export const OUTBOX_EVENT_TYPES = [
   "activitypub.fanout",
   "activitypub.delivery",
+  "application.task",
 ] as const;
 
 export type OutboxEventType = (typeof OUTBOX_EVENT_TYPES)[number];
@@ -382,6 +383,54 @@ export async function retryOutboxEvent(
   return rowCount(rows);
 }
 
+/** Release a drained task without charging a graceful restart to its budget. */
+export async function releaseApplicationTask(
+  db: OutboxDatabase,
+  event: ClaimedOutboxEvent,
+  error: OutboxEventError,
+  now = new Date(),
+): Promise<boolean> {
+  const interruptions =
+    Number(event.lastError?.details?.interruptions ?? 0) + 1;
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      status: "pending",
+      available: now,
+      processingAttempts: sql`greatest(0, ${outboxEventTable.processingAttempts} - 1)`,
+      leaseToken: null,
+      leased: null,
+      lastError: { ...error, details: { ...error.details, interruptions } },
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, event.id),
+        eq(outboxEventTable.eventType, "application.task"),
+        eq(outboxEventTable.status, "processing"),
+        eq(outboxEventTable.leaseToken, event.leaseToken),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
+  return rowCount(rows);
+}
+
+export async function replayApplicationTask(
+  db: OutboxDatabase,
+  id: Uuid,
+): Promise<boolean> {
+  return await runInTransaction(db, async (tx) => {
+    const [event] = await tx
+      .select({ eventType: outboxEventTable.eventType })
+      .from(outboxEventTable)
+      .where(eq(outboxEventTable.id, id));
+    return (
+      event?.eventType === "application.task" &&
+      (await replayOutboxEvent(tx, id))
+    );
+  });
+}
+
 export async function failOutboxEvent(
   db: OutboxDatabase,
   event: Pick<ClaimedOutboxEvent, "id" | "leaseToken">,
@@ -513,6 +562,7 @@ export async function pruneOutboxEvents(
         and(
           eq(outboxEventTable.status, "dead"),
           lt(outboxEventTable.failed, options.failedBefore),
+          ne(outboxEventTable.eventType, "application.task"),
         ),
       ),
     )

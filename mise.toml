@@ -176,3 +176,7 @@ run = "node --import temporal-polyfill/global scripts/repair-link-previews.ts"
 [tasks.rerequest-quote-authorization]
 description = "Refresh and re-request FEP-044f authorization for legacy remote quote posts"
 run = "node --import temporal-polyfill/global scripts/rerequest-quote-authorization.ts"
+
+[tasks."tasks:application"]
+description = "Enqueue a task probe, inspect receipts/dead letters, or replay a dead task"
+run = "node --import temporal-polyfill/global scripts/application-tasks.ts"
