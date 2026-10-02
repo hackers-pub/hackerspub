@@ -57,6 +57,7 @@ export async function summarize(options: SummaryOptions): Promise<string> {
   );
   const { text } = await generateText({
     model: options.model,
+    abortSignal: options.signal,
     system,
     prompt: removeDetailsFromSummaryInput(options.text),
   });

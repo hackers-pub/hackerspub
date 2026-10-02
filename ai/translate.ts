@@ -94,6 +94,7 @@ export async function translate(options: TranslationOptions): Promise<string> {
     options.text,
     {
       sourceLanguage: options.sourceLanguage,
+      signal: options.signal,
       mediaType: "text/markdown",
       tone: "technical",
       refinement: true,

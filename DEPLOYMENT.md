@@ -445,3 +445,49 @@ See [Fedify's task documentation] for the serialization, retry, and telemetry
 contracts.
 
 [Fedify's task documentation]: https://fedify.dev/manual/tasks
+
+### Article translation tasks
+
+Translation requests and source edits persist `article.translation.v1` intents
+atomically with their placeholders. The API returns without calling the LLM;
+run the standalone worker to complete them. Payloads contain the source UUID,
+stored language key, and `translationJobToken`. The worker loads current
+content, author context, and translation eligibility, then awaits translation,
+reader-variant materialization, and transactional federation delivery. Human
+publication, disabled LLM translation, and newer source revisions fence off
+older results. Censored articles retain reader variants without federation.
+
+Tasks for one source/language use an ordering key. Duplicate deliveries cannot
+publish conflicting results, but an interrupted call or expired lease can
+repeat LLM work. Retries use the same token and re-read the current claim,
+including after worker termination. A killed worker's event becomes reclaimable
+after the queue lease expires (normally three minutes), consuming one of the
+three attempts. The existing 30-minute reader reclaim window also remains:
+a reader may supersede a slow active or retrying job with a new token. This can
+waste an LLM call; the token and claim checks discard its obsolete result.
+
+Ordinary LLM or persistence failures retain the placeholder and age its claim,
+so either a queued retry or a new reader request can recover it immediately.
+Cancellation retains the claim for worker recovery. Exhausted tasks retain their
+payload in the dead-letter queue. Use the `dead` and `replay` commands above;
+replay is useful only while the placeholder still has the payload's token.
+A completed, deleted, or superseded job is a no-op. If the original changes
+without rotating an unfinished job's token (for example, a title-only edit),
+the worker atomically refreshes its placeholder and queues a replacement
+instead of leaving it without queued work. Existing placeholders from
+before this migration become queued work on their next stale reader request.
+
+A successful translation also persists an `article.translation-summary.v1`
+intent and a `summaryStarted` claim in the same completion transaction. This
+bridge awaits summary generation and application, using the existing body and
+claim guards. Retries reuse that claim without waiting for its stale timeout.
+An exhausted summary needs operator replay or a subsequent source edit; there
+is no periodic summary recovery scan. Original-language and human-publication
+summary triggers keep their existing behavior until the summary migration.
+
+Deploy compatible worker registrations before enabling these producers, and
+retain both task names and payload schemas while their messages remain queued,
+including when migrating the other summary triggers. Rolling back to a worker
+without these registrations drops unknown messages: drain or retain a compatible
+worker rather than relying on rollback to recover them. No database migration
+is required beyond the common application-task infrastructure.

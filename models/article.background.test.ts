@@ -11,6 +11,7 @@ import {
 } from "./schema.ts";
 import {
   createArticle,
+  executeArticleTranslation,
   restartArticleContentTranslations,
   startArticleContentSummary,
   startArticleContentTranslation,
@@ -299,7 +300,7 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
   });
 });
 
-test("startArticleContentTranslation() deletes queued rows when translation fails", async () => {
+test("startArticleContentTranslation() retains retryable jobs when translation fails", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     fedCtx.models = {
@@ -353,12 +354,23 @@ test("startArticleContentTranslation() deletes queued rows when translation fail
     assert.equal(queued.language, "ko");
     assert.equal(queued.beingTranslated, true);
 
-    await waitFor(async () => {
-      const current = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      return current == null;
+    await assert.rejects(
+      executeArticleTranslation(
+        fedCtx,
+        {
+          sourceId,
+          language: "ko",
+          translationJobToken: queued.translationJobToken!,
+        },
+        { signal: new AbortController().signal, attempt: 0 },
+      ),
+    );
+    const retained = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "ko" },
     });
+    assert.equal(retained?.beingTranslated, true);
+    assert.equal(retained?.updated.getTime(), 0);
+    assert.equal(retained?.translationJobToken, queued.translationJobToken);
   });
 });
 
@@ -430,36 +442,33 @@ test("restartArticleContentTranslations() resets each translation row to placeho
       updated: new Date("2026-04-15T01:00:00.000Z"),
     });
 
-    await restartArticleContentTranslations(fedCtx, articleSource);
+    const reset = await restartArticleContentTranslations(
+      fedCtx,
+      articleSource,
+    );
 
-    // The row must briefly pass through placeholder state before
-    // the failing stub model causes the failure branch to delete
-    // it; assert on either observable.
-    await waitFor(async () => {
-      const current = await tx.query.articleContentTable.findFirst({
+    const row = reset[0];
+    assert.equal(row.title, "New original title");
+    assert.equal(row.content, "New original body");
+    assert.equal(row.summary, null);
+    assert.equal(row.beingTranslated, true);
+    assert.equal(row.translationRequesterId, requester.account.id);
+    await assert.rejects(
+      executeArticleTranslation(
+        fedCtx,
+        {
+          sourceId,
+          language: "ko",
+          translationJobToken: row.translationJobToken!,
+        },
+        { signal: new AbortController().signal, attempt: 0 },
+      ),
+    );
+    assert.ok(
+      await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "ko" },
-      });
-      if (current == null) return true;
-      // Placeholder reset: title/content mirror the new original
-      // and beingTranslated has flipped back true with summary
-      // state cleared.  translationRequesterId is preserved.
-      return (
-        current.beingTranslated === true &&
-        current.title === "New original title" &&
-        current.content === "New original body" &&
-        current.summary === null &&
-        current.translationRequesterId === requester.account.id
-      );
-    });
-
-    // Eventually the failing stub causes deletion via the
-    // run-translation failure branch.
-    await waitFor(async () => {
-      const current = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      return current == null;
-    });
+      }),
+    );
   });
 });
 
@@ -533,7 +542,22 @@ test("restartArticleContentTranslations() leaves persistence failures immediatel
       updated: published,
     });
 
-    await restartArticleContentTranslations(fedCtx, articleSource);
+    const reset = await restartArticleContentTranslations(
+      fedCtx,
+      articleSource,
+    );
+    const payload = {
+      sourceId,
+      language: "ko",
+      translationJobToken: reset[0].translationJobToken!,
+    };
+    await assert.rejects(
+      executeArticleTranslation(fedCtx, payload, {
+        signal: new AbortController().signal,
+        attempt: 0,
+      }),
+      /outbox persistence failed/,
+    );
     await deliveryAttempted.promise;
     await waitFor(async () => {
       const current = await tx.query.articleContentTable.findFirst({
@@ -544,24 +568,16 @@ test("restartArticleContentTranslations() leaves persistence failures immediatel
       );
     });
 
-    const original = await tx.query.articleContentTable.findFirst({
-      where: { sourceId, language: "en" },
-    });
-    assert.ok(original != null);
-    await startArticleContentTranslation(fedCtx, {
-      content: original,
-      targetLanguage: "ko",
-      requester: requester.account,
-    });
-    await waitFor(async () => {
-      if (translationAttempts < 2 || deliveryAttempts < 2) return false;
-      const current = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      return (
-        current?.beingTranslated === true && current.updated.getTime() === 0
-      );
-    });
+    // The SAME payload retries after failure cleanup changed updated.
+    await assert.rejects(
+      executeArticleTranslation(fedCtx, payload, {
+        signal: new AbortController().signal,
+        attempt: 1,
+      }),
+      /outbox persistence failed/,
+    );
+    assert.equal(translationAttempts, 2);
+    assert.equal(deliveryAttempts, 2);
 
     const placeholder = await tx.query.articleContentTable.findFirst({
       where: { sourceId, language: "ko" },
