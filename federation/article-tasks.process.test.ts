@@ -17,7 +17,11 @@ import {
 } from "../test/postgres.ts";
 import { waitForTaskCondition } from "../test/application-tasks.ts";
 
-function start(role: "producer" | "worker", sourceId: string, pause = "") {
+function start(
+  role: "producer" | "summary-producer" | "worker",
+  sourceId: string,
+  pause = "",
+) {
   const child = spawn(
     process.execPath,
     [
@@ -161,6 +165,119 @@ for (const pause of ["before", "after"]) {
               eq(articleContentTable.language, "ko"),
             ),
           );
+        await db
+          .delete(accountTable)
+          .where(eq(accountTable.id, author.account.id));
+      }
+    });
+  });
+}
+
+for (const pause of ["summary-before", "summary-after"]) {
+  test(`summary survives SIGKILL ${pause} with the same persisted claim`, async () => {
+    await withExclusiveTestDatabase(async () => {
+      const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
+      const author = await insertAccountWithActor(
+        db as unknown as Parameters<typeof insertAccountWithActor>[0],
+        {
+          username: `killsummary${suffix}`,
+          name: "Worker Restart Summary",
+          email: `killsummary${suffix}@example.com`,
+        },
+      );
+      const sourceId = generateUuidV7();
+      const children: ReturnType<typeof start>[] = [];
+      try {
+        await db.insert(articleSourceTable).values({
+          id: sourceId,
+          accountId: author.account.id,
+          publishedYear: 2026,
+          slug: "summary-restart",
+          tags: [],
+          allowLlmTranslation: false,
+        });
+        await db.insert(articleContentTable).values({
+          sourceId,
+          language: "en",
+          title: "Summary restart",
+          content:
+            "An original article body long enough for a shorter summary.",
+        });
+        const producer = start("summary-producer", sourceId);
+        children.push(producer);
+        assert.equal((await producer.exited)[0], 0, producer.output());
+        const queued = await db.query.articleContentTable.findFirst({
+          where: { sourceId, language: "en" },
+        });
+        assert(queued?.summaryStarted);
+        const first = start("worker", sourceId, pause);
+        children.push(first);
+        await waitForTaskCondition(async () =>
+          first.states.has(
+            pause === "summary-before" ? "summarizing" : "summary-persisted",
+          ),
+        );
+        const before = await db.query.articleContentTable.findFirst({
+          where: { sourceId, language: "en" },
+        });
+        if (pause === "summary-before")
+          assert.equal(
+            before?.summaryStarted?.getTime(),
+            queued.summaryStarted.getTime(),
+          );
+        else assert.equal(before?.summary, "Short summary.");
+        first.child.kill("SIGKILL");
+        await first.exited;
+        const second = start("worker", sourceId);
+        children.push(second);
+        await waitForTaskCondition(
+          async () =>
+            (
+              await db.query.articleContentTable.findFirst({
+                where: { sourceId, language: "en" },
+              })
+            )?.summary === "Short summary.",
+        );
+        await waitForTaskCondition(async () =>
+          (
+            await db
+              .select()
+              .from(outboxEventTable)
+              .where(eq(outboxEventTable.eventType, "application.task"))
+          ).every((e) => e.status === "completed"),
+        );
+        const events = await db
+          .select()
+          .from(outboxEventTable)
+          .where(eq(outboxEventTable.eventType, "application.task"));
+        assert.equal(events.length, 1);
+        assert.equal(events[0].processingAttempts, 2);
+        assert.equal(
+          second.states.has("summarizing"),
+          pause === "summary-before",
+        );
+        assert.equal(
+          (
+            await db.query.articleContentTable.findFirst({
+              where: { sourceId, language: "en" },
+            })
+          )?.summaryStarted,
+          null,
+        );
+        second.child.kill("SIGTERM");
+        assert.equal((await second.exited)[0], 0, second.output());
+      } finally {
+        for (const service of children) {
+          if (
+            service.child.exitCode == null &&
+            service.child.signalCode == null
+          )
+            service.child.kill("SIGKILL");
+          await service.exited;
+        }
+        await db
+          .delete(outboxEventTable)
+          .where(eq(outboxEventTable.eventType, "application.task"));
         await db
           .delete(accountTable)
           .where(eq(accountTable.id, author.account.id));

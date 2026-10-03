@@ -1,6 +1,5 @@
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import type { ApplicationModel } from "./context.ts";
 import {
   and,
   eq,
@@ -18,7 +17,7 @@ export {
   getOriginalArticleContent,
 } from "./article-source.ts";
 import { getOriginalArticleContent } from "./article-source.ts";
-import type { ApplicationContext, Models } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { canAccountActAs } from "./organization.ts";
@@ -53,13 +52,12 @@ import {
   postTable,
   type Reaction,
 } from "./schema.ts";
-import type { AiServices } from "./services.ts";
 import {
   articleTranslationTask,
-  articleTranslationSummaryTask,
+  articleSummaryTask,
   type ApplicationTaskExecution,
   type ArticleTranslationTaskPayload,
-  type ArticleTranslationSummaryTaskPayload,
+  type ArticleSummaryTaskPayload,
 } from "./tasks.ts";
 import { removeDetailsFromSummaryInput } from "./summary.ts";
 import { addPostToTimeline } from "./timeline.ts";
@@ -698,10 +696,8 @@ export interface ArticleAdditionalContent {
   media?: readonly ArticleMediumInput[];
 }
 
-export async function createArticleSource(
-  db: Database,
-  models: Models,
-  aiServices: Pick<AiServices, "summarize">,
+async function createArticleSourceOperation(
+  context: ApplicationContext,
   source: Omit<NewArticleSource, "id"> & {
     id?: Uuid;
     title: string;
@@ -712,6 +708,7 @@ export async function createArticleSource(
   },
   options: CreateArticleSourceOptions = {},
 ): Promise<(ArticleSource & { contents: ArticleContent[] }) | undefined> {
+  const { db } = context;
   const {
     additionalContents = [],
     originalRevisionId,
@@ -784,28 +781,18 @@ export async function createArticleSource(
     ])
     .returning();
   if (options.summarize ?? true) {
-    await startArticleContentSummary(
-      db,
-      models.summarizer,
-      contents[0],
-      aiServices.summarize,
-    );
+    await startArticleContentSummary(context, contents[0]);
   }
   return { ...sources[0], contents };
 }
 
+export const createArticleSource = transactional(createArticleSourceOperation);
+
 async function queueArticleContentSummary(
-  fedCtx: ApplicationContext,
+  context: ApplicationContext,
   content: ArticleContent,
 ): Promise<void> {
-  await queueAfterCommit(fedCtx, () =>
-    startArticleContentSummary(
-      fedCtx.rootDb ?? fedCtx.db,
-      fedCtx.models.summarizer,
-      content,
-      fedCtx.services.ai.summarize,
-    ),
-  );
+  await startArticleContentSummary(context, content);
 }
 
 async function createArticleOperation(
@@ -849,13 +836,9 @@ async function createArticleOperation(
   for (const key of referencedMediumKeys) {
     if (!sourceMediaByKey.has(key)) return undefined;
   }
-  const articleSource = await createArticleSource(
-    db,
-    fedCtx.models,
-    fedCtx.services.ai,
-    articleSourceInput,
-    { summarize: false },
-  );
+  const articleSource = await createArticleSource(fedCtx, articleSourceInput, {
+    summarize: false,
+  });
   if (articleSource == null) return undefined;
   const media =
     sourceMedia
@@ -1813,86 +1796,50 @@ export async function withdrawArticleTranslation(
   );
 }
 
+/** Persist a summary claim and its recoverable task in the same transaction. */
 export async function startArticleContentSummary(
-  db: Database,
-  model: ApplicationModel,
-  content: ArticleContent,
-  summarize: AiServices["summarize"],
+  context: ApplicationContext,
+  content: Pick<ArticleContent, "sourceId" | "language">,
 ): Promise<void> {
-  // Use a JS-side Date so the value round-trips through the driver
-  // with millisecond precision.  This is later used as a CAS stamp.
-  const claim = new Date();
-  const updated = await db
-    .update(articleContentTable)
-    .set({ summaryStarted: claim })
-    .where(
-      and(
-        eq(articleContentTable.sourceId, content.sourceId),
-        eq(articleContentTable.language, content.language),
-        eq(articleContentTable.summaryUnnecessary, false),
-        // Don't summarize translation placeholders whose content has
-        // not yet been replaced by the translated text.
-        eq(articleContentTable.beingTranslated, false),
-        or(
-          isNull(articleContentTable.summaryStarted),
-          lt(
-            articleContentTable.summaryStarted,
-            sql`CURRENT_TIMESTAMP - INTERVAL '30 minutes'`,
+  await withTransaction(context, async (txContext) => {
+    const { db } = txContext;
+    if (!(await lockArticleSource(db, content.sourceId))) return;
+    const updated = await db
+      .update(articleContentTable)
+      .set({
+        summaryStarted: sql`date_trunc('milliseconds', clock_timestamp())`,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, content.sourceId),
+          eq(articleContentTable.language, content.language),
+          eq(articleContentTable.summaryUnnecessary, false),
+          eq(articleContentTable.beingTranslated, false),
+          isNull(articleContentTable.summary),
+          or(
+            isNull(articleContentTable.summaryStarted),
+            lt(
+              articleContentTable.summaryStarted,
+              sql`CURRENT_TIMESTAMP - INTERVAL '30 minutes'`,
+            ),
           ),
         ),
-      ),
-    )
-    .returning();
-  if (updated.length < 1) {
-    logger.debug("Summary already started or not needed.");
-    return;
-  }
-  // Use the row state captured at claim time (with the latest body and
-  // metadata) instead of the caller's potentially stale `content`
-  // argument.  This guards against a concurrent edit that committed
-  // between the caller's fetch and our claim.
-  const claimed = updated[0];
-  logger.debug("Starting summary for content: {sourceId} {language}", claimed);
-  void summarize({
-    model,
-    sourceLanguage: claimed.beingTranslated
-      ? (claimed.originalLanguage ?? claimed.language)
-      : claimed.language,
-    targetLanguage: claimed.language,
-    text: claimed.content,
-  })
-    .then(async (summary) => {
-      await applyArticleContentSummary(db, claimed, summary, claim);
-    })
-    .catch(async (error) => {
-      logger.error("Summary failed ({sourceId} {language}): {error}", {
-        ...claimed,
-        error,
-      });
-      try {
-        await db
-          .update(articleContentTable)
-          .set({ summaryStarted: null })
-          .where(
-            and(
-              eq(articleContentTable.sourceId, claimed.sourceId),
-              eq(articleContentTable.language, claimed.language),
-              eq(articleContentTable.summaryStarted, claim),
-            ),
-          );
-      } catch (resetError) {
-        // The summary runs in the background, so its failure handler must
-        // not create another unhandled rejection when the database is
-        // unavailable or has already closed during shutdown.
-        logger.error(
-          "Failed to reset summary claim ({sourceId} {language}): {error}",
-          {
-            ...claimed,
-            error: resetError,
-          },
-        );
-      }
-    });
+      )
+      .returning();
+    const claimed = updated[0];
+    if (claimed == null) return;
+    await txContext.enqueueTask(
+      articleSummaryTask,
+      {
+        sourceId: claimed.sourceId,
+        language: claimed.language,
+        claim: claimed.summaryStarted!.toISOString(),
+      },
+      {
+        orderingKey: `article-summary:${claimed.sourceId}:${claimed.language}`,
+      },
+    );
+  });
 }
 
 /**
@@ -1941,6 +1888,13 @@ export async function applyArticleContentSummary(
       },
     });
     if (current == null) return;
+    if (
+      claim != null &&
+      (current.beingTranslated ||
+        current.summaryUnnecessary ||
+        current.summary != null)
+    )
+      return;
     if (current.content !== content.content) {
       // The body changed while the summarizer was running, so the
       // summary we just produced is for an outdated text.  Drop the
@@ -1998,7 +1952,7 @@ export async function applyArticleContentSummary(
         content.language,
         null,
       );
-      if (content.originalLanguage == null) {
+      if (current.originalLanguage == null) {
         await tx
           .update(postTable)
           .set({ summary: null })
@@ -2041,7 +1995,7 @@ export async function applyArticleContentSummary(
       content.language,
       summary,
     );
-    if (content.originalLanguage == null) {
+    if (current.originalLanguage == null) {
       await tx
         .update(postTable)
         .set({ summary })
@@ -2484,7 +2438,6 @@ export async function executeArticleTranslation(
       );
       signal.throwIfAborted();
       if (eligible == null) return;
-      const summaryClaim = new Date();
       signal.throwIfAborted();
       const updated = await tx
         .update(articleContentTable)
@@ -2495,7 +2448,7 @@ export async function executeArticleTranslation(
           translationJobToken: null,
           updated: sql`CURRENT_TIMESTAMP`,
           summary: null,
-          summaryStarted: summaryClaim,
+          summaryStarted: sql`date_trunc('milliseconds', clock_timestamp())`,
           summaryUnnecessary: false,
           ogImageKey: null,
         })
@@ -2504,11 +2457,11 @@ export async function executeArticleTranslation(
       if (updated.length === 0) return;
       await publishArticleState(txContext, data.sourceId);
       await txContext.enqueueTask(
-        articleTranslationSummaryTask,
+        articleSummaryTask,
         {
           sourceId: data.sourceId,
           language: data.language,
-          claim: summaryClaim.toISOString(),
+          claim: updated[0].summaryStarted!.toISOString(),
         },
         { orderingKey: `article-summary:${data.sourceId}:${data.language}` },
       );
@@ -2546,10 +2499,13 @@ export async function executeArticleTranslation(
   }
 }
 
-/** Durable bridge retained while #426 migrates the remaining summary triggers. */
-export async function executeArticleTranslationSummary(
+/**
+ * Await the LLM and atomic persistence. Failures retain the claim for retries;
+ * the exact input body and claim fence results after concurrent edits.
+ */
+export async function executeArticleSummary(
   context: ApplicationContext,
-  data: ArticleTranslationSummaryTaskPayload,
+  data: ArticleSummaryTaskPayload,
   execution: ApplicationTaskExecution,
 ): Promise<void> {
   const { signal } = execution;
@@ -2580,3 +2536,6 @@ export async function executeArticleTranslationSummary(
   signal.throwIfAborted();
   await applyArticleContentSummary(context.db, row, summary, claim, signal);
 }
+
+/** Compatibility export for callers and already registered translation tasks. */
+export const executeArticleTranslationSummary = executeArticleSummary;

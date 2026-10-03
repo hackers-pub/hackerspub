@@ -8,10 +8,12 @@ import {
   articleContentTable,
   articleSourceTable,
   postLinkTable,
+  outboxEventTable,
 } from "./schema.ts";
 import {
   createArticle,
   executeArticleTranslation,
+  executeArticleSummary,
   restartArticleContentTranslations,
   startArticleContentSummary,
   startArticleContentTranslation,
@@ -21,15 +23,15 @@ import { withTransaction } from "./tx.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
-  services,
   withExclusiveTestDatabase,
   withRollback,
 } from "../test/postgres.ts";
+import { createArticleTaskWorker } from "../test/article-tasks.ts";
 import { waitFor } from "../test/wait.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 import { db } from "../test/database.ts";
 
-test("startArticleContentSummary() resets summaryStarted when summarization fails", async () => {
+test("summary execution retains summaryStarted and rethrows model failure", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "summarybackground",
@@ -63,31 +65,52 @@ test("startArticleContentSummary() resets summaryStarted when summarization fail
     });
     assert.ok(content != null);
 
-    await startArticleContentSummary(
-      tx,
-      {} as never,
-      content,
-      services.ai.summarize,
-    );
+    const context = createFedCtx(tx);
+    context.data.services = {
+      ...context.services,
+      ai: {
+        ...context.services.ai,
+        summarize: async () => {
+          throw new Error("summary model failed");
+        },
+      },
+    };
+    await startArticleContentSummary(context, content);
 
     const started = await tx.query.articleContentTable.findFirst({
       where: { sourceId, language: "en" },
     });
     assert.ok(started?.summaryStarted != null);
 
-    await waitFor(async () => {
-      const current = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      return current?.summaryStarted == null;
+    await assert.rejects(
+      executeArticleSummary(
+        context,
+        {
+          sourceId,
+          language: "en",
+          claim: started.summaryStarted.toISOString(),
+        },
+        { signal: new AbortController().signal, attempt: 0 },
+      ),
+      /summary model failed/,
+    );
+    const failed = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
     });
+    assert.equal(
+      failed?.summaryStarted?.getTime(),
+      started.summaryStarted.getTime(),
+    );
   });
 });
 
-test("createArticle() starts summaries after enclosing transaction commit", async () => {
+test("createArticle() durably queues summaries in its enclosing transaction", async () => {
   await withExclusiveTestDatabase(async () => {
     let accountId: Uuid | undefined;
     let linkId: Uuid | undefined;
+    let sourceId: Uuid | undefined;
+    const controller = new AbortController();
+    let running: Promise<void> | undefined;
     try {
       let releaseSummary!: () => void;
       let summaryStarted!: () => void;
@@ -140,7 +163,6 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
         moderationAnalyzer: {} as never,
       } as typeof fedCtx.models;
       const published = new Date("2026-04-15T00:00:00.000Z");
-      let sourceId: Uuid | undefined;
 
       await withTransaction(fedCtx, async (context) => {
         const article = await createArticle(context, {
@@ -163,6 +185,11 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
         linkId = article.linkId ?? undefined;
       });
 
+      const worker = await createArticleTaskWorker(fedCtx);
+      running = worker.federation.startQueue(worker.data, {
+        queue: "task",
+        signal: controller.signal,
+      });
       await summaryStartedPromise;
       releaseSummary();
 
@@ -173,6 +200,18 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
         return current?.summary === "Short summary.";
       });
     } finally {
+      controller.abort();
+      await running;
+      if (sourceId != null) {
+        await db
+          .delete(outboxEventTable)
+          .where(
+            eq(
+              outboxEventTable.orderingKey,
+              `application.task:article-summary:${sourceId}:en`,
+            ),
+          );
+      }
       if (accountId != null) {
         await db.delete(accountTable).where(eq(accountTable.id, accountId));
       }
@@ -187,7 +226,10 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
   await withExclusiveTestDatabase(async () => {
     let accountId: Uuid | undefined;
     let linkId: Uuid | undefined;
+    let sourceId: Uuid | undefined;
     const releaseRegeneratedSummary = Promise.withResolvers<void>();
+    const controller = new AbortController();
+    let running: Promise<void> | undefined;
     try {
       const regeneratedSummaryStarted = Promise.withResolvers<void>();
       let generation = 0;
@@ -261,7 +303,12 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
       });
       assert.ok(article != null);
       linkId = article.linkId ?? undefined;
-      const sourceId = article.articleSource.id;
+      sourceId = article.articleSource.id;
+      const worker = await createArticleTaskWorker(fedCtx);
+      running = worker.federation.startQueue(worker.data, {
+        queue: "task",
+        signal: controller.signal,
+      });
 
       await waitFor(async () => {
         const current = await db.query.articleContentTable.findFirst({
@@ -290,6 +337,18 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
       }, 1_000);
     } finally {
       releaseRegeneratedSummary.resolve();
+      controller.abort();
+      await running;
+      if (sourceId != null) {
+        await db
+          .delete(outboxEventTable)
+          .where(
+            eq(
+              outboxEventTable.orderingKey,
+              `application.task:article-summary:${sourceId}:en`,
+            ),
+          );
+      }
       if (accountId != null) {
         await db.delete(accountTable).where(eq(accountTable.id, accountId));
       }

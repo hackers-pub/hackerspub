@@ -148,7 +148,7 @@ export const articleTranslationTask: ApplicationTask<ArticleTranslationTaskPaylo
     },
   };
 
-/** Retain this registration when #426 unifies the other summary triggers. */
+/** Stable wire name retained for messages queued before summary unification. */
 export const articleTranslationSummaryTask: ApplicationTask<ArticleTranslationSummaryTaskPayload> =
   {
     name: "article.translation-summary.v1",
@@ -178,3 +178,7 @@ export const articleTranslationSummaryTask: ApplicationTask<ArticleTranslationSu
       },
     },
   };
+
+/** All summary producers share the existing wire format and registration. */
+export const articleSummaryTask = articleTranslationSummaryTask;
+export type ArticleSummaryTaskPayload = ArticleTranslationSummaryTaskPayload;

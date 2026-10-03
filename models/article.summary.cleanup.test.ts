@@ -7,6 +7,7 @@ import {
   postTable,
 } from "./schema.ts";
 import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
+import { applyArticleContentSummary } from "./article.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 // Re-runnable SQL block matching drizzle/0097_clear_oversized_summaries.sql.
@@ -292,5 +293,47 @@ test("0097 cleanup does not clear post summaries for translated content", async 
     // The post mirrors the English row whose summary is good, so it
     // must remain untouched.
     assert.equal(postAfter?.summary, "Short summary.");
+  });
+});
+
+test("obsolete non-shorter summary cannot clear a newer job's claim", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summaryclaimcleanup",
+      name: "Summary Claim Cleanup",
+      email: "summaryclaimcleanup@example.com",
+    });
+    const sourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "claim-cleanup",
+      tags: [],
+      allowLlmTranslation: false,
+    });
+    const newer = new Date();
+    const [current] = await tx
+      .insert(articleContentTable)
+      .values({
+        sourceId,
+        language: "en",
+        title: "Cleanup",
+        content: "Same body.",
+        summaryStarted: newer,
+      })
+      .returning();
+    await applyArticleContentSummary(
+      tx,
+      current,
+      "This generated summary is longer than the original text.",
+      new Date(newer.getTime() - 1),
+    );
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summaryStarted?.getTime(), newer.getTime());
+    assert.equal(after?.summaryUnnecessary, false);
+    assert.equal(after?.summary, null);
   });
 });

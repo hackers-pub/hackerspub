@@ -1,12 +1,12 @@
 import {
   executeArticleTranslation,
-  executeArticleTranslationSummary,
+  executeArticleSummary,
 } from "@hackerspub/models/article";
 import { applicationTaskReceiptTable } from "@hackerspub/models/schema";
 import {
   applicationTaskProbe,
   articleTranslationTask,
-  articleTranslationSummaryTask,
+  articleSummaryTask,
 } from "@hackerspub/models/tasks";
 import { builder } from "./builder.ts";
 import { toApplicationContext } from "./context.ts";
@@ -32,7 +32,7 @@ registerApplicationTask(
 );
 registerApplicationTask(
   builder,
-  articleTranslationSummaryTask,
+  articleSummaryTask,
   toApplicationContext,
-  executeArticleTranslationSummary,
+  executeArticleSummary,
 );

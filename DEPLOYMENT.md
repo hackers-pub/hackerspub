@@ -477,13 +477,9 @@ the worker atomically refreshes its placeholder and queues a replacement
 instead of leaving it without queued work. Existing placeholders from
 before this migration become queued work on their next stale reader request.
 
-A successful translation also persists an `article.translation-summary.v1`
-intent and a `summaryStarted` claim in the same completion transaction. This
-bridge awaits summary generation and application, using the existing body and
-claim guards. Retries reuse that claim without waiting for its stale timeout.
-An exhausted summary needs operator replay or a subsequent source edit; there
-is no periodic summary recovery scan. Original-language and human-publication
-summary triggers keep their existing behavior until the summary migration.
+A successful translation persists a summary intent and a `summaryStarted`
+claim in the same completion transaction. All persisted article summaries now
+use this task contract, as described below.
 
 Deploy compatible worker registrations before enabling these producers, and
 retain both task names and payload schemas while their messages remain queued,
@@ -491,3 +487,46 @@ including when migrating the other summary triggers. Rolling back to a worker
 without these registrations drops unknown messages: drain or retain a compatible
 worker rather than relying on rollback to recover them. No database migration
 is required beyond the common application-task infrastructure.
+
+### Article summary tasks
+
+Article creation, body/language edits, human translation publication, and
+completed automatic translations persist summary claims and task intents in
+the same database transaction as the corresponding content. The API only
+produces work; it does not call the summarizer. The worker awaits the LLM and
+atomic updates of article content, reader variants, and the original-language
+`post.summary` before acknowledging completion. Additional human translations
+published together with the original retain their existing trigger coverage.
+
+The shared descriptor is `articleSummaryTask`. Its wire name remains
+`article.translation-summary.v1`, with the existing source ID, language, and
+millisecond ISO claim schema, so previously queued messages and workers remain
+compatible. Keep this registration while messages or replayable dead letters
+exist. Ordering keys remain `article-summary:<sourceId>:<language>`.
+
+Claims use the database clock. The handler reads current content and skips
+completed, deleted, superseded, unnecessary, and translation-placeholder jobs
+without an LLM call. Persistence compares the exact body handed to the LLM,
+checks claim ownership, and holds the source lock before changing content or
+mirrors. Empty summaries and results that are not shorter than visible input
+(after `<details>` filtering) are terminal discards marked `summaryUnnecessary`.
+
+LLM and database exceptions reach the queue's bounded three-attempt policy.
+Failures and cancellations retain the claim: the same payload retries on the
+queue's backoff without waiting for the 30-minute stale-claim threshold. A
+superseded task completes as a no-op on its next attempt, releasing its ordering
+key for newer work. Invalid task names/payloads are terminal dead letters.
+Queue logs and `last_error` expose failures; use the application-task inspection
+and replay commands above after fixing the underlying problem. Replay of a
+completed or superseded summary does not regenerate it. Exhausted tasks retain
+claims until replay or a body/language edit requests new work; title-only edits
+do not restart summary generation.
+
+Worker termination during generation is recovered after lease expiry. A worker
+terminated after summary persistence but before acknowledgement finds completed
+content on retry and skips the LLM. Cancellation before transaction commit rolls
+back all summary writes and can repeat an LLM call on recovery. Neither this
+migration nor the translation migration provides a periodic summary recovery
+scan. Legacy in-process claims without a queued intent require a body/language
+edit or an explicit `startArticleContentSummary` call after the existing
+30-minute reclaim threshold.

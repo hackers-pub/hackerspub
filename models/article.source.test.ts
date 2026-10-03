@@ -16,15 +16,9 @@ import {
 import { generateUuidV7 } from "./uuid.ts";
 import {
   insertAccountWithActor,
-  services,
+  createFedCtx,
   withRollback,
 } from "../test/postgres.ts";
-
-const fakeModels = {
-  summarizer: {} as never,
-  translator: {} as never,
-  moderationAnalyzer: {} as never,
-};
 
 test("createArticleSource() creates a source and initial content", async () => {
   await withRollback(async (tx) => {
@@ -35,7 +29,7 @@ test("createArticleSource() creates a source and initial content", async () => {
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    const source = await createArticleSource(tx, fakeModels, services.ai, {
+    const source = await createArticleSource(createFedCtx(tx), {
       accountId: author.account.id,
       publishedYear: 2026,
       slug: "source-test",

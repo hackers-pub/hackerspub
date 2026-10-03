@@ -6,6 +6,7 @@ import {
   executeArticleTranslation,
   executeArticleTranslationSummary,
   startArticleContentTranslation,
+  startArticleContentSummary,
 } from "@hackerspub/models/article";
 import type { ContextData } from "@hackerspub/models/context";
 import {
@@ -37,7 +38,18 @@ context.data.services = {
       }
       return "# Translated title\n\nTranslated body that is long enough for a short summary.";
     },
-    summarize: async () => "Short summary.",
+    summarize: async (options) => {
+      process.send?.({ state: "summarizing" });
+      if (process.env.ARTICLE_TASK_PAUSE === "summary-before") {
+        await new Promise<void>((resolve) =>
+          options.signal!.addEventListener("abort", () => resolve(), {
+            once: true,
+          }),
+        );
+        options.signal!.throwIfAborted();
+      }
+      return "Short summary.";
+    },
   },
 };
 const builder = createFederationBuilder<ContextData>();
@@ -61,7 +73,17 @@ registerApplicationTask(
   builder,
   { ...articleTranslationSummaryTask },
   () => context,
-  executeArticleTranslationSummary,
+  async (ctx, data, execution) => {
+    await executeArticleTranslationSummary(ctx, data, execution);
+    process.send?.({ state: "summary-persisted" });
+    if (process.env.ARTICLE_TASK_PAUSE === "summary-after") {
+      await new Promise<void>((resolve) =>
+        execution.signal.addEventListener("abort", () => resolve(), {
+          once: true,
+        }),
+      );
+    }
+  },
 );
 const queue = new TransactionalOutboxQueue(db, "application.task", {
   pollInterval: { milliseconds: 2 },
@@ -76,7 +98,7 @@ const federation = await builder.build({
   manuallyStartQueue: true,
 });
 try {
-  if (role === "producer") {
+  if (role === "producer" || role === "summary-producer") {
     const original = await db.query.articleContentTable.findFirst({
       where: { sourceId, language: "en" },
     });
@@ -86,11 +108,14 @@ try {
     });
     if (original == null || source == null)
       throw new Error("Missing fixture article.");
-    await startArticleContentTranslation(context, {
-      content: original,
-      targetLanguage: "ko",
-      requester: source.account,
-    });
+    if (role === "summary-producer")
+      await startArticleContentSummary(context, original);
+    else
+      await startArticleContentTranslation(context, {
+        content: original,
+        targetLanguage: "ko",
+        requester: source.account,
+      });
   } else if (role === "worker") {
     const controller = new AbortController();
     process.once("SIGTERM", () => controller.abort());
