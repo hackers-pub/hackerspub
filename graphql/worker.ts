@@ -4,6 +4,8 @@
 import "./logging.ts";
 
 import { getLogger, dispose as disposeLogging } from "@logtape/logtape";
+import { toApplicationContext } from "@hackerspub/federation/context";
+import type { ContextData } from "@hackerspub/models/context";
 import { migrateLegacyOutboxEvents } from "@hackerspub/models/outbox";
 import {
   getProcessEnvironment,
@@ -24,7 +26,11 @@ import {
 } from "./lifecycle.ts";
 import metadata from "./package.json" with { type: "json" };
 import { services } from "./services.ts";
-import { createWorkerJobs } from "./worker-jobs.ts";
+import {
+  createScheduledWorkerJobExecutor,
+  createWorkerJobs,
+} from "./worker-jobs.ts";
+import { createWorkerDispatchJobs } from "./worker-dispatch.ts";
 import {
   resolveWorkerHealthFile,
   startWorkerHeartbeat,
@@ -93,12 +99,27 @@ export async function main(): Promise<void> {
     );
     const { db, drive, email, federation, kv, models } = resources;
     const disk = drive.use();
-    const jobs = createWorkerJobs({
+    const executionJobs = createWorkerJobs({
       db,
       email,
       emailFrom: resources.config.email.from,
       origin: resources.config.origin.href,
     });
+    const contextData: ContextData = {
+      db,
+      kv,
+      disk,
+      models,
+      services,
+      executeScheduledWorkerJob:
+        createScheduledWorkerJobExecutor(executionJobs),
+    };
+    const jobs = createWorkerDispatchJobs(
+      toApplicationContext(
+        federation.createContext(resources.config.origin, contextData),
+      ),
+      executionJobs,
+    );
 
     // Pending legacy deliveries must move before any queue starts consuming.
     await migrateLegacyOutboxEvents(db);
@@ -108,7 +129,7 @@ export async function main(): Promise<void> {
     logger.info("Starting the federation message queue worker.");
     await runWorkerRuntime({
       federation,
-      contextData: { db, kv, disk, models, services },
+      contextData,
       runScheduler: (signal) => runNodeWorkerScheduler(jobs, { signal }),
       signal: shutdownController.signal,
     });

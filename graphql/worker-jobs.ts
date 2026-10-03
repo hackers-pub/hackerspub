@@ -8,6 +8,7 @@ import {
 import { pruneOutboxEvents } from "@hackerspub/models/outbox";
 import { notifyEndedPolls } from "@hackerspub/models/poll";
 import type { Database } from "@hackerspub/models/db";
+import type { ContextData } from "@hackerspub/models/context";
 import type { Transport } from "@upyo/core";
 import { sql } from "drizzle-orm";
 import { sendNotificationDigests } from "./notification-digest.ts";
@@ -15,7 +16,7 @@ import { sendNotificationDigests } from "./notification-digest.ts";
 export interface WorkerJob {
   readonly name: string;
   readonly schedule: string;
-  run(): Promise<void>;
+  run(scheduled?: Date, signal?: AbortSignal): Promise<void>;
 }
 
 interface WorkerJobSchedule {
@@ -152,9 +153,9 @@ export function createWorkerJobs(
   return [
     {
       ...WORKER_JOB_SCHEDULES.recomputeNewsScores,
-      async run() {
+      async run(scheduled = now()) {
         const activeSince = new Date(
-          now().getTime() - NEWS_SWEEP_ACTIVE_WINDOW_MILLISECONDS,
+          scheduled.getTime() - NEWS_SWEEP_ACTIVE_WINDOW_MILLISECONDS,
         );
         // Every worker replica fires this cron at the same instant. Run by
         // itself the recompute finishes within the statement timeout, but
@@ -203,9 +204,9 @@ export function createWorkerJobs(
     },
     {
       ...WORKER_JOB_SCHEDULES.notifyEndedPolls,
-      async run() {
+      async run(scheduled = now()) {
         const { pollsProcessed, notificationsCreated } =
-          await operations.notifyEndedPolls(db);
+          await operations.notifyEndedPolls(db, { now: scheduled });
         if (pollsProcessed > 0) {
           pollLogger.debug(
             "Notified ended poll results for {pollsProcessed} poll(s); " +
@@ -217,14 +218,21 @@ export function createWorkerJobs(
     },
     {
       ...WORKER_JOB_SCHEDULES.sendWeeklyNotificationDigests,
-      async run() {
+      async run(scheduled = now(), signal) {
         const result = await operations.sendNotificationDigests({
           db,
           email,
           from: emailFrom,
           origin,
           frequency: "weekly",
+          now: scheduled,
+          signal,
         });
+        if (result.accountsFailed > 0) {
+          throw new Error(
+            `${result.accountsFailed} weekly digest account(s) failed.`,
+          );
+        }
         digestLogger.debug("Processed weekly notification digests: {result}", {
           result,
         });
@@ -232,14 +240,21 @@ export function createWorkerJobs(
     },
     {
       ...WORKER_JOB_SCHEDULES.sendDailyNotificationDigests,
-      async run() {
+      async run(scheduled = now(), signal) {
         const result = await operations.sendNotificationDigests({
           db,
           email,
           from: emailFrom,
           origin,
           frequency: "daily",
+          now: scheduled,
+          signal,
         });
+        if (result.accountsFailed > 0) {
+          throw new Error(
+            `${result.accountsFailed} daily digest account(s) failed.`,
+          );
+        }
         digestLogger.debug("Processed daily notification digests: {result}", {
           result,
         });
@@ -247,8 +262,8 @@ export function createWorkerJobs(
     },
     {
       ...WORKER_JOB_SCHEDULES.pruneTransactionalOutbox,
-      async run() {
-        const current = now().getTime();
+      async run(scheduled = now()) {
+        const current = scheduled.getTime();
         const deleted = await operations.pruneOutboxEvents(db, {
           completedBefore: new Date(current - DAY_MILLISECONDS),
           failedBefore: new Date(current - 30 * DAY_MILLISECONDS),
@@ -262,10 +277,10 @@ export function createWorkerJobs(
     },
     {
       ...WORKER_JOB_SCHEDULES.pruneArticleViewDeduplications,
-      async run() {
+      async run(scheduled = now()) {
         const deleted = await operations.pruneExpiredArticleViewDeduplications(
           db,
-          now(),
+          scheduled,
         );
         if (deleted > 0) {
           articleAnalyticsLogger.info(
@@ -278,6 +293,26 @@ export function createWorkerJobs(
   ];
 }
 
+export function createScheduledWorkerJobExecutor(
+  jobs: readonly WorkerJob[],
+): NonNullable<ContextData["executeScheduledWorkerJob"]> {
+  return async (data, execution) => {
+    execution.signal.throwIfAborted();
+    const job = jobs.find((job) => job.name === data.jobName);
+    if (job == null)
+      throw new TypeError(`Unknown scheduled job ${data.jobName}.`);
+    await job.run(new Date(data.scheduled), execution.signal);
+    execution.signal.throwIfAborted();
+    schedulerLogger.debug(
+      "Completed scheduled worker job {jobName} for {scheduled}.",
+      {
+        jobName: data.jobName,
+        scheduled: data.scheduled,
+      },
+    );
+  };
+}
+
 export class WorkerJobRunner {
   readonly #active = new Set<Promise<void>>();
   readonly #logger: WorkerJobErrorLogger;
@@ -286,9 +321,9 @@ export class WorkerJobRunner {
     this.#logger = logger;
   }
 
-  run(job: WorkerJob): Promise<void> {
+  run(job: WorkerJob, scheduled?: Date): Promise<void> {
     const execution = Promise.resolve()
-      .then(() => job.run())
+      .then(() => job.run(scheduled))
       .catch((error) => {
         this.#logger.error("Scheduled worker job {jobName} failed: {error}", {
           jobName: job.name,

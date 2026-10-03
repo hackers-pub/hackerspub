@@ -446,6 +446,85 @@ contracts.
 
 [Fedify's task documentation]: https://fedify.dev/manual/tasks
 
+### Scheduled worker tasks
+
+Croner remains the UTC trigger. Six schedules persist `scheduled.worker.v1`
+tasks, containing an allowlisted job name and the original minute tick as an
+ISO timestamp. Enqueueing records intent, not completed execution. The worker
+awaits the operation and its persistence before acknowledging the task.
+
+| Job                                      | UTC schedule  | Execution and duplicate protection                                                                                                                                                     |
+| ---------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| News score recomputation                 | `*/5 * * * *` | Task; retains the transaction-scoped advisory lock and uses tick minus one hour for the active window. Repeated recomputation is safe.                                                 |
+| News rescore drain and suspension expiry | `* * * * *`   | Direct execution retained: the existing per-actor DB queue already persists work and uses renewable leases with `FOR UPDATE SKIP LOCKED`. Another task queue adds no recovery benefit. |
+| Ended-poll notifications                 | `* * * * *`   | Task; uses the tick as the ended-poll cutoff. Poll claims and deduplicated notifications commit together.                                                                              |
+| Weekly notification digest               | `0 0 * * 1`   | Task; original tick selects the weekly period. Delivery claims and independently saved recipient progress guard retries.                                                               |
+| Daily notification digest                | `5 0 * * *`   | Task; original tick selects the daily period and Monday suppression for weekly subscribers.                                                                                            |
+| Transactional outbox pruning             | `30 3 * * *`  | Task; cutoffs remain tick minus one day for completed events and 30 days for failed delivery events. Dead application tasks remain excluded.                                           |
+| Article-view deduplication pruning       | `45 3 * * *`  | Task; deletes rows whose expiry is at or before the original tick. Repeated deletion is safe.                                                                                          |
+
+`scheduled_worker_dispatch` stores one latest-dispatched watermark per migrated
+job. The watermark and outbox task intent commit in the same transaction.
+Duplicate replica ticks and older callbacks do not enqueue again; an enqueue
+failure rolls both back and is logged as a scheduler failure. Each job has an
+ordering key spanning its intervals, so queued execution and retry do not
+overlap under a live lease. Workload DB locks/claims remain necessary during
+lease loss and duplicate delivery.
+
+There is **no startup backfill**. A tick never accepted during downtime or a
+dispatch failure is skipped; the next normal tick runs. Polls, cleanup and the
+rescore drain cover older backlog on their next run; news retains its one-hour
+active window. A missed weekly digest waits for the next week. Accepted task
+intents survive downtime and retain their original cutoffs on retry/restart.
+Synchronize replica clocks: a future watermark after clock skew or a backward
+clock adjustment can suppress dispatch until wall time catches up. Scheduling
+shares the existing FIFO task queue with translations/summaries; LLM backlog
+can delay ticks, and no scheduling latency guarantee or task priority is added.
+
+Digest periods and notification creation cutoffs come from the original tick,
+including for replay on a later day. Unread state, opt-in, primary-address
+selection and verified recipients are read live. Reclaim refreshes the unread
+count, excluding notifications created after the tick. A frequency-specific
+advisory transaction lock serializes senders, including an aborted handler
+still draining its in-flight email. Acquisition polls every 250 ms, supports
+cancellation, and fails after three minutes of contention. The normal
+three-attempt task budget applies to lock waits and delivery failures,
+including provider quota errors. Exhaustion is visible and replayable.
+
+The guard reserves one DB connection (with its local idle transaction timeout
+disabled); recipient progress uses the root DB and commits independently on
+another connection. Guard rollback cannot erase sent-recipient records.
+The worker checks guard liveness and cancellation before claims/sends, awaits
+an in-flight send without cancelling it, saves accepted recipients, then
+observes cancellation. A retry reclaims unfinished delivery claims immediately
+under the guard and skips recipients already saved. If mail succeeds but both
+progress and failure-record writes fail, or the process is killed between send
+and save, replay may send duplicates. Guard loss during a send has the same
+ambiguity. This is at-least-once email delivery, not exactly once.
+
+On shutdown, stop future cron ticks and drain accepted dispatch writes and the
+retained rescore drain. Queue shutdown separately waits for actual handlers
+and their recipient progress before closing transports/DB resources. Task
+payloads contain no credentials; only the worker supplies the execution
+capability with runtime email resources. A missing capability fails visibly
+and eventually leaves a dead task.
+
+Apply the dispatch-watermark migration before starting new workers. Stop and
+drain **all legacy worker schedules and digest sends** before enabling the new
+workers: legacy senders do not acquire the digest guard. Avoid a cutover that
+straddles the weekly/daily UTC digest ticks because there is no catch-up.
+Both roles register `scheduled.worker.v1`; retain this registration and payload
+schema on rollback until pending, processing and recoverable dead tasks drain.
+An older worker can consume and dead-letter an unknown scheduled task.
+
+Inspect dead scheduled tasks using the common operator CLI and outbox queries.
+Later poll/pruning ticks usually cover a failed tick's backlog; a later news
+tick recomputes its active window. Decide whether to replay or deliberately
+abandon these old ticks using the documented dead-letter procedure. Digest
+replay always targets its original period and preserves known recipients.
+Do not mistake a dispatch watermark or a later tick for evidence that the
+failed task completed.
+
 ### Article translation tasks
 
 Translation requests and source edits persist `article.translation.v1` intents

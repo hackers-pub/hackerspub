@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Database } from "@hackerspub/models/db";
+import { SCHEDULED_WORKER_JOB_NAMES } from "@hackerspub/models/tasks";
 import type { Transport } from "@upyo/core";
 import {
   createWorkerJobs,
+  createScheduledWorkerJobExecutor,
   type WorkerJobOperations,
   waitForWorkerJobsToDrain,
   WorkerJobRunner,
@@ -60,6 +62,22 @@ test("worker job schedules preserve the Deno worker cadence", () => {
     { name: "prune-transactional-outbox", schedule: "30 3 * * *" },
     { name: "prune-article-view-deduplications", schedule: "45 3 * * *" },
   ]);
+});
+
+test("durable task names cover every scheduled job except the leased rescore drain", () => {
+  const jobs = createWorkerJobs({
+    db: createDatabase(),
+    email,
+    emailFrom: "admin@example.com",
+    origin: "https://example.com/",
+  });
+  assert.deepEqual(
+    jobs
+      .map((job) => job.name)
+      .filter((name) => name !== "drain-news-rescore-queue")
+      .sort(),
+    [...SCHEDULED_WORKER_JOB_NAMES].sort(),
+  );
 });
 
 test("news score sweep skips work when another replica holds the lock", async () => {
@@ -216,4 +234,114 @@ test("slow job drains warn without releasing shared resources", async () => {
   completion.resolve();
   await draining;
   assert.equal(drained, true);
+});
+
+test("delayed scheduled jobs freeze every interval-sensitive operation input", async () => {
+  const tick = new Date("2026-10-05T00:05:00Z");
+  const later = new Date("2026-10-20T12:00:00Z");
+  const inputs: Record<string, string | undefined> = {};
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com",
+    },
+    {
+      now: () => later,
+      operations: createOperations({
+        recomputeNewsScores: async (_db, options) => {
+          inputs.news = options?.activeSince?.toISOString();
+          return { linksUpdated: 0, recomputed: later };
+        },
+        notifyEndedPolls: async (_db, options) => {
+          inputs.poll = options?.now?.toISOString();
+          return { pollsProcessed: 0, notificationsCreated: 0 };
+        },
+        sendNotificationDigests: async (options) => {
+          inputs[options.frequency] = options.now?.toISOString();
+          return {
+            accountsChecked: 0,
+            accountsClaimed: 0,
+            emailsSent: 0,
+            accountsFailed: 0,
+          };
+        },
+        pruneOutboxEvents: async (_db, options) => {
+          inputs.completed = options.completedBefore.toISOString();
+          inputs.failed = options.failedBefore.toISOString();
+          return 0;
+        },
+        pruneExpiredArticleViewDeduplications: async (_db, cutoff) => {
+          inputs.views = cutoff?.toISOString();
+          return 0;
+        },
+      }),
+    },
+  );
+  for (const job of jobs) {
+    if (job.name !== "drain-news-rescore-queue") await job.run(tick);
+  }
+  assert.deepEqual(inputs, {
+    news: "2026-10-04T23:05:00.000Z",
+    poll: tick.toISOString(),
+    weekly: tick.toISOString(),
+    daily: tick.toISOString(),
+    completed: "2026-10-04T00:05:00.000Z",
+    failed: "2026-09-05T00:05:00.000Z",
+    views: tick.toISOString(),
+  });
+});
+
+test("digest account failures reach task retry and executor drains canceled work", async () => {
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com",
+    },
+    {
+      operations: createOperations({
+        sendNotificationDigests: async () => ({
+          accountsChecked: 2,
+          accountsClaimed: 2,
+          emailsSent: 1,
+          accountsFailed: 1,
+        }),
+      }),
+    },
+  );
+  const execution = { signal: new AbortController().signal, attempt: 0 };
+  const payload = {
+    jobName: "send-daily-notification-digests" as const,
+    scheduled: "2026-10-05T00:05:00.000Z",
+  };
+  await assert.rejects(
+    createScheduledWorkerJobExecutor(jobs)(payload, execution),
+    /daily digest account.*failed/,
+  );
+
+  const controller = new AbortController();
+  const started = Promise.withResolvers<void>();
+  const finished = Promise.withResolvers<void>();
+  let saved = false;
+  const execute = createScheduledWorkerJobExecutor([
+    {
+      name: payload.jobName,
+      schedule: "5 0 * * *",
+      async run() {
+        started.resolve();
+        await finished.promise;
+        saved = true;
+      },
+    },
+  ]);
+  const running = execute(payload, { signal: controller.signal, attempt: 0 });
+  await started.promise;
+  controller.abort();
+  assert.equal(saved, false);
+  finished.resolve();
+  await assert.rejects(running, { name: "AbortError" });
+  assert.equal(saved, true);
 });

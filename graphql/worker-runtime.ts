@@ -69,6 +69,9 @@ export async function runWorkerRuntime<TContextData>(
     const first = await Promise.race([queueCompletion, schedulerCompletion]);
     const externalShutdownRequested = shutdownRequested;
     controller.abort();
+    // Stopping cron only drains dispatches and the retained DB drain. Queue
+    // completion separately awaits actual task handlers (including email
+    // sends and recipient progress writes) before callers close resources.
     const completions = await Promise.all([
       queueCompletion,
       schedulerCompletion,
