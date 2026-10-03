@@ -182,3 +182,55 @@ export const articleTranslationSummaryTask: ApplicationTask<ArticleTranslationSu
 /** All summary producers share the existing wire format and registration. */
 export const articleSummaryTask = articleTranslationSummaryTask;
 export type ArticleSummaryTaskPayload = ArticleTranslationSummaryTaskPayload;
+
+export const SCHEDULED_WORKER_JOB_NAMES = [
+  "recompute-news-scores",
+  "notify-ended-polls",
+  "send-weekly-notification-digests",
+  "send-daily-notification-digests",
+  "prune-transactional-outbox",
+  "prune-article-view-deduplications",
+] as const;
+
+export type ScheduledWorkerJobName =
+  (typeof SCHEDULED_WORKER_JOB_NAMES)[number];
+
+export interface ScheduledWorkerTaskPayload {
+  readonly jobName: ScheduledWorkerJobName;
+  /** The original UTC tick, retained across delayed execution and retries. */
+  readonly scheduled: string;
+}
+
+export const scheduledWorkerTask: ApplicationTask<ScheduledWorkerTaskPayload> =
+  {
+    name: "scheduled.worker.v1",
+    schema: {
+      "~standard": {
+        version: 1,
+        vendor: "hackerspub",
+        validate(value) {
+          if (
+            typeof value === "object" &&
+            value != null &&
+            "jobName" in value &&
+            SCHEDULED_WORKER_JOB_NAMES.some((name) => name === value.jobName) &&
+            "scheduled" in value &&
+            typeof value.scheduled === "string" &&
+            Number.isFinite(Date.parse(value.scheduled)) &&
+            new Date(value.scheduled).toISOString() === value.scheduled &&
+            new Date(value.scheduled).getUTCSeconds() === 0 &&
+            new Date(value.scheduled).getUTCMilliseconds() === 0
+          ) {
+            return { value: value as ScheduledWorkerTaskPayload };
+          }
+          return {
+            issues: [
+              {
+                message: "Expected a scheduled job name and a UTC minute tick.",
+              },
+            ],
+          };
+        },
+      },
+    },
+  };

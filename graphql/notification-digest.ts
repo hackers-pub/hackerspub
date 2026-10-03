@@ -6,6 +6,8 @@ import { createMessage, type Message, type Transport } from "@upyo/core";
 import { count, desc, sql } from "drizzle-orm";
 import { readdir, readFile } from "node:fs/promises";
 import type { Database, Transaction } from "@hackerspub/models/db";
+import { runInTransaction } from "@hackerspub/models/db";
+import { setTimeout as sleep } from "node:timers/promises";
 import {
   accountTable,
   actorTable,
@@ -23,7 +25,7 @@ const readTextFile = (path: string | URL) => readFile(path, "utf8");
 const logger = getLogger(["hackerspub", "graphql", "notification-digest"]);
 
 const MAX_DIGEST_ITEMS = 10;
-const DIGEST_DELIVERY_CLAIM_TIMEOUT_MINUTES = 15;
+const DIGEST_GUARD_CLASS = 0x64696765;
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
 interface DigestAccount {
@@ -59,6 +61,7 @@ interface SendNotificationDigestsOptions {
   frequency: NotificationDigestFrequency;
   now?: Date;
   limit?: number;
+  signal?: AbortSignal;
 }
 
 interface DigestEmailTemplate {
@@ -163,6 +166,69 @@ export async function sendNotificationDigests(
   options: SendNotificationDigestsOptions,
 ): Promise<SendNotificationDigestsResult> {
   const now = options.now ?? new Date();
+  return await withNotificationDigestGuard(
+    options.db,
+    options.frequency,
+    options.signal,
+    async (verifyGuard) =>
+      await sendGuardedNotificationDigests({ ...options, now }, verifyGuard),
+  );
+}
+
+/**
+ * Keep the guard on one connection and commit delivery progress on the root
+ * database independently. Rolling back a guard must never roll back sent mail
+ * markers. A Transaction argument is only suitable for rollback test fixtures.
+ */
+export async function withNotificationDigestGuard<T>(
+  db: Database | Transaction,
+  frequency: NotificationDigestFrequency,
+  signal: AbortSignal | undefined,
+  run: (verifyGuard: () => Promise<void>) => Promise<T>,
+  options: { waitMilliseconds?: number; pollMilliseconds?: number } = {},
+): Promise<T> {
+  return await runInTransaction(db, async (tx) => {
+    // This intentionally long-lived transaction only holds a lock. Do not let
+    // an idle-session timeout silently release it between recipient sends.
+    await tx.execute(sql`set local idle_in_transaction_session_timeout = 0`);
+    const deadline = Date.now() + (options.waitMilliseconds ?? 180_000);
+    while (true) {
+      signal?.throwIfAborted();
+      const rows = await tx.execute<{ locked: boolean }>(sql`
+        select pg_try_advisory_xact_lock(${DIGEST_GUARD_CLASS}::int,
+          ${frequency === "daily" ? 1 : 2}::int) as locked
+      `);
+      signal?.throwIfAborted();
+      if (rows[0]?.locked === true) break;
+      if (Date.now() >= deadline)
+        throw new Error("Timed out waiting for the notification digest guard.");
+      await sleep(
+        Math.min(
+          options.pollMilliseconds ?? 250,
+          Math.max(1, deadline - Date.now()),
+        ),
+        undefined,
+        { signal },
+      );
+    }
+    const verifyGuard = async () => {
+      signal?.throwIfAborted();
+      // A reserved transaction connection cannot reconnect and silently lose
+      // its lock. Detect loss before claiming another account or sending mail.
+      await tx.execute(sql`select 1`);
+      signal?.throwIfAborted();
+    };
+    const result = await run(verifyGuard);
+    await verifyGuard();
+    return result;
+  });
+}
+
+async function sendGuardedNotificationDigests(
+  options: SendNotificationDigestsOptions & { now: Date },
+  verifyGuard: () => Promise<void>,
+): Promise<SendNotificationDigestsResult> {
+  const now = options.now;
   const periodStart = getNotificationDigestPeriodStart(options.frequency, now);
   const origin = new URL(options.origin);
   const accounts = (await options.db.query.accountTable.findMany({
@@ -182,6 +248,7 @@ export async function sendNotificationDigests(
   let emailsSent = 0;
   let accountsFailed = 0;
   for (const account of accounts) {
+    await verifyGuard();
     if (
       options.frequency === "daily" &&
       account.notificationEmailDigestWeekly &&
@@ -198,9 +265,10 @@ export async function sendNotificationDigests(
     ).map((email) => email.email);
     if (recipients.length < 1) continue;
 
-    const snapshot = await getUnreadDigestSnapshot(options.db, account.id);
+    const snapshot = await getUnreadDigestSnapshot(options.db, account.id, now);
     if (snapshot.totalCount < 1) continue;
 
+    await verifyGuard();
     const claim = await claimDigestDelivery(
       options.db,
       account.id,
@@ -229,6 +297,7 @@ export async function sendNotificationDigests(
       const errors: string[] = [];
       const newlySentRecipients: string[] = [];
       for (const to of pendingRecipients) {
+        options.signal?.throwIfAborted();
         const message = await getDigestMessage({
           account,
           frequency: options.frequency,
@@ -237,11 +306,21 @@ export async function sendNotificationDigests(
           snapshot,
           to,
         });
+        await verifyGuard();
+        // Do not cancel an in-flight send: await its receipt and save progress
+        // before observing cancellation. Mid-send abort makes delivery unclear.
         const receipt = await options.email.send(message);
         if (receipt.successful) {
           emailsSent++;
           sentRecipients.add(to);
           newlySentRecipients.push(to);
+          await saveDigestSentRecipients(
+            options.db,
+            account.id,
+            options.frequency,
+            periodStart,
+            [...sentRecipients],
+          );
         } else {
           errors.push(...receipt.errorMessages);
         }
@@ -259,7 +338,6 @@ export async function sendNotificationDigests(
           [...sentRecipients],
         );
       } else {
-        accountsFailed++;
         const error = errors.join("; ") || "Unknown delivery failure.";
         logDigestDeliveryFailure(account.id, error);
         await markDigestDeliveryFailed(
@@ -270,20 +348,30 @@ export async function sendNotificationDigests(
           error,
           [...sentRecipients],
         );
+        accountsFailed++;
       }
     } catch (error) {
+      if (options.signal?.aborted) throw error;
       accountsFailed++;
       const message = getErrorMessage(error);
       logDigestDeliveryFailure(account.id, message);
-      await markDigestDeliveryFailed(
-        options.db,
-        account.id,
-        options.frequency,
-        periodStart,
-        message,
-        [...sentRecipients],
-      );
+      try {
+        await markDigestDeliveryFailed(
+          options.db,
+          account.id,
+          options.frequency,
+          periodStart,
+          message,
+          [...sentRecipients],
+        );
+      } catch (failureWriteError) {
+        logDigestDeliveryFailure(
+          account.id,
+          getErrorMessage(failureWriteError),
+        );
+      }
     }
+    options.signal?.throwIfAborted();
   }
 
   return {
@@ -321,20 +409,29 @@ async function claimDigestDelivery(
         error: null,
         created: sql`CURRENT_TIMESTAMP`,
       },
-      setWhere: sql`
-      ${notificationDigestDeliveryTable.sent} IS NULL
-      AND (
-        ${notificationDigestDeliveryTable.failed} IS NOT NULL
-        OR ${notificationDigestDeliveryTable.created} <
-          CURRENT_TIMESTAMP -
-          (${DIGEST_DELIVERY_CLAIM_TIMEOUT_MINUTES}::text || ' minutes')::interval
-      )
-    `,
+      // Every sender holds the frequency guard. An orphaned incomplete claim
+      // can be retried immediately without waiting for a stale-claim timeout.
+      setWhere: sql`${notificationDigestDeliveryTable.sent} IS NULL`,
     })
     .returning({
       sentRecipients: notificationDigestDeliveryTable.sentRecipients,
     });
   return rows[0];
+}
+
+async function saveDigestSentRecipients(
+  db: Database | Transaction,
+  accountId: Uuid,
+  frequency: NotificationDigestFrequency,
+  periodStart: Date,
+  sentRecipients: string[],
+): Promise<void> {
+  await db.update(notificationDigestDeliveryTable).set({ sentRecipients })
+    .where(sql`
+    ${notificationDigestDeliveryTable.accountId} = ${accountId}
+    AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
+    AND ${notificationDigestDeliveryTable.periodStart} = ${periodStart.toISOString()}::timestamptz
+  `);
 }
 
 async function markDigestDeliverySent(
@@ -385,19 +482,20 @@ function getErrorMessage(error: unknown): string {
 async function getUnreadDigestSnapshot(
   db: Database | Transaction,
   accountId: Uuid,
+  until: Date,
 ): Promise<DigestSnapshot> {
   const [personalCount, moderationCount, organizationCount] = await Promise.all(
     [
-      countPersonalUnreadNotifications(db, accountId),
-      countModerationUnreadNotifications(db, accountId),
-      countOrganizationUnreadNotifications(db, accountId),
+      countPersonalUnreadNotifications(db, accountId, until),
+      countModerationUnreadNotifications(db, accountId, until),
+      countOrganizationUnreadNotifications(db, accountId, until),
     ],
   );
   const [personalItems, moderationItems, organizationItems] = await Promise.all(
     [
-      getPersonalDigestItems(db, accountId, MAX_DIGEST_ITEMS),
-      getModerationDigestItems(db, accountId, MAX_DIGEST_ITEMS),
-      getOrganizationDigestItems(db, accountId, MAX_DIGEST_ITEMS),
+      getPersonalDigestItems(db, accountId, MAX_DIGEST_ITEMS, until),
+      getModerationDigestItems(db, accountId, MAX_DIGEST_ITEMS, until),
+      getOrganizationDigestItems(db, accountId, MAX_DIGEST_ITEMS, until),
     ],
   );
   const items = [...personalItems, ...moderationItems, ...organizationItems]
@@ -415,10 +513,12 @@ async function getUnreadDigestSnapshot(
 async function countPersonalUnreadNotifications(
   db: Database | Transaction,
   accountId: Uuid,
+  until: Date,
 ): Promise<number> {
   const rows = await db.select({ count: count() }).from(notificationTable)
     .where(sql`
       ${notificationTable.accountId} = ${accountId}
+      AND ${notificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${notificationTable.created} > COALESCE(
         (
           SELECT ${accountTable.notificationRead}
@@ -439,11 +539,13 @@ async function countPersonalUnreadNotifications(
 async function countModerationUnreadNotifications(
   db: Database | Transaction,
   accountId: Uuid,
+  until: Date,
 ): Promise<number> {
   const rows = await db
     .select({ count: count() })
     .from(moderationNotificationTable).where(sql`
       ${moderationNotificationTable.accountId} = ${accountId}
+      AND ${moderationNotificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${moderationNotificationTable.read} IS NULL
     `);
   return Number(rows[0]?.count ?? 0);
@@ -452,6 +554,7 @@ async function countModerationUnreadNotifications(
 async function countOrganizationUnreadNotifications(
   db: Database | Transaction,
   accountId: Uuid,
+  until: Date,
 ): Promise<number> {
   const rows = await db.execute<{ count: number }>(sql`
     SELECT COUNT(*)::int AS count
@@ -460,6 +563,7 @@ async function countOrganizationUnreadNotifications(
       ON ${organizationMembershipTable.organizationAccountId} =
         ${notificationTable.accountId}
     WHERE ${organizationMembershipTable.memberAccountId} = ${accountId}
+      AND ${notificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${organizationMembershipTable.accepted} IS NOT NULL
       AND ${notificationTable.created} > COALESCE(
         (
@@ -489,6 +593,7 @@ async function getPersonalDigestItems(
   db: Database | Transaction,
   accountId: Uuid,
   limit: number,
+  until: Date,
 ): Promise<DigestItem[]> {
   const rows = await db
     .select({
@@ -498,6 +603,7 @@ async function getPersonalDigestItems(
     .from(notificationTable)
     .where(sql`
       ${notificationTable.accountId} = ${accountId}
+      AND ${notificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${notificationTable.created} > COALESCE(
         (
           SELECT ${accountTable.notificationRead}
@@ -525,6 +631,7 @@ async function getModerationDigestItems(
   db: Database | Transaction,
   accountId: Uuid,
   limit: number,
+  until: Date,
 ): Promise<DigestItem[]> {
   const rows = await db
     .select({
@@ -534,6 +641,7 @@ async function getModerationDigestItems(
     .from(moderationNotificationTable)
     .where(sql`
       ${moderationNotificationTable.accountId} = ${accountId}
+      AND ${moderationNotificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${moderationNotificationTable.read} IS NULL
     `)
     .orderBy(desc(moderationNotificationTable.created))
@@ -549,6 +657,7 @@ async function getOrganizationDigestItems(
   db: Database | Transaction,
   accountId: Uuid,
   limit: number,
+  until: Date,
 ): Promise<DigestItem[]> {
   const rows = await db.execute<{
     organization_name: string;
@@ -566,6 +675,7 @@ async function getOrganizationDigestItems(
     JOIN ${accountTable}
       ON ${accountTable.id} = ${organizationMembershipTable.organizationAccountId}
     WHERE ${organizationMembershipTable.memberAccountId} = ${accountId}
+      AND ${notificationTable.created} <= ${until.toISOString()}::timestamptz
       AND ${organizationMembershipTable.accepted} IS NOT NULL
       AND ${notificationTable.created} > COALESCE(
         (

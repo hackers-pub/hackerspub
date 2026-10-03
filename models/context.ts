@@ -7,6 +7,8 @@ import type { ApplicationServices } from "./services.ts";
 import type {
   ApplicationTask,
   ApplicationTaskEnqueueOptions,
+  ApplicationTaskExecution,
+  ScheduledWorkerTaskPayload,
 } from "./tasks.ts";
 
 export type AfterCommitTask = () => Promise<void> | void;
@@ -60,6 +62,11 @@ export interface ContextData<D extends Database = Database> {
   disk: Disk;
   models: Models;
   services: ApplicationServices<ApplicationContext>;
+  /** Only workers supply this capability; transports/credentials stay local. */
+  executeScheduledWorkerJob?: (
+    data: ScheduledWorkerTaskPayload,
+    execution: ApplicationTaskExecution,
+  ) => Promise<void>;
 }
 
 /**

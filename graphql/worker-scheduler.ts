@@ -13,7 +13,7 @@ export interface NodeCronHandle {
 
 export type NodeCronFactory = (
   job: WorkerJob,
-  run: () => Promise<void>,
+  run: (scheduled?: Date) => Promise<void>,
   overlap: () => void,
 ) => NodeCronHandle;
 
@@ -31,7 +31,7 @@ const logger = getLogger(["hackerspub", "graphql", "worker", "scheduler"]);
 
 export function createNodeCron(
   job: WorkerJob,
-  run: () => Promise<void>,
+  run: (scheduled?: Date) => Promise<void>,
   overlap: () => void,
 ): Cron {
   return new Cron(
@@ -41,8 +41,29 @@ export function createNodeCron(
       protect: overlap,
       timezone: "UTC",
     },
-    run,
+    (cron) =>
+      run(
+        getScheduledWorkerTick(job.schedule, cron.currentRun() ?? new Date()),
+      ),
   );
+}
+
+/** Resolve only the latest occurrence; missed ticks are never backfilled. */
+export function getScheduledWorkerTick(schedule: string, current: Date): Date {
+  const cron = new Cron(schedule, {
+    mode: "5-part",
+    timezone: "UTC",
+    paused: true,
+  });
+  try {
+    // Croner's backward search subtracts one second and clears milliseconds.
+    // Adding a full second includes the tick at the current second's boundary.
+    const tick = cron.previousRuns(1, new Date(current.getTime() + 1000))[0];
+    if (tick == null) throw new Error(`No previous tick for ${schedule}.`);
+    return tick;
+  } finally {
+    cron.stop();
+  }
 }
 
 export async function runNodeWorkerScheduler(
@@ -90,7 +111,10 @@ export async function runNodeWorkerScheduler(
       handles.push(
         cronFactory(
           job,
-          () => runner.run(job),
+          (scheduled) => {
+            if (stopped || options.signal.aborted) return Promise.resolve();
+            return runner.run(job, scheduled);
+          },
           () => {
             schedulerLogger.warning(
               "Scheduled worker job {jobName} skipped an overlapping tick.",

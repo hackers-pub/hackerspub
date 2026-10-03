@@ -6,6 +6,7 @@ import {
   accountTable,
   flagActionTable,
   flagCaseTable,
+  moderationNotificationTable,
   notificationDigestDeliveryTable,
   notificationTable,
   organizationMembershipTable,
@@ -113,6 +114,9 @@ test("sendNotificationDigests sends one daily digest across unread notification 
       })
       .returning();
     await createActionTakenNotification(tx, account.account.id, action);
+    await tx
+      .update(moderationNotificationTable)
+      .set({ created: new Date("2026-06-29T12:01:00Z") });
 
     await tx.insert(organizationMembershipTable).values([
       {
@@ -499,6 +503,7 @@ test("weekly digest suppresses daily digest for weekly-enabled accounts on Monda
       accountId: account.account.id,
       type: "follow",
       actorIds: [actor.actor.id],
+      created: new Date("2026-06-28T12:00:00Z"),
     });
 
     const email = createTestEmailTransport();

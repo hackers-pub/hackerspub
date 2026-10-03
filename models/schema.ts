@@ -2431,6 +2431,15 @@ export const applicationTaskReceiptTable = pgTable("application_task_receipt", {
     .default(currentTimestamp),
 });
 
+// Dispatch watermark, not execution completion. Updated atomically with intent.
+export const scheduledWorkerDispatchTable = pgTable(
+  "scheduled_worker_dispatch",
+  {
+    jobName: text("job_name").primaryKey(),
+    scheduled: timestamp({ withTimezone: true }).notNull(),
+  },
+);
+
 export const pollTable = pgTable(
   "poll",
   {

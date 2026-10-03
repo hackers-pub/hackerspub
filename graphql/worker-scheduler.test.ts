@@ -3,6 +3,7 @@ import test from "node:test";
 import type { Cron } from "croner";
 import {
   createNodeCron,
+  getScheduledWorkerTick,
   type NodeCronFactory,
   runNodeWorkerScheduler,
 } from "./worker-scheduler.ts";
@@ -13,6 +14,72 @@ const job: WorkerJob = {
   schedule: "* * * * *",
   run: () => Promise.resolve(),
 };
+
+test("cron tick identity includes exact boundaries and skips missed intervals", () => {
+  for (const current of ["00:05:00.000", "00:05:00.001", "00:05:59.999"]) {
+    assert.equal(
+      getScheduledWorkerTick(
+        "5 0 * * *",
+        new Date(`2026-10-05T${current}Z`),
+      ).toISOString(),
+      "2026-10-05T00:05:00.000Z",
+    );
+  }
+  assert.equal(
+    getScheduledWorkerTick(
+      "*/5 * * * *",
+      new Date("2026-10-05T00:13:03Z"),
+    ).toISOString(),
+    "2026-10-05T00:10:00.000Z",
+  );
+  assert.equal(
+    getScheduledWorkerTick(
+      "0 0 * * 1",
+      new Date("2026-10-05T00:00:00Z"),
+    ).toISOString(),
+    "2026-10-05T00:00:00.000Z",
+  );
+  // Restart installs future cron triggers only; resolving a later callback
+  // yields one latest tick, not every occurrence during downtime.
+  assert.equal(
+    getScheduledWorkerTick(
+      "* * * * *",
+      new Date("2026-10-05T04:22:00Z"),
+    ).toISOString(),
+    "2026-10-05T04:22:00.000Z",
+  );
+});
+
+test("scheduler forwards tick identity and rejects callbacks after shutdown", async () => {
+  const controller = new AbortController();
+  let callback: ((scheduled?: Date) => Promise<void>) | undefined;
+  const ticks: Date[] = [];
+  const running = runNodeWorkerScheduler(
+    [
+      {
+        ...job,
+        async run(scheduled) {
+          assert(scheduled);
+          ticks.push(scheduled);
+        },
+      },
+    ],
+    {
+      signal: controller.signal,
+      cronFactory: (_job, run) => {
+        callback = run;
+        return { stop() {} };
+      },
+    },
+  );
+  assert(callback);
+  const tick = new Date("2026-10-05T00:05:00Z");
+  await callback(tick);
+  controller.abort();
+  await callback(new Date("2026-10-05T00:06:00Z"));
+  await running;
+  assert.deepEqual(ticks, [tick]);
+});
 
 test("Node cron preserves UTC, five-field, and overlap protection", () => {
   const cron = createNodeCron(job, job.run, () => undefined) as Cron;
