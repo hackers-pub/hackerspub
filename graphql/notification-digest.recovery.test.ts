@@ -10,7 +10,7 @@ import {
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { Message, Transport } from "@upyo/core";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../test/database.ts";
 import {
   createTestEmailTransport,
@@ -178,15 +178,13 @@ test("a failed completion write preserves accepted recipients through guard roll
 test("failure of both recipient progress and failure writes is retryable and may duplicate email", async () => {
   await withDigestAccount(async ({ account }) => {
     const email = createTestEmailTransport();
-    await assert.rejects(
-      sendNotificationDigests(
-        options(
-          email.transport,
-          failingUpdates(() => true),
-        ),
+    const result = await sendNotificationDigests(
+      options(
+        email.transport,
+        failingUpdates(() => true),
       ),
-      /progress write failure/,
     );
+    assert.equal(result.accountsFailed, 1);
     const [orphan] = await db
       .select()
       .from(notificationDigestDeliveryTable)
@@ -200,6 +198,73 @@ test("failure of both recipient progress and failure writes is retryable and may
     );
     // This is the explicitly documented send/save ambiguity, not exactly once.
     assert.equal(email.messages.length, 2);
+  });
+});
+
+test("failed recipient progress and failure writes do not skip later accounts", async () => {
+  await withDigestAccount(async ({ account }) => {
+    const second = await insertAccountWithActor(db as Transaction, {
+      username: "digestlater",
+      name: "Later account",
+      email: "digestlater@example.com",
+    });
+    try {
+      await db
+        .update(accountTable)
+        .set({ notificationEmailDigestDaily: true })
+        .where(eq(accountTable.id, second.account.id));
+      await db.insert(notificationTable).values({
+        id: generateUuidV7(),
+        accountId: second.account.id,
+        type: "follow",
+        actorIds: [second.actor.id],
+        created: new Date("2026-10-05T12:00:00Z"),
+      });
+      let writes = 0;
+      const database = failingUpdates(() => writes++ < 2);
+      const email = createTestEmailTransport();
+      const result = await sendNotificationDigests(
+        options(email.transport, database),
+      );
+      assert.equal(result.accountsClaimed, 2);
+      assert.equal(result.accountsFailed, 1);
+      assert.equal(result.emailsSent, 2);
+      const deliveries = await db
+        .select()
+        .from(notificationDigestDeliveryTable)
+        .where(
+          inArray(notificationDigestDeliveryTable.accountId, [
+            account.id,
+            second.account.id,
+          ]),
+        );
+      assert.equal(
+        deliveries.filter((delivery) => delivery.sent != null).length,
+        1,
+      );
+      assert.equal(
+        deliveries.filter((delivery) => delivery.sent == null).length,
+        1,
+      );
+      assert.equal(
+        (await sendNotificationDigests(options(email.transport))).emailsSent,
+        1,
+      );
+      assert.equal(email.messages.length, 3);
+      // Only the account whose two state writes failed may be sent again.
+      assert.equal(
+        new Set(
+          email.messages.map(
+            (message) => (message as Message).recipients[0].address,
+          ),
+        ).size,
+        2,
+      );
+    } finally {
+      await db
+        .delete(accountTable)
+        .where(eq(accountTable.id, second.account.id));
+    }
   });
 });
 

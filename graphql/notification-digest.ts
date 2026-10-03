@@ -355,14 +355,21 @@ async function sendGuardedNotificationDigests(
       accountsFailed++;
       const message = getErrorMessage(error);
       logDigestDeliveryFailure(account.id, message);
-      await markDigestDeliveryFailed(
-        options.db,
-        account.id,
-        options.frequency,
-        periodStart,
-        message,
-        [...sentRecipients],
-      );
+      try {
+        await markDigestDeliveryFailed(
+          options.db,
+          account.id,
+          options.frequency,
+          periodStart,
+          message,
+          [...sentRecipients],
+        );
+      } catch (failureWriteError) {
+        logDigestDeliveryFailure(
+          account.id,
+          getErrorMessage(failureWriteError),
+        );
+      }
     }
     options.signal?.throwIfAborted();
   }
