@@ -438,8 +438,9 @@ worker and replay affected IDs after a mistaken incompatible deployment.
 The infrastructure regression suite runs a separate producer and task-only
 worker against the test PostgreSQL backend, including SIGKILL both before
 persistence and after persistence but before acknowledgment.  It deliberately
-runs no cron, email, ActivityPub delivery, or LLM calls; translation, summary,
-and scheduled workload migrations remain separate work items.
+runs no cron, email, ActivityPub delivery, or LLM calls. Separate regression
+suites cover the migrated translation, summary, and scheduled workloads;
+their execution and recovery behavior is documented in the following sections.
 
 See [Fedify's task documentation] for the serialization, retry, and telemetry
 contracts.
