@@ -587,6 +587,15 @@ export function createFedCtx<D extends Database>(
     set db(value) {
       data.db = value;
     },
+    async enqueueTask<T>(
+      this: RequestContext<ContextData> & ApplicationContext,
+      task: import("@hackerspub/models/tasks").ApplicationTask<T>,
+      payload: T,
+      options?: import("@hackerspub/models/tasks").ApplicationTaskEnqueueOptions,
+    ) {
+      const { enqueueTestArticleTask } = await import("./article-tasks.ts");
+      await enqueueTestArticleTask(this, task, payload, options);
+    },
     withDatabase(
       this: RequestContext<ContextData> & ApplicationContext,
       db: Database,

@@ -1,3 +1,4 @@
+import { normalizeLocale } from "./i18n.ts";
 import type { ApplicationContext } from "./context.ts";
 import { validateUuid, type Uuid } from "./uuid.ts";
 
@@ -92,3 +93,88 @@ export function assertApplicationTaskPayload(value: unknown): void {
   }
   visit(value);
 }
+
+export interface ArticleTranslationTaskPayload {
+  readonly sourceId: Uuid;
+  readonly language: string;
+  readonly translationJobToken: Uuid;
+}
+
+export interface ArticleTranslationSummaryTaskPayload {
+  readonly sourceId: Uuid;
+  readonly language: string;
+  /** Millisecond-precise claim written atomically with the translated text. */
+  readonly claim: string;
+}
+
+function validArticleTaskIdentity(
+  value: unknown,
+): value is { sourceId: Uuid; language: string } {
+  return (
+    typeof value === "object" &&
+    value != null &&
+    "sourceId" in value &&
+    validateUuid(value.sourceId) &&
+    "language" in value &&
+    typeof value.language === "string" &&
+    normalizeLocale(value.language) != null
+  );
+}
+
+export const articleTranslationTask: ApplicationTask<ArticleTranslationTaskPayload> =
+  {
+    name: "article.translation.v1",
+    schema: {
+      "~standard": {
+        version: 1,
+        vendor: "hackerspub",
+        validate(value) {
+          if (
+            validArticleTaskIdentity(value) &&
+            "translationJobToken" in value &&
+            validateUuid(value.translationJobToken)
+          ) {
+            return { value: value as ArticleTranslationTaskPayload };
+          }
+          return {
+            issues: [
+              {
+                message: "Expected sourceId, language and translationJobToken.",
+              },
+            ],
+          };
+        },
+      },
+    },
+  };
+
+/** Retain this registration when #426 unifies the other summary triggers. */
+export const articleTranslationSummaryTask: ApplicationTask<ArticleTranslationSummaryTaskPayload> =
+  {
+    name: "article.translation-summary.v1",
+    schema: {
+      "~standard": {
+        version: 1,
+        vendor: "hackerspub",
+        validate(value) {
+          if (
+            validArticleTaskIdentity(value) &&
+            "claim" in value &&
+            typeof value.claim === "string" &&
+            Number.isFinite(Date.parse(value.claim)) &&
+            new Date(value.claim).toISOString() === value.claim
+          ) {
+            return { value: value as ArticleTranslationSummaryTaskPayload };
+          }
+          return {
+            issues: [
+              {
+                message:
+                  "Expected sourceId, language and a millisecond ISO claim.",
+              },
+            ],
+          };
+        },
+      },
+    },
+  };

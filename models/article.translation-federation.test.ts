@@ -11,6 +11,7 @@ import {
   createArticle,
   publishArticleTranslation,
   startArticleContentTranslation,
+  executeArticleTranslation,
   updateArticle,
   withdrawArticleTranslation,
 } from "./article.ts";
@@ -611,11 +612,20 @@ test("a delayed automatic result cannot restore superseded text or credit", asyn
       where: { sourceId, language: "en" },
     });
     assert.ok(original != null);
-    await startArticleContentTranslation(fedCtx, {
+    const queued = await startArticleContentTranslation(fedCtx, {
       content: original,
       targetLanguage: "ko",
       requester: author.account,
     });
+    const running = executeArticleTranslation(
+      fedCtx,
+      {
+        sourceId,
+        language: "ko",
+        translationJobToken: queued.translationJobToken!,
+      },
+      { signal: new AbortController().signal, attempt: 0 },
+    );
     await started.promise;
     // The placeholder is never federated.
     assert.equal(updates.length, 0);
@@ -626,6 +636,7 @@ test("a delayed automatic result cannot restore superseded text or credit", asyn
     });
     const sent = updates.length;
     release.resolve("# 자동 번역\n\n자동 번역 본문");
+    await running;
     await waitFor(async () => {
       const row = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "ko" },

@@ -23,6 +23,7 @@ import type {
 import type { Uuid } from "./uuid.ts";
 
 export interface SummaryOptions {
+  signal?: AbortSignal;
   model: ApplicationModel;
   sourceLanguage: string;
   targetLanguage: string;
@@ -30,6 +31,7 @@ export interface SummaryOptions {
 }
 
 export interface TranslationOptions {
+  signal?: AbortSignal;
   model: ApplicationModel;
   summarizationModel?: ApplicationModel;
   sourceLanguage: string;
