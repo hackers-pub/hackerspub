@@ -912,15 +912,17 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
         "a moderation sanction, and the viewer is neither " +
         "its author nor a moderator.  Otherwise the " +
         "LLM-generated summary for this language version: `null` until " +
-        "generation completes. Check `summaryStarted` to distinguish " +
-        'between "not requested" and "in progress".',
+        "generation completes or the result is discarded. A non-`null` " +
+        "`summaryStarted` indicates queued, running, retrying, or failed work.",
     }),
     summaryStarted: t.expose("summaryStarted", {
       type: "DateTime",
       nullable: true,
       description:
-        "When LLM summary generation was started for this content version. " +
-        "`null` if summary generation has not been requested.",
+        "When summary work was claimed for this content version. `null` " +
+        "before a request and after completion or deliberate discard; a " +
+        "claim remains set while queued, running, retrying, or awaiting " +
+        "operator recovery after retries are exhausted.",
     }),
     content: t.field({
       type: "HTML",

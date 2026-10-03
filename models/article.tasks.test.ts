@@ -5,6 +5,7 @@ import {
   createArticle,
   executeArticleTranslation,
   executeArticleTranslationSummary,
+  executeArticleSummary,
   restartArticleContentTranslations,
   startArticleContentTranslation,
   updateArticleSource,
@@ -28,7 +29,6 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
-import { waitFor } from "../test/wait.ts";
 import type { ApplicationContext } from "./context.ts";
 import type { Transaction } from "./db.ts";
 
@@ -66,12 +66,19 @@ async function fixture(tx: Transaction) {
   });
   assert(article);
   const sourceId = article.articleSource.id;
-  await waitFor(async () => {
-    const row = await tx.query.articleContentTable.findFirst({
-      where: { sourceId, language: "en" },
-    });
-    return row?.summary != null;
+  const queuedOriginal = await tx.query.articleContentTable.findFirst({
+    where: { sourceId, language: "en" },
   });
+  assert(queuedOriginal?.summaryStarted);
+  await executeArticleSummary(
+    context,
+    {
+      sourceId,
+      language: "en",
+      claim: queuedOriginal.summaryStarted.toISOString(),
+    },
+    execution(),
+  );
   const original = await tx.query.articleContentTable.findFirst({
     where: { sourceId, language: "en" },
   });
@@ -96,7 +103,8 @@ async function fixture(tx: Transaction) {
   const tasks = async (name: string) =>
     (await tx.select().from(outboxEventTable)).filter(
       (event) =>
-        (event.payload as { taskName?: string } | null)?.taskName === name,
+        (event.payload as { taskName?: string } | null)?.taskName === name &&
+        event.orderingKey?.endsWith(":ko"),
     );
   return {
     context,
