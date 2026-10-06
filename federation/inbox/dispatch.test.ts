@@ -29,6 +29,82 @@ import {
 } from "./dispatch.ts";
 
 describe("transactional inbox dispatch", () => {
+  it("rejects redirected quote authorization IDs before accepting or persisting them", async () => {
+    await withRollback(async (tx) => {
+      const author = await insertRemoteActor(tx, {
+        username: "redirectedquoteowner",
+        name: "Redirected Quote Owner",
+        host: "remote.example",
+      });
+      const target = await insertRemotePost(tx, {
+        actorId: author.id,
+        contentHtml: "<p>Redirect target</p>",
+      });
+      const quoter = await insertAccountWithActor(tx, {
+        username: "redirectedquoter",
+        name: "Redirected Quoter",
+        email: "redirectedquoter@example.com",
+      });
+      const { post: quote } = await insertNotePost(tx, {
+        account: quoter.account,
+        content: "Pending quote",
+        quotedPostId: target.id,
+      });
+      const requestIri = new URL("#quote-request/redirect", quote.iri).href;
+      await tx.insert(quoteRequestTable).values({
+        id: generateUuidV7(),
+        iri: requestIri,
+        quotePostId: quote.id,
+        quotedPostId: target.id,
+      });
+      const expectedId = "https://remote.example/authorizations/expected";
+      const fetchedId = "https://remote.example/authorizations/different";
+      const authorization = new QuoteAuthorization({
+        id: new URL(fetchedId),
+        attribution: new URL(author.iri),
+        interactingObject: new URL(quote.iri),
+        interactionTarget: new URL(target.iri),
+      });
+      const accept = new Accept({
+        id: new URL("https://remote.example/accept"),
+        actor: new URL(author.iri),
+        object: new URL(requestIri),
+        result: new URL(expectedId),
+      });
+      const fedCtx = {
+        ...createFedCtx(tx),
+        async documentLoader(url: string) {
+          if (url === requestIri) throw new Error("Use the stored request");
+          assert.equal(url, expectedId);
+          return {
+            contextUrl: null,
+            documentUrl: fetchedId,
+            document: await authorization.toJsonLd(),
+          };
+        },
+        async sendActivity() {
+          assert.fail("An invalid authorization must not publish an update");
+        },
+      } as unknown as InboxContext<ContextData>;
+      await onAccepted(fedCtx, accept);
+      // The real getter cached the fetched ID; verification used the signed one.
+      assert.equal(accept.resultId?.href, fetchedId);
+      const storedQuote = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+      });
+      assert.equal(storedQuote?.quoteAuthorizationIri, null);
+      const request = await tx.query.quoteRequestTable.findFirst({
+        where: { iri: requestIri },
+      });
+      assert.equal(request?.accepted, null);
+      assert.equal(
+        await tx.query.quoteAuthorizationTable.findFirst({
+          where: { iri: fetchedId },
+        }),
+        undefined,
+      );
+    });
+  });
   it("accepts Mastodon quote approvals with an unresolvable request fragment", async () => {
     await withRollback(async (tx) => {
       const remoteActor = await insertRemoteActor(tx, {

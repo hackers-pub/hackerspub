@@ -81,6 +81,15 @@ export interface SendArticleRelayOptions extends Omit<
   "relayedTags"
 > {}
 
+export interface StoredQuoteAuthorizationVerificationOptions {
+  readonly authorizationId: URL;
+  readonly interactingObject: URL;
+  readonly interactionTarget: URL;
+  readonly attributedTo: URL;
+  /** Whether a matching, unrevoked authorization row was found in the DB. */
+  readonly authentic: boolean;
+}
+
 export interface FederationServices<TContext> {
   readonly evaluateQuotePolicy: (
     context: TContext,
@@ -96,6 +105,11 @@ export interface FederationServices<TContext> {
     attributedTo: URL,
     documentLoader: DocumentLoader,
     contextLoader?: DocumentLoader,
+  ) => Promise<boolean>;
+  readonly verifyStoredQuoteAuthorization: (
+    context: TContext,
+    authorization: vocab.QuoteAuthorization,
+    options: StoredQuoteAuthorizationVerificationOptions,
   ) => Promise<boolean>;
   readonly subscribeTagsPubHashtag: (
     context: TContext,

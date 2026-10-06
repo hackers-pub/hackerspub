@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import test from "node:test";
+import test, { mock } from "node:test";
 import {
   Announce,
   Article,
@@ -1227,6 +1227,7 @@ test("persistPost() rejects forged quote authorizations for local targets", asyn
 
 async function assertLocallyIssuedQuoteAuthorization(
   authorizationOrigin: string,
+  variant = "valid",
 ): Promise<void> {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -1247,12 +1248,22 @@ async function assertLocallyIssuedQuoteAuthorization(
     const quoteIri =
       "https://remote.example/objects/issued-quote-authorization";
     const authorizationIri = `${authorizationOrigin}/objects/issued-quote-authorization`;
+    const otherTarget =
+      variant === "wrong stored target"
+        ? await insertRemotePost(tx, {
+            actorId: quoter.id,
+            contentHtml: "<p>Other target</p>",
+          })
+        : undefined;
     await tx.insert(quoteAuthorizationTable).values({
       id: generateUuidV7(),
       iri: authorizationIri,
-      quotePostIri: quoteIri,
-      quotedPostId: quotedPost.id,
-      attributedActorId: quotedPost.actorId,
+      quotePostIri:
+        variant === "wrong stored quote" ? `${quoteIri}/other` : quoteIri,
+      quotedPostId: otherTarget?.id ?? quotedPost.id,
+      attributedActorId:
+        variant === "wrong stored author" ? quoter.id : quotedPost.actorId,
+      revoked: variant === "revoked",
     });
     const quote = new Note({
       id: new URL(quoteIri),
@@ -1263,14 +1274,41 @@ async function assertLocallyIssuedQuoteAuthorization(
       quoteAuthorization: new QuoteAuthorization({
         id: new URL(authorizationIri),
         attribution: new URL(author.actor.iri),
-        interactingObject: new URL(quoteIri),
+        interactingObject: new URL(
+          variant === "wrong object quote" ? `${quoteIri}/other` : quoteIri,
+        ),
         interactionTarget: new URL(quotedPost.iri),
       }),
     });
 
+    if (variant === "DB error") {
+      const error = new Error("Authorization row query unavailable");
+      const query = mock.method(
+        tx.query.quoteAuthorizationTable,
+        "findFirst",
+        async () => {
+          throw error;
+        },
+      );
+      try {
+        await assert.rejects(() => persistPost(createFedCtx(tx), quote), error);
+      } finally {
+        query.mock.restore();
+      }
+      return;
+    }
     const persisted = await persistPost(createFedCtx(tx), quote);
 
     assert.ok(persisted != null);
+    if (variant !== "valid") {
+      assert.equal(persisted.quotedPost, null, variant);
+      assert.equal(persisted.quoteAuthorizationIri, null, variant);
+      const stored = await tx.query.quoteAuthorizationTable.findFirst({
+        where: { iri: authorizationIri },
+      });
+      assert.equal(stored?.revoked, variant === "revoked");
+      return;
+    }
     assert.equal(persisted.quotedPost?.id, quotedPost.id);
     assert.equal(persisted.quoteAuthorizationIri, authorizationIri);
     const storedAuthorization =
@@ -1286,6 +1324,22 @@ test("persistPost() accepts locally issued quote authorizations", () =>
 
 test("persistPost() accepts DB-issued authorization aliases", () =>
   assertLocallyIssuedQuoteAuthorization("https://approval.example"));
+
+test("persistPost() rejects revoked and mismatched DB-issued authorizations and propagates DB errors", async () => {
+  for (const variant of [
+    "revoked",
+    "wrong stored quote",
+    "wrong stored target",
+    "wrong stored author",
+    "wrong object quote",
+    "DB error",
+  ]) {
+    await assertLocallyIssuedQuoteAuthorization(
+      "https://approval.example",
+      variant,
+    );
+  }
+});
 
 test("persistPost() rejects redirected and ID-less remote authorizations", async () => {
   for (const variant of [

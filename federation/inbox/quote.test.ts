@@ -1521,6 +1521,7 @@ test("unknown quote approvals honor the state read after locking", async () => {
     await onQuoteRequestAccepted(fedCtx, accept, {
       object: request,
       result: authorization,
+      resultId: new URL(authorizationIri),
     }),
     true,
   );

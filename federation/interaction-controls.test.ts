@@ -154,6 +154,7 @@ test("quote handler verifies compatible instruments without fetching local targe
     "wrong target",
     "wrong author",
     "cross-origin instrument",
+    "missing author",
   ]) {
     const requester = {
       id: "requester",
@@ -231,9 +232,11 @@ test("quote handler verifies compatible instruments without fetching local targe
           : "https://remote.example/quote",
       ),
       attributions:
-        variant === "multiple authors"
-          ? [other, new URL(requester.iri)]
-          : [variant === "wrong author" ? other : new URL(requester.iri)],
+        variant === "missing author"
+          ? []
+          : variant === "multiple authors"
+            ? [other, new URL(requester.iri)]
+            : [variant === "wrong author" ? other : new URL(requester.iri)],
       quote:
         variant === "quoteUrl"
           ? null
@@ -254,18 +257,40 @@ test("quote handler verifies compatible instruments without fetching local targe
         },
       });
     }
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/request"),
+      actor: new URL(requester.iri),
+      object: new URL(target.iri),
+      instrument:
+        variant === "redirected instrument"
+          ? new URL("https://remote.example/alias")
+          : instrument,
+    });
     await onQuoteRequested(
       raw as unknown as InboxContext<ContextData>,
-      new QuoteRequest({
-        id: new URL("https://remote.example/request"),
-        actor: new URL(requester.iri),
-        object: new URL(target.iri),
-        instrument:
-          variant === "redirected instrument"
-            ? new URL("https://remote.example/alias")
-            : instrument,
-      }),
+      request,
     );
+    assert.equal(request.id?.href, "https://remote.example/request");
+    assert.equal(request.actorId?.href, requester.iri);
+    assert.equal(request.objectId?.href, target.iri);
+    assert.equal(
+      instrument.quoteUrl?.href,
+      variant === "wrong target" ? other.href : target.iri,
+    );
+    assert.equal(
+      instrument.quoteId?.href,
+      variant === "quoteUrl"
+        ? undefined
+        : variant === "conflicting quote" || variant === "wrong target"
+          ? other.href
+          : target.iri,
+    );
+    if (variant === "multiple authors") {
+      assert.deepEqual(
+        instrument.attributionIds.map((id) => id.href),
+        [other.href, requester.iri],
+      );
+    }
     const allowed = [
       "quoteUrl",
       "conflicting quote",
@@ -282,5 +307,105 @@ test("quote handler verifies compatible instruments without fetching local targe
         "https://local.example/existing-authorization",
       );
     }
+  }
+});
+
+test("stored authorization helper requires DB evidence and exact bindings for aliases", async () => {
+  const ctx = createContext();
+  const id = new URL("https://alias.example/authorization");
+  const author = new URL("https://author.example/actor");
+  const quote = new URL("https://quoter.example/quote");
+  const target = new URL("https://author.example/post");
+  const other = new URL("https://other.example/object");
+  for (const variant of [
+    "valid",
+    "no evidence",
+    "idless",
+    "wrong ID",
+    "wrong quote",
+    "wrong target",
+    "wrong author",
+  ]) {
+    const authorization = new QuoteAuthorization({
+      id: variant === "idless" ? null : variant === "wrong ID" ? other : id,
+      attribution: variant === "wrong author" ? other : author,
+      interactingObject: variant === "wrong quote" ? other : quote,
+      interactionTarget: variant === "wrong target" ? other : target,
+    });
+    assert.equal(
+      await federationServices.verifyStoredQuoteAuthorization(
+        ctx,
+        authorization,
+        {
+          authorizationId: id,
+          interactingObject: quote,
+          interactionTarget: target,
+          attributedTo: author,
+          authentic: variant !== "no evidence",
+        },
+      ),
+      variant === "valid",
+      variant,
+    );
+  }
+});
+
+test("authorization verification separates document/context loaders with a default context fallback", async () => {
+  const ctx = createContext();
+  const id = new URL("https://author.example/authorization");
+  const author = new URL("https://author.example/actor");
+  const quote = new URL("https://quoter.example/quote");
+  const target = new URL("https://author.example/post");
+  const authorization = new QuoteAuthorization({
+    id,
+    attribution: author,
+    interactingObject: quote,
+    interactionTarget: target,
+  });
+  const document = await authorization.toJsonLd();
+  assert.ok(
+    document != null && typeof document === "object" && "@context" in document,
+  );
+  for (const separate of [false, true]) {
+    const contextUrl = "https://contexts.example/custom";
+    const contexts: string[] = [];
+    const documents: string[] = [];
+    assert.equal(
+      await federationServices.verifyQuoteAuthorization(
+        ctx,
+        id,
+        quote,
+        target,
+        author,
+        async (url) => {
+          documents.push(url);
+          assert.equal(url, id.href);
+          return {
+            document: separate
+              ? { ...document, "@context": contextUrl }
+              : document,
+            documentUrl: url,
+            contextUrl: null,
+          };
+        },
+        separate
+          ? async (url) => {
+              contexts.push(url);
+              if (url === contextUrl) {
+                return {
+                  document: { "@context": document["@context"] },
+                  documentUrl: url,
+                  contextUrl: null,
+                };
+              }
+              return ctx.contextLoader(url);
+            }
+          : undefined,
+      ),
+      true,
+    );
+    assert.deepEqual(documents, [id.href]);
+    if (separate) assert.ok(contexts.includes(contextUrl));
+    else assert.deepEqual(contexts, []);
   }
 });

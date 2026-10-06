@@ -47,10 +47,21 @@ export const federationServices: FederationServices<ApplicationContext> = {
         interactingObject,
         interactionTarget,
         attributedTo,
-        documentLoader: (url) =>
-          url === authorization.href
-            ? documentLoader(url)
-            : (contextLoader ?? getDocumentLoader())(url),
+        documentLoader,
+        contextLoader: contextLoader ?? getDocumentLoader(),
+      })
+    ).verified,
+  verifyStoredQuoteAuthorization: async (context, authorization, options) =>
+    (
+      await quoteInteraction.verifyAuthorization(getFedifyContext(context), {
+        authorization,
+        authorizationId: options.authorizationId,
+        interactingObject: options.interactingObject,
+        interactionTarget: options.interactionTarget,
+        attributedTo: options.attributedTo,
+        // Stored, unrevoked grants authenticate aliases independently of origin.
+        allowOffOrigin: true,
+        verifyAuthenticity: () => options.authentic,
       })
     ).verified,
   subscribeTagsPubHashtag: (context, tag) =>

@@ -323,27 +323,16 @@ async function getValidQuoteRequestInstrument(
     instrument.id.origin !== request.actorId.origin
   )
     return;
-  // Preserve quoteUrl and multi-attribution compatibility while letting the
-  // helper validate the normalized request. The original object is persisted.
-  const matchingTarget = [instrument.quoteId, instrument.quoteUrl].find(
-    (id) => id?.href === request.objectId?.href,
-  );
-  const normalized = instrument.clone({
-    quote: matchingTarget ?? instrument.quoteId,
-    quoteUrl: matchingTarget ?? instrument.quoteUrl,
-    attributions: instrument.attributionIds.some(
-      (id) => id.href === request.actorId!.href,
-    )
-      ? [request.actorId]
-      : instrument.attributionIds,
-  });
   // The local target was resolved from the DB, including share wrappers;
-  // embed its requested ID so verification never fetches our own public URL.
+  // compare the instrument against the requested IRI, while authorizations
+  // continue to refer to the original post behind a share.
   const result = await quoteInteraction.verifyRequest(fedCtx, {
-    request: request.clone({
-      object: new Note({ id: request.objectId }),
-      instrument: normalized,
-    }),
+    request,
+    resolvedInteractionTarget: new Note({ id: request.objectId }),
+    resolvedInteractingObject: instrument,
+    quoteReference: "any",
+    attribution: "any",
+    missingAttribution: "reject",
   });
   return result.verified ? { instrument, instrumentIri } : undefined;
 }
@@ -351,9 +340,11 @@ async function getValidQuoteRequestInstrument(
 export async function onQuoteRequestAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
-  resolved?: Readonly<{ object: unknown; result: unknown }>,
+  resolved?: Readonly<{ object: unknown; result: unknown; resultId: URL }>,
 ): Promise<boolean> {
-  if (accept.actorId == null || accept.resultId == null) return false;
+  // Dereferencing result can replace the signed reference with a fetched ID.
+  const resultId = resolved?.resultId ?? accept.resultId;
+  if (accept.actorId == null || resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
   if (quoteRequestIri != null) {
     quoteRequestIri = await resolveAcceptedQuoteRequestIri(
@@ -438,18 +429,26 @@ export async function onQuoteRequestAccepted(
   // Signed author approval permits authorization aliases on another origin.
   const validAuthorization =
     authorization instanceof QuoteAuthorization &&
-    authorization.id?.href === accept.resultId.href &&
-    authorization.interactingObjectId?.href === quote.iri &&
-    authorization.interactionTargetId?.href === quotedPost.iri &&
-    authorization.attributionId?.href === quotedPost.actor.iri;
+    (
+      await quoteInteraction.verifyAuthorization(fedCtx, {
+        authorization,
+        authorizationId: resultId,
+        interactingObject: new URL(quote.iri),
+        interactionTarget: new URL(quotedPost.iri),
+        attributedTo: new URL(quotedPost.actor.iri),
+        allowOffOrigin: true,
+        // The signed Accept's actor was checked against the target's owner.
+        verifyAuthenticity: () => true,
+      })
+    ).verified;
   if (!validAuthorization) {
     logger.warn("Ignoring invalid quote authorization: {iri}", {
-      iri: accept.resultId.href,
+      iri: resultId.href,
     });
     return true;
   }
   const accepted = new Date();
-  const resultIri = accept.resultId.href;
+  const resultIri = resultId.href;
   const shouldSendUpdate =
     quote.quoteAuthorizationIri !== resultIri ||
     quote.quotedPostId !== quotedPost.id;
