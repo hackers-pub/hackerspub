@@ -67,5 +67,23 @@
   "accountEmailChange": {
     "emailSubject": "Hackers' Pubのメール設定が変更されました",
     "emailContent": "Hackers' Pubの@{{username}}アカウントのメール設定が変更されました。心当たりがない場合は、既存のメールアドレスまたはパスキーでサインインし、インスタンス管理者にお問い合わせください。\n"
+  },
+  "accountSecurity": {
+    "emailLoginDisabled": {
+      "emailSubject": "Hackers' Pub へのログイン試行",
+      "emailContent": "@{{username}} へのメールでのログインが要求されました。このアカウントではパスキーのみ利用できるため、ログインリンクやコードは発行されませんでした。登録済みのパスキーまたは保存済みの復旧コードをご利用ください。心当たりがない場合、対応は不要です。"
+    },
+    "ENABLE": {
+      "emailSubject": "Hackers' Pub のセキュリティ設定が変更されました",
+      "emailContent": "@{{username}} のメールでのログインが無効になりました。以前のメール認証セッションとリンクは無効になりました。パスキーまたは保存済みの復旧コードでログインしてください。"
+    },
+    "DISABLE": {
+      "emailSubject": "Hackers' Pub のセキュリティ設定が変更されました",
+      "emailContent": "パスキーでの確認後、@{{username}} のメールでのログインが有効になりました。復旧コードは無効になりました。"
+    },
+    "REGENERATE": {
+      "emailSubject": "Hackers' Pub のセキュリティ設定が変更されました",
+      "emailContent": "パスキーでの確認後、@{{username}} の復旧コードが再発行されました。以前のコードはすべて無効です。メールでのログインは引き続き無効です。"
+    }
   }
 }

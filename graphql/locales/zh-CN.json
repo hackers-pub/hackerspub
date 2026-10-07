@@ -67,5 +67,23 @@
   "accountEmailChange": {
     "emailSubject": "Hackers' Pub 邮箱设置已更改",
     "emailContent": "Hackers' Pub 的 @{{username}} 账户的邮箱设置已更改。如果不是您本人操作，请使用现有邮箱地址或通行密钥登录并联系实例管理员。\n"
+  },
+  "accountSecurity": {
+    "emailLoginDisabled": {
+      "emailSubject": "Hackers' Pub 登录尝试",
+      "emailContent": "有人请求通过电子邮件登录 @{{username}}。此账户仅接受通行密钥，因此未发送登录链接或验证码。请使用已注册的通行密钥或保存的恢复代码。如果并非您本人操作，无需采取任何行动。"
+    },
+    "ENABLE": {
+      "emailSubject": "Hackers' Pub 安全设置已更改",
+      "emailContent": "@{{username}} 已禁用电子邮件登录。旧的电子邮件认证会话和链接已失效。请使用通行密钥或保存的恢复代码登录。"
+    },
+    "DISABLE": {
+      "emailSubject": "Hackers' Pub 安全设置已更改",
+      "emailContent": "通行密钥验证后，@{{username}} 已启用电子邮件登录。恢复代码已失效。"
+    },
+    "REGENERATE": {
+      "emailSubject": "Hackers' Pub 安全设置已更改",
+      "emailContent": "通行密钥验证后，@{{username}} 的恢复代码已重新生成。所有旧代码均已失效。电子邮件登录仍处于禁用状态。"
+    }
   }
 }

@@ -138,7 +138,7 @@ msgid "{0, plural, one {Show # reply} other {Show # replies}}"
 msgstr "{0, plural, other {댓글 #개 보기}}"
 
 #. placeholder {0}: retrySeconds()
-#: src/components/AccountEmailSettings.tsx:367
+#: src/components/AccountEmailSettings.tsx:364
 msgid "{0, plural, one {You can request another code in # second.} other {You can request another code in # seconds.}}"
 msgstr "{0, plural, other {#초 후에 새 코드를 요청할 수 있습니다.}}"
 
@@ -606,6 +606,11 @@ msgstr "계정 이전"
 msgid "Account permanently suspended"
 msgstr "계정 영구 정지됨"
 
+#: src/routes/(root)/sign/recovery.tsx:133
+#: src/routes/(root)/sign/recovery.tsx:136
+msgid "Account recovery"
+msgstr "계정 복구"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:525
 #: src/routes/(root)/[handle]/settings/account.tsx:527
 msgid "Account settings"
@@ -811,11 +816,11 @@ msgstr "게시글"
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:277
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:305
 msgid "An error occurred while registering your passkey."
 msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
 msgid "An error occurred while revoking your passkey."
 msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 
@@ -932,7 +937,7 @@ msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "정말로 {0} 님({1})을 팔로워에서 삭제하시겠습니까?"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:570
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
@@ -1064,6 +1069,10 @@ msgstr "편집으로 돌아가기"
 msgid "Back to editor"
 msgstr "편집기로 돌아가기"
 
+#: src/routes/(root)/sign/recovery.tsx:184
+msgid "Back to sign-in"
+msgstr "로그인으로 돌아가기"
+
 #: src/components/admin/AppealResolveForm.tsx:94
 #: src/components/admin/ModerationActionForm.tsx:117
 msgid "Ban"
@@ -1161,8 +1170,8 @@ msgstr "신고자 {0}"
 msgid "By {0}"
 msgstr "{0} 작성"
 
-#: src/components/AccountEmailSettings.tsx:451
-#: src/components/AccountEmailSettings.tsx:471
+#: src/components/AccountEmailSettings.tsx:448
+#: src/components/AccountEmailSettings.tsx:468
 #: src/components/AppealDialog.tsx:182
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:264
 #: src/components/article-translations/ArticleTranslationManager.tsx:1401
@@ -1182,7 +1191,7 @@ msgstr "{0} 작성"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 #: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:574
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "취소"
@@ -1395,6 +1404,14 @@ msgstr "복사됨"
 msgid "Copy"
 msgstr "복사"
 
+#: src/components/RecoveryCodesDialog.tsx:52
+msgid "Copy codes"
+msgstr "코드 복사"
+
+#: src/components/RecoveryCodesDialog.tsx:25
+msgid "Copy failed. Download or write down your recovery codes."
+msgstr "복사하지 못했습니다. 복구 코드를 다운로드하거나 적어 두세요."
+
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:177
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:189
 msgid "Could not accept conversion"
@@ -1544,7 +1561,7 @@ msgid "Created"
 msgstr "가입일"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:479
 msgid "Created {0}"
 msgstr "{0}에 생성됨"
 
@@ -1714,6 +1731,14 @@ msgstr "직접 방문 또는 알 수 없음"
 msgid "Disable"
 msgstr "끄기"
 
+#: src/components/AccountSecuritySettings.tsx:176
+msgid "Disable email sign-in"
+msgstr "이메일 로그인 비활성화"
+
+#: src/components/AccountSecuritySettings.tsx:172
+msgid "Disabling email sign-in signs out email sessions and shows ten recovery codes once. Save them offline before leaving this page."
+msgstr "이메일 로그인을 비활성화하면 이메일 인증 세션이 종료되고 복구 코드 10개가 한 번만 표시됩니다. 이 페이지를 떠나기 전에 오프라인으로 저장해 주세요."
+
 #: src/components/WebPushNotificationSettings.tsx:420
 msgid "Disabling…"
 msgstr "끄는 중…"
@@ -1771,6 +1796,14 @@ msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. �
 msgid "Do you want to quote this link?"
 msgstr "이 링크를 인용하시겠습니까?"
 
+#: src/components/RecoveryCodesDialog.tsx:62
+msgid "Done"
+msgstr "완료"
+
+#: src/components/RecoveryCodesDialog.tsx:56
+msgid "Download codes"
+msgstr "코드 다운로드"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:1466
 #: src/routes/(root)/[handle]/drafts/index.tsx:219
 msgid "Draft deleted"
@@ -1814,6 +1847,10 @@ msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기�
 #: src/components/RemoteFollowButton.tsx:202
 msgid "e.g., @user@mastodon.social"
 msgstr "예: @user@mastodon.social"
+
+#: src/components/RecoveryCodesDialog.tsx:46
+msgid "Each code works once. These codes will not be shown again. Store them somewhere safe, separately from your passkeys."
+msgstr "각 코드는 한 번만 사용할 수 있습니다. 이 코드는 다시 표시되지 않습니다. 패스키와 분리된 안전한 곳에 보관해 주세요."
 
 #: src/components/PostActionMenu.tsx:396
 msgid "Edit"
@@ -1866,10 +1903,22 @@ msgstr "이메일 알림 요약"
 msgid "Email or username"
 msgstr "이메일 또는 아이디"
 
+#: src/components/AccountSecuritySettings.tsx:159
+msgid "Email sign-in is disabled."
+msgstr "이메일 로그인이 비활성화되어 있습니다."
+
+#: src/components/AccountSecuritySettings.tsx:160
+msgid "Email sign-in is enabled."
+msgstr "이메일 로그인이 활성화되어 있습니다."
+
 #: src/components/WebPushNotificationSettings.tsx:409
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Enable"
 msgstr "켜기"
+
+#: src/components/AccountSecuritySettings.tsx:185
+msgid "Enable email sign-in"
+msgstr "이메일 로그인 활성화"
 
 #: src/components/WebPushNotificationSettings.tsx:409
 #: src/components/WebPushPromptBanner.tsx:269
@@ -1901,7 +1950,7 @@ msgid "Enter the account you are moving from, such as @old@example.com or its ac
 msgstr "이전해 오려는 계정을 입력하세요. @old@example.com 또는 액터 URL을 사용할 수 있습니다."
 
 #. placeholder {0}: challenge().email
-#: src/components/AccountEmailSettings.tsx:419
+#: src/components/AccountEmailSettings.tsx:416
 msgid "Enter the verification code sent to {0} in this tab."
 msgstr "{0}에 보낸 인증 코드를 이 탭에서 입력하세요."
 
@@ -2160,7 +2209,7 @@ msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notifications; click to retry"
 msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:498
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
 msgid "Failed to load more passkeys; click to retry"
 msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
@@ -2268,7 +2317,7 @@ msgstr "원본에서 새로 고침에 실패했습니다."
 msgid "Failed to regenerate invitations."
 msgstr "초대장을 재발급하지 못했습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:273
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:301
 msgid "Failed to register passkey"
 msgstr "패스키 등록 실패"
 
@@ -2303,8 +2352,8 @@ msgstr "우대 공유자를 제거하지 못했습니다."
 msgid "Failed to render preview"
 msgstr "미리보기 렌더링에 실패했습니다"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:316
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:322
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:352
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
 msgid "Failed to revoke passkey"
 msgstr "패스키 취소 실패"
 
@@ -2762,6 +2811,10 @@ msgstr "원문 변경 사항 숨기기"
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
+#: src/components/RecoveryCodesDialog.tsx:60
+msgid "I have saved my recovery codes"
+msgstr "복구 코드를 저장했습니다"
+
 #: src/components/article-translations/ArticleTranslationManager.tsx:1213
 msgid "If a private draft already exists for a language, it opens instead of creating a duplicate."
 msgstr "이미 해당 언어의 비공개 초고가 있으면 중복으로 만들지 않고 기존 초고를 엽니다."
@@ -2953,9 +3006,13 @@ msgstr "{0}에 가입"
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
-#: src/components/AccountEmailSettings.tsx:456
+#: src/components/AccountEmailSettings.tsx:453
 msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 msgstr "인증된 이메일 주소나 패스키 중 하나 이상을 사용할 수 있도록 유지하세요. 모든 인증 수단을 잃으면 원칙적으로 계정을 복구할 수 없습니다."
+
+#: src/components/AccountSecuritySettings.tsx:162
+msgid "Keep at least one registered passkey. Security changes require a fresh passkey verification. Email cannot recover this account while email sign-in is disabled."
+msgstr "등록한 패스키를 최소 하나 유지해 주세요. 보안 설정을 변경할 때는 패스키로 새로 인증해야 합니다. 이메일 로그인이 비활성화된 동안에는 이메일로 이 계정을 복구할 수 없습니다."
 
 #: src/components/NoteComposer.tsx:1326
 msgid "Keep draft"
@@ -3026,7 +3083,7 @@ msgid "Last updated"
 msgstr "마지막 업데이트"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
@@ -3141,7 +3198,7 @@ msgstr "단문 더 불러오기"
 msgid "Load more notifications"
 msgstr "알림 더 불러오기"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:499
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Load more passkeys"
 msgstr "패스키 더 불러오기"
 
@@ -3221,7 +3278,7 @@ msgstr "단문 불러오는 중…"
 msgid "Loading more notifications"
 msgstr "알림을 더 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:496
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:546
 msgid "Loading more passkeys…"
 msgstr "패스키를 더 불러오는 중…"
 
@@ -3473,7 +3530,7 @@ msgstr "뮤트와 차단"
 msgid "Mutes and blocks"
 msgstr "뮤트와 차단"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:377
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
 msgid "My passkey"
 msgstr "내 패스키"
 
@@ -3507,7 +3564,7 @@ msgstr "없음"
 msgid "Never expires"
 msgstr "유효기간 없음"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:497
 msgid "Never used"
 msgstr "사용된 적 없음"
 
@@ -3524,7 +3581,7 @@ msgstr "새 관리자 아이디"
 msgid "New article"
 msgstr "새 게시글"
 
-#: src/components/AccountEmailSettings.tsx:389
+#: src/components/AccountEmailSettings.tsx:386
 msgid "New email address"
 msgstr "새 이메일 주소"
 
@@ -3998,20 +4055,33 @@ msgstr "페이지를 찾을 수 없습니다"
 msgid "Passkey authentication failed"
 msgstr "패스키 인증 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:372
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:422
+#: src/routes/(root)/sign/recovery.tsx:151
 msgid "Passkey name"
 msgstr "패스키 이름"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:262
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
 msgid "Passkey registered successfully"
 msgstr "패스키 등록 성공"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:309
+#: src/routes/(root)/sign/recovery.tsx:74
+#~ msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
+#~ msgstr "패스키를 등록하지 못했습니다. 등록 권한이 만료되었다면 다른 복구 코드로 로그인해 주세요."
+
+#: src/routes/(root)/sign/recovery.tsx:125
+msgid "Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired."
+msgstr "패스키 등록에 실패했습니다. 다시 시도해 주세요. 등록 권한이 만료되었다면 다른 복구 코드로 로그인해 주세요."
+
+#: src/routes/(root)/sign/recovery.tsx:124
+msgid "Passkey registration was cancelled or timed out. Try again without entering another recovery code."
+msgstr "패스키 등록이 취소되었거나 시간이 초과되었습니다. 다른 복구 코드를 입력하지 말고 다시 시도해 주세요."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:345
 msgid "Passkey revoked"
 msgstr "패스키 취소됨"
 
 #: src/components/SettingsTabs.tsx:81
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:351
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:394
 msgid "Passkeys"
 msgstr "패스키"
 
@@ -4514,6 +4584,19 @@ msgstr "조치 기록"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "감사 기록용으로 저장되며, 사용자에게는 표시되지 않습니다."
 
+#: src/routes/(root)/sign/recovery.tsx:168
+msgid "Recovery code"
+msgstr "복구 코드"
+
+#: src/components/RecoveryCodesDialog.tsx:23
+msgid "Recovery codes copied."
+msgstr "복구 코드를 복사했습니다."
+
+#: src/routes/(root)/sign/recovery.tsx:73
+#: src/routes/(root)/sign/recovery.tsx:87
+msgid "Recovery sign-in failed. Check your username and use an unused recovery code."
+msgstr "복구 코드로 로그인하지 못했습니다. 사용자 이름을 확인하고 사용하지 않은 복구 코드를 입력해 주세요."
+
 #: src/components/admin/AppealResolveForm.tsx:82
 msgid "Reduce sanction"
 msgstr "제재 경감"
@@ -4560,31 +4643,48 @@ msgstr "재발급"
 msgid "Regenerate invitations"
 msgstr "초대장 재발급"
 
+#: src/components/AccountSecuritySettings.tsx:190
+msgid "Regenerate recovery codes"
+msgstr "복구 코드 재발급"
+
 #: src/routes/(root)/admin/invitations.tsx:102
 #~ msgid "Regenerated invitations for {0} accounts."
 #~ msgstr "{0}개의 계정에 초대장을 재발급했습니다."
+
+#: src/components/AccountSecuritySettings.tsx:192
+msgid "Regenerating recovery codes invalidates every previous code."
+msgstr "복구 코드를 재발급하면 이전 코드는 모두 무효화됩니다."
 
 #: src/routes/(root)/admin/invitations.tsx:194
 msgid "Regenerating…"
 msgstr "재발급 중…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Register"
 msgstr "등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/sign/recovery.tsx:157
 msgid "Register a passkey"
 msgstr "패스키 등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:360
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "계정에 패스키를 등록하세요. 이메일로 로그인 링크를 받는 대신 패스키를 사용할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:395
+#: src/routes/(root)/sign/recovery.tsx:149
+msgid "Register a replacement passkey"
+msgstr "대체 패스키 등록"
+
+#: src/components/AccountSecuritySettings.tsx:143
+msgid "Register at least one passkey before disabling email sign-in."
+msgstr "이메일 로그인을 비활성화하기 전에 패스키를 최소 하나 등록해 주세요."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:445
 msgid "Registered passkeys"
 msgstr "등록된 패스키"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Registering…"
 msgstr "등록중…"
 
@@ -4612,7 +4712,7 @@ msgid "Remote followers at publication"
 msgstr "발행 당시 원격 팔로워"
 
 #: src/components/AccountEmailSettings.tsx:337
-#: src/components/AccountEmailSettings.tsx:478
+#: src/components/AccountEmailSettings.tsx:475
 #: src/components/LanguageList.tsx:223
 #: src/routes/(root)/[handle]/settings/account.tsx:1617
 #: src/routes/(root)/[handle]/settings/account.tsx:1868
@@ -4637,7 +4737,7 @@ msgstr "{alias} 제거"
 msgid "Remove bookmark"
 msgstr "북마크 해제"
 
-#: src/components/AccountEmailSettings.tsx:465
+#: src/components/AccountEmailSettings.tsx:462
 msgid "Remove email address?"
 msgstr "이메일 주소를 삭제하시겠습니까?"
 
@@ -4691,7 +4791,7 @@ msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시
 msgid "Removing reaction…"
 msgstr "반응을 제거하는 중…"
 
-#: src/components/AccountEmailSettings.tsx:478
+#: src/components/AccountEmailSettings.tsx:475
 #: src/routes/(root)/[handle]/settings/account.tsx:1612
 #: src/routes/(root)/[handle]/settings/account.tsx:1868
 msgid "Removing…"
@@ -4839,12 +4939,12 @@ msgstr "검토됨"
 msgid "Reviewing"
 msgstr "검토 중"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:529
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:527
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:579
 msgid "Revoke"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:518
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:568
 msgid "Revoke passkey"
 msgstr "패스키를 취소"
 
@@ -4922,6 +5022,10 @@ msgstr "이동하기 전에 초고를 저장하세요."
 msgid "Save your changes before moving the draft."
 msgstr "초고를 이동하기 전에 변경 사항을 저장하세요."
 
+#: src/components/RecoveryCodesDialog.tsx:45
+msgid "Save your recovery codes"
+msgstr "복구 코드 저장"
+
 #: src/components/NoteComposer.tsx:1228
 msgid "Saved locally"
 msgstr "로컬에 저장했습니다"
@@ -4980,6 +5084,10 @@ msgstr "{0}의 검색 결과"
 msgid "Searching…"
 msgstr "검색 중…"
 
+#: src/components/AccountSecuritySettings.tsx:144
+msgid "Security verification failed. Please try again with a registered passkey."
+msgstr "보안 인증에 실패했습니다. 등록한 패스키로 다시 시도해 주세요."
+
 #: src/components/article-translations/ArticleTranslationManager.tsx:1270
 msgid "Select a language to edit its translation."
 msgstr "편집할 언어를 선택하세요."
@@ -5021,11 +5129,11 @@ msgstr "읽지 않은 알림이 남아 있는 동안 하루에 한 번 이메일
 msgid "Send one email per week while unread notifications remain."
 msgstr "읽지 않은 알림이 남아 있는 동안 일주일에 한 번 이메일을 보냅니다."
 
-#: src/components/AccountEmailSettings.tsx:403
+#: src/components/AccountEmailSettings.tsx:400
 msgid "Send verification code"
 msgstr "인증 코드 보내기"
 
-#: src/components/AccountEmailSettings.tsx:403
+#: src/components/AccountEmailSettings.tsx:400
 #: src/routes/(root)/[handle]/invite/[id].tsx:412
 #: src/routes/(root)/[handle]/settings/invite.tsx:416
 msgid "Sending…"
@@ -5175,6 +5283,11 @@ msgstr "로그인하고 작성"
 msgid "Sign in to vote"
 msgstr "로그인 후 투표"
 
+#: src/routes/(root)/sign/index.tsx:511
+#: src/routes/(root)/sign/recovery.tsx:181
+msgid "Sign in with a recovery code"
+msgstr "복구 코드로 로그인"
+
 #: src/components/AccountEmailSettings.tsx:290
 msgid "Sign in with any verified email address. Notification digests are sent to your primary address."
 msgstr "인증된 이메일 주소 중 어느 것으로든 로그인할 수 있습니다. 알림 요약은 기본 주소로 발송됩니다."
@@ -5191,6 +5304,10 @@ msgstr "로그아웃"
 #: src/routes/(root)/sign/up/[token].tsx:496
 msgid "Sign up"
 msgstr "가입"
+
+#: src/components/AccountSecuritySettings.tsx:153
+msgid "Sign-in security"
+msgstr "로그인 보안"
 
 #: src/routes/(root)/authorize_interaction.tsx:276
 msgid "Signed in as"
@@ -5477,7 +5594,7 @@ msgid "The browser did not provide a complete push subscription."
 msgstr "브라우저가 완전한 푸시 알림 구독 정보를 제공하지 않았습니다."
 
 #. placeholder {0}: new Date(challenge().expires).toLocaleTimeString(i18n.locale, { hour: "numeric", minute: "2-digit" })
-#: src/components/AccountEmailSettings.tsx:420
+#: src/components/AccountEmailSettings.tsx:417
 msgid "The code expires at {0}."
 msgstr "코드는 {0}에 만료됩니다."
 
@@ -5528,7 +5645,7 @@ msgstr "이메일 주소가 유효하지 않습니다."
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
 
@@ -5639,7 +5756,7 @@ msgstr "{0}의 원문이 변경되었습니다. 번역을 검토해 주세요"
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "찾으시는 페이지가 존재하지 않거나 이동되었습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:310
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:346
 msgid "The passkey has been successfully revoked."
 msgstr "성공적으로 패스키를 취소했습니다."
 
@@ -5665,6 +5782,10 @@ msgstr "인용한 콘텐츠에서 회원님의 콘텐츠가 더 이상 인용으
 #: src/components/ReportDialog.tsx:190
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "신고 사유가 너무 깁니다 (최대 {MAX_REASON_LENGTH}자)."
+
+#: src/routes/(root)/sign/recovery.tsx:158
+msgid "The registration authorization works once and expires in ten minutes. If you leave now, use another recovery code to start again."
+msgstr "등록 권한은 한 번만 사용할 수 있으며 10분 후 만료됩니다. 지금 페이지를 떠난다면 다른 복구 코드로 다시 시작해 주세요."
 
 #: src/routes/(root)/sign/up/[token].tsx:303
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -5732,6 +5853,10 @@ msgstr "이 계정은 본인이 신원 공개를 원치 않았기에 숨겨져 �
 #: src/components/ProfileCard.tsx:252
 msgid "This account is no longer in use."
 msgstr "이 계정은 더 이상 사용되지 않습니다."
+
+#: src/routes/(root)/sign/recovery.tsx:72
+msgid "This account is permanently suspended."
+msgstr "이 계정은 영구 정지되었습니다."
 
 #: src/components/ProfileCard.tsx:305
 msgid "This account is suspended."
@@ -6164,6 +6289,11 @@ msgstr "구독 취소"
 msgid "Unsubscribed from the relay."
 msgstr "릴레이 구독을 취소했습니다."
 
+#. placeholder {0}: account()?.recoveryCodeCount ?? 0
+#: src/components/AccountSecuritySettings.tsx:180
+msgid "Unused recovery codes: {0}"
+msgstr "사용하지 않은 복구 코드: {0}"
+
 #: src/components/AccountEmailSettings.tsx:303
 msgid "Unverified"
 msgstr "미인증"
@@ -6197,8 +6327,16 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 패턴"
 
+#: src/routes/(root)/sign/recovery.tsx:137
+msgid "Use a saved recovery code if you cannot use any of your passkeys. Email sign-in remains disabled."
+msgstr "모든 패스키를 사용할 수 없다면 저장한 복구 코드를 입력해 주세요. 이메일 로그인은 계속 비활성화됩니다."
+
 #~ msgid "Use old UI"
 #~ msgstr "예전 UI 사용하기"
+
+#: src/components/AccountSecuritySettings.tsx:154
+msgid "Use passkeys only to protect your account even if someone gains access to your email."
+msgstr "누군가 이메일에 접근하더라도 계정을 보호할 수 있도록 패스키만 사용하세요."
 
 #: src/routes/(root)/[handle]/settings/account.tsx:375
 #~ msgid "Use the old account's handle or actor URL."
@@ -6238,6 +6376,7 @@ msgstr "아이디"
 #: src/routes/(root)/[handle]/settings/account.tsx:1519
 #: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
+#: src/routes/(root)/sign/recovery.tsx:164
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
 msgstr "아이디"
@@ -6266,7 +6405,7 @@ msgstr "아이디가 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Users you have invited"
 msgstr "초대한 사용자"
 
-#: src/components/AccountEmailSettings.tsx:426
+#: src/components/AccountEmailSettings.tsx:423
 msgid "Verification code"
 msgstr "인증 코드"
 
@@ -6277,7 +6416,7 @@ msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
 #: src/components/AccountEmailSettings.tsx:323
-#: src/components/AccountEmailSettings.tsx:441
+#: src/components/AccountEmailSettings.tsx:438
 msgid "Verify email"
 msgstr "이메일 인증"
 
@@ -6289,7 +6428,7 @@ msgstr "기본 주소로 지정하기 전에 이 이메일 주소를 인증하�
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
-#: src/components/AccountEmailSettings.tsx:441
+#: src/components/AccountEmailSettings.tsx:438
 msgid "Verifying…"
 msgstr "인증 중…"
 
@@ -6634,7 +6773,7 @@ msgid "You can prepare migration only for accounts you can manage."
 msgstr "관리할 수 있는 계정에서만 이전을 준비할 수 있습니다."
 
 #: src/components/AccountEmailSettings.tsx:161
-#: src/components/AccountEmailSettings.tsx:406
+#: src/components/AccountEmailSettings.tsx:403
 msgid "You can register up to five verified email addresses."
 msgstr "인증된 이메일 주소는 최대 다섯 개까지 등록할 수 있습니다."
 
@@ -6651,7 +6790,7 @@ msgstr "마지막 인증된 이메일 주소는 삭제할 수 없습니다."
 msgid "You do not belong to any organizations yet."
 msgstr "아직 속한 조직이 없습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:457
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
 
@@ -6775,7 +6914,7 @@ msgid "You were invited by"
 msgstr "당신을 초대한 분"
 
 #. placeholder {0}: removeTarget() ?? ""
-#: src/components/AccountEmailSettings.tsx:466
+#: src/components/AccountEmailSettings.tsx:463
 msgid "You will no longer be able to sign in with {0}."
 msgstr "더 이상 {0}으로 로그인할 수 없게 됩니다."
 
@@ -6844,7 +6983,7 @@ msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 msgid "Your organizations"
 msgstr "내 조직"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:263
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 

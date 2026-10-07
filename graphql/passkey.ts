@@ -1,4 +1,13 @@
 import {
+  AccountSecurityError,
+  consumeRecoveryRegistrationGrant,
+  lockSecurityAccount,
+  verifySecurityAssertion,
+  validateRecoveryRegistrationGrant,
+} from "@hackerspub/models/account-security";
+import { runInTransaction } from "@hackerspub/models/db";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
+import {
   getRegistrationOptions,
   type PasskeyPlatform,
   resolvePasskeyOrigins,
@@ -111,7 +120,7 @@ builder.mutationFields((t) => ({
     type: "JSON",
     description:
       "Generate WebAuthn registration options for adding a new passkey. " +
-      "Pass a fresh `sessionId` UUID, then send the authenticator's " +
+      "Options are bound to the authenticated session for five minutes. Send the authenticator's " +
       "response to `verifyPasskeyRegistration`. Requires authentication.",
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
@@ -141,6 +150,7 @@ builder.mutationFields((t) => ({
         ctx.kv,
         ctx.fedCtx.canonicalOrigin,
         account,
+        session.id,
       );
       return options;
     },
@@ -150,7 +160,7 @@ builder.mutationFields((t) => ({
     description:
       "Complete passkey registration by verifying the authenticator " +
       "response from `getPasskeyRegistrationOptions`. On success, the " +
-      "new `Passkey` is returned. Requires authentication.",
+      "new `Passkey` is returned. Requires authentication. Passkey-only accounts also require exactly one fresh `REGISTER` assertion or a session-bound recovery grant; invalid proof fails with `INVALID_ASSERTION`.",
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
       name: t.arg.string({
@@ -161,6 +171,20 @@ builder.mutationFields((t) => ({
           "rejected with a `BAD_USER_INPUT` error.",
       }),
       registrationResponse: t.arg({ type: "JSON", required: true }),
+      securityChallengeId: t.arg({
+        type: "UUID",
+        description:
+          "Purpose `REGISTER` challenge for this session; required with `securityAuthenticationResponse` in passkey-only mode unless a recovery grant is provided.",
+      }),
+      securityAuthenticationResponse: t.arg({
+        type: "JSON",
+        description:
+          "Fresh existing-key assertion for `REGISTER`. Must accompany `securityChallengeId` and cannot be combined with a recovery grant.",
+      }),
+      recoveryRegistrationToken: t.arg.string({
+        description:
+          "One-time ten-minute grant from `loginByRecoveryCode`, consumed only after successful registration with its recovery session. Cannot be combined with assertion arguments.",
+      }),
       platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
     async resolve(_, args, ctx) {
@@ -195,15 +219,71 @@ builder.mutationFields((t) => ({
         (args.platform ?? "web") as PasskeyPlatform,
       );
       const rpId = new URL(ctx.fedCtx.canonicalOrigin).hostname;
-      const result = await verifyRegistration(
-        ctx.db,
-        ctx.kv,
-        origins,
-        rpId,
-        account,
-        name,
-        args.registrationResponse as RegistrationResponseJSON,
-      );
+      const result = await runInTransaction(ctx.db, async (tx) => {
+        const current = await lockSecurityAccount(tx, session);
+        try {
+          const assertion =
+            args.securityChallengeId != null ||
+            args.securityAuthenticationResponse != null;
+          const recovery = args.recoveryRegistrationToken != null;
+          if (
+            (assertion && recovery) ||
+            (assertion &&
+              (args.securityChallengeId == null ||
+                args.securityAuthenticationResponse == null))
+          )
+            throw new AccountSecurityError("INVALID_ASSERTION");
+          if (recovery)
+            await validateRecoveryRegistrationGrant(
+              ctx.kv,
+              current,
+              session,
+              args.recoveryRegistrationToken!,
+            );
+          else if (!current.emailLoginEnabled || assertion)
+            await verifySecurityAssertion(
+              tx,
+              ctx.kv,
+              ctx.fedCtx.canonicalOrigin,
+              current,
+              session,
+              "REGISTER",
+              args.securityChallengeId == null
+                ? undefined
+                : {
+                    challengeId: args.securityChallengeId,
+                    authenticationResponse:
+                      args.securityAuthenticationResponse as AuthenticationResponseJSON,
+                    platform: (args.platform ?? "web") as PasskeyPlatform,
+                  },
+            );
+          const result = await verifyRegistration(
+            tx,
+            ctx.kv,
+            origins,
+            rpId,
+            current,
+            name,
+            args.registrationResponse as RegistrationResponseJSON,
+            session.id,
+          );
+          if (result.verified && recovery)
+            await consumeRecoveryRegistrationGrant(
+              ctx.kv,
+              current,
+              session,
+              args.recoveryRegistrationToken!,
+            );
+          return result;
+        } catch (error) {
+          if (error instanceof AccountSecurityError)
+            throw createGraphQLError(
+              "Passkey registration requires a fresh assertion or recovery registration grant.",
+              { extensions: { code: error.code } },
+            );
+          throw error;
+        }
+      });
 
       let passkey = null;
       if (result.verified && result.registrationInfo != null) {
@@ -227,9 +307,24 @@ builder.mutationFields((t) => ({
     description:
       "Delete a passkey from the account. Returns the deleted passkey's " +
       "global ID, or `null` if the passkey was not found. Requires " +
-      "authentication and ownership of the passkey.",
+      "authentication and ownership of the passkey. When email sign-in is disabled, a fresh `REVOKE` assertion is required and removing the last key fails with `LAST_PASSKEY`.",
     args: {
       passkeyId: t.arg.globalID({ for: Passkey, required: true }),
+      securityChallengeId: t.arg({
+        type: "UUID",
+        description:
+          "Purpose `REVOKE` challenge for this session, required in passkey-only mode.",
+      }),
+      securityAuthenticationResponse: t.arg({
+        type: "JSON",
+        description:
+          "Fresh assertion from an existing passkey for `REVOKE`, paired with `securityChallengeId`.",
+      }),
+      platform: t.arg.string({
+        defaultValue: "web",
+        description:
+          "Passkey client platform: `web`, `android`, or `ios`; determines accepted origins.",
+      }),
     },
     async resolve(_, args, ctx) {
       const session = await ctx.session;
@@ -247,10 +342,51 @@ builder.mutationFields((t) => ({
           extensions: { code: "FORBIDDEN" },
         });
       }
-      await ctx.db
-        .delete(passkeyTable)
-        .where(eq(passkeyTable.id, args.passkeyId.id));
-      return encodeGlobalID(Passkey.name, args.passkeyId.id);
+      return await runInTransaction(ctx.db, async (tx) => {
+        const current = await lockSecurityAccount(tx, session);
+        const keys = await tx
+          .select()
+          .from(passkeyTable)
+          .where(eq(passkeyTable.accountId, session.accountId));
+        if (!keys.some((key) => key.id === args.passkeyId.id)) return null;
+        if (!current.emailLoginEnabled && keys.length <= 1)
+          throw createGraphQLError(
+            "The last passkey cannot be revoked while email sign-in is disabled.",
+            { extensions: { code: "LAST_PASSKEY" } },
+          );
+        if (!current.emailLoginEnabled) {
+          try {
+            await verifySecurityAssertion(
+              tx,
+              ctx.kv,
+              ctx.fedCtx.canonicalOrigin,
+              current,
+              session,
+              "REVOKE",
+              args.securityChallengeId == null ||
+                args.securityAuthenticationResponse == null
+                ? undefined
+                : {
+                    challengeId: args.securityChallengeId,
+                    authenticationResponse:
+                      args.securityAuthenticationResponse as AuthenticationResponseJSON,
+                    platform: args.platform as PasskeyPlatform,
+                  },
+            );
+          } catch (error) {
+            if (error instanceof AccountSecurityError)
+              throw createGraphQLError(
+                "Passkey revocation requires a fresh assertion.",
+                { extensions: { code: error.code } },
+              );
+            throw error;
+          }
+        }
+        await tx
+          .delete(passkeyTable)
+          .where(eq(passkeyTable.id, args.passkeyId.id));
+        return encodeGlobalID(Passkey.name, args.passkeyId.id);
+      });
     },
   }),
 }));

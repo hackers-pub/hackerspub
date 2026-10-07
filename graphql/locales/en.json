@@ -67,5 +67,23 @@
   "accountEmailChange": {
     "emailSubject": "Email settings changed on Hackers' Pub",
     "emailContent": "The email settings for @{{username}} on Hackers' Pub have changed. If you did not make this change, sign in using an existing email address or passkey and contact the instance administrator.\n"
+  },
+  "accountSecurity": {
+    "emailLoginDisabled": {
+      "emailSubject": "Hackers' Pub sign-in attempt",
+      "emailContent": "Someone requested an email sign-in for @{{username}}. This account accepts passkeys only, so no sign-in link or code was issued. Use a registered passkey or a saved recovery code. If this was not you, no action is needed."
+    },
+    "ENABLE": {
+      "emailSubject": "Hackers' Pub security settings changed",
+      "emailContent": "Email sign-in was disabled for @{{username}}. Old email sessions and links have been invalidated. Use your passkeys or saved recovery codes to sign in."
+    },
+    "DISABLE": {
+      "emailSubject": "Hackers' Pub security settings changed",
+      "emailContent": "Email sign-in was enabled for @{{username}} after passkey verification. Recovery codes have been invalidated."
+    },
+    "REGENERATE": {
+      "emailSubject": "Hackers' Pub security settings changed",
+      "emailContent": "Recovery codes for @{{username}} were regenerated after passkey verification. All previous codes are invalid. Email sign-in remains disabled."
+    }
   }
 }

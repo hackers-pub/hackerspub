@@ -14,7 +14,7 @@ import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   type Account,
   type NewPasskey,
@@ -22,6 +22,8 @@ import {
   passkeyTable,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+
+export type { AuthenticationResponseJSON, RegistrationResponseJSON };
 
 const logger = getLogger(["hackerspub", "models", "passkey"]);
 
@@ -56,10 +58,15 @@ export function resolvePasskeyOrigins(
   return [new URL(serverOrigin).origin];
 }
 
+function registrationKey(accountId: Uuid, sessionId?: Uuid): string {
+  return `${KV_NAMESPACE}/registration/${accountId}${sessionId == null ? "" : `/${sessionId}`}`;
+}
+
 export async function getRegistrationOptions(
   kv: Keyv,
   origin: string,
   account: Account & { passkeys: Passkey[] },
+  sessionId?: Uuid,
 ): Promise<PublicKeyCredentialCreationOptionsJSON> {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
@@ -71,25 +78,34 @@ export async function getRegistrationOptions(
       transports: passkey.transports ?? undefined,
     })),
   });
-  await kv.set(`${KV_NAMESPACE}/registration/${account.id}`, options);
+  await kv.set(
+    registrationKey(account.id, sessionId),
+    { ...options, expires: Date.now() + 300000 },
+    300000,
+  );
   return options;
 }
 
 export async function verifyRegistration(
-  db: Database,
+  db: Database | Transaction,
   kv: Keyv,
   origins: string[],
   rpId: string,
   account: Account,
   name: string,
   response: RegistrationResponseJSON,
+  sessionId?: Uuid,
 ): Promise<VerifiedRegistrationResponse> {
-  const options = await kv.get<PublicKeyCredentialCreationOptionsJSON>(
-    `${KV_NAMESPACE}/registration/${account.id}`,
-  );
+  const options = await kv.get<
+    PublicKeyCredentialCreationOptionsJSON & { expires?: number }
+  >(registrationKey(account.id, sessionId));
   if (options == null) {
     throw new Error(`Missing registration options for account ${account.id}.`);
   }
+  if (options.expires != null && options.expires <= Date.now())
+    return { verified: false, registrationInfo: undefined };
+  if (!(await kv.delete(registrationKey(account.id, sessionId))))
+    return { verified: false, registrationInfo: undefined };
   let result: VerifiedRegistrationResponse;
   try {
     result = await verifyRegistrationResponse({
@@ -140,7 +156,7 @@ export async function getAuthenticationOptions(
 }
 
 export async function verifyAuthentication(
-  db: Database,
+  db: Database | Transaction,
   kv: Keyv,
   origins: string[],
   rpId: string,

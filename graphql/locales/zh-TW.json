@@ -67,5 +67,23 @@
   "accountEmailChange": {
     "emailSubject": "Hackers' Pub 電子郵件設定已變更",
     "emailContent": "Hackers' Pub 的 @{{username}} 帳戶的電子郵件設定已變更。若非您本人操作，請使用現有電子郵件地址或通行金鑰登入，並聯絡站台管理員。\n"
+  },
+  "accountSecurity": {
+    "emailLoginDisabled": {
+      "emailSubject": "Hackers' Pub 登入嘗試",
+      "emailContent": "有人要求透過電子郵件登入 @{{username}}。此帳戶僅接受通行金鑰，因此未寄出登入連結或驗證碼。請使用已註冊的通行金鑰或儲存的復原碼。若非您本人操作，無須採取任何行動。"
+    },
+    "ENABLE": {
+      "emailSubject": "Hackers' Pub 安全設定已變更",
+      "emailContent": "@{{username}} 已停用電子郵件登入。舊的電子郵件驗證工作階段和連結已失效。請使用通行金鑰或儲存的復原碼登入。"
+    },
+    "DISABLE": {
+      "emailSubject": "Hackers' Pub 安全設定已變更",
+      "emailContent": "通行金鑰驗證後，@{{username}} 已啟用電子郵件登入。復原碼已失效。"
+    },
+    "REGENERATE": {
+      "emailSubject": "Hackers' Pub 安全設定已變更",
+      "emailContent": "通行金鑰驗證後，@{{username}} 的復原碼已重新產生。所有舊碼均已失效。電子郵件登入仍處於停用狀態。"
+    }
   }
 }

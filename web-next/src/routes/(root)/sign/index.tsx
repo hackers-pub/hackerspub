@@ -505,6 +505,10 @@ export default function SignPage() {
             </OTPField>
           </div>
         </Show>
+        <a
+          href="/sign/recovery"
+          class="mt-6 block text-center underline"
+        >{t`Sign in with a recovery code`}</a>
       </div>
     </div>
   );

@@ -7,7 +7,11 @@ import type {
 } from "@hackerspub/models/schema";
 import { isActorBanned } from "@hackerspub/models/moderation";
 import { ensureSuspensionEndingNotification } from "@hackerspub/models/moderation-notification";
-import { deleteSession, getSession } from "@hackerspub/models/session";
+import {
+  deleteSession,
+  getSession,
+  sessionMatchesAccount,
+} from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import * as Sentry from "@sentry/node";
 import { getCookies } from "@std/http/cookie";
@@ -72,7 +76,10 @@ export function createYogaServer(): YogaServerInstance<
           await deleteSession(kv, session.id);
           session = undefined;
           account = undefined;
-        } else if (isActorBanned(account.actor)) {
+        } else if (
+          !sessionMatchesAccount(session, account) ||
+          isActorBanned(account.actor)
+        ) {
           // A ban invalidates existing sessions, not just new logins.
           await deleteSession(kv, session.id);
           session = undefined;

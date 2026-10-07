@@ -14,6 +14,7 @@ import {
   type AccountEmail,
   accountEmailTable,
   accountEmailChallengeTable,
+  accountRecoveryCodeTable,
   type AccountLink,
   accountTable,
   type Actor,
@@ -979,6 +980,9 @@ async function acceptOrganizationConversionOperation(
       .delete(accountEmailTable)
       .where(eq(accountEmailTable.accountId, request.accountId));
     await tx
+      .delete(accountRecoveryCodeTable)
+      .where(eq(accountRecoveryCodeTable.accountId, request.accountId));
+    await tx
       .delete(passkeyTable)
       .where(eq(passkeyTable.accountId, request.accountId));
     await tx
@@ -1011,6 +1015,7 @@ async function acceptOrganizationConversionOperation(
       .update(accountTable)
       .set({
         kind: "organization",
+        emailLoginEnabled: true,
         leftInvitations: 0,
         updated: sql`CURRENT_TIMESTAMP`,
       })

@@ -610,3 +610,48 @@ migration nor the translation migration provides a periodic summary recovery
 scan. Legacy in-process claims without a queued intent require a body/language
 edit or an explicit `startArticleContentSummary` call after the existing
 30-minute reclaim threshold.
+
+
+Passkey-only accounts and recovery
+----------------------------------
+
+Apply the `account_passkey_only` migration before deploying this feature.
+Existing accounts keep email sign-in enabled and generation zero; existing
+sessions without an authentication method are treated as email sessions.
+Enabling passkey-only sign-in invalidates those sessions and outstanding email
+login links. A later return to email sign-in does not revive revoked
+credentials.
+
+Users enable the setting in Settings → Passkeys after registering at least one
+passkey. Activation issues ten one-time recovery codes and shows them only once.
+Only hashes are stored. Users must save these codes offline, separately from
+passkeys. Adding or removing passkeys while email sign-in is disabled requires
+a fresh assertion from an existing passkey; the last passkey cannot be removed.
+Native clients retain their existing passkey login API, but must adopt the
+additive security-proof arguments for strict-mode passkey management.
+
+A user who loses access to every passkey can choose “Sign in with a recovery
+code” on the sign-in page. Recovery consumes one code, keeps email sign-in
+disabled, and issues a separate, single-use registration authorization lasting
+ten minutes. The recovery screen immediately offers registration of a
+replacement passkey. Leaving or refreshing the page loses that authorization;
+another unused recovery code can start a new attempt. A recovery session alone
+cannot register a key, restore email sign-in, or regenerate codes. Code
+regeneration and restoring email sign-in invalidate recovery sessions and
+outstanding recovery registration authorizations. Recovery sessions without a
+security generation are rejected. When a recovery user proves possession of a
+passkey to change these settings, the response returns a new passkey session;
+clients must replace their cookie or bearer token before further requests.
+Existing passkey sessions remain valid.
+
+Do not offer recovery through email: that would bypass the user's selected
+security policy. If all passkeys and codes are lost, there is no standard
+recovery path. An administrator may make a manual exception only for someone
+they personally know and trust, after independently verifying their identity.
+Email access or a support request alone is insufficient; users must not rely on
+this exception for recovery. No new administrator recovery endpoint is provided.
+
+Every application role serving authenticated requests must enforce the new
+session-generation check. Do not roll back to a version that lacks it while
+passkey-only accounts exist: that version would accept their old email sessions
+and links. The feature does not change Fedify delivery or worker ownership.

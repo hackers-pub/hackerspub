@@ -5,6 +5,7 @@
   "exports": {
     "./account": "./account.ts",
     "./account-email": "./account-email.ts",
+    "./account-security": "./account-security.ts",
     "./actor": "./actor.ts",
     "./admin": "./admin.ts",
     "./apns": "./apns.ts",

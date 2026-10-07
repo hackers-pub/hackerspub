@@ -88,6 +88,10 @@ export const accountTable = pgTable(
     kind: accountKindEnum().notNull().default("personal"),
     username: varchar({ length: 50 }).notNull().unique(),
     oldUsername: varchar("old_username", { length: 50 }),
+    emailLoginEnabled: boolean("email_login_enabled").notNull().default(true),
+    emailSessionGeneration: integer("email_session_generation")
+      .notNull()
+      .default(0),
     emailCredentialsChanged: timestamp("email_credentials_changed", {
       withTimezone: true,
     }),
@@ -156,6 +160,22 @@ export const accountTable = pgTable(
 
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
+
+export const accountRecoveryCodeTable = pgTable(
+  "account_recovery_code",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    codeHash: text("code_hash").notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    used: timestamp({ withTimezone: true }),
+  },
+  (table) => [primaryKey({ columns: [table.accountId, table.codeHash] })],
+);
 
 export const notificationDigestDeliveryTable = pgTable(
   "notification_digest_delivery",
