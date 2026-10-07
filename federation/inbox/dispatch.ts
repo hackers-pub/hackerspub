@@ -24,7 +24,8 @@ export async function onAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
 ): Promise<void> {
-  if (accept.resultId == null) {
+  const resultId = accept.resultId;
+  if (resultId == null) {
     const handledByIri = await withInboxTransaction(
       fedCtx,
       async (txCtx) =>
@@ -58,7 +59,9 @@ export async function onAccepted(
   ]);
 
   const handled = await withInboxTransaction(fedCtx, async (txCtx) => {
-    if (await onQuoteRequestAccepted(txCtx, accept, { object, result })) {
+    if (
+      await onQuoteRequestAccepted(txCtx, accept, { object, result, resultId })
+    ) {
       return true;
     }
     return await onRelayFollowAccepted(txCtx, accept);

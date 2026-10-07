@@ -514,6 +514,7 @@ export async function persistPost(
   );
   const { quotePolicy, quoteRequestPolicy } =
     quotePoliciesFromInteractionPolicy(post, visibility, actor.followersUrl);
+  // Capture the reference before getQuoteAuthorization can replace its ID.
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   const existingPost = await db.query.postTable.findFirst({
     columns: {
@@ -542,12 +543,18 @@ export async function persistPost(
           },
         });
       validAuthorization =
-        issuedAuthorization != null &&
         authorization instanceof vocab.QuoteAuthorization &&
-        authorization.id?.href === quoteAuthorizationIri &&
-        authorization.interactingObjectId?.href === post.id.href &&
-        authorization.interactionTargetId?.href === quotedPost.iri &&
-        authorization.attributionId?.href === quotedPost.actor.iri;
+        (await ctx.services.federation.verifyStoredQuoteAuthorization(
+          ctx,
+          authorization,
+          {
+            authorizationId: new URL(quoteAuthorizationIri),
+            interactingObject: post.id,
+            interactionTarget: new URL(quotedPost.iri),
+            attributedTo: new URL(quotedPost.actor.iri),
+            authentic: issuedAuthorization != null,
+          },
+        ));
     } else {
       // Fetch independently: an embedded authorization is not proof of consent.
       validAuthorization =
