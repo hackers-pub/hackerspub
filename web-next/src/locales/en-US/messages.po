@@ -606,8 +606,8 @@ msgstr "Account migration"
 msgid "Account permanently suspended"
 msgstr "Account permanently suspended"
 
-#: src/routes/(root)/sign/recovery.tsx:78
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:133
+#: src/routes/(root)/sign/recovery.tsx:136
 msgid "Account recovery"
 msgstr "Account recovery"
 
@@ -816,11 +816,11 @@ msgstr "an article"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:285
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:305
 msgid "An error occurred while registering your passkey."
 msgstr "An error occurred while registering your passkey."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
 msgid "An error occurred while revoking your passkey."
 msgstr "An error occurred while revoking your passkey."
 
@@ -937,7 +937,7 @@ msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "Are you sure you want to remove {0} ({1}) from your followers?"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:570
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 
@@ -1069,7 +1069,7 @@ msgstr "Back to editing"
 msgid "Back to editor"
 msgstr "Back to editor"
 
-#: src/routes/(root)/sign/recovery.tsx:94
+#: src/routes/(root)/sign/recovery.tsx:184
 msgid "Back to sign-in"
 msgstr "Back to sign-in"
 
@@ -1191,7 +1191,7 @@ msgstr "By {0}"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 #: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:528
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:574
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "Cancel"
@@ -1404,11 +1404,11 @@ msgstr "Copied"
 msgid "Copy"
 msgstr "Copy"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:52
 msgid "Copy codes"
 msgstr "Copy codes"
 
-#: src/components/RecoveryCodesDialog.tsx:16
+#: src/components/RecoveryCodesDialog.tsx:25
 msgid "Copy failed. Download or write down your recovery codes."
 msgstr "Copy failed. Download or write down your recovery codes."
 
@@ -1561,7 +1561,7 @@ msgid "Created"
 msgstr "Created"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:433
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:479
 msgid "Created {0}"
 msgstr "Created {0}"
 
@@ -1731,11 +1731,11 @@ msgstr "Direct or unknown"
 msgid "Disable"
 msgstr "Disable"
 
-#: src/components/AccountSecuritySettings.tsx:102
+#: src/components/AccountSecuritySettings.tsx:176
 msgid "Disable email sign-in"
 msgstr "Disable email sign-in"
 
-#: src/components/AccountSecuritySettings.tsx:101
+#: src/components/AccountSecuritySettings.tsx:172
 msgid "Disabling email sign-in signs out email sessions and shows ten recovery codes once. Save them offline before leaving this page."
 msgstr "Disabling email sign-in signs out email sessions and shows ten recovery codes once. Save them offline before leaving this page."
 
@@ -1796,11 +1796,11 @@ msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a frien
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
-#: src/components/RecoveryCodesDialog.tsx:29
+#: src/components/RecoveryCodesDialog.tsx:62
 msgid "Done"
 msgstr "Done"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:56
 msgid "Download codes"
 msgstr "Download codes"
 
@@ -1848,7 +1848,7 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:46
 msgid "Each code works once. These codes will not be shown again. Store them somewhere safe, separately from your passkeys."
 msgstr "Each code works once. These codes will not be shown again. Store them somewhere safe, separately from your passkeys."
 
@@ -1903,11 +1903,11 @@ msgstr "Email digests"
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:159
 msgid "Email sign-in is disabled."
 msgstr "Email sign-in is disabled."
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:160
 msgid "Email sign-in is enabled."
 msgstr "Email sign-in is enabled."
 
@@ -1916,7 +1916,7 @@ msgstr "Email sign-in is enabled."
 msgid "Enable"
 msgstr "Enable"
 
-#: src/components/AccountSecuritySettings.tsx:106
+#: src/components/AccountSecuritySettings.tsx:185
 msgid "Enable email sign-in"
 msgstr "Enable email sign-in"
 
@@ -2213,7 +2213,7 @@ msgstr "Failed to load more notes; click to retry"
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:502
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
 msgid "Failed to load more passkeys; click to retry"
 msgstr "Failed to load more passkeys; click to retry"
 
@@ -2321,7 +2321,7 @@ msgstr "Failed to refresh from origin."
 msgid "Failed to regenerate invitations."
 msgstr "Failed to regenerate invitations."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:301
 msgid "Failed to register passkey"
 msgstr "Failed to register passkey"
 
@@ -2356,8 +2356,8 @@ msgstr "Failed to remove preferred sharer."
 msgid "Failed to render preview"
 msgstr "Failed to render preview"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:317
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:352
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
 msgid "Failed to revoke passkey"
 msgstr "Failed to revoke passkey"
 
@@ -2815,7 +2815,7 @@ msgstr "Hide source changes"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/components/RecoveryCodesDialog.tsx:28
+#: src/components/RecoveryCodesDialog.tsx:60
 msgid "I have saved my recovery codes"
 msgstr "I have saved my recovery codes"
 
@@ -3014,7 +3014,7 @@ msgstr "Joined on {0}"
 msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 msgstr "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 
-#: src/components/AccountSecuritySettings.tsx:98
+#: src/components/AccountSecuritySettings.tsx:162
 msgid "Keep at least one registered passkey. Security changes require a fresh passkey verification. Email cannot recover this account while email sign-in is disabled."
 msgstr "Keep at least one registered passkey. Security changes require a fresh passkey verification. Email cannot recover this account while email sign-in is disabled."
 
@@ -3087,7 +3087,7 @@ msgid "Last updated"
 msgstr "Last updated"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:455
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
@@ -3202,7 +3202,7 @@ msgstr "Load more notes"
 msgid "Load more notifications"
 msgstr "Load more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Load more passkeys"
 msgstr "Load more passkeys"
 
@@ -3282,7 +3282,7 @@ msgstr "Loading more notes…"
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:546
 msgid "Loading more passkeys…"
 msgstr "Loading more passkeys…"
 
@@ -3534,7 +3534,7 @@ msgstr "Mutes & blocks"
 msgid "Mutes and blocks"
 msgstr "Mutes and blocks"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
 msgid "My passkey"
 msgstr "My passkey"
 
@@ -3568,7 +3568,7 @@ msgstr "Never"
 msgid "Never expires"
 msgstr "Never expires"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:497
 msgid "Never used"
 msgstr "Never used"
 
@@ -4059,25 +4059,33 @@ msgstr "Page not found"
 msgid "Passkey authentication failed"
 msgstr "Passkey authentication failed"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:376
-#: src/routes/(root)/sign/recovery.tsx:84
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:422
+#: src/routes/(root)/sign/recovery.tsx:151
 msgid "Passkey name"
 msgstr "Passkey name"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:270
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
 msgid "Passkey registered successfully"
 msgstr "Passkey registered successfully"
 
 #: src/routes/(root)/sign/recovery.tsx:74
-msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
-msgstr "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
+#~ msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
+#~ msgstr "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:310
+#: src/routes/(root)/sign/recovery.tsx:125
+msgid "Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired."
+msgstr "Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired."
+
+#: src/routes/(root)/sign/recovery.tsx:124
+msgid "Passkey registration was cancelled or timed out. Try again without entering another recovery code."
+msgstr "Passkey registration was cancelled or timed out. Try again without entering another recovery code."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:345
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
 #: src/components/SettingsTabs.tsx:81
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:354
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:394
 msgid "Passkeys"
 msgstr "Passkeys"
 
@@ -4580,16 +4588,16 @@ msgstr "Record decision"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "Recorded for the audit trail; not shown to the user."
 
-#: src/routes/(root)/sign/recovery.tsx:90
+#: src/routes/(root)/sign/recovery.tsx:168
 msgid "Recovery code"
 msgstr "Recovery code"
 
-#: src/components/RecoveryCodesDialog.tsx:15
+#: src/components/RecoveryCodesDialog.tsx:23
 msgid "Recovery codes copied."
 msgstr "Recovery codes copied."
 
-#: src/routes/(root)/sign/recovery.tsx:52
-#: src/routes/(root)/sign/recovery.tsx:59
+#: src/routes/(root)/sign/recovery.tsx:73
+#: src/routes/(root)/sign/recovery.tsx:87
 msgid "Recovery sign-in failed. Check your username and use an unused recovery code."
 msgstr "Recovery sign-in failed. Check your username and use an unused recovery code."
 
@@ -4639,7 +4647,7 @@ msgstr "Regenerate"
 msgid "Regenerate invitations"
 msgstr "Regenerate invitations"
 
-#: src/components/AccountSecuritySettings.tsx:107
+#: src/components/AccountSecuritySettings.tsx:190
 msgid "Regenerate recovery codes"
 msgstr "Regenerate recovery codes"
 
@@ -4647,7 +4655,7 @@ msgstr "Regenerate recovery codes"
 #~ msgid "Regenerated invitations for {0} accounts."
 #~ msgstr "Regenerated invitations for {0} accounts."
 
-#: src/components/AccountSecuritySettings.tsx:109
+#: src/components/AccountSecuritySettings.tsx:192
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "Regenerating recovery codes invalidates every previous code."
 
@@ -4655,32 +4663,32 @@ msgstr "Regenerating recovery codes invalidates every previous code."
 msgid "Regenerating…"
 msgstr "Regenerating…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Register"
 msgstr "Register"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
-#: src/routes/(root)/sign/recovery.tsx:85
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/sign/recovery.tsx:157
 msgid "Register a passkey"
 msgstr "Register a passkey"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:364
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 
-#: src/routes/(root)/sign/recovery.tsx:83
+#: src/routes/(root)/sign/recovery.tsx:149
 msgid "Register a replacement passkey"
 msgstr "Register a replacement passkey"
 
-#: src/components/AccountSecuritySettings.tsx:90
+#: src/components/AccountSecuritySettings.tsx:143
 msgid "Register at least one passkey before disabling email sign-in."
 msgstr "Register at least one passkey before disabling email sign-in."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:445
 msgid "Registered passkeys"
 msgstr "Registered passkeys"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Registering…"
 msgstr "Registering…"
 
@@ -4935,12 +4943,12 @@ msgstr "Reviewed"
 msgid "Reviewing"
 msgstr "Reviewing"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:481
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:533
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:527
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:579
 msgid "Revoke"
 msgstr "Revoke"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:568
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
@@ -5018,7 +5026,7 @@ msgstr "Save the draft before moving it."
 msgid "Save your changes before moving the draft."
 msgstr "Save your changes before moving the draft."
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:45
 msgid "Save your recovery codes"
 msgstr "Save your recovery codes"
 
@@ -5080,7 +5088,7 @@ msgstr "Search results for {0}"
 msgid "Searching…"
 msgstr "Searching…"
 
-#: src/components/AccountSecuritySettings.tsx:91
+#: src/components/AccountSecuritySettings.tsx:144
 msgid "Security verification failed. Please try again with a registered passkey."
 msgstr "Security verification failed. Please try again with a registered passkey."
 
@@ -5279,8 +5287,8 @@ msgstr "Sign in to post"
 msgid "Sign in to vote"
 msgstr "Sign in to vote"
 
-#: src/routes/(root)/sign/index.tsx:508
-#: src/routes/(root)/sign/recovery.tsx:91
+#: src/routes/(root)/sign/index.tsx:511
+#: src/routes/(root)/sign/recovery.tsx:181
 msgid "Sign in with a recovery code"
 msgstr "Sign in with a recovery code"
 
@@ -5301,7 +5309,7 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:153
 msgid "Sign-in security"
 msgstr "Sign-in security"
 
@@ -5641,7 +5649,7 @@ msgstr "The email address is invalid."
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "The email address is not only used for receiving the invitation, but also for signing in to the account."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:401
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "The following passkeys are registered to your account. You can use them to sign in to your account."
 
@@ -5752,7 +5760,7 @@ msgstr "The original of {0} changed; review your translation"
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "The page you're looking for doesn't exist or has been moved."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:311
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:346
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
@@ -5779,7 +5787,7 @@ msgstr "The quoting post will no longer include your post as a quote."
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 
-#: src/routes/(root)/sign/recovery.tsx:86
+#: src/routes/(root)/sign/recovery.tsx:158
 msgid "The registration authorization works once and expires in ten minutes. If you leave now, use another recovery code to start again."
 msgstr "The registration authorization works once and expires in ten minutes. If you leave now, use another recovery code to start again."
 
@@ -5850,7 +5858,7 @@ msgstr "This account is hidden because they want to keep their identity private.
 msgid "This account is no longer in use."
 msgstr "This account is no longer in use."
 
-#: src/routes/(root)/sign/recovery.tsx:52
+#: src/routes/(root)/sign/recovery.tsx:72
 msgid "This account is permanently suspended."
 msgstr "This account is permanently suspended."
 
@@ -6286,7 +6294,7 @@ msgid "Unsubscribed from the relay."
 msgstr "Unsubscribed from the relay."
 
 #. placeholder {0}: account()?.recoveryCodeCount ?? 0
-#: src/components/AccountSecuritySettings.tsx:104
+#: src/components/AccountSecuritySettings.tsx:180
 msgid "Unused recovery codes: {0}"
 msgstr "Unused recovery codes: {0}"
 
@@ -6323,14 +6331,14 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL pattern"
 
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:137
 msgid "Use a saved recovery code if you cannot use any of your passkeys. Email sign-in remains disabled."
 msgstr "Use a saved recovery code if you cannot use any of your passkeys. Email sign-in remains disabled."
 
 #~ msgid "Use old UI"
 #~ msgstr "Use old UI"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:154
 msgid "Use passkeys only to protect your account even if someone gains access to your email."
 msgstr "Use passkeys only to protect your account even if someone gains access to your email."
 
@@ -6372,7 +6380,7 @@ msgstr "username"
 #: src/routes/(root)/[handle]/settings/account.tsx:1519
 #: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
-#: src/routes/(root)/sign/recovery.tsx:89
+#: src/routes/(root)/sign/recovery.tsx:164
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
 msgstr "Username"
@@ -6786,7 +6794,7 @@ msgstr "You cannot remove your last verified email address."
 msgid "You do not belong to any organizations yet."
 msgstr "You do not belong to any organizations yet."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:411
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:457
 msgid "You don't have any passkeys registered yet."
 msgstr "You don't have any passkeys registered yet."
 
@@ -6979,7 +6987,7 @@ msgstr "Your name will be displayed on your profile and in your posts."
 msgid "Your organizations"
 msgstr "Your organizations"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:271
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "Your passkey has been registered and can now be used for authentication."
 

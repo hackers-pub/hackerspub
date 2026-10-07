@@ -118,9 +118,11 @@ export default function RecoveryPage() {
         throw new Error("Registration failed.");
       setRegistration(undefined);
       window.location.href = `/@${encodeURIComponent(pending.username)}/settings/passkeys?lang=${encodeURIComponent(i18n.locale)}`;
-    } catch {
+    } catch (error) {
       setMessage(
-        t`Passkey registration failed. Sign in with another recovery code if the registration authorization has expired.`,
+        error instanceof Error && error.name === "NotAllowedError"
+          ? t`Passkey registration was cancelled or timed out. Try again without entering another recovery code.`
+          : t`Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired.`,
       );
     } finally {
       setBusy(false);

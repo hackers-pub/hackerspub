@@ -606,8 +606,8 @@ msgstr "アカウント移行"
 msgid "Account permanently suspended"
 msgstr "アカウントを永久停止"
 
-#: src/routes/(root)/sign/recovery.tsx:78
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:133
+#: src/routes/(root)/sign/recovery.tsx:136
 msgid "Account recovery"
 msgstr "アカウントの復旧"
 
@@ -816,11 +816,11 @@ msgstr "記事"
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:285
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:305
 msgid "An error occurred while registering your passkey."
 msgstr "パスキーの登録中にエラーが発生しました。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
 msgid "An error occurred while revoking your passkey."
 msgstr "パスキーの取消中にエラーが発生しました。"
 
@@ -937,7 +937,7 @@ msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "{0}さん（{1}）をフォロワーから削除してもよろしいですか？"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:570
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "パスキー{0}を取り消しますか？このパスキーを使用してアカウントにログインできなくなります。"
 
@@ -1069,7 +1069,7 @@ msgstr "編集に戻る"
 msgid "Back to editor"
 msgstr "編集画面に戻る"
 
-#: src/routes/(root)/sign/recovery.tsx:94
+#: src/routes/(root)/sign/recovery.tsx:184
 msgid "Back to sign-in"
 msgstr "ログインに戻る"
 
@@ -1191,7 +1191,7 @@ msgstr "{0}さんによる記事"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 #: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:528
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:574
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "キャンセル"
@@ -1404,11 +1404,11 @@ msgstr "コピーしました"
 msgid "Copy"
 msgstr "コピー"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:52
 msgid "Copy codes"
 msgstr "コードをコピー"
 
-#: src/components/RecoveryCodesDialog.tsx:16
+#: src/components/RecoveryCodesDialog.tsx:25
 msgid "Copy failed. Download or write down your recovery codes."
 msgstr "コピーできませんでした。復旧コードをダウンロードするか、書き留めてください。"
 
@@ -1561,7 +1561,7 @@ msgid "Created"
 msgstr "作成日"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:433
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:479
 msgid "Created {0}"
 msgstr "{0}に作成"
 
@@ -1731,11 +1731,11 @@ msgstr "直接または不明"
 msgid "Disable"
 msgstr "無効化"
 
-#: src/components/AccountSecuritySettings.tsx:102
+#: src/components/AccountSecuritySettings.tsx:176
 msgid "Disable email sign-in"
 msgstr "メールでのログインを無効にする"
 
-#: src/components/AccountSecuritySettings.tsx:101
+#: src/components/AccountSecuritySettings.tsx:172
 msgid "Disabling email sign-in signs out email sessions and shows ten recovery codes once. Save them offline before leaving this page."
 msgstr "メールでのログインを無効にすると、メール認証のセッションが終了し、10 個の復旧コードが一度だけ表示されます。このページを離れる前にオフラインで保存してください。"
 
@@ -1796,11 +1796,11 @@ msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので
 msgid "Do you want to quote this link?"
 msgstr "このリンクを引用しますか？"
 
-#: src/components/RecoveryCodesDialog.tsx:29
+#: src/components/RecoveryCodesDialog.tsx:62
 msgid "Done"
 msgstr "完了"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:56
 msgid "Download codes"
 msgstr "コードをダウンロード"
 
@@ -1848,7 +1848,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:46
 msgid "Each code works once. These codes will not be shown again. Store them somewhere safe, separately from your passkeys."
 msgstr "各コードは一度だけ使えます。このコードは再表示されません。パスキーとは別の安全な場所に保管してください。"
 
@@ -1903,11 +1903,11 @@ msgstr "通知ダイジェスト"
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:159
 msgid "Email sign-in is disabled."
 msgstr "メールでのログインは無効です。"
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:160
 msgid "Email sign-in is enabled."
 msgstr "メールでのログインは有効です。"
 
@@ -1916,7 +1916,7 @@ msgstr "メールでのログインは有効です。"
 msgid "Enable"
 msgstr "有効化"
 
-#: src/components/AccountSecuritySettings.tsx:106
+#: src/components/AccountSecuritySettings.tsx:185
 msgid "Enable email sign-in"
 msgstr "メールでのログインを有効にする"
 
@@ -2209,7 +2209,7 @@ msgstr "投稿の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more notifications; click to retry"
 msgstr "通知の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:502
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
 msgid "Failed to load more passkeys; click to retry"
 msgstr "パスキーの読み込みに失敗しました。クリックして再試行してください"
 
@@ -2317,7 +2317,7 @@ msgstr "配信元からの再取得に失敗しました。"
 msgid "Failed to regenerate invitations."
 msgstr "招待状の再付与に失敗しました。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:301
 msgid "Failed to register passkey"
 msgstr "パスキーの登録に失敗しました"
 
@@ -2352,8 +2352,8 @@ msgstr "優先共有者の削除に失敗しました。"
 msgid "Failed to render preview"
 msgstr "プレビューの表示に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:317
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:352
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
 msgid "Failed to revoke passkey"
 msgstr "パスキーの取り消しに失敗しました"
 
@@ -2811,7 +2811,7 @@ msgstr "原文の変更を隠す"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/components/RecoveryCodesDialog.tsx:28
+#: src/components/RecoveryCodesDialog.tsx:60
 msgid "I have saved my recovery codes"
 msgstr "復旧コードを保存しました"
 
@@ -3010,7 +3010,7 @@ msgstr "{0}に参加"
 msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 msgstr "認証済みメールアドレスまたはパスキーの少なくとも一つを使える状態にしておいてください。すべての認証手段を失うと、原則としてアカウントを復旧できません。"
 
-#: src/components/AccountSecuritySettings.tsx:98
+#: src/components/AccountSecuritySettings.tsx:162
 msgid "Keep at least one registered passkey. Security changes require a fresh passkey verification. Email cannot recover this account while email sign-in is disabled."
 msgstr "登録済みのパスキーを少なくとも 1 つ残してください。セキュリティ設定の変更には、その都度パスキーでの確認が必要です。メールでのログインが無効な間は、メールでこのアカウントを復旧できません。"
 
@@ -3083,7 +3083,7 @@ msgid "Last updated"
 msgstr "最終更新"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:455
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
@@ -3198,7 +3198,7 @@ msgstr "投稿をもっと読み込む"
 msgid "Load more notifications"
 msgstr "通知をもっと読み込む"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Load more passkeys"
 msgstr "パスキーを読み込む"
 
@@ -3278,7 +3278,7 @@ msgstr "投稿を読み込み中…"
 msgid "Loading more notifications"
 msgstr "通知を読み込み中…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:546
 msgid "Loading more passkeys…"
 msgstr "パスキーを読み込み中…"
 
@@ -3530,7 +3530,7 @@ msgstr "ミュートとブロック"
 msgid "Mutes and blocks"
 msgstr "ミュートとブロック"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
 msgid "My passkey"
 msgstr "私のパスキー"
 
@@ -3564,7 +3564,7 @@ msgstr "なし"
 msgid "Never expires"
 msgstr "有効期限なし"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:497
 msgid "Never used"
 msgstr "使用履歴なし"
 
@@ -4055,25 +4055,33 @@ msgstr "ページが見つかりません"
 msgid "Passkey authentication failed"
 msgstr "パスキー認証に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:376
-#: src/routes/(root)/sign/recovery.tsx:84
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:422
+#: src/routes/(root)/sign/recovery.tsx:151
 msgid "Passkey name"
 msgstr "パスキー名"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:270
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
 msgid "Passkey registered successfully"
 msgstr "パスキーの登録に成功しました"
 
 #: src/routes/(root)/sign/recovery.tsx:74
-msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
-msgstr "パスキーの登録に失敗しました。登録の許可が期限切れの場合は、別の復旧コードでログインしてください。"
+#~ msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
+#~ msgstr "パスキーの登録に失敗しました。登録の許可が期限切れの場合は、別の復旧コードでログインしてください。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:310
+#: src/routes/(root)/sign/recovery.tsx:125
+msgid "Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired."
+msgstr "パスキーの登録に失敗しました。もう一度お試しください。登録の許可が期限切れの場合は、別の復旧コードでログインしてください。"
+
+#: src/routes/(root)/sign/recovery.tsx:124
+msgid "Passkey registration was cancelled or timed out. Try again without entering another recovery code."
+msgstr "パスキーの登録がキャンセルされたか、タイムアウトしました。別の復旧コードを入力せずに、もう一度お試しください。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:345
 msgid "Passkey revoked"
 msgstr "パスキーを取り消しました"
 
 #: src/components/SettingsTabs.tsx:81
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:354
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:394
 msgid "Passkeys"
 msgstr "パスキー"
 
@@ -4576,16 +4584,16 @@ msgstr "対応を記録"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "監査記録用に保存され、ユーザーには表示されません。"
 
-#: src/routes/(root)/sign/recovery.tsx:90
+#: src/routes/(root)/sign/recovery.tsx:168
 msgid "Recovery code"
 msgstr "復旧コード"
 
-#: src/components/RecoveryCodesDialog.tsx:15
+#: src/components/RecoveryCodesDialog.tsx:23
 msgid "Recovery codes copied."
 msgstr "復旧コードをコピーしました。"
 
-#: src/routes/(root)/sign/recovery.tsx:52
-#: src/routes/(root)/sign/recovery.tsx:59
+#: src/routes/(root)/sign/recovery.tsx:73
+#: src/routes/(root)/sign/recovery.tsx:87
 msgid "Recovery sign-in failed. Check your username and use an unused recovery code."
 msgstr "復旧コードでのログインに失敗しました。ユーザー名を確認し、未使用の復旧コードを使ってください。"
 
@@ -4635,7 +4643,7 @@ msgstr "再付与"
 msgid "Regenerate invitations"
 msgstr "招待状を再付与"
 
-#: src/components/AccountSecuritySettings.tsx:107
+#: src/components/AccountSecuritySettings.tsx:190
 msgid "Regenerate recovery codes"
 msgstr "復旧コードを再発行する"
 
@@ -4643,7 +4651,7 @@ msgstr "復旧コードを再発行する"
 #~ msgid "Regenerated invitations for {0} accounts."
 #~ msgstr "{0}件のアカウントに招待状を再付与しました。"
 
-#: src/components/AccountSecuritySettings.tsx:109
+#: src/components/AccountSecuritySettings.tsx:192
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "復旧コードを再発行すると、以前のコードはすべて無効になります。"
 
@@ -4651,32 +4659,32 @@ msgstr "復旧コードを再発行すると、以前のコードはすべて無
 msgid "Regenerating…"
 msgstr "再付与中…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Register"
 msgstr "登録"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
-#: src/routes/(root)/sign/recovery.tsx:85
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/sign/recovery.tsx:157
 msgid "Register a passkey"
 msgstr "パスキーを登録"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:364
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "アカウントにパスキーを登録してください。メールでログインリンクを受け取る代わりにパスキーを使用できます。"
 
-#: src/routes/(root)/sign/recovery.tsx:83
+#: src/routes/(root)/sign/recovery.tsx:149
 msgid "Register a replacement passkey"
 msgstr "代わりのパスキーを登録する"
 
-#: src/components/AccountSecuritySettings.tsx:90
+#: src/components/AccountSecuritySettings.tsx:143
 msgid "Register at least one passkey before disabling email sign-in."
 msgstr "メールでのログインを無効にする前に、パスキーを少なくとも 1 つ登録してください。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:445
 msgid "Registered passkeys"
 msgstr "登録済みパスキー"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Registering…"
 msgstr "登録中…"
 
@@ -4931,12 +4939,12 @@ msgstr "確認済み"
 msgid "Reviewing"
 msgstr "審査中"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:481
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:533
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:527
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:579
 msgid "Revoke"
 msgstr "取り消す"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:568
 msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
@@ -5014,7 +5022,7 @@ msgstr "移動する前に下書きを保存してください。"
 msgid "Save your changes before moving the draft."
 msgstr "下書きを移動する前に変更を保存してください。"
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:45
 msgid "Save your recovery codes"
 msgstr "復旧コードを保存してください"
 
@@ -5076,7 +5084,7 @@ msgstr "{0}の検索結果"
 msgid "Searching…"
 msgstr "検索中…"
 
-#: src/components/AccountSecuritySettings.tsx:91
+#: src/components/AccountSecuritySettings.tsx:144
 msgid "Security verification failed. Please try again with a registered passkey."
 msgstr "セキュリティ確認に失敗しました。登録済みのパスキーでもう一度お試しください。"
 
@@ -5275,8 +5283,8 @@ msgstr "ログインして投稿"
 msgid "Sign in to vote"
 msgstr "ログインして投票"
 
-#: src/routes/(root)/sign/index.tsx:508
-#: src/routes/(root)/sign/recovery.tsx:91
+#: src/routes/(root)/sign/index.tsx:511
+#: src/routes/(root)/sign/recovery.tsx:181
 msgid "Sign in with a recovery code"
 msgstr "復旧コードでログイン"
 
@@ -5297,7 +5305,7 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:153
 msgid "Sign-in security"
 msgstr "ログインのセキュリティ"
 
@@ -5637,7 +5645,7 @@ msgstr "メールアドレスが無効です。"
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "メールアドレスは招待状を受け取るだけでなく、アカウントへのログインにも使用されます。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:401
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。"
 
@@ -5748,7 +5756,7 @@ msgstr "{0}の原文が変更されました。翻訳をご確認ください"
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "お探しのページは存在しないか、移動された可能性があります。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:311
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:346
 msgid "The passkey has been successfully revoked."
 msgstr "パスキーを正常に取り消しました。"
 
@@ -5775,7 +5783,7 @@ msgstr "引用しているコンテンツには、あなたのコンテンツが
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "通報理由が長すぎます（最大{MAX_REASON_LENGTH}文字）。"
 
-#: src/routes/(root)/sign/recovery.tsx:86
+#: src/routes/(root)/sign/recovery.tsx:158
 msgid "The registration authorization works once and expires in ten minutes. If you leave now, use another recovery code to start again."
 msgstr "登録の許可は一度だけ使え、10 分で期限切れになります。このページを離れた場合は、別の復旧コードでやり直してください。"
 
@@ -5846,7 +5854,7 @@ msgstr "このアカウントは、プライバシー保護のために非表示
 msgid "This account is no longer in use."
 msgstr "このアカウントは使用されていません。"
 
-#: src/routes/(root)/sign/recovery.tsx:52
+#: src/routes/(root)/sign/recovery.tsx:72
 msgid "This account is permanently suspended."
 msgstr "このアカウントは永久に停止されています。"
 
@@ -6282,7 +6290,7 @@ msgid "Unsubscribed from the relay."
 msgstr "リレーの購読を解除しました。"
 
 #. placeholder {0}: account()?.recoveryCodeCount ?? 0
-#: src/components/AccountSecuritySettings.tsx:104
+#: src/components/AccountSecuritySettings.tsx:180
 msgid "Unused recovery codes: {0}"
 msgstr "未使用の復旧コード：{0}"
 
@@ -6319,14 +6327,14 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URLパターン"
 
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:137
 msgid "Use a saved recovery code if you cannot use any of your passkeys. Email sign-in remains disabled."
 msgstr "どのパスキーも使えない場合は、保存済みの復旧コードを使ってください。メールでのログインは引き続き無効です。"
 
 #~ msgid "Use old UI"
 #~ msgstr "旧UIを使う"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:154
 msgid "Use passkeys only to protect your account even if someone gains access to your email."
 msgstr "メールへの不正アクセスがあってもアカウントを守れるよう、パスキーのみでログインできます。"
 
@@ -6368,7 +6376,7 @@ msgstr "ユーザー名"
 #: src/routes/(root)/[handle]/settings/account.tsx:1519
 #: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
-#: src/routes/(root)/sign/recovery.tsx:89
+#: src/routes/(root)/sign/recovery.tsx:164
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
 msgstr "ユーザー名"
@@ -6782,7 +6790,7 @@ msgstr "最後の認証済みメールアドレスは削除できません。"
 msgid "You do not belong to any organizations yet."
 msgstr "まだどの組織にも所属していません。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:411
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:457
 msgid "You don't have any passkeys registered yet."
 msgstr "まだパスキーが登録されていません。"
 
@@ -6975,7 +6983,7 @@ msgstr "名前はプロフィールとコンテンツに表示されます。"
 msgid "Your organizations"
 msgstr "あなたの組織"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:271
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "パスキーが登録され、認証に使用できるようになりました。"
 

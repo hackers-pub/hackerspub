@@ -606,8 +606,8 @@ msgstr "账户迁移"
 msgid "Account permanently suspended"
 msgstr "账户已永久封停"
 
-#: src/routes/(root)/sign/recovery.tsx:78
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:133
+#: src/routes/(root)/sign/recovery.tsx:136
 msgid "Account recovery"
 msgstr "账户恢复"
 
@@ -816,11 +816,11 @@ msgstr "文章"
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:285
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:305
 msgid "An error occurred while registering your passkey."
 msgstr "在注册您的通行密钥时发生错误。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
 msgid "An error occurred while revoking your passkey."
 msgstr "在撤销您的通行密钥时发生错误。"
 
@@ -937,7 +937,7 @@ msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "你确定要从粉丝中移除 {0}（{1}）吗？"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:570
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "您确定要撤销通行密钥“{0}”吗？您将无法再使用它登录您的账户。"
 
@@ -1069,7 +1069,7 @@ msgstr "返回编辑"
 msgid "Back to editor"
 msgstr "返回编辑器"
 
-#: src/routes/(root)/sign/recovery.tsx:94
+#: src/routes/(root)/sign/recovery.tsx:184
 msgid "Back to sign-in"
 msgstr "返回登录"
 
@@ -1191,7 +1191,7 @@ msgstr "由 {0} 发布"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 #: src/routes/(root)/[handle]/settings/account.tsx:2051
 #: src/routes/(root)/[handle]/settings/index.tsx:416
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:528
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:574
 #: src/routes/(root)/authorize_interaction.tsx:280
 msgid "Cancel"
 msgstr "取消"
@@ -1404,11 +1404,11 @@ msgstr "已复制"
 msgid "Copy"
 msgstr "复制"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:52
 msgid "Copy codes"
 msgstr "复制代码"
 
-#: src/components/RecoveryCodesDialog.tsx:16
+#: src/components/RecoveryCodesDialog.tsx:25
 msgid "Copy failed. Download or write down your recovery codes."
 msgstr "复制失败。请下载或记下恢复代码。"
 
@@ -1561,7 +1561,7 @@ msgid "Created"
 msgstr "创建时间"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:433
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:479
 msgid "Created {0}"
 msgstr "{0}创建"
 
@@ -1731,11 +1731,11 @@ msgstr "直接访问或未知"
 msgid "Disable"
 msgstr "关闭"
 
-#: src/components/AccountSecuritySettings.tsx:102
+#: src/components/AccountSecuritySettings.tsx:176
 msgid "Disable email sign-in"
 msgstr "禁用电子邮件登录"
 
-#: src/components/AccountSecuritySettings.tsx:101
+#: src/components/AccountSecuritySettings.tsx:172
 msgid "Disabling email sign-in signs out email sessions and shows ten recovery codes once. Save them offline before leaving this page."
 msgstr "禁用电子邮件登录会注销电子邮件认证会话，并仅显示一次十个恢复代码。离开此页面前，请离线保存这些代码。"
 
@@ -1796,11 +1796,11 @@ msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀�
 msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
-#: src/components/RecoveryCodesDialog.tsx:29
+#: src/components/RecoveryCodesDialog.tsx:62
 msgid "Done"
 msgstr "完成"
 
-#: src/components/RecoveryCodesDialog.tsx:26
+#: src/components/RecoveryCodesDialog.tsx:56
 msgid "Download codes"
 msgstr "下载代码"
 
@@ -1848,7 +1848,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:46
 msgid "Each code works once. These codes will not be shown again. Store them somewhere safe, separately from your passkeys."
 msgstr "每个代码只能使用一次。这些代码不会再次显示。请将其存放在安全的地方，与通行密钥分开保存。"
 
@@ -1903,11 +1903,11 @@ msgstr "邮件摘要"
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:159
 msgid "Email sign-in is disabled."
 msgstr "电子邮件登录已禁用。"
 
-#: src/components/AccountSecuritySettings.tsx:97
+#: src/components/AccountSecuritySettings.tsx:160
 msgid "Email sign-in is enabled."
 msgstr "电子邮件登录已启用。"
 
@@ -1916,7 +1916,7 @@ msgstr "电子邮件登录已启用。"
 msgid "Enable"
 msgstr "开启"
 
-#: src/components/AccountSecuritySettings.tsx:106
+#: src/components/AccountSecuritySettings.tsx:185
 msgid "Enable email sign-in"
 msgstr "启用电子邮件登录"
 
@@ -2209,7 +2209,7 @@ msgstr "加载更多帖子失败，点击重试"
 msgid "Failed to load more notifications; click to retry"
 msgstr "加载更多通知失败；点击重试"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:502
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
 msgid "Failed to load more passkeys; click to retry"
 msgstr "加载更多通行密钥失败，点击重试"
 
@@ -2317,7 +2317,7 @@ msgstr "从来源刷新失败。"
 msgid "Failed to regenerate invitations."
 msgstr "重新发放邀请失败。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:301
 msgid "Failed to register passkey"
 msgstr "注册通行密钥失败"
 
@@ -2352,8 +2352,8 @@ msgstr "移除优先转帖者失败。"
 msgid "Failed to render preview"
 msgstr "预览渲染失败"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:317
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:352
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:358
 msgid "Failed to revoke passkey"
 msgstr "撤销通行密钥失败"
 
@@ -2811,7 +2811,7 @@ msgstr "隐藏原文变更"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
-#: src/components/RecoveryCodesDialog.tsx:28
+#: src/components/RecoveryCodesDialog.tsx:60
 msgid "I have saved my recovery codes"
 msgstr "我已保存恢复代码"
 
@@ -3010,7 +3010,7 @@ msgstr "于{0}加入"
 msgid "Keep access to at least one verified email address or passkey. Accounts cannot normally be recovered if all authentication methods are lost."
 msgstr "请确保至少有一个已验证的邮箱地址或通行密钥可用。如果丢失所有身份验证方式，原则上无法恢复账户。"
 
-#: src/components/AccountSecuritySettings.tsx:98
+#: src/components/AccountSecuritySettings.tsx:162
 msgid "Keep at least one registered passkey. Security changes require a fresh passkey verification. Email cannot recover this account while email sign-in is disabled."
 msgstr "请保留至少一个已注册的通行密钥。更改安全设置需要重新验证通行密钥。禁用电子邮件登录期间，无法通过电子邮件恢复此账户。"
 
@@ -3083,7 +3083,7 @@ msgid "Last updated"
 msgstr "最后更新"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:455
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
 msgid "Last used {0}"
 msgstr "{0}最后使用"
 
@@ -3198,7 +3198,7 @@ msgstr "加载更多帖子"
 msgid "Load more notifications"
 msgstr "加载更多通知"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Load more passkeys"
 msgstr "加载更多通行密钥"
 
@@ -3278,7 +3278,7 @@ msgstr "加载更多帖子中…"
 msgid "Loading more notifications"
 msgstr "正在加载更多通知…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:546
 msgid "Loading more passkeys…"
 msgstr "正在加载更多通行密钥…"
 
@@ -3530,7 +3530,7 @@ msgstr "隐藏与屏蔽"
 msgid "Mutes and blocks"
 msgstr "隐藏与屏蔽"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
 msgid "My passkey"
 msgstr "我的通行密钥"
 
@@ -3564,7 +3564,7 @@ msgstr "从未"
 msgid "Never expires"
 msgstr "永不过期"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:497
 msgid "Never used"
 msgstr "从未使用过"
 
@@ -4055,25 +4055,33 @@ msgstr "页面未找到"
 msgid "Passkey authentication failed"
 msgstr "通行密钥验证失败"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:376
-#: src/routes/(root)/sign/recovery.tsx:84
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:422
+#: src/routes/(root)/sign/recovery.tsx:151
 msgid "Passkey name"
 msgstr "通行密钥名称"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:270
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
 msgid "Passkey registered successfully"
 msgstr "通行密钥注册成功"
 
 #: src/routes/(root)/sign/recovery.tsx:74
-msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
-msgstr "通行密钥注册失败。如果注册授权已过期，请使用另一个恢复代码登录。"
+#~ msgid "Passkey registration failed. Sign in with another recovery code if the registration authorization has expired."
+#~ msgstr "通行密钥注册失败。如果注册授权已过期，请使用另一个恢复代码登录。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:310
+#: src/routes/(root)/sign/recovery.tsx:125
+msgid "Passkey registration failed. Try again. Sign in with another recovery code if the registration authorization has expired."
+msgstr "通行密钥注册失败。请重试。如果注册授权已过期，请使用其他恢复代码登录。"
+
+#: src/routes/(root)/sign/recovery.tsx:124
+msgid "Passkey registration was cancelled or timed out. Try again without entering another recovery code."
+msgstr "通行密钥注册已取消或超时。请重试，无需输入其他恢复代码。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:345
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
 #: src/components/SettingsTabs.tsx:81
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:354
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:394
 msgid "Passkeys"
 msgstr "通行密钥"
 
@@ -4576,16 +4584,16 @@ msgstr "记录处理"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "用于审计记录，不会向用户显示。"
 
-#: src/routes/(root)/sign/recovery.tsx:90
+#: src/routes/(root)/sign/recovery.tsx:168
 msgid "Recovery code"
 msgstr "恢复代码"
 
-#: src/components/RecoveryCodesDialog.tsx:15
+#: src/components/RecoveryCodesDialog.tsx:23
 msgid "Recovery codes copied."
 msgstr "恢复代码已复制。"
 
-#: src/routes/(root)/sign/recovery.tsx:52
-#: src/routes/(root)/sign/recovery.tsx:59
+#: src/routes/(root)/sign/recovery.tsx:73
+#: src/routes/(root)/sign/recovery.tsx:87
 msgid "Recovery sign-in failed. Check your username and use an unused recovery code."
 msgstr "恢复登录失败。请检查用户名并使用未使用过的恢复代码。"
 
@@ -4635,7 +4643,7 @@ msgstr "重新发放"
 msgid "Regenerate invitations"
 msgstr "重新发放邀请"
 
-#: src/components/AccountSecuritySettings.tsx:107
+#: src/components/AccountSecuritySettings.tsx:190
 msgid "Regenerate recovery codes"
 msgstr "重新生成恢复代码"
 
@@ -4643,7 +4651,7 @@ msgstr "重新生成恢复代码"
 #~ msgid "Regenerated invitations for {0} accounts."
 #~ msgstr "已为 {0} 个账号重新发放邀请。"
 
-#: src/components/AccountSecuritySettings.tsx:109
+#: src/components/AccountSecuritySettings.tsx:192
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "重新生成恢复代码会使所有旧代码失效。"
 
@@ -4651,32 +4659,32 @@ msgstr "重新生成恢复代码会使所有旧代码失效。"
 msgid "Regenerating…"
 msgstr "正在重新发放…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Register"
 msgstr "注册"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:362
-#: src/routes/(root)/sign/recovery.tsx:85
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/sign/recovery.tsx:157
 msgid "Register a passkey"
 msgstr "注册通行密钥"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:364
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "为你的账户注册通行密钥。你可以使用通行密钥登录，而不是通过电子邮件接收登录链接。"
 
-#: src/routes/(root)/sign/recovery.tsx:83
+#: src/routes/(root)/sign/recovery.tsx:149
 msgid "Register a replacement passkey"
 msgstr "注册替代通行密钥"
 
-#: src/components/AccountSecuritySettings.tsx:90
+#: src/components/AccountSecuritySettings.tsx:143
 msgid "Register at least one passkey before disabling email sign-in."
 msgstr "禁用电子邮件登录前，请注册至少一个通行密钥。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:445
 msgid "Registered passkeys"
 msgstr "已注册的通行密钥"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:391
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Registering…"
 msgstr "正在注册…"
 
@@ -4931,12 +4939,12 @@ msgstr "已审核"
 msgid "Reviewing"
 msgstr "审核中"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:481
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:533
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:527
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:579
 msgid "Revoke"
 msgstr "撤销"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:568
 msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
@@ -5014,7 +5022,7 @@ msgstr "在移动之前请先保存草稿。"
 msgid "Save your changes before moving the draft."
 msgstr "在移动草稿之前，请先保存你的更改。"
 
-#: src/components/RecoveryCodesDialog.tsx:24
+#: src/components/RecoveryCodesDialog.tsx:45
 msgid "Save your recovery codes"
 msgstr "保存恢复代码"
 
@@ -5076,7 +5084,7 @@ msgstr "{0}的搜索结果"
 msgid "Searching…"
 msgstr "搜索中…"
 
-#: src/components/AccountSecuritySettings.tsx:91
+#: src/components/AccountSecuritySettings.tsx:144
 msgid "Security verification failed. Please try again with a registered passkey."
 msgstr "安全验证失败。请使用已注册的通行密钥重试。"
 
@@ -5275,8 +5283,8 @@ msgstr "登录后发表"
 msgid "Sign in to vote"
 msgstr "登录后投票"
 
-#: src/routes/(root)/sign/index.tsx:508
-#: src/routes/(root)/sign/recovery.tsx:91
+#: src/routes/(root)/sign/index.tsx:511
+#: src/routes/(root)/sign/recovery.tsx:181
 msgid "Sign in with a recovery code"
 msgstr "使用恢复代码登录"
 
@@ -5297,7 +5305,7 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "注册"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:153
 msgid "Sign-in security"
 msgstr "登录安全"
 
@@ -5637,7 +5645,7 @@ msgstr "电子邮件地址无效。"
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "电子邮件地址不仅用于接收邀请，还用于登录账户。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:401
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下通行密钥已注册到你的账户。你可以使用它们登录你的账户。"
 
@@ -5748,7 +5756,7 @@ msgstr "{0}的原文已变更，请审核你的翻译"
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "您访问的页面不存在或已被移动。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:311
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:346
 msgid "The passkey has been successfully revoked."
 msgstr "通行密钥已成功撤销。"
 
@@ -5775,7 +5783,7 @@ msgstr "引用内容将不再把你的内容作为引用包含在内。"
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "举报原因过长（最多 {MAX_REASON_LENGTH} 个字符）。"
 
-#: src/routes/(root)/sign/recovery.tsx:86
+#: src/routes/(root)/sign/recovery.tsx:158
 msgid "The registration authorization works once and expires in ten minutes. If you leave now, use another recovery code to start again."
 msgstr "注册授权只能使用一次，并在十分钟后过期。如果现在离开，请使用另一个恢复代码重新开始。"
 
@@ -5846,7 +5854,7 @@ msgstr "此账户已隐藏，因为用户希望保持身份私密。"
 msgid "This account is no longer in use."
 msgstr "此账户不再使用。"
 
-#: src/routes/(root)/sign/recovery.tsx:52
+#: src/routes/(root)/sign/recovery.tsx:72
 msgid "This account is permanently suspended."
 msgstr "此账户已被永久停用。"
 
@@ -6282,7 +6290,7 @@ msgid "Unsubscribed from the relay."
 msgstr "已取消订阅该中继。"
 
 #. placeholder {0}: account()?.recoveryCodeCount ?? 0
-#: src/components/AccountSecuritySettings.tsx:104
+#: src/components/AccountSecuritySettings.tsx:180
 msgid "Unused recovery codes: {0}"
 msgstr "未使用的恢复代码：{0}"
 
@@ -6319,14 +6327,14 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 模式"
 
-#: src/routes/(root)/sign/recovery.tsx:79
+#: src/routes/(root)/sign/recovery.tsx:137
 msgid "Use a saved recovery code if you cannot use any of your passkeys. Email sign-in remains disabled."
 msgstr "如果无法使用任何通行密钥，请使用保存的恢复代码。电子邮件登录仍处于禁用状态。"
 
 #~ msgid "Use old UI"
 #~ msgstr "使用旧版界面"
 
-#: src/components/AccountSecuritySettings.tsx:95
+#: src/components/AccountSecuritySettings.tsx:154
 msgid "Use passkeys only to protect your account even if someone gains access to your email."
 msgstr "仅使用通行密钥，即使有人获取了您的电子邮件访问权限，也能保护您的账户。"
 
@@ -6368,7 +6376,7 @@ msgstr "用户名"
 #: src/routes/(root)/[handle]/settings/account.tsx:1519
 #: src/routes/(root)/[handle]/settings/account.tsx:2009
 #: src/routes/(root)/[handle]/settings/index.tsx:427
-#: src/routes/(root)/sign/recovery.tsx:89
+#: src/routes/(root)/sign/recovery.tsx:164
 #: src/routes/(root)/sign/up/[token].tsx:338
 msgid "Username"
 msgstr "用户名"
@@ -6782,7 +6790,7 @@ msgstr "无法删除最后一个已验证的邮箱地址。"
 msgid "You do not belong to any organizations yet."
 msgstr "你尚未属于任何组织。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:411
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:457
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未注册任何通行密钥。"
 
@@ -6975,7 +6983,7 @@ msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 msgid "Your organizations"
 msgstr "你的组织"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:271
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 
