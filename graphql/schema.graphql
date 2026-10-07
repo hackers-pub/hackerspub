@@ -95,6 +95,11 @@ type Account implements Node {
   defaultShareVisibility: PostVisibility!
 
   """
+  Whether verified email addresses can authenticate this account. `null` for non-owners and organizations; notifications still use email when this is `false`.
+  """
+  emailLoginEnabled: Boolean
+
+  """
   The deadline for requesting an email addition, changing the primary address, or removing an address after a recent sign-in. `null` for stale sessions, non-owners and organizations. Native clients can obtain a fresh bearer session through the existing login mutations.
   """
   emailManagementAvailableUntil: DateTime
@@ -233,6 +238,11 @@ type Account implements Node {
   Controls whether push notification payloads may include short post content previews. Only visible to viewers who can manage this account's settings and to moderators.
   """
   pushNotificationPreviewPolicy: PushNotificationPreviewPolicy!
+
+  """
+  Number of unused one-time recovery codes (at most ten). `null` for non-owners and organizations; plaintext codes are never queryable.
+  """
+  recoveryCodeCount: Int
 
   """
   The account's own report history, newest first: what they reported, when, their written reason, and the processing status. Detailed outcome information is deliberately not exposed here, so reports cannot be used to probe moderation boundaries.  Resolvable by the account owner and moderators only.
@@ -510,6 +520,71 @@ type AccountReportsConnection {
 type AccountReportsConnectionEdge {
   cursor: String!
   node: Flag!
+}
+
+"""
+Purpose of a fresh WebAuthn assertion. A proof cannot be reused for another action or session.
+"""
+enum AccountSecurityAction {
+  """Restore email sign-in using a registered passkey."""
+  DISABLE
+
+  """Disable email sign-in and issue the first recovery-code set."""
+  ENABLE
+
+  """Replace all unused recovery codes with ten newly generated codes."""
+  REGENERATE
+
+  """Authorize adding a passkey while email sign-in is disabled."""
+  REGISTER
+
+  """Authorize removing a passkey while retaining at least one."""
+  REVOKE
+}
+
+"""
+A session-bound WebAuthn challenge for exactly one security action, expiring after five minutes.
+"""
+type AccountSecurityAuthenticationOptions {
+  """
+  Pass this identifier to the requested security mutation; it cannot be used with `loginByPasskey`.
+  """
+  challengeId: UUID!
+
+  """
+  WebAuthn request options requiring user verification and an existing account credential.
+  """
+  options: JSON!
+}
+
+"""
+An expected failure changing the authenticated account's security settings. No setting change occurred.
+"""
+type AccountSecurityError {
+  """The reason the requested security operation could not complete."""
+  code: AccountSecurityErrorCode!
+}
+
+"""Expected security-setting failures, localized by clients."""
+enum AccountSecurityErrorCode {
+  """Email sign-in is already disabled; regenerate recovery codes instead."""
+  ALREADY_ENABLED
+
+  """
+  The assertion or registration authorization is invalid, expired, consumed, or bound to another session, purpose, or security generation.
+  """
+  INVALID_ASSERTION
+
+  """
+  Email sign-in is enabled, so this strict-mode operation is unavailable.
+  """
+  NOT_ENABLED
+
+  """The authenticated personal account or current session is unavailable."""
+  NOT_FOUND
+
+  """Register at least one passkey before disabling email sign-in."""
+  PASSKEY_REQUIRED
 }
 
 """
@@ -2676,6 +2751,52 @@ type DeletePostPayload {
 
 union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | SharedPostDeletionNotAllowedError
 
+"""
+Input for `disableAccountPasskeyOnly`, including a fresh purpose-bound passkey assertion.
+"""
+input DisableAccountPasskeyOnlyInput {
+  """The authenticator's signed assertion with user verification."""
+  authenticationResponse: JSON!
+
+  """
+  Identifier from `getAccountSecurityAuthenticationOptions` for this operation and session.
+  """
+  challengeId: UUID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """Preferred language for the security-change email notice."""
+  locale: Locale!
+
+  """
+  Passkey client platform: `web`, `android`, or `ios`; determines accepted origins.
+  """
+  platform: String = "web"
+}
+
+"""
+The committed security setting, plus credentials available only in this response when applicable.
+"""
+type DisableAccountPasskeyOnlyPayload {
+  """
+  Updated account; select its private security fields to update the client.
+  """
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+}
+
+"""
+A successful security-change payload or an authentication or security-setting error.
+"""
+union DisableAccountPasskeyOnlyResult = AccountSecurityError | DisableAccountPasskeyOnlyPayload | NotAuthenticatedError
+
 """A document in a specific language."""
 type Document {
   html: String!
@@ -2720,6 +2841,62 @@ type EmojiReactionGroup implements ReactionGroup {
 type EmptySearchQueryError {
   message: String!
 }
+
+"""
+Input for `enableAccountPasskeyOnly`, including a fresh purpose-bound passkey assertion.
+"""
+input EnableAccountPasskeyOnlyInput {
+  """The authenticator's signed assertion with user verification."""
+  authenticationResponse: JSON!
+
+  """
+  Identifier from `getAccountSecurityAuthenticationOptions` for this operation and session.
+  """
+  challengeId: UUID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """Preferred language for the security-change email notice."""
+  locale: Locale!
+
+  """
+  Passkey client platform: `web`, `android`, or `ios`; determines accepted origins.
+  """
+  platform: String = "web"
+}
+
+"""
+The committed security setting, plus credentials available only in this response when applicable.
+"""
+type EnableAccountPasskeyOnlyPayload {
+  """
+  Updated account; select its private security fields to update the client.
+  """
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+
+  """
+  Exactly ten one-time codes, each with 128 bits of entropy. Save offline; do not normalize these into a client cache or telemetry. This plaintext cannot be retrieved later.
+  """
+  recoveryCodes: [String!]!
+
+  """
+  Replacement passkey session. Replace the client's current cookie or bearer token before further requests.
+  """
+  session: Session!
+}
+
+"""
+A successful security-change payload or an authentication or security-setting error.
+"""
+union EnableAccountPasskeyOnlyResult = AccountSecurityError | EnableAccountPasskeyOnlyPayload | NotAuthenticatedError
 
 """
 Step 2 of direct image upload: confirm that the PUT to the pre-signed URL from `startMediumUpload` has completed, returning the resulting `Medium`. Requires authentication.
@@ -3110,6 +3287,11 @@ type FollowNotification implements Node & Notification {
   uuid: UUID!
 }
 
+"""
+A purpose-bound challenge or an authentication or account-security failure.
+"""
+union GetAccountSecurityAuthenticationOptionsResult = AccountSecurityAuthenticationOptions | AccountSecurityError | NotAuthenticatedError
+
 """An HTML string."""
 scalar HTML
 
@@ -3357,6 +3539,11 @@ scalar Locale
 The result of `loginByPasskey`: a `Session` on success, or `AccountBannedError` when the passkey is valid but the account is permanently suspended (banned). The field itself is `null` when passkey verification failed.
 """
 union LoginByPasskeyResult = AccountBannedError | Session
+
+"""
+A recovery session and one-time registration grant, or a ban error. Invalid credentials return `null`.
+"""
+union LoginByRecoveryCodeResult = AccountBannedError | RecoveryLoginPayload
 
 """A login challenge for an account."""
 type LoginChallenge {
@@ -3721,7 +3908,7 @@ type Mutation {
   ): BookmarkPostResult!
 
   """
-  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match, and `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
+  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match, email sign-in is disabled, or email credentials were revoked, and `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
   """
   completeLoginChallenge(
     """The code of the login challenge."""
@@ -3813,6 +4000,26 @@ type Mutation {
     """
     input: DeletePostInput!
   ): DeletePostResult!
+
+  """
+  Restore verified-email sign-in after a fresh passkey assertion. Deletes remaining recovery codes and pending recovery registration grants; previously revoked sessions and links stay invalid.
+  """
+  disableAccountPasskeyOnly(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: DisableAccountPasskeyOnlyInput!
+  ): DisableAccountPasskeyOnlyResult!
+
+  """
+  Disable email sign-in after a fresh existing-passkey assertion. Issues ten recovery codes shown only in this response, invalidates old email links and email or legacy sessions, and returns a replacement passkey session. Save the codes before leaving.
+  """
+  enableAccountPasskeyOnly(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: EnableAccountPasskeyOnlyInput!
+  ): EnableAccountPasskeyOnlyResult!
   finishMediumUpload(
     """
     Mutation-specific parameters and an optional `clientMutationId` for response correlation.
@@ -3833,6 +4040,16 @@ type Mutation {
   ): FollowHashtagResult!
 
   """
+  Prepare an assertion for one security operation on the signed-in personal account. Existing keys and user verification are required; a recent login alone never authorizes a security change.
+  """
+  getAccountSecurityAuthenticationOptions(
+    """
+    The operation this assertion may authorize, once, on the current session.
+    """
+    action: AccountSecurityAction!
+  ): GetAccountSecurityAuthenticationOptionsResult!
+
+  """
   Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
   """
   getPasskeyAuthenticationOptions(
@@ -3841,7 +4058,7 @@ type Mutation {
   ): JSON!
 
   """
-  Generate WebAuthn registration options for adding a new passkey. Pass a fresh `sessionId` UUID, then send the authenticator's response to `verifyPasskeyRegistration`. Requires authentication.
+  Generate WebAuthn registration options for adding a new passkey. Options are bound to the authenticated session for five minutes. Send the authenticator's response to `verifyPasskeyRegistration`. Requires authentication.
   """
   getPasskeyRegistrationOptions(accountId: ID!): JSON!
   invite(
@@ -3868,7 +4085,7 @@ type Mutation {
   ): LeaveOrganizationResult!
 
   """
-  Initiate passwordless email sign-in. Sends a magic link to the matching account's email address. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
+  Initiate passwordless email sign-in. Sends a magic link to the matching account's email address when enabled; otherwise sends a passkey-only notice with an indistinguishable, unusable challenge. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
   """
   loginByEmail(
     """The email of the account to sign in."""
@@ -3896,7 +4113,20 @@ type Mutation {
   ): LoginByPasskeyResult
 
   """
-  Initiate passwordless sign-in by username. Sends a magic link to all verified email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.
+  Use a saved one-time recovery code to sign in when all passkeys are unavailable. Returns `null` for missing accounts, disabled recovery, wrong or consumed codes, or throttled requests; valid banned credentials return `AccountBannedError`. Email never becomes a recovery method.
+  """
+  loginByRecoveryCode(
+    """
+    One saved 128-bit code. Hexadecimal letters are case-insensitive; spaces and hyphens are ignored.
+    """
+    code: String!
+
+    """Public username of the personal account to recover."""
+    username: String!
+  ): LoginByRecoveryCodeResult
+
+  """
+  Initiate passwordless sign-in by username. Sends a magic link to all verified email addresses when email sign-in is enabled; otherwise sends a passkey-only notice with an indistinguishable, unusable challenge. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.
   """
   loginByUsername(
     """The locale for the sign-in email."""
@@ -4027,6 +4257,16 @@ type Mutation {
     """
     input: RefreshRemoteObjectInput!
   ): RefreshRemoteObjectResult!
+
+  """
+  Replace all recovery codes after a fresh passkey assertion. The ten plaintext codes appear only in this response; previous codes and pending recovery registration grants are invalidated. Email sign-in stays disabled.
+  """
+  regenerateAccountRecoveryCodes(
+    """
+    Mutation-specific parameters and an optional `clientMutationId` for response correlation.
+    """
+    input: RegenerateAccountRecoveryCodesInput!
+  ): RegenerateAccountRecoveryCodesResult!
 
   """
   Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp.
@@ -4181,9 +4421,26 @@ type Mutation {
   ): ResolveFlagAppealResult!
 
   """
-  Delete a passkey from the account. Returns the deleted passkey's global ID, or `null` if the passkey was not found. Requires authentication and ownership of the passkey.
+  Delete a passkey from the account. Returns the deleted passkey's global ID, or `null` if the passkey was not found. Requires authentication and ownership of the passkey. When email sign-in is disabled, a fresh `REVOKE` assertion is required and removing the last key fails with `LAST_PASSKEY`.
   """
-  revokePasskey(passkeyId: ID!): ID
+  revokePasskey(
+    passkeyId: ID!
+
+    """
+    Passkey client platform: `web`, `android`, or `ios`; determines accepted origins.
+    """
+    platform: String = "web"
+
+    """
+    Fresh assertion from an existing passkey for `REVOKE`, paired with `securityChallengeId`.
+    """
+    securityAuthenticationResponse: JSON
+
+    """
+    Purpose `REVOKE` challenge for this session, required in passkey-only mode.
+    """
+    securityChallengeId: UUID
+  ): ID
   revokeQuote(
     """
     Mutation-specific parameters and an optional `clientMutationId` for response correlation.
@@ -4439,7 +4696,7 @@ type Mutation {
   ): VerifyAccountEmailResult!
 
   """
-  Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication.
+  Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication. Passkey-only accounts also require exactly one fresh `REGISTER` assertion or a session-bound recovery grant; invalid proof fails with `INVALID_ASSERTION`.
   """
   verifyPasskeyRegistration(
     accountId: ID!
@@ -4449,7 +4706,22 @@ type Mutation {
     """
     name: String!
     platform: String = "web"
+
+    """
+    One-time ten-minute grant from `loginByRecoveryCode`, accepted only with its recovery session. Cannot be combined with assertion arguments.
+    """
+    recoveryRegistrationToken: String
     registrationResponse: JSON!
+
+    """
+    Fresh existing-key assertion for `REGISTER`. Must accompany `securityChallengeId` and cannot be combined with a recovery grant.
+    """
+    securityAuthenticationResponse: JSON
+
+    """
+    Purpose `REGISTER` challenge for this session; required with `securityAuthenticationResponse` in passkey-only mode unless a recovery grant is provided.
+    """
+    securityChallengeId: UUID
   ): PasskeyRegistrationResult!
   voteOnPoll(
     """
@@ -7215,6 +7487,21 @@ type RecordArticleViewPayload {
   counted: Boolean!
 }
 
+"""
+Successful one-time recovery login. Email sign-in remains disabled; the separate registration token authorizes one new passkey for ten minutes.
+"""
+type RecoveryLoginPayload {
+  """
+  Single-use passkey registration grant, bound to this session and security generation for ten minutes. Keep only in temporary client memory; submit as `verifyPasskeyRegistration.recoveryRegistrationToken`.
+  """
+  registrationToken: String!
+
+  """
+  Recovery session to use as the cookie or bearer token before registering a replacement passkey. It cannot authorize a security-setting change by itself.
+  """
+  session: Session!
+}
+
 enum RedeemEmailError {
   EMAIL_ALREADY_TAKEN
   EMAIL_INVALID
@@ -7284,6 +7571,57 @@ type RefreshRemoteObjectPayload {
 Result of refreshing a remote object: the refreshed actor or post on success, or a typed error.
 """
 union RefreshRemoteObjectResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RefreshRemoteObjectPayload
+
+"""
+Input for `regenerateAccountRecoveryCodes`, including a fresh purpose-bound passkey assertion.
+"""
+input RegenerateAccountRecoveryCodesInput {
+  """The authenticator's signed assertion with user verification."""
+  authenticationResponse: JSON!
+
+  """
+  Identifier from `getAccountSecurityAuthenticationOptions` for this operation and session.
+  """
+  challengeId: UUID!
+
+  """
+  Optional caller-chosen identifier echoed in the successful payload for correlation. It does not provide idempotency.
+  """
+  clientMutationId: ID
+
+  """Preferred language for the security-change email notice."""
+  locale: Locale!
+
+  """
+  Passkey client platform: `web`, `android`, or `ios`; determines accepted origins.
+  """
+  platform: String = "web"
+}
+
+"""
+The committed security setting, plus credentials available only in this response when applicable.
+"""
+type RegenerateAccountRecoveryCodesPayload {
+  """
+  Updated account; select its private security fields to update the client.
+  """
+  account: Account!
+
+  """
+  The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
+  """
+  clientMutationId: ID
+
+  """
+  Exactly ten one-time codes, each with 128 bits of entropy. Save offline; do not normalize these into a client cache or telemetry. This plaintext cannot be retrieved later.
+  """
+  recoveryCodes: [String!]!
+}
+
+"""
+A successful security-change payload or an authentication or security-setting error.
+"""
+union RegenerateAccountRecoveryCodesResult = AccountSecurityError | NotAuthenticatedError | RegenerateAccountRecoveryCodesPayload
 
 """The result of a successful invitations regeneration."""
 type RegenerateInvitationsPayload {

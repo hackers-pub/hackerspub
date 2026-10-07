@@ -67,5 +67,23 @@
   "accountEmailChange": {
     "emailSubject": "Hackers' Pub 이메일 설정 변경",
     "emailContent": "Hackers' Pub의 @{{username}} 계정의 이메일 설정이 변경되었습니다. 직접 변경하지 않았다면 기존 이메일 주소나 패스키로 로그인한 뒤 인스턴스 운영자에게 문의하세요.\n"
+  },
+  "accountSecurity": {
+    "emailLoginDisabled": {
+      "emailSubject": "Hackers' Pub 로그인 시도",
+      "emailContent": "@{{username}} 계정에 이메일 로그인이 요청되었습니다. 이 계정은 패스키만 허용하므로 로그인 링크나 코드를 발급하지 않았습니다. 등록한 패스키 또는 저장한 복구 코드로 로그인해 주세요. 본인이 요청하지 않았다면 별도로 조치할 필요는 없습니다."
+    },
+    "ENABLE": {
+      "emailSubject": "Hackers' Pub 보안 설정 변경",
+      "emailContent": "@{{username}} 계정의 이메일 로그인을 비활성화했습니다. 이전 이메일 인증 세션과 링크는 무효화되었습니다. 패스키 또는 저장한 복구 코드로 로그인해 주세요."
+    },
+    "DISABLE": {
+      "emailSubject": "Hackers' Pub 보안 설정 변경",
+      "emailContent": "패스키 인증 후 @{{username}} 계정의 이메일 로그인을 활성화했습니다. 복구 코드는 무효화되었습니다."
+    },
+    "REGENERATE": {
+      "emailSubject": "Hackers' Pub 보안 설정 변경",
+      "emailContent": "패스키 인증 후 @{{username}} 계정의 복구 코드를 재발급했습니다. 이전 코드는 모두 무효입니다. 이메일 로그인은 계속 비활성화되어 있습니다."
+    }
   }
 }

@@ -1,3 +1,9 @@
+import {
+  consumeRecoveryCode,
+  createRecoveryRegistrationGrant,
+} from "@hackerspub/models/account-security";
+import { createHash } from "node:crypto";
+import { getAccountSecurityMessage } from "./account-security-message.ts";
 import { accountTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { negotiateLocale } from "@hackerspub/models/i18n";
@@ -122,12 +128,120 @@ LoginChallengeRef.implement({
   }),
 });
 
+const RecoveryLoginPayload = builder
+  .objectRef<{
+    session: import("@hackerspub/models/session").Session;
+    registrationToken: string;
+  }>("RecoveryLoginPayload")
+  .implement({
+    description:
+      "Successful one-time recovery login. Email sign-in remains disabled; the separate registration token authorizes one new passkey for ten minutes.",
+    fields: (t) => ({
+      session: t.expose("session", {
+        type: SessionRef,
+        description:
+          "Recovery session to use as the cookie or bearer token before registering a replacement passkey. It cannot authorize a security-setting change by itself.",
+      }),
+      registrationToken: t.exposeString("registrationToken", {
+        description:
+          "Single-use passkey registration grant, bound to this session and security generation for ten minutes. Keep only in temporary client memory; submit as `verifyPasskeyRegistration.recoveryRegistrationToken`.",
+      }),
+    }),
+  });
+
 builder.mutationFields((t) => ({
+  loginByRecoveryCode: t.field({
+    type: RecoveryLoginPayload,
+    nullable: true,
+    description:
+      "Use a saved one-time recovery code to sign in when all passkeys are unavailable. Returns `null` for missing accounts, disabled recovery, wrong or consumed codes, or throttled requests; valid banned credentials return `AccountBannedError`. Email never becomes a recovery method.",
+    errors: {
+      types: [AccountBannedError],
+      union: {
+        description:
+          "A recovery session and one-time registration grant, or a ban error. Invalid credentials return `null`.",
+      },
+    },
+    args: {
+      username: t.arg.string({
+        required: true,
+        description: "Public username of the personal account to recover.",
+      }),
+      code: t.arg.string({
+        required: true,
+        description:
+          "One saved 128-bit code. Hexadecimal letters are case-insensitive; spaces and hyphens are ignored.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      if (args.username.length > 50 || args.code.length > 128) return null;
+      const remoteAddr = ctx.connectionInfo?.remoteAddr;
+      const ipAddress =
+        remoteAddr?.transport === "tcp" ? remoteAddr.hostname : "unknown";
+      // Best-effort abuse control applied uniformly before account lookup. High
+      // code entropy and atomic consumption provide the security boundary.
+      const key =
+        "account-security/recovery-attempts/" +
+        createHash("sha256")
+          .update(`${args.username}:${ipAddress}`)
+          .digest("hex");
+      const attempts = await ctx.kv.get<{ count: number; expires: number }>(
+        key,
+      );
+      const now = Date.now();
+      if (attempts != null && attempts.expires > now && attempts.count >= 10)
+        return null;
+      await ctx.kv.set(
+        key,
+        {
+          count:
+            attempts != null && attempts.expires > now ? attempts.count + 1 : 1,
+          expires:
+            attempts != null && attempts.expires > now
+              ? attempts.expires
+              : now + 60000,
+        },
+        60000,
+      );
+      return await ctx.db.transaction(async (tx) => {
+        const [account] = await tx
+          .select()
+          .from(accountTable)
+          .where(eq(accountTable.username, args.username))
+          .for("update");
+        if (
+          account?.kind !== "personal" ||
+          !(await consumeRecoveryCode(tx, account, args.code))
+        )
+          return null;
+        const actor = await tx.query.actorTable.findFirst({
+          where: { accountId: account.id },
+          columns: { id: true, suspended: true, suspendedUntil: true },
+        });
+        if (actor != null && isActorBanned(actor))
+          throw new AccountBannedError(actor.suspended!);
+        const session = await createSession(ctx.kv, {
+          accountId: account.id,
+          authenticationMethod: "recovery",
+          ipAddress:
+            remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
+          userAgent: ctx.request.headers.get("User-Agent"),
+        });
+        const registrationToken = await createRecoveryRegistrationGrant(
+          ctx.kv,
+          account,
+          session,
+        );
+        return { session, registrationToken };
+      });
+    },
+  }),
+
   loginByUsername: t.field({
     type: LoginChallengeRef,
     description:
       "Initiate passwordless sign-in by username. Sends a magic link to " +
-      "all verified email addresses on the account. The link embeds `{token}` and " +
+      "all verified email addresses when email sign-in is enabled; otherwise sends a passkey-only notice with an indistinguishable, unusable challenge. The link embeds `{token}` and " +
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
       "flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.",
     errors: {
@@ -160,6 +274,7 @@ builder.mutationFields((t) => ({
       const account = await ctx.db.query.accountTable.findFirst({
         columns: {
           id: true,
+          username: true,
         },
         with: { emails: true },
         where: { username: args.username, kind: "personal" },
@@ -171,13 +286,21 @@ builder.mutationFields((t) => ({
       if (token == null) throw new AccountNotFoundError(args.username);
       const messages: Message[] = [];
       for (const email of token.emails) {
-        const message = await getEmailMessage({
-          from: ctx.emailFrom,
-          locale: args.locale,
-          to: email,
-          verifyUrlTemplate: args.verifyUrl,
-          token,
-        });
+        const message = token.emailLoginEnabled
+          ? await getEmailMessage({
+              from: ctx.emailFrom,
+              locale: args.locale,
+              to: email,
+              verifyUrlTemplate: args.verifyUrl,
+              token,
+            })
+          : await getAccountSecurityMessage({
+              from: ctx.emailFrom,
+              to: email,
+              locale: args.locale,
+              username: account.username,
+              kind: "emailLoginDisabled",
+            });
         messages.push(message);
       }
       for await (const receipt of ctx.email.sendMany(messages)) {
@@ -199,7 +322,7 @@ builder.mutationFields((t) => ({
     type: LoginChallengeRef,
     description:
       "Initiate passwordless email sign-in. Sends a magic link to the " +
-      "matching account's email address. The link embeds `{token}` and " +
+      "matching account's email address when enabled; otherwise sends a passkey-only notice with an indistinguishable, unusable challenge. The link embeds `{token}` and " +
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
       "flow by calling `completeLoginChallenge` with those values.",
     errors: {
@@ -232,6 +355,7 @@ builder.mutationFields((t) => ({
       let account = await ctx.db.query.accountTable.findFirst({
         columns: {
           id: true,
+          username: true,
         },
         with: { emails: true },
         where: {
@@ -265,13 +389,21 @@ builder.mutationFields((t) => ({
       if (token == null) throw new AccountNotFoundError(args.email);
       const messages: Message[] = [];
       for (const email of token.emails) {
-        const message = await getEmailMessage({
-          from: ctx.emailFrom,
-          locale: args.locale,
-          to: email,
-          verifyUrlTemplate: args.verifyUrl,
-          token,
-        });
+        const message = token.emailLoginEnabled
+          ? await getEmailMessage({
+              from: ctx.emailFrom,
+              locale: args.locale,
+              to: email,
+              verifyUrlTemplate: args.verifyUrl,
+              token,
+            })
+          : await getAccountSecurityMessage({
+              from: ctx.emailFrom,
+              to: email,
+              locale: args.locale,
+              username: account.username,
+              kind: "emailLoginDisabled",
+            });
         messages.push(message);
       }
       for await (const receipt of ctx.email.sendMany(messages)) {
@@ -295,7 +427,7 @@ builder.mutationFields((t) => ({
     description:
       "Exchange the `(token, code)` pair from a magic link email for a " +
       "session. Returns `null` when the challenge does not exist or the " +
-      "code does not match, and `AccountBannedError` when the credential is " +
+      "code does not match, email sign-in is disabled, or email credentials were revoked, and `AccountBannedError` when the credential is " +
       "valid but the account is permanently suspended (banned). The returned " +
       "`Session.id` is the bearer token to include in the `Authorization` " +
       "header for subsequent authenticated requests.",
@@ -334,10 +466,15 @@ builder.mutationFields((t) => ({
           return null;
         const account = await tx.query.accountTable.findFirst({
           where: { id: token.accountId },
-          columns: { kind: true, emailCredentialsChanged: true },
+          columns: {
+            kind: true,
+            emailCredentialsChanged: true,
+            emailLoginEnabled: true,
+            emailSessionGeneration: true,
+          },
           with: { emails: true },
         });
-        if (account?.kind !== "personal") {
+        if (account?.kind !== "personal" || !account.emailLoginEnabled) {
           await deleteSigninToken(ctx.kv, token.token);
           return null;
         }
@@ -372,6 +509,8 @@ builder.mutationFields((t) => ({
         await deleteSigninToken(ctx.kv, token.token);
         return await createSession(ctx.kv, {
           accountId: token.accountId,
+          authenticationMethod: "email",
+          emailSessionGeneration: account.emailSessionGeneration,
           ipAddress:
             remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
           userAgent: ctx.request.headers.get("User-Agent"),
@@ -487,6 +626,7 @@ builder.mutationFields((t) => ({
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       return await createSession(ctx.kv, {
         accountId: account.id,
+        authenticationMethod: "passkey",
         ipAddress:
           remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
         userAgent: ctx.request.headers.get("User-Agent"),

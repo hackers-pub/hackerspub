@@ -80,7 +80,11 @@ test("getPasskeyRegistrationOptions stores a challenge for the signed-in account
     ).getPasskeyRegistrationOptions;
     assert.ok(options.challenge.length > 0);
     assert.deepEqual(options.user.name, "passkeyowner");
-    assert.ok(store.has(`passkey/registration/${account.account.id}`));
+    assert.ok(
+      [...store.keys()].some((key) =>
+        key.startsWith(`passkey/registration/${account.account.id}/`),
+      ),
+    );
   });
 });
 

@@ -329,6 +329,8 @@ builder.mutationFields((t) => ({
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       const session = await createSession(ctx.kv, {
         accountId: account.id,
+        authenticationMethod: "email",
+        emailSessionGeneration: account.emailSessionGeneration,
         userAgent: ctx.request.headers.get("user-agent") ?? null,
         ipAddress: remoteAddr?.transport === "tcp" ? remoteAddr.hostname : null,
       });

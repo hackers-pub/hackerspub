@@ -1,4 +1,5 @@
 import type Keyv from "keyv";
+import type { Account } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 
 const KV_NAMESPACE = "session";
@@ -13,6 +14,29 @@ export interface Session {
   userAgent?: string | null;
   ipAddress?: string | null;
   created: Date;
+  authenticationMethod?: "email" | "passkey" | "recovery";
+  emailSessionGeneration?: number;
+}
+
+/** Unknown legacy authentication methods fail closed once strict mode is used. */
+export function sessionMatchesAccount(
+  session: Session,
+  account: Pick<
+    Account,
+    "id" | "kind" | "emailLoginEnabled" | "emailSessionGeneration"
+  >,
+): boolean {
+  if (session.accountId !== account.id || account.kind !== "personal")
+    return false;
+  if (
+    session.authenticationMethod === "passkey" ||
+    session.authenticationMethod === "recovery"
+  )
+    return true;
+  return (
+    account.emailLoginEnabled &&
+    (session.emailSessionGeneration ?? 0) === account.emailSessionGeneration
+  );
 }
 
 export async function createSession(

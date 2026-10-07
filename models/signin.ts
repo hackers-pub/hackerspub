@@ -64,7 +64,9 @@ export async function createEmailSigninToken(
   kv: Keyv,
   accountId: Uuid,
   requestedEmail?: string,
-): Promise<(SigninToken & { emails: string[] }) | undefined> {
+): Promise<
+  (SigninToken & { emails: string[]; emailLoginEnabled: boolean }) | undefined
+> {
   return await runInTransaction(db, async (tx) => {
     await tx
       .select({ id: accountTable.id })
@@ -88,13 +90,24 @@ export async function createEmailSigninToken(
       if (requestedEmail == null) throw new EmailLoginUnavailableError();
       return undefined;
     }
+    if (!account.emailLoginEnabled) {
+      // An indistinguishable challenge is returned, but cannot authenticate.
+      return {
+        accountId,
+        emails,
+        token: crypto.randomUUID(),
+        code: "",
+        created: new Date(),
+        emailLoginEnabled: false,
+      };
+    }
     const token = await createSigninToken(
       kv,
       accountId,
       emails,
       account.emailCredentialsChanged?.getTime() ?? null,
     );
-    return { ...token, emails };
+    return { ...token, emails, emailLoginEnabled: true };
   });
 }
 

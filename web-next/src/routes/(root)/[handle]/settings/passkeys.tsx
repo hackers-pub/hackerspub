@@ -1,3 +1,10 @@
+import { AccountSecuritySettings } from "~/components/AccountSecuritySettings.tsx";
+import { RecoveryCodesDialog } from "~/components/RecoveryCodesDialog.tsx";
+import {
+  commitPrivatePayload,
+  runPrivateMutation,
+} from "~/lib/privateMutation.ts";
+import { getSecurityProof } from "~/lib/securityProof.ts";
 import {
   type PublicKeyCredentialCreationOptionsJSON,
   type RegistrationResponseJSON,
@@ -6,7 +13,7 @@ import {
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show, onCleanup } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
@@ -70,6 +77,8 @@ const passkeysPageQuery = graphql`
     accountByUsername(username: $username) {
       id
       username
+      emailLoginEnabled
+      ...AccountSecuritySettings_account
       ...SettingsTabs_account
       ...passkeysFragment_account @arguments(first: $first, after: $after)
     }
@@ -127,11 +136,15 @@ const verifyPasskeyRegistrationMutation = graphql`
     $name: String!
     $registrationResponse: JSON!
     $connections: [ID!]!
+    $securityChallengeId: UUID
+    $securityAuthenticationResponse: JSON
   ) {
     verifyPasskeyRegistration(
       accountId: $accountId
       name: $name
       registrationResponse: $registrationResponse
+      securityChallengeId: $securityChallengeId
+      securityAuthenticationResponse: $securityAuthenticationResponse
     ) {
       verified
       passkey @appendNode(connections: $connections, edgeTypeName: "Passkey") {
@@ -148,13 +161,26 @@ const revokePasskeyMutation = graphql`
   mutation passkeysRevokePasskeyMutation(
     $passkeyId: ID!
     $connections: [ID!]!
+    $securityChallengeId: UUID
+    $securityAuthenticationResponse: JSON
   ) {
-    revokePasskey(passkeyId: $passkeyId) @deleteEdge(connections: $connections)
+    revokePasskey(passkeyId: $passkeyId, securityChallengeId: $securityChallengeId, securityAuthenticationResponse: $securityAuthenticationResponse) @deleteEdge(connections: $connections)
   }
 `;
 
 export default function passkeysPage() {
   const params = useParams();
+  const environment = useRelayEnvironment();
+  const [recoveryCodes, setRecoveryCodes] = createSignal<readonly string[]>([]);
+  const beforeUnload = (event: BeforeUnloadEvent) => {
+    if (recoveryCodes().length > 0) event.preventDefault();
+  };
+  if (typeof window !== "undefined")
+    window.addEventListener("beforeunload", beforeUnload);
+  onCleanup(() => {
+    if (typeof window !== "undefined")
+      window.removeEventListener("beforeunload", beforeUnload);
+  });
   const { t } = useLingui();
 
   const data = createStablePreloadedQuery<passkeysPageQuery>(
@@ -166,13 +192,6 @@ export default function passkeysPage() {
     createMutation<passkeysGetPasskeyRegistrationOptionsMutation>(
       getPasskeyRegistrationOptionsMutation,
     );
-  const [verifyRegistration] =
-    createMutation<passkeysVerifyPasskeyRegistrationMutation>(
-      verifyPasskeyRegistrationMutation,
-    );
-  const [revokePasskey] = createMutation<passkeysRevokePasskeyMutation>(
-    revokePasskeyMutation,
-  );
 
   const [registering, setRegistering] = createSignal(false);
   const [passkeyName, setPasskeyName] = createSignal("");
@@ -212,6 +231,10 @@ export default function passkeysPage() {
     setRegistering(true);
 
     try {
+      const proof =
+        account.emailLoginEnabled === false
+          ? await getSecurityProof("REGISTER")
+          : undefined;
       // Get registration options
       const optionsResponse = await new Promise<
         passkeysGetPasskeyRegistrationOptionsMutation["response"]
@@ -241,20 +264,25 @@ export default function passkeysPage() {
       }
 
       // Verify registration
-      const verifyResponse = await new Promise<
-        passkeysVerifyPasskeyRegistrationMutation["response"]
-      >((resolve, reject) => {
-        verifyRegistration({
-          variables: {
-            accountId: account.id,
-            name,
-            registrationResponse,
-            connections: [passkeyData()!.passkeys.__id],
-          },
-          onCompleted: resolve,
-          onError: reject,
-        });
-      });
+      const variables = {
+        accountId: account.id,
+        name,
+        registrationResponse,
+        connections: [passkeyData()!.passkeys.__id],
+        securityChallengeId: proof?.challengeId,
+        securityAuthenticationResponse: proof?.authenticationResponse,
+      };
+      const verifyResponse =
+        await runPrivateMutation<passkeysVerifyPasskeyRegistrationMutation>(
+          verifyPasskeyRegistrationMutation,
+          variables,
+        );
+      commitPrivatePayload<passkeysVerifyPasskeyRegistrationMutation>(
+        environment(),
+        verifyPasskeyRegistrationMutation,
+        variables,
+        verifyResponse,
+      );
 
       const result = verifyResponse.verifyPasskeyRegistration;
       if (result && result.verified) {
@@ -291,18 +319,26 @@ export default function passkeysPage() {
     if (!passkey) return;
 
     try {
-      const response = await new Promise<
-        passkeysRevokePasskeyMutation["response"]
-      >((resolve, reject) => {
-        revokePasskey({
-          variables: {
-            passkeyId: passkey.id,
-            connections: [passkeyData()!.passkeys.__id],
-          },
-          onCompleted: resolve,
-          onError: reject,
-        });
-      });
+      const proof =
+        data()?.accountByUsername?.emailLoginEnabled === false
+          ? await getSecurityProof("REVOKE")
+          : undefined;
+      const variables = {
+        passkeyId: passkey.id,
+        connections: [passkeyData()!.passkeys.__id],
+        securityChallengeId: proof?.challengeId,
+        securityAuthenticationResponse: proof?.authenticationResponse,
+      };
+      const response = await runPrivateMutation<passkeysRevokePasskeyMutation>(
+        revokePasskeyMutation,
+        variables,
+      );
+      commitPrivatePayload<passkeysRevokePasskeyMutation>(
+        environment(),
+        revokePasskeyMutation,
+        variables,
+        response,
+      );
 
       if (response.revokePasskey) {
         showToast({
@@ -332,207 +368,222 @@ export default function passkeysPage() {
   }
 
   return (
-    <Show keyed when={data()}>
-      {(data) => (
-        <>
-          <SettingsOwnerGuard
-            accountId={data.accountByUsername?.id}
-            viewerId={data.viewer?.id}
-          >
-            {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+    <>
+      <Show when={recoveryCodes().length > 0}>
+        <RecoveryCodesDialog
+          codes={recoveryCodes()}
+          onSaved={() => setRecoveryCodes([])}
+        />
+      </Show>
+      <Show keyed when={data()}>
+        {(data) => (
+          <>
+            <SettingsOwnerGuard
+              accountId={data.accountByUsername?.id}
+              viewerId={data.viewer?.id}
+            >
+              {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
                publishes a fragment snapshot inside `batch()` that flips
                `accountByUsername` to falsy in the same tick as a downstream
                reactive read. Reconcile keeps the account's identity stable
                (`key: "__id"`), so `keyed` only re-mounts on navigation to
                a different account. */}
-            <Show keyed when={data.accountByUsername}>
-              {(account) => (
-                <>
-                  <Title>{t`Passkeys`}</Title>
-                  <SettingsContainer class="p-4">
-                    <SettingsTabs selected="passkeys" $account={account} />
+              <Show keyed when={data.accountByUsername}>
+                {(account) => (
+                  <>
+                    <Title>{t`Passkeys`}</Title>
+                    <SettingsContainer class="p-4">
+                      <SettingsTabs selected="passkeys" $account={account} />
 
-                    <div class="mt-4 space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t`Register a passkey`}</CardTitle>
-                          <CardDescription>
-                            {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <form class="space-y-4" on:submit={onRegisterPasskey}>
-                            <TextField
-                              class="grid w-full items-center gap-1.5"
-                              value={passkeyName()}
-                              onChange={setPasskeyName}
-                              required
+                      <div class="mt-4 space-y-6">
+                        <AccountSecuritySettings
+                          $account={account}
+                          onRecoveryCodes={setRecoveryCodes}
+                        />
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>{t`Register a passkey`}</CardTitle>
+                            <CardDescription>
+                              {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <form
+                              class="space-y-4"
+                              on:submit={onRegisterPasskey}
                             >
-                              <TextFieldLabel for="passkey-name">
-                                {t`Passkey name`}
-                              </TextFieldLabel>
-                              <TextFieldInput
-                                type="text"
-                                id="passkey-name"
-                                placeholder={t`My passkey`}
-                              />
-                            </TextField>
-                            <Button
-                              type="submit"
-                              disabled={
-                                registering() || passkeyName().trim() === ""
-                              }
-                              class="w-full cursor-pointer"
-                            >
-                              {registering() ? t`Registering…` : t`Register`}
-                            </Button>
-                          </form>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t`Registered passkeys`}</CardTitle>
-                          <CardDescription>
-                            {t`The following passkeys are registered to your account. You can use them to sign in to your account.`}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Show
-                            when={
-                              (passkeyData()?.passkeys.edges.length ?? 0) > 0
-                            }
-                            fallback={
-                              <p class="text-muted-foreground text-center py-8">
-                                {t`You don't have any passkeys registered yet.`}
-                              </p>
-                            }
-                          >
-                            <div class="space-y-4">
-                              <For
-                                each={(() => {
-                                  const paginatedData = passkeyData();
-                                  return paginatedData
-                                    ? paginatedData.passkeys.edges
-                                    : [];
-                                })()}
+                              <TextField
+                                class="grid w-full items-center gap-1.5"
+                                value={passkeyName()}
+                                onChange={setPasskeyName}
+                                required
                               >
-                                {(edge) => (
-                                  <div class="flex items-center justify-between p-4 border rounded-lg">
-                                    <div class="space-y-1">
-                                      <h4 class="font-medium">
-                                        {edge.node.name}
-                                      </h4>
-                                      <div class="text-sm text-muted-foreground space-y-1">
-                                        <div>
-                                          <Trans
-                                            message={t`Created ${"RELATIVE_DATE"}`}
-                                            values={{
-                                              RELATIVE_DATE: () => (
-                                                <Timestamp
-                                                  value={edge.node.created}
-                                                />
-                                              ),
-                                            }}
-                                          />
-                                        </div>
-                                        <div>
-                                          {/* `keyed`: avoid Solid's
+                                <TextFieldLabel for="passkey-name">
+                                  {t`Passkey name`}
+                                </TextFieldLabel>
+                                <TextFieldInput
+                                  type="text"
+                                  id="passkey-name"
+                                  placeholder={t`My passkey`}
+                                />
+                              </TextField>
+                              <Button
+                                type="submit"
+                                disabled={
+                                  registering() || passkeyName().trim() === ""
+                                }
+                                class="w-full cursor-pointer"
+                              >
+                                {registering() ? t`Registering…` : t`Register`}
+                              </Button>
+                            </form>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>{t`Registered passkeys`}</CardTitle>
+                            <CardDescription>
+                              {t`The following passkeys are registered to your account. You can use them to sign in to your account.`}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <Show
+                              when={
+                                (passkeyData()?.passkeys.edges.length ?? 0) > 0
+                              }
+                              fallback={
+                                <p class="text-muted-foreground text-center py-8">
+                                  {t`You don't have any passkeys registered yet.`}
+                                </p>
+                              }
+                            >
+                              <div class="space-y-4">
+                                <For
+                                  each={(() => {
+                                    const paginatedData = passkeyData();
+                                    return paginatedData
+                                      ? paginatedData.passkeys.edges
+                                      : [];
+                                  })()}
+                                >
+                                  {(edge) => (
+                                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                                      <div class="space-y-1">
+                                        <h4 class="font-medium">
+                                          {edge.node.name}
+                                        </h4>
+                                        <div class="text-sm text-muted-foreground space-y-1">
+                                          <div>
+                                            <Trans
+                                              message={t`Created ${"RELATIVE_DATE"}`}
+                                              values={{
+                                                RELATIVE_DATE: () => (
+                                                  <Timestamp
+                                                    value={edge.node.created}
+                                                  />
+                                                ),
+                                              }}
+                                            />
+                                          </div>
+                                          <div>
+                                            {/* `keyed`: avoid Solid's
                                              stale-accessor race when this
                                              Relay field flips to null
                                              inside a `batch()` update. */}
-                                          <Show
-                                            keyed
-                                            when={edge.node.lastUsed}
-                                            fallback={t`Never used`}
-                                          >
-                                            {(lastUsed) => (
-                                              <Trans
-                                                message={t`Last used ${"RELATIVE_DATE"}`}
-                                                values={{
-                                                  RELATIVE_DATE: () => (
-                                                    <Timestamp
-                                                      value={lastUsed}
-                                                    />
-                                                  ),
-                                                }}
-                                              />
-                                            )}
-                                          </Show>
+                                            <Show
+                                              keyed
+                                              when={edge.node.lastUsed}
+                                              fallback={t`Never used`}
+                                            >
+                                              {(lastUsed) => (
+                                                <Trans
+                                                  message={t`Last used ${"RELATIVE_DATE"}`}
+                                                  values={{
+                                                    RELATIVE_DATE: () => (
+                                                      <Timestamp
+                                                        value={lastUsed}
+                                                      />
+                                                    ),
+                                                  }}
+                                                />
+                                              )}
+                                            </Show>
+                                          </div>
                                         </div>
                                       </div>
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        class="cursor-pointer hover:bg-destructive/70"
+                                        onClick={() =>
+                                          openRevokeDialog(
+                                            edge.node.id,
+                                            edge.node.name,
+                                          )
+                                        }
+                                      >
+                                        {t`Revoke`}
+                                      </Button>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      class="cursor-pointer hover:bg-destructive/70"
-                                      onClick={() =>
-                                        openRevokeDialog(
-                                          edge.node.id,
-                                          edge.node.name,
-                                        )
-                                      }
-                                    >
-                                      {t`Revoke`}
-                                    </Button>
-                                  </div>
-                                )}
-                              </For>
+                                  )}
+                                </For>
 
-                              <Show
-                                when={
-                                  passkeyData()?.passkeys.pageInfo.hasNextPage
-                                }
-                              >
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  disabled={loadingState() === "loading"}
-                                  onClick={loadMorePasskeys}
-                                  class="w-full cursor-pointer"
+                                <Show
+                                  when={
+                                    passkeyData()?.passkeys.pageInfo.hasNextPage
+                                  }
                                 >
-                                  {loadingState() === "loading"
-                                    ? t`Loading more passkeys…`
-                                    : loadingState() === "errored"
-                                      ? t`Failed to load more passkeys; click to retry`
-                                      : t`Load more passkeys`}
-                                </Button>
-                              </Show>
-                            </div>
-                          </Show>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </SettingsContainer>
-                </>
-              )}
-            </Show>
-          </SettingsOwnerGuard>
-          <AlertDialog
-            open={passkeyToRevoke() != null}
-            onOpenChange={() => setPasskeyToRevoke(null)}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t`Revoke passkey`}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t`Are you sure you want to revoke passkey ${passkeyToRevoke()?.name}? You won't be able to use it to sign in to your account anymore.`}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
-                <AlertDialogAction
-                  class="bg-destructive text-destructive-foreground hover:bg-destructive/70"
-                  onClick={confirmRevokePasskey}
-                >
-                  {t`Revoke`}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )}
-    </Show>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={loadingState() === "loading"}
+                                    onClick={loadMorePasskeys}
+                                    class="w-full cursor-pointer"
+                                  >
+                                    {loadingState() === "loading"
+                                      ? t`Loading more passkeys…`
+                                      : loadingState() === "errored"
+                                        ? t`Failed to load more passkeys; click to retry`
+                                        : t`Load more passkeys`}
+                                  </Button>
+                                </Show>
+                              </div>
+                            </Show>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </SettingsContainer>
+                  </>
+                )}
+              </Show>
+            </SettingsOwnerGuard>
+            <AlertDialog
+              open={passkeyToRevoke() != null}
+              onOpenChange={() => setPasskeyToRevoke(null)}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t`Revoke passkey`}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t`Are you sure you want to revoke passkey ${passkeyToRevoke()?.name}? You won't be able to use it to sign in to your account anymore.`}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
+                  <AlertDialogAction
+                    class="bg-destructive text-destructive-foreground hover:bg-destructive/70"
+                    onClick={confirmRevokePasskey}
+                  >
+                    {t`Revoke`}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
+        )}
+      </Show>
+    </>
   );
 }
