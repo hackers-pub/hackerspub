@@ -161,7 +161,11 @@ test("strict mode hashes ten codes, blocks pending email tokens, preserves respo
     );
     assert.equal(
       sessionMatchesAccount(
-        { ...session, authenticationMethod: "recovery" },
+        {
+          ...session,
+          authenticationMethod: "recovery",
+          emailSessionGeneration: strict.emailSessionGeneration,
+        },
         strict,
       ),
       true,
@@ -244,7 +248,10 @@ test("purpose, session, origin, user verification, expiry, and zero-counter repl
       "ENABLE",
       await proof(tx, kv, session, key, "ENABLE"),
     );
-    const grantSession = sessionFor(account.id, "recovery");
+    const grantSession = {
+      ...sessionFor(account.id, "recovery"),
+      emailSessionGeneration: enabled.account.emailSessionGeneration,
+    };
     const grant = await createRecoveryRegistrationGrant(
       kv,
       enabled.account,
@@ -466,6 +473,10 @@ test("private security fields, missing keys, last-key guard, strict registration
     };
     const recoverySession = await getSession(kv, recovered.session.id);
     assert.ok(recoverySession);
+    assert.equal(
+      recoverySession.emailSessionGeneration,
+      enabled.account.emailSessionGeneration,
+    );
     const recoveryOwner = makeUserContext(tx, account, {
       kv,
       session: recoverySession,
@@ -1027,6 +1038,112 @@ test("grant deletion failure rolls registration back and leaves a usable retry",
       );
     } finally {
       kv.delete = originalDelete;
+      await db.delete(accountTable).where(eq(accountTable.id, account.id));
+    }
+  });
+});
+
+test("security changes revoke recovery sessions and return a distinct passkey session", async () => {
+  await withExclusiveTestDatabase(async () => {
+    const { account } = await insertAccountWithActor(db as Transaction, {
+      username: "strictrecoverysession",
+      name: "Recovery sessions",
+      email: "strictrecoverysession@example.com",
+    });
+    const { kv } = createTestKv();
+    const key = createWebAuthnCredential();
+    const passkeySession = sessionFor(account.id);
+    const guest = makeGuestContext(db as Transaction, { kv });
+    const yoga = createYogaServer();
+    const serverContext = { ...guest };
+    delete serverContext.session;
+    delete serverContext.account;
+    async function viewer(session: Session) {
+      const response = await yoga.fetch(
+        new Request("http://localhost/graphql", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.id}`,
+          },
+          body: JSON.stringify({ query: "{viewer{id}}" }),
+        }),
+        serverContext,
+      );
+      return (await response.json()).data.viewer;
+    }
+    try {
+      await key.insert(db, account.id);
+      let current = (
+        await changeAccountSecurity(
+          db,
+          kv,
+          "http://localhost",
+          passkeySession,
+          "ENABLE",
+          await proof(db, kv, passkeySession, key, "ENABLE"),
+        )
+      ).account;
+      const unstamped = await createSession(kv, {
+        accountId: account.id,
+        authenticationMethod: "recovery",
+      });
+      assert.equal(await viewer(unstamped), null);
+      assert.equal(await getSession(kv, unstamped.id), undefined);
+      for (const [field, type, action] of [
+        [
+          "regenerateAccountRecoveryCodes",
+          "RegenerateAccountRecoveryCodes",
+          "REGENERATE",
+        ],
+        ["disableAccountPasskeyOnly", "DisableAccountPasskeyOnly", "DISABLE"],
+      ] as const) {
+        const recovered = await createSession(kv, {
+          accountId: account.id,
+          authenticationMethod: "recovery",
+          emailSessionGeneration: current.emailSessionGeneration,
+        });
+        const other = await createSession(kv, {
+          accountId: account.id,
+          authenticationMethod: "recovery",
+          emailSessionGeneration: current.emailSessionGeneration,
+        });
+        assert.ok(await viewer(recovered));
+        const assertion = await proof(db, kv, recovered, key, action);
+        const query = `mutation($id:UUID!,$response:JSON!){${field}(input:{challengeId:$id,authenticationResponse:$response,locale:"en-US"}){__typename ... on ${type}Payload{session{id}}}}`;
+        const result = await run(
+          makeUserContext(db as Transaction, account, {
+            kv,
+            session: recovered,
+          }),
+          query,
+          {
+            id: assertion.challengeId,
+            response: assertion.authenticationResponse,
+          },
+        );
+        assert.equal(result.errors, undefined);
+        const payload = toPlainJson(result.data)?.[field] as {
+          __typename: string;
+          session: { id: Session["id"] };
+        };
+        assert.equal(payload.__typename, `${type}Payload`);
+        assert.notEqual(payload.session.id, recovered.id);
+        const replacement = await getSession(kv, payload.session.id);
+        assert.ok(replacement);
+        assert.equal(replacement.authenticationMethod, "passkey");
+        assert.ok(await viewer(replacement));
+        assert.equal(await viewer(recovered), null);
+        assert.equal(await viewer(other), null);
+        assert.equal(await getSession(kv, recovered.id), undefined);
+        assert.equal(await getSession(kv, other.id), undefined);
+        current = (await db.query.accountTable.findFirst({
+          where: { id: account.id },
+        }))!;
+        assert.equal(sessionMatchesAccount(passkeySession, current), true);
+        assert.equal(sessionMatchesAccount(recovered, current), false);
+      }
+    } finally {
       await db.delete(accountTable).where(eq(accountTable.id, account.id));
     }
   });

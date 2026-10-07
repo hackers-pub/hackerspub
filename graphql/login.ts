@@ -223,6 +223,7 @@ builder.mutationFields((t) => ({
         const session = await createSession(ctx.kv, {
           accountId: account.id,
           authenticationMethod: "recovery",
+          emailSessionGeneration: account.emailSessionGeneration,
           ipAddress:
             remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
           userAgent: ctx.request.headers.get("User-Agent"),

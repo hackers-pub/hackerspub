@@ -637,8 +637,12 @@ ten minutes. The recovery screen immediately offers registration of a
 replacement passkey. Leaving or refreshing the page loses that authorization;
 another unused recovery code can start a new attempt. A recovery session alone
 cannot register a key, restore email sign-in, or regenerate codes. Code
-regeneration invalidates previous codes and outstanding recovery registration
-authorizations.
+regeneration and restoring email sign-in invalidate recovery sessions and
+outstanding recovery registration authorizations. Recovery sessions without a
+security generation are rejected. When a recovery user proves possession of a
+passkey to change these settings, the response returns a new passkey session;
+clients must replace their cookie or bearer token before further requests.
+Existing passkey sessions remain valid.
 
 Do not offer recovery through email: that would bypass the user's selected
 security policy. If all passkeys and codes are lost, there is no standard

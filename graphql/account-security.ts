@@ -186,7 +186,7 @@ async function change(
       action,
       proof,
     );
-    if (action === "ENABLE") {
+    if (action === "ENABLE" || session.authenticationMethod === "recovery") {
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       result.session = await createSession(ctx.kv, {
         accountId: session.accountId,
@@ -267,8 +267,8 @@ for (const [name, action] of [
         action === "ENABLE"
           ? "Disable email sign-in after a fresh existing-passkey assertion. Issues ten recovery codes shown only in this response, invalidates old email links and email or legacy sessions, and returns a replacement passkey session. Save the codes before leaving."
           : action === "DISABLE"
-            ? "Restore verified-email sign-in after a fresh passkey assertion. Deletes remaining recovery codes and pending recovery registration grants; previously revoked sessions and links stay invalid."
-            : "Replace all recovery codes after a fresh passkey assertion. The ten plaintext codes appear only in this response; previous codes and pending recovery registration grants are invalidated. Email sign-in stays disabled.",
+            ? "Restore verified-email sign-in after a fresh passkey assertion. Deletes remaining recovery codes and invalidates recovery sessions and pending recovery registration grants; previously revoked sessions and links stay invalid."
+            : "Replace all recovery codes after a fresh passkey assertion. The ten plaintext codes appear only in this response; previous codes, recovery sessions, and pending recovery registration grants are invalidated. Email sign-in stays disabled.",
       errors: {
         types: [NotAuthenticatedError, AccountSecurityError],
         union: {
@@ -308,7 +308,15 @@ for (const [name, action] of [
                 resolve: (result) => result.session!,
               }),
             }
-          : {}),
+          : {
+              session: t.field({
+                type: SessionRef,
+                nullable: true,
+                description:
+                  "Replacement passkey session when the caller used recovery sign-in; `null` for an existing passkey session. Replace the client's cookie or bearer token before further requests because this change invalidates recovery sessions.",
+                resolve: (result) => result.session ?? null,
+              }),
+            }),
         ...(action !== "DISABLE"
           ? {
               recoveryCodes: t.stringList({

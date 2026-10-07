@@ -44,7 +44,7 @@ const disableMutation = graphql`
   mutation AccountSecuritySettingsDisableMutation($input: DisableAccountPasskeyOnlyInput!) {
     disableAccountPasskeyOnly(input: $input) {
       __typename
-      ... on DisableAccountPasskeyOnlyPayload { account { id ...AccountSecuritySettings_account } }
+      ... on DisableAccountPasskeyOnlyPayload { account { id ...AccountSecuritySettings_account } session { id } }
       ... on AccountSecurityError { code }
       ... on NotAuthenticatedError { notAuthenticated }
     }
@@ -54,7 +54,7 @@ const regenerateMutation = graphql`
   mutation AccountSecuritySettingsRegenerateMutation($input: RegenerateAccountRecoveryCodesInput!) {
     regenerateAccountRecoveryCodes(input: $input) {
       __typename
-      ... on RegenerateAccountRecoveryCodesPayload { account { id ...AccountSecuritySettings_account } recoveryCodes }
+      ... on RegenerateAccountRecoveryCodesPayload { account { id ...AccountSecuritySettings_account } recoveryCodes session { id } }
       ... on AccountSecurityError { code }
       ... on NotAuthenticatedError { notAuthenticated }
     }

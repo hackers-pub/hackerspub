@@ -28,11 +28,9 @@ export function sessionMatchesAccount(
 ): boolean {
   if (session.accountId !== account.id || account.kind !== "personal")
     return false;
-  if (
-    session.authenticationMethod === "passkey" ||
-    session.authenticationMethod === "recovery"
-  )
-    return true;
+  if (session.authenticationMethod === "passkey") return true;
+  if (session.authenticationMethod === "recovery")
+    return session.emailSessionGeneration === account.emailSessionGeneration;
   return (
     account.emailLoginEnabled &&
     (session.emailSessionGeneration ?? 0) === account.emailSessionGeneration

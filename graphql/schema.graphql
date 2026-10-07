@@ -2790,6 +2790,11 @@ type DisableAccountPasskeyOnlyPayload {
   The caller's correlation identifier, or `null` when omitted. This is not a database identifier.
   """
   clientMutationId: ID
+
+  """
+  Replacement passkey session when the caller used recovery sign-in; `null` for an existing passkey session. Replace the client's cookie or bearer token before further requests because this change invalidates recovery sessions.
+  """
+  session: Session
 }
 
 """
@@ -4002,7 +4007,7 @@ type Mutation {
   ): DeletePostResult!
 
   """
-  Restore verified-email sign-in after a fresh passkey assertion. Deletes remaining recovery codes and pending recovery registration grants; previously revoked sessions and links stay invalid.
+  Restore verified-email sign-in after a fresh passkey assertion. Deletes remaining recovery codes and invalidates recovery sessions and pending recovery registration grants; previously revoked sessions and links stay invalid.
   """
   disableAccountPasskeyOnly(
     """
@@ -4259,7 +4264,7 @@ type Mutation {
   ): RefreshRemoteObjectResult!
 
   """
-  Replace all recovery codes after a fresh passkey assertion. The ten plaintext codes appear only in this response; previous codes and pending recovery registration grants are invalidated. Email sign-in stays disabled.
+  Replace all recovery codes after a fresh passkey assertion. The ten plaintext codes appear only in this response; previous codes, recovery sessions, and pending recovery registration grants are invalidated. Email sign-in stays disabled.
   """
   regenerateAccountRecoveryCodes(
     """
@@ -7616,6 +7621,11 @@ type RegenerateAccountRecoveryCodesPayload {
   Exactly ten one-time codes, each with 128 bits of entropy. Save offline; do not normalize these into a client cache or telemetry. This plaintext cannot be retrieved later.
   """
   recoveryCodes: [String!]!
+
+  """
+  Replacement passkey session when the caller used recovery sign-in; `null` for an existing passkey session. Replace the client's cookie or bearer token before further requests because this change invalidates recovery sessions.
+  """
+  session: Session
 }
 
 """

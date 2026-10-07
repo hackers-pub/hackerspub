@@ -40,6 +40,8 @@ async function request(
   appendHeader("Cache-Control", "no-store");
   const id =
     body.data.enableAccountPasskeyOnly?.session?.id ??
+    body.data.disableAccountPasskeyOnly?.session?.id ??
+    body.data.regenerateAccountRecoveryCodes?.session?.id ??
     body.data.loginByRecoveryCode?.session?.id;
   if (validateUuid(id) && event != null) {
     appendHeader(
