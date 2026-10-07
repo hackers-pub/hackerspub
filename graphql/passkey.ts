@@ -3,6 +3,7 @@ import {
   consumeRecoveryRegistrationGrant,
   lockSecurityAccount,
   verifySecurityAssertion,
+  validateRecoveryRegistrationGrant,
 } from "@hackerspub/models/account-security";
 import { runInTransaction } from "@hackerspub/models/db";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
@@ -182,7 +183,7 @@ builder.mutationFields((t) => ({
       }),
       recoveryRegistrationToken: t.arg.string({
         description:
-          "One-time ten-minute grant from `loginByRecoveryCode`, accepted only with its recovery session. Cannot be combined with assertion arguments.",
+          "One-time ten-minute grant from `loginByRecoveryCode`, consumed only after successful registration with its recovery session. Cannot be combined with assertion arguments.",
       }),
       platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
@@ -233,7 +234,7 @@ builder.mutationFields((t) => ({
           )
             throw new AccountSecurityError("INVALID_ASSERTION");
           if (recovery)
-            await consumeRecoveryRegistrationGrant(
+            await validateRecoveryRegistrationGrant(
               ctx.kv,
               current,
               session,
@@ -256,6 +257,24 @@ builder.mutationFields((t) => ({
                     platform: (args.platform ?? "web") as PasskeyPlatform,
                   },
             );
+          const result = await verifyRegistration(
+            tx,
+            ctx.kv,
+            origins,
+            rpId,
+            current,
+            name,
+            args.registrationResponse as RegistrationResponseJSON,
+            session.id,
+          );
+          if (result.verified && recovery)
+            await consumeRecoveryRegistrationGrant(
+              ctx.kv,
+              current,
+              session,
+              args.recoveryRegistrationToken!,
+            );
+          return result;
         } catch (error) {
           if (error instanceof AccountSecurityError)
             throw createGraphQLError(
@@ -264,16 +283,6 @@ builder.mutationFields((t) => ({
             );
           throw error;
         }
-        return await verifyRegistration(
-          tx,
-          ctx.kv,
-          origins,
-          rpId,
-          current,
-          name,
-          args.registrationResponse as RegistrationResponseJSON,
-          session.id,
-        );
       });
 
       let passkey = null;

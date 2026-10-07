@@ -452,7 +452,7 @@ test("private security fields, missing keys, last-key guard, strict registration
         toPlainJson(added.data)!.verifyPasskeyRegistration as {
           verified: boolean;
         }
-      ).verified,
+      )?.verified,
       true,
     );
     const result = await run(guest, recovery, {
@@ -485,9 +485,51 @@ test("private security fields, missing keys, last-key guard, strict registration
     assert.ok(
       await kv.get(`account-security/assertion/${recoveryProof.challengeId}`),
     );
+    // Invalid attestation and expired options must not burn the recovery grant.
+    const invalid = await run(recoveryOwner, register, {
+      id,
+      response: extra.registration("wrong-challenge"),
+      grant: recovered.registrationToken,
+    });
+    assert.equal(invalid.errors, undefined);
+    assert.equal(
+      (
+        toPlainJson(invalid.data)?.verifyPasskeyRegistration as {
+          verified: boolean;
+        }
+      )?.verified,
+      false,
+    );
+    const expiredOptions = toPlainJson(
+      (await run(recoveryOwner, getOptions, { id })).data,
+    )?.getPasskeyRegistrationOptions as { challenge: string };
+    const registrationKey = `passkey/registration/${account.id}/${recoverySession.id}`;
+    const storedOptions = await kv.get(registrationKey);
+    assert.ok(storedOptions);
+    await kv.set(registrationKey, {
+      ...storedOptions,
+      expires: Date.now() - 1,
+    });
+    const expired = await run(recoveryOwner, register, {
+      id,
+      response: extra.registration(expiredOptions.challenge),
+      grant: recovered.registrationToken,
+    });
+    assert.equal(expired.errors, undefined);
+    assert.equal(
+      (
+        toPlainJson(expired.data)?.verifyPasskeyRegistration as {
+          verified: boolean;
+        }
+      )?.verified,
+      false,
+    );
+    const retryOptions = toPlainJson(
+      (await run(recoveryOwner, getOptions, { id })).data,
+    )?.getPasskeyRegistrationOptions as { challenge: string };
     const registrationResult = await run(recoveryOwner, register, {
       id,
-      response: extra.registration(recoveryOptions.challenge),
+      response: extra.registration(retryOptions.challenge),
       grant: recovered.registrationToken,
     });
     assert.equal(registrationResult.errors, undefined);
@@ -496,7 +538,7 @@ test("private security fields, missing keys, last-key guard, strict registration
         toPlainJson(registrationResult.data)!.verifyPasskeyRegistration as {
           verified: boolean;
         }
-      ).verified,
+      )?.verified,
       true,
     );
     await assert.rejects(
@@ -893,6 +935,98 @@ test("concurrent recovery attempts issue one session; concurrent strict revocati
       assert.equal((await response.json()).data.viewer, null);
       assert.equal(await getSession(kv, emailSession.id), undefined);
     } finally {
+      await db.delete(accountTable).where(eq(accountTable.id, account.id));
+    }
+  });
+});
+
+test("grant deletion failure rolls registration back and leaves a usable retry", async () => {
+  await withExclusiveTestDatabase(async () => {
+    const { account } = await insertAccountWithActor(db as Transaction, {
+      username: "strictgrantretry",
+      name: "Grant retry",
+      email: "strictgrantretry@example.com",
+    });
+    const { kv } = createTestKv();
+    const key = createWebAuthnCredential();
+    const replacement = createWebAuthnCredential();
+    const session = sessionFor(account.id);
+    const originalDelete = kv.delete.bind(kv);
+    try {
+      await key.insert(db, account.id);
+      const enabled = await changeAccountSecurity(
+        db,
+        kv,
+        "http://localhost",
+        session,
+        "ENABLE",
+        await proof(db, kv, session, key, "ENABLE"),
+      );
+      const recovered = toPlainJson(
+        (
+          await run(makeGuestContext(db as Transaction, { kv }), recovery, {
+            username: account.username,
+            code: enabled.recoveryCodes[0],
+          })
+        ).data,
+      )?.loginByRecoveryCode as {
+        session: { id: Session["id"] };
+        registrationToken: string;
+      };
+      const recoverySession = await getSession(kv, recovered.session.id);
+      assert.ok(recoverySession);
+      const ctx = makeUserContext(db as Transaction, account, {
+        kv,
+        session: recoverySession,
+      });
+      const id = encodeGlobalID("Account", account.id);
+      const getOptions =
+        "mutation($id:ID!){getPasskeyRegistrationOptions(accountId:$id)}";
+      const register =
+        'mutation($id:ID!,$response:JSON!,$grant:String!){verifyPasskeyRegistration(accountId:$id,name:"Replacement",registrationResponse:$response,recoveryRegistrationToken:$grant){verified}}';
+      const options = toPlainJson((await run(ctx, getOptions, { id })).data)
+        ?.getPasskeyRegistrationOptions as { challenge: string };
+      kv.delete = async (key: string) =>
+        key.startsWith("account-security/registration/")
+          ? false
+          : originalDelete(key);
+      const failed = await run(ctx, register, {
+        id,
+        response: replacement.registration(options.challenge),
+        grant: recovered.registrationToken,
+      });
+      assert.equal(failed.errors?.[0].extensions.code, "INVALID_ASSERTION");
+      assert.equal(
+        await db.query.passkeyTable.findFirst({
+          where: { id: replacement.id },
+        }),
+        undefined,
+      );
+      kv.delete = originalDelete;
+      const retryOptions = toPlainJson(
+        (await run(ctx, getOptions, { id })).data,
+      )?.getPasskeyRegistrationOptions as { challenge: string };
+      const retried = await run(ctx, register, {
+        id,
+        response: replacement.registration(retryOptions.challenge),
+        grant: recovered.registrationToken,
+      });
+      assert.equal(retried.errors, undefined);
+      assert.equal(
+        (
+          toPlainJson(retried.data)?.verifyPasskeyRegistration as {
+            verified: boolean;
+          }
+        )?.verified,
+        true,
+      );
+      assert.ok(
+        await db.query.passkeyTable.findFirst({
+          where: { id: replacement.id },
+        }),
+      );
+    } finally {
+      kv.delete = originalDelete;
       await db.delete(accountTable).where(eq(accountTable.id, account.id));
     }
   });

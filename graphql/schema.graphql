@@ -4708,7 +4708,7 @@ type Mutation {
     platform: String = "web"
 
     """
-    One-time ten-minute grant from `loginByRecoveryCode`, accepted only with its recovery session. Cannot be combined with assertion arguments.
+    One-time ten-minute grant from `loginByRecoveryCode`, consumed only after successful registration with its recovery session. Cannot be combined with assertion arguments.
     """
     recoveryRegistrationToken: String
     registrationResponse: JSON!

@@ -311,7 +311,8 @@ export async function createRecoveryRegistrationGrant(
   );
   return token;
 }
-export async function consumeRecoveryRegistrationGrant(
+/** Validate without consuming so failed registration can be retried. */
+export async function validateRecoveryRegistrationGrant(
   kv: Keyv,
   account: Account,
   session: Session,
@@ -331,6 +332,16 @@ export async function consumeRecoveryRegistrationGrant(
     )
   )
     throw new AccountSecurityError("INVALID_ASSERTION");
+}
+
+/** Caller holds the account lock and has successfully registered the key. */
+export async function consumeRecoveryRegistrationGrant(
+  kv: Keyv,
+  account: Account,
+  session: Session,
+  token: string,
+): Promise<void> {
+  await validateRecoveryRegistrationGrant(kv, account, session, token);
   if (!(await kv.delete(grantKey(session.id))))
     throw new AccountSecurityError("INVALID_ASSERTION");
 }
