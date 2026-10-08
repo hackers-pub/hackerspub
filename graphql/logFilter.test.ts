@@ -321,6 +321,62 @@ test("inbox: keeps a statement timeout after Fedify gives up", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("inbox: drops a PostgreSQL deadlock only when Fedify retries", () => {
+  const cause = Object.assign(new Error("deadlock detected"), {
+    name: "PostgresError",
+    code: "40P01",
+  });
+  const error = Object.assign(
+    new Error("Failed query: delete from post", { cause }),
+    {
+      name: "DrizzleQueryError",
+    },
+  );
+  const retry =
+    "Failed to process the incoming activity {activityId} (attempt #{attempt}); retry...:\n{error}";
+  assert.equal(
+    isRoutineFederationError(
+      record(["fedify", "federation", "inbox"], retry, { error }),
+    ),
+    true,
+  );
+  assert.equal(
+    isRoutineFederationError(
+      record(
+        ["fedify", "federation", "inbox"],
+        "Failed to process the incoming activity {activityId} after {trial} attempts; giving up:\n{error}",
+        { error },
+      ),
+    ),
+    false,
+  );
+  assert.equal(
+    isRoutineFederationError(
+      record(["fedify", "federation", "inbox"], retry, {
+        error: Object.assign(new Error("deadlock detected"), { code: "40P01" }),
+      }),
+    ),
+    false,
+  );
+  assert.equal(
+    isRoutineFederationError(
+      record(["fedify", "federation", "inbox"], retry, {
+        error: Object.assign(new Error("permission denied"), {
+          name: "PostgresError",
+          code: "42501",
+        }),
+      }),
+    ),
+    false,
+  );
+  assert.equal(
+    isRoutineFederationError(
+      record(["hackerspub", "models", "post"], retry, { error }),
+    ),
+    false,
+  );
+});
+
 test("inbox: keeps a processing failure with no error attached", () => {
   const r = record(
     ["fedify", "federation", "inbox"],

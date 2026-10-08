@@ -132,7 +132,7 @@ function isRemoteMalformedMultikeyError(error: unknown): boolean {
   ]).has(message);
 }
 
-function isPostgresStatementTimeout(error: unknown): boolean {
+function isRetriedPostgresFailure(error: unknown): boolean {
   let current = error;
   const seen = new Set<object>();
   for (let depth = 0; depth < 4; depth++) {
@@ -142,9 +142,11 @@ function isPostgresStatementTimeout(error: unknown): boolean {
     seen.add(current);
     if (
       stringProp(current, "name") === "PostgresError" &&
-      stringProp(current, "code") === "57014" &&
-      stringProp(current, "message") ===
-        "canceling statement due to statement timeout"
+      ((stringProp(current, "code") === "57014" &&
+        stringProp(current, "message") ===
+          "canceling statement due to statement timeout") ||
+        (stringProp(current, "code") === "40P01" &&
+          stringProp(current, "message") === "deadlock detected"))
     ) {
       return true;
     }
@@ -297,7 +299,7 @@ export function isRoutineFederationError(record: LogRecord): boolean {
         (message.startsWith("Failed to process the incoming activity") &&
           isRemoteTransportError(properties.error)) ||
         (message.includes("); retry...:") &&
-          isPostgresStatementTimeout(properties.error))
+          isRetriedPostgresFailure(properties.error))
       );
     }
   }
