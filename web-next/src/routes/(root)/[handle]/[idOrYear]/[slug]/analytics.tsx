@@ -35,12 +35,12 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import type {
   analyticsArticleQuery,
   analyticsArticleQuery$data,
-} from "./__generated__/analyticsArticleQuery.graphql.ts";
+} from "~/__generated__/analyticsArticleQuery.graphql.ts";
 import type {
   analyticsDataQuery,
   analyticsDataQuery$data,
   analyticsDataQuery$variables,
-} from "./__generated__/analyticsDataQuery.graphql.ts";
+} from "~/__generated__/analyticsDataQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

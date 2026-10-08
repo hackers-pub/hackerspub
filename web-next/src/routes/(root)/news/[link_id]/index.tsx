@@ -14,7 +14,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { LinkIdPageQuery } from "./__generated__/LinkIdPageQuery.graphql.ts";
+import type { LinkIdPageQuery } from "~/__generated__/LinkIdPageQuery.graphql.ts";
 
 const LinkIdPageQuery = graphql`
   query LinkIdPageQuery($id: UUID!, $actingAccountId: ID) {

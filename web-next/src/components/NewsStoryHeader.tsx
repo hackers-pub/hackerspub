@@ -7,7 +7,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { NewsStoryHeader_story$key } from "./__generated__/NewsStoryHeader_story.graphql.ts";
+import type { NewsStoryHeader_story$key } from "~/__generated__/NewsStoryHeader_story.graphql.ts";
 
 export interface NewsStoryHeaderProps {
   $story: NewsStoryHeader_story$key;

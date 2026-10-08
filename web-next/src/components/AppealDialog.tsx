@@ -18,7 +18,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { AppealDialog_appeal_Mutation } from "./__generated__/AppealDialog_appeal_Mutation.graphql.ts";
+import type { AppealDialog_appeal_Mutation } from "~/__generated__/AppealDialog_appeal_Mutation.graphql.ts";
 
 const MAX_REASON_LENGTH = 4096;
 

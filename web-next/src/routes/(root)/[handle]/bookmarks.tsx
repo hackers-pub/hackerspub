@@ -25,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { bookmarksPageQuery } from "./__generated__/bookmarksPageQuery.graphql.ts";
+import type { bookmarksPageQuery } from "~/__generated__/bookmarksPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

@@ -6,7 +6,7 @@ import IconArrowRight from "~icons/lucide/arrow-right";
 import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { OrganizationInvitationNotificationCard_notification$key } from "./__generated__/OrganizationInvitationNotificationCard_notification.graphql.ts";
+import type { OrganizationInvitationNotificationCard_notification$key } from "~/__generated__/OrganizationInvitationNotificationCard_notification.graphql.ts";
 
 interface OrganizationInvitationNotificationCardProps {
   $notification: OrganizationInvitationNotificationCard_notification$key;

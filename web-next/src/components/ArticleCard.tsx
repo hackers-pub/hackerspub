@@ -11,8 +11,8 @@ import {
   remoteTranslationFreshness,
 } from "~/lib/translationCredit.ts";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { ArticleCard_article$key } from "./__generated__/ArticleCard_article.graphql.ts";
-import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
+import { ArticleCard_article$key } from "~/__generated__/ArticleCard_article.graphql.ts";
+import { ArticleCardInternal_article$key } from "~/__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";

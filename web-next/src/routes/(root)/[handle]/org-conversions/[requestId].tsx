@@ -27,8 +27,8 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
-import type { RequestIdAcceptOrganizationConversionMutation } from "./__generated__/RequestIdAcceptOrganizationConversionMutation.graphql.ts";
-import type { RequestIdOrganizationConversionPageQuery } from "./__generated__/RequestIdOrganizationConversionPageQuery.graphql.ts";
+import type { RequestIdAcceptOrganizationConversionMutation } from "~/__generated__/RequestIdAcceptOrganizationConversionMutation.graphql.ts";
+import type { RequestIdOrganizationConversionPageQuery } from "~/__generated__/RequestIdOrganizationConversionPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

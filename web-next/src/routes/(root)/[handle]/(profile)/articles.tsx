@@ -17,7 +17,7 @@ import {
   PROFILE_ARTICLES_QUERY_KEY,
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
-import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphql.ts";
+import type { articlesPageQuery } from "~/__generated__/articlesPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

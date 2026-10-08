@@ -14,7 +14,7 @@ import {
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
 import { type NewsSort, useNewsSort } from "~/lib/useNewsSort.ts";
-import type { newsPageQuery } from "./__generated__/newsPageQuery.graphql.ts";
+import type { newsPageQuery } from "~/__generated__/newsPageQuery.graphql.ts";
 
 const newsPageQuery = graphql`
   query newsPageQuery($order: NewsOrder) {

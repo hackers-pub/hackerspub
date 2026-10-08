@@ -11,7 +11,7 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { followingPageQuery } from "./__generated__/followingPageQuery.graphql.ts";
+import type { followingPageQuery } from "~/__generated__/followingPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

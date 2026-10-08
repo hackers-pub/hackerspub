@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
-import { LinkPreview_note$key } from "./__generated__/LinkPreview_note.graphql.ts";
+import { LinkPreview_note$key } from "~/__generated__/LinkPreview_note.graphql.ts";
 
 export interface LinkPreviewProps {
   $note: LinkPreview_note$key;

@@ -32,15 +32,15 @@ import { useLingui } from "~/lib/i18n/macro.ts";
 import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
 import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
 import { attachArticleSourceMediumOnServer } from "~/lib/uploadImage.ts";
-import type { editPageQuery } from "./__generated__/editPageQuery.graphql.ts";
+import type { editPageQuery } from "~/__generated__/editPageQuery.graphql.ts";
 import type {
   edit_article$data,
   edit_article$key,
-} from "./__generated__/edit_article.graphql.ts";
-import type { edit_renderMarkdown_Query } from "./__generated__/edit_renderMarkdown_Query.graphql.ts";
+} from "~/__generated__/edit_article.graphql.ts";
+import type { edit_renderMarkdown_Query } from "~/__generated__/edit_renderMarkdown_Query.graphql.ts";
 import { ARTICLE_LANG_PAGE_QUERY_KEY } from "./[lang].tsx";
 import { ARTICLE_PAGE_QUERY_KEY } from "./index.tsx";
-import type { edit_updateArticle_Mutation } from "./__generated__/edit_updateArticle_Mutation.graphql.ts";
+import type { edit_updateArticle_Mutation } from "~/__generated__/edit_updateArticle_Mutation.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

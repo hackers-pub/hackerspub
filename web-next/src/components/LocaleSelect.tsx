@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "~/components/ui/select.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { LocaleSelect_availableLocales$key } from "./__generated__/LocaleSelect_availableLocales.graphql.ts";
+import { LocaleSelect_availableLocales$key } from "~/__generated__/LocaleSelect_availableLocales.graphql.ts";
 
 export interface LocaleSelectProps {
   readonly $availableLocales: LocaleSelect_availableLocales$key;

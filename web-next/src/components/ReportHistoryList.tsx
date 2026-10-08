@@ -6,7 +6,7 @@ import IconUser from "~icons/lucide/user";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ReportHistoryList_account$key } from "./__generated__/ReportHistoryList_account.graphql.ts";
+import type { ReportHistoryList_account$key } from "~/__generated__/ReportHistoryList_account.graphql.ts";
 
 export interface ReportHistoryListProps {
   $account: ReportHistoryList_account$key;

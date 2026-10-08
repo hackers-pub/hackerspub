@@ -4,7 +4,7 @@ import { DropdownMenuItem } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import IconRefreshCw from "~icons/lucide/refresh-cw";
-import type { RefreshFromOriginItem_refresh_Mutation } from "./__generated__/RefreshFromOriginItem_refresh_Mutation.graphql.ts";
+import type { RefreshFromOriginItem_refresh_Mutation } from "~/__generated__/RefreshFromOriginItem_refresh_Mutation.graphql.ts";
 
 // Re-selecting the very fragments the surrounding UI renders (the profile card
 // and the post cards) lets Relay merge the freshly persisted values into the

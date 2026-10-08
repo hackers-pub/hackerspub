@@ -18,7 +18,7 @@ import {
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { cn } from "~/lib/utils.ts";
-import type { FollowRecommendationsQuery } from "./__generated__/FollowRecommendationsQuery.graphql.ts";
+import type { FollowRecommendationsQuery } from "~/__generated__/FollowRecommendationsQuery.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { FollowButton } from "./FollowButton.tsx";
 

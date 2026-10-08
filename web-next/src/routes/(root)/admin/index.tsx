@@ -12,7 +12,7 @@ import type {
   AdminAccountOrderBy,
   adminAccountsPageQuery,
   OrderDirection,
-} from "./__generated__/adminAccountsPageQuery.graphql.ts";
+} from "~/__generated__/adminAccountsPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

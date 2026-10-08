@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { FollowNotificationCard_notification$key } from "./__generated__/FollowNotificationCard_notification.graphql.ts";
+import type { FollowNotificationCard_notification$key } from "~/__generated__/FollowNotificationCard_notification.graphql.ts";
 import { NotificationMessage } from "./NotificationMessage.tsx";
 
 interface FollowNotificationCardProps {

@@ -1,9 +1,9 @@
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { createMutation } from "solid-relay";
-import type { createSubmissionControllerArticleDraftMutation } from "./__generated__/createSubmissionControllerArticleDraftMutation.graphql.ts";
-import type { createSubmissionControllerCreateNoteMutation } from "./__generated__/createSubmissionControllerCreateNoteMutation.graphql.ts";
-import type { createSubmissionControllerCreateQuestionMutation } from "./__generated__/createSubmissionControllerCreateQuestionMutation.graphql.ts";
-import type { createSubmissionControllerUpdateNoteMutation } from "./__generated__/createSubmissionControllerUpdateNoteMutation.graphql.ts";
+import type { createSubmissionControllerArticleDraftMutation } from "~/__generated__/createSubmissionControllerArticleDraftMutation.graphql.ts";
+import type { createSubmissionControllerCreateNoteMutation } from "~/__generated__/createSubmissionControllerCreateNoteMutation.graphql.ts";
+import type { createSubmissionControllerCreateQuestionMutation } from "~/__generated__/createSubmissionControllerCreateQuestionMutation.graphql.ts";
+import type { createSubmissionControllerUpdateNoteMutation } from "~/__generated__/createSubmissionControllerUpdateNoteMutation.graphql.ts";
 import type { ValidatedPollInput } from "./pollState.ts";
 import { updateCreatedPostConnections } from "./relayUpdates.ts";
 import {

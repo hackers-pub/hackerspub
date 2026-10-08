@@ -12,7 +12,7 @@ import { parseAcceptLanguage } from "intl-parse-accept-language";
 import { graphql, readInlineData } from "relay-runtime";
 import { createMemo, type ParentProps, Show } from "solid-js";
 import linguiConfig from "../../../lingui.config.ts";
-import type { i18nProviderLoadI18n_query$key } from "./__generated__/i18nProviderLoadI18n_query.graphql.ts";
+import type { i18nProviderLoadI18n_query$key } from "~/__generated__/i18nProviderLoadI18n_query.graphql.ts";
 import { getValidLocaleBaseNames } from "./locales.ts";
 
 const loadI18n = query(

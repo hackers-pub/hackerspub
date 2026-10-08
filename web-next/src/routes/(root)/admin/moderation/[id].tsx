@@ -35,7 +35,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { IdCaseDetailQuery } from "./__generated__/IdCaseDetailQuery.graphql.ts";
+import type { IdCaseDetailQuery } from "~/__generated__/IdCaseDetailQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

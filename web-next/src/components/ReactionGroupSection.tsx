@@ -13,7 +13,7 @@ import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type {
   ReactionGroupSection_LoadMoreQuery,
   ReactionGroupSection_LoadMoreQuery$data,
-} from "./__generated__/ReactionGroupSection_LoadMoreQuery.graphql.ts";
+} from "~/__generated__/ReactionGroupSection_LoadMoreQuery.graphql.ts";
 
 export interface ReactionGroupReactor {
   readonly id: string;

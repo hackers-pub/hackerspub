@@ -4,7 +4,7 @@ import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { PostCard } from "./PostCard.tsx";
-import { ActorSharedPostList_sharedPosts$key } from "./__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
+import { ActorSharedPostList_sharedPosts$key } from "~/__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
 import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorSharedPostListProps {

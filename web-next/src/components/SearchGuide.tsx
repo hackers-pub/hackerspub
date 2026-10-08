@@ -4,7 +4,7 @@ import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { SearchGuide_searchGuideQuery } from "./__generated__/SearchGuide_searchGuideQuery.graphql.ts";
+import type { SearchGuide_searchGuideQuery } from "~/__generated__/SearchGuide_searchGuideQuery.graphql.ts";
 
 const searchGuideQuery = graphql`
   query SearchGuide_searchGuideQuery($locale: Locale!) {

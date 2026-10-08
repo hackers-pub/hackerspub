@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import type { SmallProfileCardStoriesQuery } from "./__generated__/SmallProfileCardStoriesQuery.graphql.ts";
+import type { SmallProfileCardStoriesQuery } from "~/__generated__/SmallProfileCardStoriesQuery.graphql.ts";
 import { SmallProfileCard } from "./SmallProfileCard.tsx";
 import {
   type ActorStoryArgs,

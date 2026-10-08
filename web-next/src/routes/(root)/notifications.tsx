@@ -13,8 +13,8 @@ import { NOTIFICATIONS_PAGE_QUERY_CACHE_KEY } from "~/lib/notificationsPageQuery
 import type {
   notificationsPageQuery,
   notificationsPageQuery$data,
-} from "./__generated__/notificationsPageQuery.graphql.ts";
-import type { notificationsOrganizationNotificationsQuery } from "./__generated__/notificationsOrganizationNotificationsQuery.graphql.ts";
+} from "~/__generated__/notificationsPageQuery.graphql.ts";
+import type { notificationsOrganizationNotificationsQuery } from "~/__generated__/notificationsOrganizationNotificationsQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

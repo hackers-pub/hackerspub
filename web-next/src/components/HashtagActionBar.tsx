@@ -4,10 +4,10 @@ import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { HashtagActionBar_followHashtag_Mutation } from "./__generated__/HashtagActionBar_followHashtag_Mutation.graphql.ts";
-import type { HashtagActionBar_pinHashtag_Mutation } from "./__generated__/HashtagActionBar_pinHashtag_Mutation.graphql.ts";
-import type { HashtagActionBar_unfollowHashtag_Mutation } from "./__generated__/HashtagActionBar_unfollowHashtag_Mutation.graphql.ts";
-import type { HashtagActionBar_unpinHashtag_Mutation } from "./__generated__/HashtagActionBar_unpinHashtag_Mutation.graphql.ts";
+import type { HashtagActionBar_followHashtag_Mutation } from "~/__generated__/HashtagActionBar_followHashtag_Mutation.graphql.ts";
+import type { HashtagActionBar_pinHashtag_Mutation } from "~/__generated__/HashtagActionBar_pinHashtag_Mutation.graphql.ts";
+import type { HashtagActionBar_unfollowHashtag_Mutation } from "~/__generated__/HashtagActionBar_unfollowHashtag_Mutation.graphql.ts";
+import type { HashtagActionBar_unpinHashtag_Mutation } from "~/__generated__/HashtagActionBar_unpinHashtag_Mutation.graphql.ts";
 
 export interface HashtagActionBarProps {
   tag: string;

@@ -77,9 +77,9 @@ import {
 import { MediaEditor } from "./note-composer/MediaEditor.tsx";
 import { PollEditor } from "./note-composer/PollEditor.tsx";
 import { MIN_POLL_OPTIONS } from "./note-composer/pollState.ts";
-import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
-import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
-import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
+import type { NoteComposerPostByUrlQuery } from "~/__generated__/NoteComposerPostByUrlQuery.graphql.ts";
+import type { NoteComposerQuotedPostQuery } from "~/__generated__/NoteComposerQuotedPostQuery.graphql.ts";
+import type { NoteComposerReplyTargetQuery } from "~/__generated__/NoteComposerReplyTargetQuery.graphql.ts";
 
 const NoteComposerQuotedPostQuery = graphql`
   query NoteComposerQuotedPostQuery($id: ID!) {

@@ -29,9 +29,9 @@ import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import { showToast } from "~/components/ui/toast.tsx";
-import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
-import type { draftsDeleteMutation } from "./__generated__/draftsDeleteMutation.graphql.ts";
-import type { draftsPaginationFragment$key } from "./__generated__/draftsPaginationFragment.graphql.ts";
+import type { draftsQuery } from "~/__generated__/draftsQuery.graphql.ts";
+import type { draftsDeleteMutation } from "~/__generated__/draftsDeleteMutation.graphql.ts";
+import type { draftsPaginationFragment$key } from "~/__generated__/draftsPaginationFragment.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

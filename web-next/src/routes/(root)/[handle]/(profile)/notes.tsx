@@ -17,7 +17,7 @@ import {
   PROFILE_NOTES_QUERY_KEY,
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
-import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
+import type { notesPageQuery } from "~/__generated__/notesPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

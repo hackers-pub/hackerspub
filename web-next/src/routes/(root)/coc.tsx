@@ -5,7 +5,7 @@ import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { cocPageQuery } from "./__generated__/cocPageQuery.graphql.ts";
+import type { cocPageQuery } from "~/__generated__/cocPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

@@ -4,7 +4,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { SettingsTabs_account$key } from "./__generated__/SettingsTabs_account.graphql.ts";
+import type { SettingsTabs_account$key } from "~/__generated__/SettingsTabs_account.graphql.ts";
 
 export type SettingsTab =
   | "profile"

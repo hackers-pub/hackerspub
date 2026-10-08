@@ -26,10 +26,10 @@ import {
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { WebPushNotificationSettings_account$key } from "./__generated__/WebPushNotificationSettings_account.graphql.ts";
-import type { WebPushNotificationSettingsRegisterMutation } from "./__generated__/WebPushNotificationSettingsRegisterMutation.graphql.ts";
-import type { WebPushNotificationSettingsUnregisterMutation } from "./__generated__/WebPushNotificationSettingsUnregisterMutation.graphql.ts";
-import type { WebPushNotificationSettingsUpdatePolicyMutation } from "./__generated__/WebPushNotificationSettingsUpdatePolicyMutation.graphql.ts";
+import type { WebPushNotificationSettings_account$key } from "~/__generated__/WebPushNotificationSettings_account.graphql.ts";
+import type { WebPushNotificationSettingsRegisterMutation } from "~/__generated__/WebPushNotificationSettingsRegisterMutation.graphql.ts";
+import type { WebPushNotificationSettingsUnregisterMutation } from "~/__generated__/WebPushNotificationSettingsUnregisterMutation.graphql.ts";
+import type { WebPushNotificationSettingsUpdatePolicyMutation } from "~/__generated__/WebPushNotificationSettingsUpdatePolicyMutation.graphql.ts";
 import IconBell from "~icons/lucide/bell";
 import IconBellOff from "~icons/lucide/bell-off";
 import IconRefreshCw from "~icons/lucide/refresh-cw";

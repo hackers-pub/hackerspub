@@ -41,16 +41,16 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { inviteCreateLinkMutation } from "./__generated__/inviteCreateLinkMutation.graphql.ts";
-import type { inviteDeleteLinkMutation } from "./__generated__/inviteDeleteLinkMutation.graphql.ts";
-import type { inviteHideFromTreeMutation } from "./__generated__/inviteHideFromTreeMutation.graphql.ts";
-import type { inviteInviteeList_invitees$key } from "./__generated__/inviteInviteeList_invitees.graphql.ts";
+import type { inviteCreateLinkMutation } from "~/__generated__/inviteCreateLinkMutation.graphql.ts";
+import type { inviteDeleteLinkMutation } from "~/__generated__/inviteDeleteLinkMutation.graphql.ts";
+import type { inviteHideFromTreeMutation } from "~/__generated__/inviteHideFromTreeMutation.graphql.ts";
+import type { inviteInviteeList_invitees$key } from "~/__generated__/inviteInviteeList_invitees.graphql.ts";
 import type {
   InviteEmailError,
   InviteInviterError,
   inviteMutation,
-} from "./__generated__/inviteMutation.graphql.ts";
-import type { invitePageQuery } from "./__generated__/invitePageQuery.graphql.ts";
+} from "~/__generated__/inviteMutation.graphql.ts";
+import type { invitePageQuery } from "~/__generated__/invitePageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

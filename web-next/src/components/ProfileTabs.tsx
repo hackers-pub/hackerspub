@@ -5,7 +5,7 @@ import { createFragment } from "solid-relay";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ProfileTabs_actor$key } from "./__generated__/ProfileTabs_actor.graphql.ts";
+import type { ProfileTabs_actor$key } from "~/__generated__/ProfileTabs_actor.graphql.ts";
 
 export type ProfileTab =
   | "posts"

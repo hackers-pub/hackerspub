@@ -18,7 +18,7 @@ import {
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { WebPushPromptBannerRegisterMutation } from "./__generated__/WebPushPromptBannerRegisterMutation.graphql.ts";
+import type { WebPushPromptBannerRegisterMutation } from "~/__generated__/WebPushPromptBannerRegisterMutation.graphql.ts";
 import IconBell from "~icons/lucide/bell";
 import IconX from "~icons/lucide/x";
 

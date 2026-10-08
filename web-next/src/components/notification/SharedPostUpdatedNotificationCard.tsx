@@ -4,7 +4,7 @@ import { createFragment } from "solid-relay";
 import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { SharedPostUpdatedNotificationCard_notification$key } from "./__generated__/SharedPostUpdatedNotificationCard_notification.graphql.ts";
+import type { SharedPostUpdatedNotificationCard_notification$key } from "~/__generated__/SharedPostUpdatedNotificationCard_notification.graphql.ts";
 
 interface SharedPostUpdatedNotificationCardProps {
   $notification: SharedPostUpdatedNotificationCard_notification$key;

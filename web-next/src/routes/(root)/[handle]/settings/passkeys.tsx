@@ -51,11 +51,11 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { passkeysFragment_account$key } from "./__generated__/passkeysFragment_account.graphql.ts";
-import type { passkeysGetPasskeyRegistrationOptionsMutation } from "./__generated__/passkeysGetPasskeyRegistrationOptionsMutation.graphql.ts";
-import type { passkeysPageQuery } from "./__generated__/passkeysPageQuery.graphql.ts";
-import type { passkeysRevokePasskeyMutation } from "./__generated__/passkeysRevokePasskeyMutation.graphql.ts";
-import type { passkeysVerifyPasskeyRegistrationMutation } from "./__generated__/passkeysVerifyPasskeyRegistrationMutation.graphql.ts";
+import type { passkeysFragment_account$key } from "~/__generated__/passkeysFragment_account.graphql.ts";
+import type { passkeysGetPasskeyRegistrationOptionsMutation } from "~/__generated__/passkeysGetPasskeyRegistrationOptionsMutation.graphql.ts";
+import type { passkeysPageQuery } from "~/__generated__/passkeysPageQuery.graphql.ts";
+import type { passkeysRevokePasskeyMutation } from "~/__generated__/passkeysRevokePasskeyMutation.graphql.ts";
+import type { passkeysVerifyPasskeyRegistrationMutation } from "~/__generated__/passkeysVerifyPasskeyRegistrationMutation.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

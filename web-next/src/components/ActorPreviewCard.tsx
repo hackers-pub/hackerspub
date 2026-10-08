@@ -9,7 +9,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import { ActorHandle } from "./ActorHandle.tsx";
-import type { ActorPreviewCard_actor$key } from "./__generated__/ActorPreviewCard_actor.graphql.ts";
+import type { ActorPreviewCard_actor$key } from "~/__generated__/ActorPreviewCard_actor.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 

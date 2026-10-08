@@ -4,8 +4,8 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import type { IEnvironment } from "relay-runtime";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEnvironment } from "../../../../../RelayEnvironment.tsx";
-import type { ogimageLanguageQuery } from "./__generated__/ogimageLanguageQuery.graphql.ts";
-import type { ogimageQuery } from "./__generated__/ogimageQuery.graphql.ts";
+import type { ogimageLanguageQuery } from "~/__generated__/ogimageLanguageQuery.graphql.ts";
+import type { ogimageQuery } from "~/__generated__/ogimageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

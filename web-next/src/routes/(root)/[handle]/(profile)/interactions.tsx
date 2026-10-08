@@ -28,7 +28,7 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
-import type { interactionsPageQuery } from "./__generated__/interactionsPageQuery.graphql.ts";
+import type { interactionsPageQuery } from "~/__generated__/interactionsPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

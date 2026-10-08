@@ -32,10 +32,10 @@ import IconPencil from "~icons/lucide/pencil";
 import IconPin from "~icons/lucide/pin";
 import IconPinOff from "~icons/lucide/pin-off";
 import IconTrash2 from "~icons/lucide/trash-2";
-import type { PostActionMenu_deletePost_Mutation } from "./__generated__/PostActionMenu_deletePost_Mutation.graphql.ts";
-import type { PostActionMenu_post$key } from "./__generated__/PostActionMenu_post.graphql.ts";
-import type { PostActionMenu_pinPost_Mutation } from "./__generated__/PostActionMenu_pinPost_Mutation.graphql.ts";
-import type { PostActionMenu_unpinPost_Mutation } from "./__generated__/PostActionMenu_unpinPost_Mutation.graphql.ts";
+import type { PostActionMenu_deletePost_Mutation } from "~/__generated__/PostActionMenu_deletePost_Mutation.graphql.ts";
+import type { PostActionMenu_post$key } from "~/__generated__/PostActionMenu_post.graphql.ts";
+import type { PostActionMenu_pinPost_Mutation } from "~/__generated__/PostActionMenu_pinPost_Mutation.graphql.ts";
+import type { PostActionMenu_unpinPost_Mutation } from "~/__generated__/PostActionMenu_unpinPost_Mutation.graphql.ts";
 
 const deletePostMutation = graphql`
   mutation PostActionMenu_deletePost_Mutation(

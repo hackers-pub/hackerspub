@@ -15,7 +15,7 @@ import { NewsStoryCard } from "~/components/NewsStoryCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { NewsSort } from "~/lib/useNewsSort.ts";
-import type { NewsList_stories$key } from "./__generated__/NewsList_stories.graphql.ts";
+import type { NewsList_stories$key } from "~/__generated__/NewsList_stories.graphql.ts";
 
 export interface NewsListProps {
   $stories: NewsList_stories$key;

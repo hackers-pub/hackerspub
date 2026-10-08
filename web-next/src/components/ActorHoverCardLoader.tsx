@@ -4,8 +4,8 @@ import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ActorHoverCardLoaderByHandleQuery } from "./__generated__/ActorHoverCardLoaderByHandleQuery.graphql.ts";
-import type { ActorHoverCardLoaderByUrlQuery } from "./__generated__/ActorHoverCardLoaderByUrlQuery.graphql.ts";
+import type { ActorHoverCardLoaderByHandleQuery } from "~/__generated__/ActorHoverCardLoaderByHandleQuery.graphql.ts";
+import type { ActorHoverCardLoaderByUrlQuery } from "~/__generated__/ActorHoverCardLoaderByUrlQuery.graphql.ts";
 import { ActorPreviewCard } from "./ActorPreviewCard.tsx";
 import { ActorPreviewSkeleton } from "./ActorPreviewSkeleton.tsx";
 

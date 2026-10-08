@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { QuotedNoteCard } from "~/components/QuotedNoteCard.tsx";
-import type { QuotedPostCard_post$key } from "./__generated__/QuotedPostCard_post.graphql.ts";
+import type { QuotedPostCard_post$key } from "~/__generated__/QuotedPostCard_post.graphql.ts";
 
 const quotedNoteCardTypenames = new Set(["Note", "Question", "Article"]);
 

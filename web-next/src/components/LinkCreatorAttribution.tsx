@@ -11,7 +11,7 @@ import {
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { cn } from "~/lib/utils.ts";
 import { ActorHandle } from "./ActorHandle.tsx";
-import type { LinkCreatorAttribution_creator$key } from "./__generated__/LinkCreatorAttribution_creator.graphql.ts";
+import type { LinkCreatorAttribution_creator$key } from "~/__generated__/LinkCreatorAttribution_creator.graphql.ts";
 
 export interface LinkCreatorAttributionProps {
   $creator: LinkCreatorAttribution_creator$key;

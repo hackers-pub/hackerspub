@@ -14,7 +14,7 @@ import { useRelayEnvironment } from "solid-relay";
 import type {
   MentionAutocompleteQuery,
   MentionAutocompleteQuery$data,
-} from "./__generated__/MentionAutocompleteQuery.graphql.ts";
+} from "~/__generated__/MentionAutocompleteQuery.graphql.ts";
 
 export const MENTION_AUTOCOMPLETE_PORTAL_ID = "mention-autocomplete-portal";
 

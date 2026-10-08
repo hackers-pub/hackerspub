@@ -25,7 +25,7 @@ import {
 import type {
   appealsPageQuery,
   FlagAppealStatus,
-} from "./__generated__/appealsPageQuery.graphql.ts";
+} from "~/__generated__/appealsPageQuery.graphql.ts";
 
 const appealsPageQuery = graphql`
   query appealsPageQuery($status: FlagAppealStatus, $locale: Locale) {

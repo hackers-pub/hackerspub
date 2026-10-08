@@ -30,7 +30,7 @@ import {
 } from "~/lib/mentionHoverCards.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { ActorHandle } from "./ActorHandle.tsx";
-import type { ProfileCard_actor$key } from "./__generated__/ProfileCard_actor.graphql.ts";
+import type { ProfileCard_actor$key } from "~/__generated__/ProfileCard_actor.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { ProfileActionMenu } from "./ProfileActionMenu.tsx";

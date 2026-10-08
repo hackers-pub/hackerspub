@@ -27,9 +27,9 @@ import {
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
 import IconPin from "~icons/lucide/pin";
-import type { ProfilePageBaseQuery } from "./__generated__/ProfilePageBaseQuery.graphql.ts";
-import type { ProfilePageContentQuery } from "./__generated__/ProfilePageContentQuery.graphql.ts";
-import type { ProfilePagePinsQuery } from "./__generated__/ProfilePagePinsQuery.graphql.ts";
+import type { ProfilePageBaseQuery } from "~/__generated__/ProfilePageBaseQuery.graphql.ts";
+import type { ProfilePageContentQuery } from "~/__generated__/ProfilePageContentQuery.graphql.ts";
+import type { ProfilePagePinsQuery } from "~/__generated__/ProfilePagePinsQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

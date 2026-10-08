@@ -20,7 +20,7 @@ import {
 import type {
   FlagStatus,
   moderationCasesPageQuery,
-} from "./__generated__/moderationCasesPageQuery.graphql.ts";
+} from "~/__generated__/moderationCasesPageQuery.graphql.ts";
 
 const moderationCasesPageQuery = graphql`
   query moderationCasesPageQuery(

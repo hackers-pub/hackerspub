@@ -9,7 +9,7 @@ import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { IdQuery } from "./__generated__/IdQuery.graphql.ts";
+import type { IdQuery } from "~/__generated__/IdQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

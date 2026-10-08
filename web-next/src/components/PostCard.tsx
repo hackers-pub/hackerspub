@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { ActorSharerActor } from "./ActorSharer.tsx";
-import { PostCard_post$key } from "./__generated__/PostCard_post.graphql.ts";
+import { PostCard_post$key } from "~/__generated__/PostCard_post.graphql.ts";
 import { ArticleCard } from "./ArticleCard.tsx";
 import { NoteCard } from "./NoteCard.tsx";
 import { QuestionCard } from "./QuestionCard.tsx";

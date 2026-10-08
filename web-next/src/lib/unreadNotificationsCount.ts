@@ -8,7 +8,7 @@ import {
 } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
 
-import type { unreadNotificationsCountQuery } from "./__generated__/unreadNotificationsCountQuery.graphql.ts";
+import type { unreadNotificationsCountQuery } from "~/__generated__/unreadNotificationsCountQuery.graphql.ts";
 
 const UnreadNotificationsCountQuery = graphql`
   query unreadNotificationsCountQuery {

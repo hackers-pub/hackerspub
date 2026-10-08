@@ -19,7 +19,7 @@ import {
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
-import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
+import type { fediverseTimelineQuery } from "~/__generated__/fediverseTimelineQuery.graphql.ts";
 
 const fediverseTimelineQuery = graphql`
   query fediverseTimelineQuery(

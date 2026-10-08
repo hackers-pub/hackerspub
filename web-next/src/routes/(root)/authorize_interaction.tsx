@@ -16,9 +16,9 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { authorizeInteractionPageByHandleQuery } from "./__generated__/authorizeInteractionPageByHandleQuery.graphql.ts";
-import type { authorizeInteractionPageByUrlQuery } from "./__generated__/authorizeInteractionPageByUrlQuery.graphql.ts";
-import type { authorizeInteractionPage_actor$key } from "./__generated__/authorizeInteractionPage_actor.graphql.ts";
+import type { authorizeInteractionPageByHandleQuery } from "~/__generated__/authorizeInteractionPageByHandleQuery.graphql.ts";
+import type { authorizeInteractionPageByUrlQuery } from "~/__generated__/authorizeInteractionPageByUrlQuery.graphql.ts";
+import type { authorizeInteractionPage_actor$key } from "~/__generated__/authorizeInteractionPage_actor.graphql.ts";
 
 function stripAcctPrefix(uri: string): string {
   return uri.replace(/^acct:/i, "");

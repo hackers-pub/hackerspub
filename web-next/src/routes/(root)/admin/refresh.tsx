@@ -24,8 +24,8 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { refreshPageMutation } from "./__generated__/refreshPageMutation.graphql.ts";
-import type { refreshPageQuery } from "./__generated__/refreshPageQuery.graphql.ts";
+import type { refreshPageMutation } from "~/__generated__/refreshPageMutation.graphql.ts";
+import type { refreshPageQuery } from "~/__generated__/refreshPageQuery.graphql.ts";
 
 const refreshPageQuery = graphql`
   query refreshPageQuery {

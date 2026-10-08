@@ -15,10 +15,10 @@ import {
   runPrivateMutation,
 } from "~/lib/privateMutation.ts";
 import { getSecurityProof } from "~/lib/securityProof.ts";
-import type { AccountSecuritySettings_account$key } from "./__generated__/AccountSecuritySettings_account.graphql.ts";
-import type { AccountSecuritySettingsEnableMutation } from "./__generated__/AccountSecuritySettingsEnableMutation.graphql.ts";
-import type { AccountSecuritySettingsDisableMutation } from "./__generated__/AccountSecuritySettingsDisableMutation.graphql.ts";
-import type { AccountSecuritySettingsRegenerateMutation } from "./__generated__/AccountSecuritySettingsRegenerateMutation.graphql.ts";
+import type { AccountSecuritySettings_account$key } from "~/__generated__/AccountSecuritySettings_account.graphql.ts";
+import type { AccountSecuritySettingsEnableMutation } from "~/__generated__/AccountSecuritySettingsEnableMutation.graphql.ts";
+import type { AccountSecuritySettingsDisableMutation } from "~/__generated__/AccountSecuritySettingsDisableMutation.graphql.ts";
+import type { AccountSecuritySettingsRegenerateMutation } from "~/__generated__/AccountSecuritySettingsRegenerateMutation.graphql.ts";
 
 const fragment = graphql`
   fragment AccountSecuritySettings_account on Account {

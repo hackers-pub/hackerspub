@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { PostAvatar_actor$key } from "./__generated__/PostAvatar_actor.graphql.ts";
+import { PostAvatar_actor$key } from "~/__generated__/PostAvatar_actor.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";

@@ -19,7 +19,7 @@ import {
 import type {
   reactionsArticleEngagementQuery,
   reactionsArticleEngagementQuery$data,
-} from "./__generated__/reactionsArticleEngagementQuery.graphql.ts";
+} from "~/__generated__/reactionsArticleEngagementQuery.graphql.ts";
 
 const REACTIONS_QUERY_KEY = "loadArticleReactionsQuery";
 

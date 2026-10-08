@@ -11,7 +11,7 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { CocProvisionItem } from "./ModerationActionForm.tsx";
-import type { AppealResolveForm_resolve_Mutation } from "./__generated__/AppealResolveForm_resolve_Mutation.graphql.ts";
+import type { AppealResolveForm_resolve_Mutation } from "~/__generated__/AppealResolveForm_resolve_Mutation.graphql.ts";
 
 export interface AppealResolveFormProps {
   /** The appeal's global id. */

@@ -10,7 +10,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ModerationActionForm_takeAction_Mutation } from "./__generated__/ModerationActionForm_takeAction_Mutation.graphql.ts";
+import type { ModerationActionForm_takeAction_Mutation } from "~/__generated__/ModerationActionForm_takeAction_Mutation.graphql.ts";
 
 export interface CocProvisionItem {
   readonly id: string;

@@ -39,7 +39,7 @@ import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import { createUnreadNotificationsCount } from "~/lib/unreadNotificationsCount.ts";
-import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
+import type { RootLayoutQuery } from "~/__generated__/RootLayoutQuery.graphql.ts";
 import { preloadRouteQuery, routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {

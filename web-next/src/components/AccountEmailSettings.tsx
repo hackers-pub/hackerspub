@@ -35,11 +35,11 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { AccountEmailSettings_account$key } from "./__generated__/AccountEmailSettings_account.graphql.ts";
-import type { AccountEmailSettingsRequestMutation } from "./__generated__/AccountEmailSettingsRequestMutation.graphql.ts";
-import type { AccountEmailSettingsVerifyMutation } from "./__generated__/AccountEmailSettingsVerifyMutation.graphql.ts";
-import type { AccountEmailSettingsPrimaryMutation } from "./__generated__/AccountEmailSettingsPrimaryMutation.graphql.ts";
-import type { AccountEmailSettingsRemoveMutation } from "./__generated__/AccountEmailSettingsRemoveMutation.graphql.ts";
+import type { AccountEmailSettings_account$key } from "~/__generated__/AccountEmailSettings_account.graphql.ts";
+import type { AccountEmailSettingsRequestMutation } from "~/__generated__/AccountEmailSettingsRequestMutation.graphql.ts";
+import type { AccountEmailSettingsVerifyMutation } from "~/__generated__/AccountEmailSettingsVerifyMutation.graphql.ts";
+import type { AccountEmailSettingsPrimaryMutation } from "~/__generated__/AccountEmailSettingsPrimaryMutation.graphql.ts";
+import type { AccountEmailSettingsRemoveMutation } from "~/__generated__/AccountEmailSettingsRemoveMutation.graphql.ts";
 
 const fragment = graphql`
   fragment AccountEmailSettings_account on Account {

@@ -49,9 +49,9 @@ import { useLingui } from "~/lib/i18n/macro.ts";
 import { createMediumFromDataUrl } from "~/lib/uploadImage.ts";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
-import type { settingsForm_account$key } from "./__generated__/settingsForm_account.graphql.ts";
-import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
-import type { settingsPageQuery } from "./__generated__/settingsPageQuery.graphql.ts";
+import type { settingsForm_account$key } from "~/__generated__/settingsForm_account.graphql.ts";
+import type { settingsMutation } from "~/__generated__/settingsMutation.graphql.ts";
+import type { settingsPageQuery } from "~/__generated__/settingsPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

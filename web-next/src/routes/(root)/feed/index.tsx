@@ -21,7 +21,7 @@ import {
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
-import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
+import type { feedTimelineQuery } from "~/__generated__/feedTimelineQuery.graphql.ts";
 
 export const route = {
   preload() {

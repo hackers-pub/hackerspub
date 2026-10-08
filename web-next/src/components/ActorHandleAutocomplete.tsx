@@ -24,7 +24,7 @@ import { cn } from "~/lib/utils.ts";
 import type {
   ActorHandleAutocompleteQuery,
   ActorHandleAutocompleteQuery$data,
-} from "./__generated__/ActorHandleAutocompleteQuery.graphql.ts";
+} from "~/__generated__/ActorHandleAutocompleteQuery.graphql.ts";
 
 const actorHandleAutocompleteQuery = graphql`
   query ActorHandleAutocompleteQuery($prefix: String!, $limit: Int = 8) {

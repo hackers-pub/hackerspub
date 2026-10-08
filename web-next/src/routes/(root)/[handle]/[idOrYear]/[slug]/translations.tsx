@@ -19,9 +19,9 @@ import { Button } from "~/components/ui/button.tsx";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { refreshRelayQuery } from "~/lib/relayPreload.ts";
-import type { translationsArticleQuery } from "./__generated__/translationsArticleQuery.graphql.ts";
-import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
-import type { SlugPageQuery } from "./__generated__/SlugPageQuery.graphql.ts";
+import type { translationsArticleQuery } from "~/__generated__/translationsArticleQuery.graphql.ts";
+import type { LangPageQuery } from "~/__generated__/LangPageQuery.graphql.ts";
+import type { SlugPageQuery } from "~/__generated__/SlugPageQuery.graphql.ts";
 import { ARTICLE_LANG_PAGE_QUERY_KEY, LangPageQueryDef } from "./[lang].tsx";
 import { ARTICLE_PAGE_QUERY_KEY, SlugPageQueryDef } from "./index.tsx";
 

@@ -7,9 +7,9 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { FollowButton_actor$key } from "./__generated__/FollowButton_actor.graphql.ts";
-import type { FollowButton_followActor_Mutation } from "./__generated__/FollowButton_followActor_Mutation.graphql.ts";
-import type { FollowButton_unfollowActor_Mutation } from "./__generated__/FollowButton_unfollowActor_Mutation.graphql.ts";
+import type { FollowButton_actor$key } from "~/__generated__/FollowButton_actor.graphql.ts";
+import type { FollowButton_followActor_Mutation } from "~/__generated__/FollowButton_followActor_Mutation.graphql.ts";
+import type { FollowButton_unfollowActor_Mutation } from "~/__generated__/FollowButton_unfollowActor_Mutation.graphql.ts";
 import { RemoteFollowButton } from "./RemoteFollowButton.tsx";
 
 export interface FollowButtonProps {

@@ -17,7 +17,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { statisticsPageQuery } from "./__generated__/statisticsPageQuery.graphql.ts";
+import type { statisticsPageQuery } from "~/__generated__/statisticsPageQuery.graphql.ts";
 
 const statisticsPageQuery = graphql`
   query statisticsPageQuery {

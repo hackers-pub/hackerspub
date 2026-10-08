@@ -17,8 +17,8 @@ import {
 } from "~/components/ui/card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { mediaDeleteOrphanMediaMutation } from "./__generated__/mediaDeleteOrphanMediaMutation.graphql.ts";
-import type { mediaPageQuery } from "./__generated__/mediaPageQuery.graphql.ts";
+import type { mediaDeleteOrphanMediaMutation } from "~/__generated__/mediaDeleteOrphanMediaMutation.graphql.ts";
+import type { mediaPageQuery } from "~/__generated__/mediaPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

@@ -6,7 +6,7 @@ import { createFragment } from "solid-relay";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { DocumentView_document$key } from "./__generated__/DocumentView_document.graphql.ts";
+import { DocumentView_document$key } from "~/__generated__/DocumentView_document.graphql.ts";
 
 export interface DocumentViewProps {
   $document: DocumentView_document$key;

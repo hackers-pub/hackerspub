@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { ActorFollowerList_followers$key } from "./__generated__/ActorFollowerList_followers.graphql.ts";
+import { ActorFollowerList_followers$key } from "~/__generated__/ActorFollowerList_followers.graphql.ts";
 import { RemoveFollowerButton } from "./RemoveFollowerButton.tsx";
 import { SmallProfileCard } from "./SmallProfileCard.tsx";
 

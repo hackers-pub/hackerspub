@@ -7,8 +7,8 @@ import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { EmojiReactionPopoverAddMutation } from "./__generated__/EmojiReactionPopoverAddMutation.graphql.ts";
-import type { EmojiReactionPopoverRemoveMutation } from "./__generated__/EmojiReactionPopoverRemoveMutation.graphql.ts";
+import type { EmojiReactionPopoverAddMutation } from "~/__generated__/EmojiReactionPopoverAddMutation.graphql.ts";
+import type { EmojiReactionPopoverRemoveMutation } from "~/__generated__/EmojiReactionPopoverRemoveMutation.graphql.ts";
 
 interface NoteData {
   id: string;

@@ -2,8 +2,8 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import IconUserMinus from "~icons/lucide/user-minus";
-import type { RemoveFollowerButton_actor$key } from "./__generated__/RemoveFollowerButton_actor.graphql.ts";
-import type { RemoveFollowerButton_removeFollower_Mutation } from "./__generated__/RemoveFollowerButton_removeFollower_Mutation.graphql.ts";
+import type { RemoveFollowerButton_actor$key } from "~/__generated__/RemoveFollowerButton_actor.graphql.ts";
+import type { RemoveFollowerButton_removeFollower_Mutation } from "~/__generated__/RemoveFollowerButton_removeFollower_Mutation.graphql.ts";
 import {
   AlertDialog,
   AlertDialogAction,

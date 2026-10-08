@@ -25,9 +25,9 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { relayAdminPageQuery } from "./__generated__/relayAdminPageQuery.graphql.ts";
-import type { relayAdminSubscribeMutation } from "./__generated__/relayAdminSubscribeMutation.graphql.ts";
-import type { relayAdminUnsubscribeMutation } from "./__generated__/relayAdminUnsubscribeMutation.graphql.ts";
+import type { relayAdminPageQuery } from "~/__generated__/relayAdminPageQuery.graphql.ts";
+import type { relayAdminSubscribeMutation } from "~/__generated__/relayAdminSubscribeMutation.graphql.ts";
+import type { relayAdminUnsubscribeMutation } from "~/__generated__/relayAdminUnsubscribeMutation.graphql.ts";
 
 const relayAdminPageQuery = graphql`
   query relayAdminPageQuery {

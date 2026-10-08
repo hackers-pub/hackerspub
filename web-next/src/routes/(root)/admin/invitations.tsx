@@ -17,8 +17,8 @@ import {
 } from "~/components/ui/card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { invitationsPageQuery } from "./__generated__/invitationsPageQuery.graphql.ts";
-import type { invitationsRegenerateMutation } from "./__generated__/invitationsRegenerateMutation.graphql.ts";
+import type { invitationsPageQuery } from "~/__generated__/invitationsPageQuery.graphql.ts";
+import type { invitationsRegenerateMutation } from "~/__generated__/invitationsRegenerateMutation.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

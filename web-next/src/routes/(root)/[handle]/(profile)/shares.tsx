@@ -17,7 +17,7 @@ import {
   PROFILE_SHARES_QUERY_KEY,
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
-import type { sharesPageQuery } from "./__generated__/sharesPageQuery.graphql.ts";
+import type { sharesPageQuery } from "~/__generated__/sharesPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

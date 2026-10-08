@@ -8,7 +8,7 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { HtmlContent } from "~/components/HtmlContent.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
-import type { NotificationMessage_notification$key } from "./__generated__/NotificationMessage_notification.graphql.ts";
+import type { NotificationMessage_notification$key } from "~/__generated__/NotificationMessage_notification.graphql.ts";
 
 interface NotificationMessageProps {
   singleActorMessage: string;

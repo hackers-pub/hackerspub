@@ -3,7 +3,7 @@ import { createMemo, createSignal, For, Show } from "solid-js";
 import { A, useLocation, useNavigate, useSearchParams } from "@solidjs/router";
 import IconChevronDown from "~icons/lucide/chevron-down";
 import IconChevronRight from "~icons/lucide/chevron-right";
-import type { treeQuery as treeQueryType } from "./__generated__/treeQuery.graphql.ts";
+import type { treeQuery as treeQueryType } from "~/__generated__/treeQuery.graphql.ts";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import {
   createStablePreloadedQuery,

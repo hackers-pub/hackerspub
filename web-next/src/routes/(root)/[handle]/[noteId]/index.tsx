@@ -28,14 +28,14 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { buildPostTitleExcerpt } from "~/lib/postTitleExcerpt.ts";
-import type { NoteId_articleBody$key } from "./__generated__/NoteId_articleBody.graphql.ts";
+import type { NoteId_articleBody$key } from "~/__generated__/NoteId_articleBody.graphql.ts";
 import type {
   NoteIdPageQuery,
   NoteIdPageQuery$data,
-} from "./__generated__/NoteIdPageQuery.graphql.ts";
-import type { NoteId_head$key } from "./__generated__/NoteId_head.graphql.ts";
-import type { NoteId_noteBody$key } from "./__generated__/NoteId_noteBody.graphql.ts";
-import type { NoteId_questionBody$key } from "./__generated__/NoteId_questionBody.graphql.ts";
+} from "~/__generated__/NoteIdPageQuery.graphql.ts";
+import type { NoteId_head$key } from "~/__generated__/NoteId_head.graphql.ts";
+import type { NoteId_noteBody$key } from "~/__generated__/NoteId_noteBody.graphql.ts";
+import type { NoteId_questionBody$key } from "~/__generated__/NoteId_questionBody.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

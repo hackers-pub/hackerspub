@@ -1,7 +1,7 @@
 import { fetchQuery, graphql, type IEnvironment } from "relay-runtime";
 import { type Accessor, createSignal, onCleanup, untrack } from "solid-js";
-import type { createMediaControllerDraftMediaQuery } from "./__generated__/createMediaControllerDraftMediaQuery.graphql.ts";
-import type { createMediaControllerGeneratedAltTextQuery } from "./__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
+import type { createMediaControllerDraftMediaQuery } from "~/__generated__/createMediaControllerDraftMediaQuery.graphql.ts";
+import type { createMediaControllerGeneratedAltTextQuery } from "~/__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
 import { type MediaItem, reduceMediaItems } from "./mediaState.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";

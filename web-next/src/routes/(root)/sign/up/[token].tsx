@@ -22,14 +22,14 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
-import type { TokenCodeOfConductQuery } from "./__generated__/TokenCodeOfConductQuery.graphql.ts";
+import type { TokenCodeOfConductQuery } from "~/__generated__/TokenCodeOfConductQuery.graphql.ts";
 import type {
   SignupBioError,
   SignupDisplayNameError,
   SignupUsernameError,
   TokenCompleteSignupMutation,
-} from "./__generated__/TokenCompleteSignupMutation.graphql.ts";
-import type { TokenVerifySignupTokenQuery } from "./__generated__/TokenVerifySignupTokenQuery.graphql.ts";
+} from "~/__generated__/TokenCompleteSignupMutation.graphql.ts";
+import type { TokenVerifySignupTokenQuery } from "~/__generated__/TokenVerifySignupTokenQuery.graphql.ts";
 
 const verifySignupTokenQuery = graphql`
   query TokenVerifySignupTokenQuery($token: UUID!, $code: String!) {

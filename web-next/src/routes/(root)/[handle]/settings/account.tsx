@@ -75,19 +75,19 @@ import {
 } from "~/lib/relayPreload.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { removeSessionCookie } from "~/lib/sessionActions.ts";
-import type { accountAddMigrationAliasMutation } from "./__generated__/accountAddMigrationAliasMutation.graphql.ts";
-import type { accountAcceptOrganizationInvitationMutation } from "./__generated__/accountAcceptOrganizationInvitationMutation.graphql.ts";
-import type { accountCreateOrganizationMutation } from "./__generated__/accountCreateOrganizationMutation.graphql.ts";
-import type { accountDeleteMutation } from "./__generated__/accountDeleteMutation.graphql.ts";
-import type { accountInviteOrganizationMemberMutation } from "./__generated__/accountInviteOrganizationMemberMutation.graphql.ts";
-import type { accountOrganizationConversionAdminLookupQuery } from "./__generated__/accountOrganizationConversionAdminLookupQuery.graphql.ts";
-import type { accountLeaveOrganizationMutation } from "./__generated__/accountLeaveOrganizationMutation.graphql.ts";
-import type { accountOrganizationMembersQuery } from "./__generated__/accountOrganizationMembersQuery.graphql.ts";
-import type { accountPageQuery } from "./__generated__/accountPageQuery.graphql.ts";
-import type { accountRemoveMigrationAliasMutation } from "./__generated__/accountRemoveMigrationAliasMutation.graphql.ts";
-import type { accountRemoveOrganizationMemberMutation } from "./__generated__/accountRemoveOrganizationMemberMutation.graphql.ts";
-import type { accountRequestOrganizationConversionMutation } from "./__generated__/accountRequestOrganizationConversionMutation.graphql.ts";
-import type { accountUpdateOrganizationMemberRoleMutation } from "./__generated__/accountUpdateOrganizationMemberRoleMutation.graphql.ts";
+import type { accountAddMigrationAliasMutation } from "~/__generated__/accountAddMigrationAliasMutation.graphql.ts";
+import type { accountAcceptOrganizationInvitationMutation } from "~/__generated__/accountAcceptOrganizationInvitationMutation.graphql.ts";
+import type { accountCreateOrganizationMutation } from "~/__generated__/accountCreateOrganizationMutation.graphql.ts";
+import type { accountDeleteMutation } from "~/__generated__/accountDeleteMutation.graphql.ts";
+import type { accountInviteOrganizationMemberMutation } from "~/__generated__/accountInviteOrganizationMemberMutation.graphql.ts";
+import type { accountOrganizationConversionAdminLookupQuery } from "~/__generated__/accountOrganizationConversionAdminLookupQuery.graphql.ts";
+import type { accountLeaveOrganizationMutation } from "~/__generated__/accountLeaveOrganizationMutation.graphql.ts";
+import type { accountOrganizationMembersQuery } from "~/__generated__/accountOrganizationMembersQuery.graphql.ts";
+import type { accountPageQuery } from "~/__generated__/accountPageQuery.graphql.ts";
+import type { accountRemoveMigrationAliasMutation } from "~/__generated__/accountRemoveMigrationAliasMutation.graphql.ts";
+import type { accountRemoveOrganizationMemberMutation } from "~/__generated__/accountRemoveOrganizationMemberMutation.graphql.ts";
+import type { accountRequestOrganizationConversionMutation } from "~/__generated__/accountRequestOrganizationConversionMutation.graphql.ts";
+import type { accountUpdateOrganizationMemberRoleMutation } from "~/__generated__/accountUpdateOrganizationMemberRoleMutation.graphql.ts";
 
 export const route = {
   matchFilters: {

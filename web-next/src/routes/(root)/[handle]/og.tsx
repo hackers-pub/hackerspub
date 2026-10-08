@@ -2,7 +2,7 @@ import type { RouteDefinition } from "@solidjs/router";
 import type { APIEvent } from "@solidjs/start/server";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEnvironment } from "../../../RelayEnvironment.tsx";
-import type { ogQuery } from "./__generated__/ogQuery.graphql.ts";
+import type { ogQuery } from "~/__generated__/ogQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

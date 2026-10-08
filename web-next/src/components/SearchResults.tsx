@@ -14,7 +14,7 @@ import { PostCard } from "~/components/PostCard.tsx";
 import { VirtualizedPostList } from "~/components/VirtualizedPostList.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { SearchResults_posts$key } from "./__generated__/SearchResults_posts.graphql.ts";
+import type { SearchResults_posts$key } from "~/__generated__/SearchResults_posts.graphql.ts";
 
 const initialVisiblePosts = 5;
 

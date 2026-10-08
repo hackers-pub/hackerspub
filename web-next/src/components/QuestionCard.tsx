@@ -26,9 +26,9 @@ import {
   MentionHoverCardLayer,
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
-import type { QuestionCard_question$key } from "./__generated__/QuestionCard_question.graphql.ts";
-import type { QuestionCardContent_question$key } from "./__generated__/QuestionCardContent_question.graphql.ts";
-import type { QuestionCard_voteOnPoll_Mutation } from "./__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
+import type { QuestionCard_question$key } from "~/__generated__/QuestionCard_question.graphql.ts";
+import type { QuestionCardContent_question$key } from "~/__generated__/QuestionCardContent_question.graphql.ts";
+import type { QuestionCard_voteOnPoll_Mutation } from "~/__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";

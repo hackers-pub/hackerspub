@@ -11,19 +11,19 @@ import {
 } from "../test/postgres.ts";
 
 const quotesNoteEngagementQueryPath = new URL(
-  "../web-next/src/routes/(root)/[handle]/[noteId]/__generated__/quotesNoteEngagementQuery.graphql.ts",
+  "../web-next/src/__generated__/quotesNoteEngagementQuery.graphql.ts",
   import.meta.url,
 );
 const notificationsPageQueryPath = new URL(
-  "../web-next/src/routes/(root)/__generated__/notificationsPageQuery.graphql.ts",
+  "../web-next/src/__generated__/notificationsPageQuery.graphql.ts",
   import.meta.url,
 );
 const slugPageQueryPath = new URL(
-  "../web-next/src/routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/SlugPageQuery.graphql.ts",
+  "../web-next/src/__generated__/SlugPageQuery.graphql.ts",
   import.meta.url,
 );
 const langPageQueryPath = new URL(
-  "../web-next/src/routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/LangPageQuery.graphql.ts",
+  "../web-next/src/__generated__/LangPageQuery.graphql.ts",
   import.meta.url,
 );
 

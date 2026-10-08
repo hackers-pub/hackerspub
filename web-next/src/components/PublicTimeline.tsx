@@ -20,8 +20,8 @@ import { createPublicTimelineRefetchTracker } from "~/lib/publicTimelineRefetch.
 import type {
   PublicTimeline_posts$data,
   PublicTimeline_posts$key,
-} from "./__generated__/PublicTimeline_posts.graphql.ts";
-import type { PublicTimelinePollQuery } from "./__generated__/PublicTimelinePollQuery.graphql.ts";
+} from "~/__generated__/PublicTimeline_posts.graphql.ts";
+import type { PublicTimelinePollQuery } from "~/__generated__/PublicTimelinePollQuery.graphql.ts";
 
 // Fetches only the newest edge's cursor to detect new content without
 // updating the main connection in the Relay store.

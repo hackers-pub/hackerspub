@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
-import type { RootRoutesQuery } from "./__generated__/RootRoutesQuery.graphql.ts";
+import type { RootRoutesQuery } from "~/__generated__/RootRoutesQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

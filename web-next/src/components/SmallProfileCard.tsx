@@ -6,7 +6,7 @@ import {
   MentionHoverCardLayer,
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
-import type { SmallProfileCard_actor$key } from "./__generated__/SmallProfileCard_actor.graphql.ts";
+import type { SmallProfileCard_actor$key } from "~/__generated__/SmallProfileCard_actor.graphql.ts";
 import { ActorHandle } from "./ActorHandle.tsx";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { FollowButton } from "./FollowButton.tsx";

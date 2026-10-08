@@ -15,10 +15,10 @@ import {
 } from "solid-relay";
 import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { NotificationListMarkAsReadMutation } from "./__generated__/NotificationListMarkAsReadMutation.graphql.ts";
-import type { NotificationListMarkOrganizationNotificationsAsReadMutation } from "./__generated__/NotificationListMarkOrganizationNotificationsAsReadMutation.graphql.ts";
-import type { NotificationListUnreadNotificationsQuery } from "./__generated__/NotificationListUnreadNotificationsQuery.graphql.ts";
-import type { NotificationList_notifications$key } from "./__generated__/NotificationList_notifications.graphql.ts";
+import type { NotificationListMarkAsReadMutation } from "~/__generated__/NotificationListMarkAsReadMutation.graphql.ts";
+import type { NotificationListMarkOrganizationNotificationsAsReadMutation } from "~/__generated__/NotificationListMarkOrganizationNotificationsAsReadMutation.graphql.ts";
+import type { NotificationListUnreadNotificationsQuery } from "~/__generated__/NotificationListUnreadNotificationsQuery.graphql.ts";
+import type { NotificationList_notifications$key } from "~/__generated__/NotificationList_notifications.graphql.ts";
 import { NotificationCard } from "./NotificationCard.tsx";
 
 type NotificationListReadScope =

@@ -21,7 +21,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { moderationPageQuery } from "./__generated__/moderationPageQuery.graphql.ts";
+import type { moderationPageQuery } from "~/__generated__/moderationPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

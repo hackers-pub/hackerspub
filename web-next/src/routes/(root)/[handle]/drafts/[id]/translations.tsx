@@ -15,7 +15,7 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { translationsQuery } from "./__generated__/translationsQuery.graphql.ts";
+import type { translationsQuery } from "~/__generated__/translationsQuery.graphql.ts";
 
 const translationsQueryNode = graphql`
   query translationsQuery($username: String!, $uuid: UUID!) {

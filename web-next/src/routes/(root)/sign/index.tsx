@@ -25,14 +25,14 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { signByEmailMutation } from "./__generated__/signByEmailMutation.graphql.ts";
-import type { signByPasskeyMutation } from "./__generated__/signByPasskeyMutation.graphql.ts";
+import type { signByEmailMutation } from "~/__generated__/signByEmailMutation.graphql.ts";
+import type { signByPasskeyMutation } from "~/__generated__/signByPasskeyMutation.graphql.ts";
 import type {
   signByUsernameMutation,
   signByUsernameMutation$data,
-} from "./__generated__/signByUsernameMutation.graphql.ts";
-import type { signCompleteMutation } from "./__generated__/signCompleteMutation.graphql.ts";
-import type { signGetPasskeyAuthenticationOptionsMutation } from "./__generated__/signGetPasskeyAuthenticationOptionsMutation.graphql.ts";
+} from "~/__generated__/signByUsernameMutation.graphql.ts";
+import type { signCompleteMutation } from "~/__generated__/signCompleteMutation.graphql.ts";
+import type { signGetPasskeyAuthenticationOptionsMutation } from "~/__generated__/signGetPasskeyAuthenticationOptionsMutation.graphql.ts";
 
 const signByEmailMutation = graphql`
   mutation signByEmailMutation(

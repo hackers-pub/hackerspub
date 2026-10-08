@@ -61,11 +61,11 @@ import {
 } from "~/lib/timelinePageQueryCache.ts";
 import { useActivePath } from "~/lib/useActivePath.ts";
 import { Trans } from "./Trans.tsx";
-import type { AppSidebarSignOutMutation } from "./__generated__/AppSidebarSignOutMutation.graphql.ts";
+import type { AppSidebarSignOutMutation } from "~/__generated__/AppSidebarSignOutMutation.graphql.ts";
 import type {
   AppSidebar_signedAccount$data,
   AppSidebar_signedAccount$key,
-} from "./__generated__/AppSidebar_signedAccount.graphql.ts";
+} from "~/__generated__/AppSidebar_signedAccount.graphql.ts";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import metadata from "../../package.json" with { type: "json" };
 

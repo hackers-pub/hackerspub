@@ -85,7 +85,7 @@ function contentSelections(operation: string): ContentSelection[] {
 
 test("the article page query reads every field a translation credit needs", async () => {
   const operation = await readOperationText(
-    "../routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/SlugPageQuery.graphql.ts",
+    "../__generated__/SlugPageQuery.graphql.ts",
   );
   const selected = new Set(
     contentSelections(operation).flatMap((block) => block.fields),
@@ -105,7 +105,7 @@ test("the article page query reads every field a translation credit needs", asyn
 
 test("publishing a translation returns what the article page renders", async () => {
   const operation = await readOperationText(
-    "../components/article-translations/__generated__/ArticleTranslationManagerPublishMutation.graphql.ts",
+    "../__generated__/ArticleTranslationManagerPublishMutation.graphql.ts",
   );
   const blocks = contentSelections(operation);
   assert.equal(blocks.length, 1);
@@ -122,7 +122,7 @@ test("publishing a translation returns what the article page renders", async () 
 
 test("acknowledging a revision returns the identified content row", async () => {
   const operation = await readOperationText(
-    "../components/article-translations/__generated__/ArticleTranslationManagerAcknowledgeMutation.graphql.ts",
+    "../__generated__/ArticleTranslationManagerAcknowledgeMutation.graphql.ts",
   );
   // Without `id` the cleared review state would never reach the article page's
   // copy of this row.
@@ -131,7 +131,7 @@ test("acknowledging a revision returns the identified content row", async () => 
 
 test("editing the original returns the freshness of every other language", async () => {
   const operation = await readOperationText(
-    "../routes/(root)/[handle]/[idOrYear]/[slug]/__generated__/edit_updateArticle_Mutation.graphql.ts",
+    "../__generated__/edit_updateArticle_Mutation.graphql.ts",
   );
   // A source edit puts the other languages into "needs review", so the payload
   // has to return that state on the block that lists them, `allContents`.

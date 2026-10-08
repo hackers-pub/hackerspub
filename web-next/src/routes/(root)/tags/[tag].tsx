@@ -14,7 +14,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
+import type { TagPageQuery } from "~/__generated__/TagPageQuery.graphql.ts";
 
 const TagPageQuery = graphql`
   query TagPageQuery(

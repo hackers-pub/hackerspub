@@ -2,8 +2,8 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, createPaginationFragment } from "solid-relay";
 import { AccountListBase } from "./AccountListBase.tsx";
-import type { MutedAccountsList_actor$key } from "./__generated__/MutedAccountsList_actor.graphql.ts";
-import type { MutedAccountsList_unmuteActor_Mutation } from "./__generated__/MutedAccountsList_unmuteActor_Mutation.graphql.ts";
+import type { MutedAccountsList_actor$key } from "~/__generated__/MutedAccountsList_actor.graphql.ts";
+import type { MutedAccountsList_unmuteActor_Mutation } from "~/__generated__/MutedAccountsList_unmuteActor_Mutation.graphql.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 

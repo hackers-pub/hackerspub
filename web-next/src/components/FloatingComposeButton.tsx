@@ -12,7 +12,7 @@ import {
 import { useSidebar } from "~/components/ui/sidebar.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { FloatingComposeButton_signedAccount$key } from "./__generated__/FloatingComposeButton_signedAccount.graphql.ts";
+import type { FloatingComposeButton_signedAccount$key } from "~/__generated__/FloatingComposeButton_signedAccount.graphql.ts";
 
 export interface FloatingComposeButtonProps {
   show: boolean;

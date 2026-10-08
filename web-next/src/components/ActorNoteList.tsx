@@ -3,7 +3,7 @@ import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { ActorNoteList_notes$key } from "./__generated__/ActorNoteList_notes.graphql.ts";
+import { ActorNoteList_notes$key } from "~/__generated__/ActorNoteList_notes.graphql.ts";
 import { NoteCard } from "./NoteCard.tsx";
 import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 

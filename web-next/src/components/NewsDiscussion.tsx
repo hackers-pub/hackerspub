@@ -7,7 +7,7 @@ import { NewsDiscussionSubtree } from "~/components/NewsDiscussionThread.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { NewsDiscussion_story$key } from "./__generated__/NewsDiscussion_story.graphql.ts";
+import type { NewsDiscussion_story$key } from "~/__generated__/NewsDiscussion_story.graphql.ts";
 
 export interface NewsDiscussionProps {
   $story: NewsDiscussion_story$key;

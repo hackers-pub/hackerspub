@@ -22,8 +22,8 @@ import {
 import type {
   quotesArticleEngagementQuery,
   quotesArticleEngagementQuery$data,
-} from "./__generated__/quotesArticleEngagementQuery.graphql.ts";
-import type { quotesArticleEngagement_article$key } from "./__generated__/quotesArticleEngagement_article.graphql.ts";
+} from "~/__generated__/quotesArticleEngagementQuery.graphql.ts";
+import type { quotesArticleEngagement_article$key } from "~/__generated__/quotesArticleEngagement_article.graphql.ts";
 
 const QUOTES_QUERY_KEY = "loadArticleQuotesQuery";
 

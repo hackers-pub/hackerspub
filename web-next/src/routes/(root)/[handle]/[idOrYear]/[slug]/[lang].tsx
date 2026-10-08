@@ -22,8 +22,8 @@ import { Title } from "~/components/Title.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
-import type { LangPage_requestArticleTranslation_Mutation } from "./__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
+import type { LangPageQuery } from "~/__generated__/LangPageQuery.graphql.ts";
+import type { LangPage_requestArticleTranslation_Mutation } from "~/__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

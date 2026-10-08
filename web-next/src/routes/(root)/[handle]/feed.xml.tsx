@@ -4,7 +4,7 @@ import { fetchQuery, graphql } from "relay-runtime";
 import type { APIEvent } from "@solidjs/start/server";
 import type { RouteDefinition } from "@solidjs/router";
 import { createEnvironment } from "../../../RelayEnvironment.tsx";
-import type { feed_Query } from "./__generated__/feed_Query.graphql.ts";
+import type { feed_Query } from "~/__generated__/feed_Query.graphql.ts";
 import { CANONICAL_ORIGIN_URL } from "~/lib/env.ts";
 
 const WINDOW = 50;

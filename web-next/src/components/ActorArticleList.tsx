@@ -4,7 +4,7 @@ import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { ArticleCard } from "./ArticleCard.tsx";
-import { ActorArticleList_articles$key } from "./__generated__/ActorArticleList_articles.graphql.ts";
+import { ActorArticleList_articles$key } from "~/__generated__/ActorArticleList_articles.graphql.ts";
 import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorArticleListProps {

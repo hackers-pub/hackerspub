@@ -2,7 +2,7 @@ import { Navigate, useLocation, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { NavigateIfHandleIsNotCanonical_actor$key } from "./__generated__/NavigateIfHandleIsNotCanonical_actor.graphql.ts";
+import { NavigateIfHandleIsNotCanonical_actor$key } from "~/__generated__/NavigateIfHandleIsNotCanonical_actor.graphql.ts";
 
 export interface NavigateIfHandleIsNotCanonicalProps {
   $actor: NavigateIfHandleIsNotCanonical_actor$key;

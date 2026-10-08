@@ -44,14 +44,14 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { newsAdminPageQuery } from "./__generated__/newsAdminPageQuery.graphql.ts";
-import type { newsAdminRecomputeMutation } from "./__generated__/newsAdminRecomputeMutation.graphql.ts";
-import type { newsAdminAddPatternMutation } from "./__generated__/newsAdminAddPatternMutation.graphql.ts";
-import type { newsAdminRemovePatternMutation } from "./__generated__/newsAdminRemovePatternMutation.graphql.ts";
-import type { newsAdminClearPenaltyMutation } from "./__generated__/newsAdminClearPenaltyMutation.graphql.ts";
-import type { newsAdminActorByHandleQuery } from "./__generated__/newsAdminActorByHandleQuery.graphql.ts";
-import type { newsAdminAddPreferredMutation } from "./__generated__/newsAdminAddPreferredMutation.graphql.ts";
-import type { newsAdminRemovePreferredMutation } from "./__generated__/newsAdminRemovePreferredMutation.graphql.ts";
+import type { newsAdminPageQuery } from "~/__generated__/newsAdminPageQuery.graphql.ts";
+import type { newsAdminRecomputeMutation } from "~/__generated__/newsAdminRecomputeMutation.graphql.ts";
+import type { newsAdminAddPatternMutation } from "~/__generated__/newsAdminAddPatternMutation.graphql.ts";
+import type { newsAdminRemovePatternMutation } from "~/__generated__/newsAdminRemovePatternMutation.graphql.ts";
+import type { newsAdminClearPenaltyMutation } from "~/__generated__/newsAdminClearPenaltyMutation.graphql.ts";
+import type { newsAdminActorByHandleQuery } from "~/__generated__/newsAdminActorByHandleQuery.graphql.ts";
+import type { newsAdminAddPreferredMutation } from "~/__generated__/newsAdminAddPreferredMutation.graphql.ts";
+import type { newsAdminRemovePreferredMutation } from "~/__generated__/newsAdminRemovePreferredMutation.graphql.ts";
 
 const newsAdminPageQuery = graphql`
   query newsAdminPageQuery {

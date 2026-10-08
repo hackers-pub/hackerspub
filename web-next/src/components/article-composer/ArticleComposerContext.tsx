@@ -47,11 +47,11 @@ import {
 } from "./draftSaveSnapshot.ts";
 import { useAutoSave } from "./useAutoSave.ts";
 import { useUnsavedGuard } from "./useUnsavedGuard.ts";
-import type { ArticleComposerContextSaveMutation } from "./__generated__/ArticleComposerContextSaveMutation.graphql.ts";
-import type { ArticleComposerContextPublishMutation } from "./__generated__/ArticleComposerContextPublishMutation.graphql.ts";
-import type { ArticleComposerContextDeleteMutation } from "./__generated__/ArticleComposerContextDeleteMutation.graphql.ts";
-import type { ArticleComposerContextMoveMutation } from "./__generated__/ArticleComposerContextMoveMutation.graphql.ts";
-import type { ArticleComposerContextDraftQuery as ArticleComposerContextDraftQueryType } from "./__generated__/ArticleComposerContextDraftQuery.graphql.ts";
+import type { ArticleComposerContextSaveMutation } from "~/__generated__/ArticleComposerContextSaveMutation.graphql.ts";
+import type { ArticleComposerContextPublishMutation } from "~/__generated__/ArticleComposerContextPublishMutation.graphql.ts";
+import type { ArticleComposerContextDeleteMutation } from "~/__generated__/ArticleComposerContextDeleteMutation.graphql.ts";
+import type { ArticleComposerContextMoveMutation } from "~/__generated__/ArticleComposerContextMoveMutation.graphql.ts";
+import type { ArticleComposerContextDraftQuery as ArticleComposerContextDraftQueryType } from "~/__generated__/ArticleComposerContextDraftQuery.graphql.ts";
 
 // --- GraphQL definitions ---
 

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
-import type { SettingsTabs_account$key } from "./__generated__/SettingsTabs_account.graphql.ts";
+import type { SettingsTabs_account$key } from "~/__generated__/SettingsTabs_account.graphql.ts";
 
 export interface SettingsCardPageProps {
   $account: SettingsTabs_account$key;

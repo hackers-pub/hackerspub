@@ -36,7 +36,7 @@ import {
 } from "~/components/ui/table.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { AdminAccountsTable_query$key } from "./__generated__/AdminAccountsTable_query.graphql.ts";
+import type { AdminAccountsTable_query$key } from "~/__generated__/AdminAccountsTable_query.graphql.ts";
 
 export interface AdminAccountsTableProps {
   $query: AdminAccountsTable_query$key;

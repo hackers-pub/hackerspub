@@ -18,8 +18,8 @@ import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   PersonalTimeline_posts$data,
   PersonalTimeline_posts$key,
-} from "./__generated__/PersonalTimeline_posts.graphql.ts";
-import type { PersonalTimelinePollQuery } from "./__generated__/PersonalTimelinePollQuery.graphql.ts";
+} from "~/__generated__/PersonalTimeline_posts.graphql.ts";
+import type { PersonalTimelinePollQuery } from "~/__generated__/PersonalTimelinePollQuery.graphql.ts";
 
 // Fetches only the newest edge's cursor to detect new content without
 // updating the main connection in the Relay store.

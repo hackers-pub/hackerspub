@@ -11,7 +11,7 @@ import {
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { ActorPostList_posts$key } from "./__generated__/ActorPostList_posts.graphql.ts";
+import { ActorPostList_posts$key } from "~/__generated__/ActorPostList_posts.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
 import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 

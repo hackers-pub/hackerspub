@@ -26,7 +26,7 @@ import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   RemoteFollowButton_lookupRemoteFollowerQuery,
   RemoteFollowButton_lookupRemoteFollowerQuery$data,
-} from "./__generated__/RemoteFollowButton_lookupRemoteFollowerQuery.graphql.ts";
+} from "~/__generated__/RemoteFollowButton_lookupRemoteFollowerQuery.graphql.ts";
 
 export interface RemoteFollowButtonProps {
   actorId: string;

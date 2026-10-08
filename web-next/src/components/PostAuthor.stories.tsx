@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import type { PostAuthorStoriesQuery } from "./__generated__/PostAuthorStoriesQuery.graphql.ts";
+import type { PostAuthorStoriesQuery } from "~/__generated__/PostAuthorStoriesQuery.graphql.ts";
 import { PostAuthorLine } from "./PostAuthor.tsx";
 import {
   type ActorStoryArgs,

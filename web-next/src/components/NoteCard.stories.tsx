@@ -11,8 +11,8 @@ import { MockPayloadGenerator, type MockResolvers } from "relay-test-utils";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { NoteCard } from "./NoteCard.tsx";
-import type { NoteCardStoriesQuery } from "./__generated__/NoteCardStoriesQuery.graphql.ts";
-import type { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
+import type { NoteCardStoriesQuery } from "~/__generated__/NoteCardStoriesQuery.graphql.ts";
+import type { NoteCard_note$key } from "~/__generated__/NoteCard_note.graphql.ts";
 
 const NoteCardStoriesQuery = graphql`
   query NoteCardStoriesQuery($id: ID!, $actingAccountId: ID) {

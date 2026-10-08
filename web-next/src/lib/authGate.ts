@@ -4,8 +4,8 @@ import {
   type IEnvironment,
 } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
-import RootLayoutQueryNode from "~/routes/__generated__/RootLayoutQuery.graphql.ts";
-import type { RootLayoutQuery$data } from "~/routes/__generated__/RootLayoutQuery.graphql.ts";
+import RootLayoutQueryNode from "~/__generated__/RootLayoutQuery.graphql.ts";
+import type { RootLayoutQuery$data } from "~/__generated__/RootLayoutQuery.graphql.ts";
 import { readSessionCookie } from "./sessionCookie.ts";
 
 export type AuthGateAction = "preload" | "skip";

@@ -2,7 +2,7 @@ import process from "node:process";
 import type { APIEvent } from "@solidjs/start/server";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEnvironment } from "../RelayEnvironment.tsx";
-import type { sitemapsQuery } from "./__generated__/sitemapsQuery.graphql.ts";
+import type { sitemapsQuery } from "~/__generated__/sitemapsQuery.graphql.ts";
 
 export async function GET(event: APIEvent) {
   const origin = process.env.ORIGIN ?? new URL(event.request.url).origin;

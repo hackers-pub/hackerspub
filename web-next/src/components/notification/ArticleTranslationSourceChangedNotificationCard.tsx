@@ -7,7 +7,7 @@ import { LanguageName } from "~/components/LanguageName.tsx";
 import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ArticleTranslationSourceChangedNotificationCard_notification$key } from "./__generated__/ArticleTranslationSourceChangedNotificationCard_notification.graphql.ts";
+import type { ArticleTranslationSourceChangedNotificationCard_notification$key } from "~/__generated__/ArticleTranslationSourceChangedNotificationCard_notification.graphql.ts";
 
 interface ArticleTranslationSourceChangedNotificationCardProps {
   $notification: ArticleTranslationSourceChangedNotificationCard_notification$key;

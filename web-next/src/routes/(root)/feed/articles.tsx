@@ -20,7 +20,7 @@ import {
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
-import type { articlesFeedTimelineQuery } from "./__generated__/articlesFeedTimelineQuery.graphql.ts";
+import type { articlesFeedTimelineQuery } from "~/__generated__/articlesFeedTimelineQuery.graphql.ts";
 
 export const route = {
   preload() {

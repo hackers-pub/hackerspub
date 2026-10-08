@@ -40,22 +40,22 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { PermalinkThread_contextPost$key } from "./__generated__/PermalinkThread_contextPost.graphql.ts";
-import type { PermalinkThreadDescendants_post$key } from "./__generated__/PermalinkThreadDescendants_post.graphql.ts";
-import type { PermalinkThreadDescendantsQuery } from "./__generated__/PermalinkThreadDescendantsQuery.graphql.ts";
+import type { PermalinkThread_contextPost$key } from "~/__generated__/PermalinkThread_contextPost.graphql.ts";
+import type { PermalinkThreadDescendants_post$key } from "~/__generated__/PermalinkThreadDescendants_post.graphql.ts";
+import type { PermalinkThreadDescendantsQuery } from "~/__generated__/PermalinkThreadDescendantsQuery.graphql.ts";
 import type {
   PermalinkThread_post$data,
   PermalinkThread_post$key,
-} from "./__generated__/PermalinkThread_post.graphql.ts";
+} from "~/__generated__/PermalinkThread_post.graphql.ts";
 import type {
   PermalinkThread_replyNode$data,
   PermalinkThread_replyNode$key,
-} from "./__generated__/PermalinkThread_replyNode.graphql.ts";
-import type { PermalinkThreadQuery } from "./__generated__/PermalinkThreadQuery.graphql.ts";
+} from "~/__generated__/PermalinkThread_replyNode.graphql.ts";
+import type { PermalinkThreadQuery } from "~/__generated__/PermalinkThreadQuery.graphql.ts";
 import type {
   PermalinkThreadTree_post$data,
   PermalinkThreadTree_post$key,
-} from "./__generated__/PermalinkThreadTree_post.graphql.ts";
+} from "~/__generated__/PermalinkThreadTree_post.graphql.ts";
 
 // When the ancestor chain is longer than this, the middle collapses behind a
 // "Show N more posts" row (the root and the nearest ancestors stay visible).

@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import type { NotificationActor_notification$key } from "./__generated__/NotificationActor_notification.graphql.ts";
+import type { NotificationActor_notification$key } from "~/__generated__/NotificationActor_notification.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";
 

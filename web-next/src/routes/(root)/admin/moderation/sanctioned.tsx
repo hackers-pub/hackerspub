@@ -18,7 +18,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { sanctionedPageQuery } from "./__generated__/sanctionedPageQuery.graphql.ts";
+import type { sanctionedPageQuery } from "~/__generated__/sanctionedPageQuery.graphql.ts";
 
 const sanctionedPageQuery = graphql`
   query sanctionedPageQuery {

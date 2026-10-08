@@ -27,11 +27,11 @@ import { Checkbox } from "~/components/ui/checkbox.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { preferencesDigestMutation } from "./__generated__/preferencesDigestMutation.graphql.ts";
-import type { preferencesFormQuery } from "./__generated__/preferencesFormQuery.graphql.ts";
-import type { preferencesInteractionScopeMutation } from "./__generated__/preferencesInteractionScopeMutation.graphql.ts";
-import type { preferencesSummaryMutation } from "./__generated__/preferencesSummaryMutation.graphql.ts";
-import type { preferencesPageQuery } from "./__generated__/preferencesPageQuery.graphql.ts";
+import type { preferencesDigestMutation } from "~/__generated__/preferencesDigestMutation.graphql.ts";
+import type { preferencesFormQuery } from "~/__generated__/preferencesFormQuery.graphql.ts";
+import type { preferencesInteractionScopeMutation } from "~/__generated__/preferencesInteractionScopeMutation.graphql.ts";
+import type { preferencesSummaryMutation } from "~/__generated__/preferencesSummaryMutation.graphql.ts";
+import type { preferencesPageQuery } from "~/__generated__/preferencesPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

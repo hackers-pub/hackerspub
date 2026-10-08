@@ -13,7 +13,7 @@ import {
 import type {
   TokenCompleteMutation,
   TokenCompleteMutation$data,
-} from "./__generated__/TokenCompleteMutation.graphql.ts";
+} from "~/__generated__/TokenCompleteMutation.graphql.ts";
 
 export async function GET({ params, nativeEvent, request }: APIEvent) {
   if (!validateUuid(params.token)) {

@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
 import { ActorPreviewCard } from "./ActorPreviewCard.tsx";
-import type { ActorPreviewCardStoriesQuery } from "./__generated__/ActorPreviewCardStoriesQuery.graphql.ts";
+import type { ActorPreviewCardStoriesQuery } from "~/__generated__/ActorPreviewCardStoriesQuery.graphql.ts";
 import {
   type ActorStoryArgs,
   actorMockResolvers,

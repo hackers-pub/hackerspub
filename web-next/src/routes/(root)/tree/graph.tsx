@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ForceGraph } from "~/components/ForceGraph.tsx";
-import type { graphQuery as graphQueryType } from "./__generated__/graphQuery.graphql.ts";
+import type { graphQuery as graphQueryType } from "~/__generated__/graphQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

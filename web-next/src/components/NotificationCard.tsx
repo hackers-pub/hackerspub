@@ -6,7 +6,7 @@ import { createFragment } from "solid-relay";
 import type {
   NotificationCard_notification$data,
   NotificationCard_notification$key,
-} from "./__generated__/NotificationCard_notification.graphql.ts";
+} from "~/__generated__/NotificationCard_notification.graphql.ts";
 import { ArticleTranslationSourceChangedNotificationCard } from "./notification/ArticleTranslationSourceChangedNotificationCard.tsx";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";

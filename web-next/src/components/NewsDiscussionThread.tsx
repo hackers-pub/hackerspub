@@ -29,9 +29,9 @@ import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import type {
   NewsDiscussionThread_post$data,
   NewsDiscussionThread_post$key,
-} from "./__generated__/NewsDiscussionThread_post.graphql.ts";
-import type { NewsDiscussionThreadChildrenQuery } from "./__generated__/NewsDiscussionThreadChildrenQuery.graphql.ts";
-import type { NewsDiscussionThreadSubtreeQuery } from "./__generated__/NewsDiscussionThreadSubtreeQuery.graphql.ts";
+} from "~/__generated__/NewsDiscussionThread_post.graphql.ts";
+import type { NewsDiscussionThreadChildrenQuery } from "~/__generated__/NewsDiscussionThreadChildrenQuery.graphql.ts";
+import type { NewsDiscussionThreadSubtreeQuery } from "~/__generated__/NewsDiscussionThreadSubtreeQuery.graphql.ts";
 
 // Auto-expand quotes down to this depth; deeper levels load only when the
 // reader asks.  Replies need no such gate: they arrive in bulk, one query

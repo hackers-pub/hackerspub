@@ -8,15 +8,15 @@ import { InternalLink } from "./InternalLink.tsx";
 import type {
   PostAuthorAvatar_post$data,
   PostAuthorAvatar_post$key,
-} from "./__generated__/PostAuthorAvatar_post.graphql.ts";
+} from "~/__generated__/PostAuthorAvatar_post.graphql.ts";
 import type {
   PostAuthorLine_post$data,
   PostAuthorLine_post$key,
-} from "./__generated__/PostAuthorLine_post.graphql.ts";
+} from "~/__generated__/PostAuthorLine_post.graphql.ts";
 import type {
   PostAuthorText_post$data,
   PostAuthorText_post$key,
-} from "./__generated__/PostAuthorText_post.graphql.ts";
+} from "~/__generated__/PostAuthorText_post.graphql.ts";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import { cn } from "~/lib/utils.ts";
 

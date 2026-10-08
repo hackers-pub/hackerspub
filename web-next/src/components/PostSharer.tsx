@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { PostSharer_post$key } from "./__generated__/PostSharer_post.graphql.ts";
+import { PostSharer_post$key } from "~/__generated__/PostSharer_post.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { HtmlContent } from "./HtmlContent.tsx";
 import { Timestamp } from "./Timestamp.tsx";

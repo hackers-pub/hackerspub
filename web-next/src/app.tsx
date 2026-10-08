@@ -15,7 +15,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { isNetworkError, shouldReloadOnError } from "~/lib/networkError.ts";
 import { createEnvironment } from "./RelayEnvironment.tsx";
-import type { appQuery } from "./__generated__/appQuery.graphql.ts";
+import type { appQuery } from "~/__generated__/appQuery.graphql.ts";
 import { I18nProvider } from "./lib/i18n/index.tsx";
 import Routes from "./routes.tsx";
 

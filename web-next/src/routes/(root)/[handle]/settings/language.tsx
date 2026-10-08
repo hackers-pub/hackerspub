@@ -15,9 +15,9 @@ import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { languageMutation } from "./__generated__/languageMutation.graphql.ts";
-import type { languagePageQuery } from "./__generated__/languagePageQuery.graphql.ts";
-import type { languagePreferredLanguagesForm_locales$key } from "./__generated__/languagePreferredLanguagesForm_locales.graphql.ts";
+import type { languageMutation } from "~/__generated__/languageMutation.graphql.ts";
+import type { languagePageQuery } from "~/__generated__/languagePageQuery.graphql.ts";
+import type { languagePreferredLanguagesForm_locales$key } from "~/__generated__/languagePreferredLanguagesForm_locales.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

@@ -8,7 +8,7 @@ import {
   getArticleViewReferrerHostname,
 } from "~/lib/articleViewReferrer.ts";
 import { getArticleViewToken } from "~/lib/articleViewToken.ts";
-import type { ArticleViewTrackerMutation } from "./__generated__/ArticleViewTrackerMutation.graphql.ts";
+import type { ArticleViewTrackerMutation } from "~/__generated__/ArticleViewTrackerMutation.graphql.ts";
 
 const recordArticleViewMutation = graphql`
   mutation ArticleViewTrackerMutation(

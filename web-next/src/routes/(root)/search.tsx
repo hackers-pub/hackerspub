@@ -20,10 +20,10 @@ import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { toRoutablePath } from "~/lib/routablePath.ts";
-import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
-import type { searchObjectPageQuery$data } from "./__generated__/searchObjectPageQuery.graphql.ts";
-import type { searchPostsPageQuery } from "./__generated__/searchPostsPageQuery.graphql.ts";
-import type { searchPostsPageQuery$data } from "./__generated__/searchPostsPageQuery.graphql.ts";
+import type { searchObjectPageQuery } from "~/__generated__/searchObjectPageQuery.graphql.ts";
+import type { searchObjectPageQuery$data } from "~/__generated__/searchObjectPageQuery.graphql.ts";
+import type { searchPostsPageQuery } from "~/__generated__/searchPostsPageQuery.graphql.ts";
+import type { searchPostsPageQuery$data } from "~/__generated__/searchPostsPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const searchPostsPageQuery = graphql`

@@ -13,7 +13,7 @@ import {
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { ImageLightbox } from "./ImageLightbox.tsx";
-import { NoteMedia_note$key } from "./__generated__/NoteMedia_note.graphql.ts";
+import { NoteMedia_note$key } from "~/__generated__/NoteMedia_note.graphql.ts";
 import { Button } from "./ui/button.tsx";
 
 interface NoteMediaProps {

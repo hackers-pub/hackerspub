@@ -59,13 +59,13 @@ import {
   type TranslationCredit,
   type TranslationFreshness,
 } from "~/lib/translationCredit.ts";
-import type { SlugPageQuery } from "./__generated__/SlugPageQuery.graphql.ts";
-import type { Slug_articleHeader$key } from "./__generated__/Slug_articleHeader.graphql.ts";
-import type { Slug_body$key } from "./__generated__/Slug_body.graphql.ts";
-import type { Slug_head$key } from "./__generated__/Slug_head.graphql.ts";
-import type { Slug_languageSwitcher$key } from "./__generated__/Slug_languageSwitcher.graphql.ts";
-import type { Slug_replies$key } from "./__generated__/Slug_replies.graphql.ts";
-import type { Slug_viewer$key } from "./__generated__/Slug_viewer.graphql.ts";
+import type { SlugPageQuery } from "~/__generated__/SlugPageQuery.graphql.ts";
+import type { Slug_articleHeader$key } from "~/__generated__/Slug_articleHeader.graphql.ts";
+import type { Slug_body$key } from "~/__generated__/Slug_body.graphql.ts";
+import type { Slug_head$key } from "~/__generated__/Slug_head.graphql.ts";
+import type { Slug_languageSwitcher$key } from "~/__generated__/Slug_languageSwitcher.graphql.ts";
+import type { Slug_replies$key } from "~/__generated__/Slug_replies.graphql.ts";
+import type { Slug_viewer$key } from "~/__generated__/Slug_viewer.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

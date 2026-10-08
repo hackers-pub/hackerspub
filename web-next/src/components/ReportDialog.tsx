@@ -23,7 +23,7 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import IconShieldAlert from "~icons/lucide/shield-alert";
-import type { ReportDialog_reportContent_Mutation } from "./__generated__/ReportDialog_reportContent_Mutation.graphql.ts";
+import type { ReportDialog_reportContent_Mutation } from "~/__generated__/ReportDialog_reportContent_Mutation.graphql.ts";
 
 const MIN_REASON_LENGTH = 10;
 const MAX_REASON_LENGTH = 4096;

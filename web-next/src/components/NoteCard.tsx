@@ -5,7 +5,7 @@ import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { MutedReplyPlaceholder } from "./MutedReplyPlaceholder.tsx";
 import { NoteCardInternal } from "./NoteCardInternal.tsx";
 import { PostSharer } from "./PostSharer.tsx";
-import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
+import { NoteCard_note$key } from "~/__generated__/NoteCard_note.graphql.ts";
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;

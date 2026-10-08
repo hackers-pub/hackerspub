@@ -27,8 +27,8 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { IdInvitationLinkPageQuery } from "./__generated__/IdInvitationLinkPageQuery.graphql.ts";
-import type { IdRedeemInvitationLinkMutation } from "./__generated__/IdRedeemInvitationLinkMutation.graphql.ts";
+import type { IdInvitationLinkPageQuery } from "~/__generated__/IdInvitationLinkPageQuery.graphql.ts";
+import type { IdRedeemInvitationLinkMutation } from "~/__generated__/IdRedeemInvitationLinkMutation.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

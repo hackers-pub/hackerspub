@@ -10,9 +10,9 @@ import IconShieldAlert from "~icons/lucide/shield-alert";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ModerationNotificationListMarkReadMutation } from "./__generated__/ModerationNotificationListMarkReadMutation.graphql.ts";
-import type { ModerationNotificationListUnreadCountQuery } from "./__generated__/ModerationNotificationListUnreadCountQuery.graphql.ts";
-import type { ModerationNotificationList_account$key } from "./__generated__/ModerationNotificationList_account.graphql.ts";
+import type { ModerationNotificationListMarkReadMutation } from "~/__generated__/ModerationNotificationListMarkReadMutation.graphql.ts";
+import type { ModerationNotificationListUnreadCountQuery } from "~/__generated__/ModerationNotificationListUnreadCountQuery.graphql.ts";
+import type { ModerationNotificationList_account$key } from "~/__generated__/ModerationNotificationList_account.graphql.ts";
 
 export interface ModerationNotificationListProps {
   $account: ModerationNotificationList_account$key;

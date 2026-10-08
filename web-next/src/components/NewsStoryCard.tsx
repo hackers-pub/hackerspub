@@ -14,8 +14,8 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
-import type { NewsStoryCard_story$key } from "./__generated__/NewsStoryCard_story.graphql.ts";
-import type { NewsStoryCard_setPenalty_Mutation } from "./__generated__/NewsStoryCard_setPenalty_Mutation.graphql.ts";
+import type { NewsStoryCard_story$key } from "~/__generated__/NewsStoryCard_story.graphql.ts";
+import type { NewsStoryCard_setPenalty_Mutation } from "~/__generated__/NewsStoryCard_setPenalty_Mutation.graphql.ts";
 
 const setPenaltyMutation = graphql`
   mutation NewsStoryCard_setPenalty_Mutation(

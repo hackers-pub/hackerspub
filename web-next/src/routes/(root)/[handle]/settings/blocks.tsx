@@ -3,7 +3,7 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
-import type { blocksPageQuery } from "./__generated__/blocksPageQuery.graphql.ts";
+import type { blocksPageQuery } from "~/__generated__/blocksPageQuery.graphql.ts";
 import { BlockedAccountsList } from "~/components/BlockedAccountsList.tsx";
 import { MutedAccountsList } from "~/components/MutedAccountsList.tsx";
 import { SettingsContainer } from "~/components/SettingsContainer.tsx";

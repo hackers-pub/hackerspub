@@ -24,11 +24,11 @@ import {
   type TranslationReviewState,
   translationReviewState,
 } from "~/lib/translationReview.ts";
-import type { ArticleTranslationManagerSaveMutation } from "./__generated__/ArticleTranslationManagerSaveMutation.graphql.ts";
-import type { ArticleTranslationManagerDeleteMutation } from "./__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
-import type { ArticleTranslationManagerPublishMutation } from "./__generated__/ArticleTranslationManagerPublishMutation.graphql.ts";
-import type { ArticleTranslationManagerAcknowledgeMutation } from "./__generated__/ArticleTranslationManagerAcknowledgeMutation.graphql.ts";
-import type { ArticleTranslationManagerWithdrawMutation } from "./__generated__/ArticleTranslationManagerWithdrawMutation.graphql.ts";
+import type { ArticleTranslationManagerSaveMutation } from "~/__generated__/ArticleTranslationManagerSaveMutation.graphql.ts";
+import type { ArticleTranslationManagerDeleteMutation } from "~/__generated__/ArticleTranslationManagerDeleteMutation.graphql.ts";
+import type { ArticleTranslationManagerPublishMutation } from "~/__generated__/ArticleTranslationManagerPublishMutation.graphql.ts";
+import type { ArticleTranslationManagerAcknowledgeMutation } from "~/__generated__/ArticleTranslationManagerAcknowledgeMutation.graphql.ts";
+import type { ArticleTranslationManagerWithdrawMutation } from "~/__generated__/ArticleTranslationManagerWithdrawMutation.graphql.ts";
 
 const SaveMutation = graphql`
   mutation ArticleTranslationManagerSaveMutation(

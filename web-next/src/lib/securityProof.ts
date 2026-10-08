@@ -4,7 +4,7 @@ import {
 } from "@simplewebauthn/browser";
 import { graphql } from "relay-runtime";
 import { runPrivateMutation } from "./privateMutation.ts";
-import type { securityProofOptionsMutation } from "./__generated__/securityProofOptionsMutation.graphql.ts";
+import type { securityProofOptionsMutation } from "~/__generated__/securityProofOptionsMutation.graphql.ts";
 
 const optionsMutation = graphql`
   mutation securityProofOptionsMutation($action: AccountSecurityAction!) {

@@ -12,7 +12,7 @@ import {
   MentionHoverCardLayer,
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
-import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
+import { NoteCardInternal_note$key } from "~/__generated__/NoteCardInternal_note.graphql.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ExpandableHtmlContent } from "./ExpandableHtmlContent.tsx";
 import { LinkPreview } from "./LinkPreview.tsx";

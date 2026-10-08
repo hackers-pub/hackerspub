@@ -24,8 +24,8 @@ import {
 import type {
   sharesNoteEngagementQuery,
   sharesNoteEngagementQuery$data,
-} from "./__generated__/sharesNoteEngagementQuery.graphql.ts";
-import type { sharesNoteEngagement_post$key } from "./__generated__/sharesNoteEngagement_post.graphql.ts";
+} from "~/__generated__/sharesNoteEngagementQuery.graphql.ts";
+import type { sharesNoteEngagement_post$key } from "~/__generated__/sharesNoteEngagement_post.graphql.ts";
 
 const SHARES_QUERY_KEY = "loadSharesQuery";
 

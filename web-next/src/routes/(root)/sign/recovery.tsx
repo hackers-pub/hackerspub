@@ -20,9 +20,9 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { runPrivateMutation } from "~/lib/privateMutation.ts";
-import type { recoveryLoginMutation } from "./__generated__/recoveryLoginMutation.graphql.ts";
-import type { recoveryGetOptionsMutation } from "./__generated__/recoveryGetOptionsMutation.graphql.ts";
-import type { recoveryRegisterMutation } from "./__generated__/recoveryRegisterMutation.graphql.ts";
+import type { recoveryLoginMutation } from "~/__generated__/recoveryLoginMutation.graphql.ts";
+import type { recoveryGetOptionsMutation } from "~/__generated__/recoveryGetOptionsMutation.graphql.ts";
+import type { recoveryRegisterMutation } from "~/__generated__/recoveryRegisterMutation.graphql.ts";
 
 const loginMutation = graphql`
   mutation recoveryLoginMutation($username: String!, $code: String!) {

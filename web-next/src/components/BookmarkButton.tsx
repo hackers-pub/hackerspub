@@ -4,9 +4,9 @@ import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { BookmarkButton_bookmarkPost_Mutation } from "./__generated__/BookmarkButton_bookmarkPost_Mutation.graphql.ts";
-import type { BookmarkButton_post$key } from "./__generated__/BookmarkButton_post.graphql.ts";
-import type { BookmarkButton_unbookmarkPost_Mutation } from "./__generated__/BookmarkButton_unbookmarkPost_Mutation.graphql.ts";
+import type { BookmarkButton_bookmarkPost_Mutation } from "~/__generated__/BookmarkButton_bookmarkPost_Mutation.graphql.ts";
+import type { BookmarkButton_post$key } from "~/__generated__/BookmarkButton_post.graphql.ts";
+import type { BookmarkButton_unbookmarkPost_Mutation } from "~/__generated__/BookmarkButton_unbookmarkPost_Mutation.graphql.ts";
 
 export interface BookmarkButtonProps {
   $post: BookmarkButton_post$key;

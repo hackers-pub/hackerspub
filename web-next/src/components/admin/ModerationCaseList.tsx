@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import type { ModerationCaseList_query$key } from "./__generated__/ModerationCaseList_query.graphql.ts";
+import type { ModerationCaseList_query$key } from "~/__generated__/ModerationCaseList_query.graphql.ts";
 
 /** Cases at or above this report count are highlighted as high priority. */
 export const HIGH_PRIORITY_REPORT_COUNT = 5;

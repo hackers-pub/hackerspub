@@ -34,8 +34,8 @@ import IconVolumeX from "~icons/lucide/volume-x";
 import type {
   QuotedNoteCard_post$data,
   QuotedNoteCard_post$key,
-} from "./__generated__/QuotedNoteCard_post.graphql.ts";
-import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
+} from "~/__generated__/QuotedNoteCard_post.graphql.ts";
+import type { QuotedNoteCardRevokeQuoteMutation } from "~/__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
 
 const RevokeQuoteMutation = graphql`
   mutation QuotedNoteCardRevokeQuoteMutation(

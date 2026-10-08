@@ -36,12 +36,12 @@ import {
   releaseProfileContentGate,
   revalidateProfileContent,
 } from "~/lib/profileContentQueries.ts";
-import type { ProfileActionMenu_actor$key } from "./__generated__/ProfileActionMenu_actor.graphql.ts";
-import type { ProfileActionMenu_blockActor_Mutation } from "./__generated__/ProfileActionMenu_blockActor_Mutation.graphql.ts";
-import type { ProfileActionMenu_muteActor_Mutation } from "./__generated__/ProfileActionMenu_muteActor_Mutation.graphql.ts";
-import type { ProfileActionMenu_removeFollower_Mutation } from "./__generated__/ProfileActionMenu_removeFollower_Mutation.graphql.ts";
-import type { ProfileActionMenu_unblockActor_Mutation } from "./__generated__/ProfileActionMenu_unblockActor_Mutation.graphql.ts";
-import type { ProfileActionMenu_unmuteActor_Mutation } from "./__generated__/ProfileActionMenu_unmuteActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_actor$key } from "~/__generated__/ProfileActionMenu_actor.graphql.ts";
+import type { ProfileActionMenu_blockActor_Mutation } from "~/__generated__/ProfileActionMenu_blockActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_muteActor_Mutation } from "~/__generated__/ProfileActionMenu_muteActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_removeFollower_Mutation } from "~/__generated__/ProfileActionMenu_removeFollower_Mutation.graphql.ts";
+import type { ProfileActionMenu_unblockActor_Mutation } from "~/__generated__/ProfileActionMenu_unblockActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_unmuteActor_Mutation } from "~/__generated__/ProfileActionMenu_unmuteActor_Mutation.graphql.ts";
 
 export interface ProfileActionMenuProps {
   $actor: ProfileActionMenu_actor$key;

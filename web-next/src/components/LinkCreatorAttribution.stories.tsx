@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { RelayEnvironmentProvider } from "solid-relay";
 import type { Meta, StoryObj } from "storybook-solidjs-vite";
-import type { LinkCreatorAttributionStoriesQuery } from "./__generated__/LinkCreatorAttributionStoriesQuery.graphql.ts";
+import type { LinkCreatorAttributionStoriesQuery } from "~/__generated__/LinkCreatorAttributionStoriesQuery.graphql.ts";
 import { LinkCreatorAttribution } from "./LinkCreatorAttribution.tsx";
 import {
   type ActorStoryArgs,

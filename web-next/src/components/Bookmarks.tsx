@@ -15,7 +15,7 @@ import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   Bookmarks_posts$data,
   Bookmarks_posts$key,
-} from "./__generated__/Bookmarks_posts.graphql.ts";
+} from "~/__generated__/Bookmarks_posts.graphql.ts";
 
 export type BookmarkPostType = "ARTICLE" | "NOTE" | null;
 

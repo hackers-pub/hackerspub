@@ -19,7 +19,7 @@ import {
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
-import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
+import type { localTimelineQuery } from "~/__generated__/localTimelineQuery.graphql.ts";
 
 const localTimelineQuery = graphql`
   query localTimelineQuery(
