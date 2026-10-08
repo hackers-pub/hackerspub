@@ -1,4 +1,4 @@
-import { count, countDistinct, gt, sql } from "drizzle-orm";
+import { count, sql } from "drizzle-orm";
 import {
   accountTable,
   articleSourceTable,
@@ -7,55 +7,29 @@ import {
 import { builder } from "./builder.ts";
 import metadata from "./package.json" with { type: "json" };
 
-function firstCount<K extends string>(
-  rows: { [P in K]: number }[],
-  key: K,
-): number {
-  return rows[0]?.[key] ?? 0;
-}
-
 builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
   const { db } = ctx.data;
-  const total = firstCount(
-    await db.select({ total: count() }).from(accountTable),
-    "total",
-  );
-  const activeMonth = firstCount(
-    await db
-      .select({
-        activeMonth: countDistinct(articleSourceTable.accountId),
-      })
-      .from(articleSourceTable)
-      .where(
-        gt(
-          articleSourceTable.published,
-          sql`CURRENT_TIMESTAMP - INTERVAL '1 month'`,
-        ),
+  // Reuse one article scan for all three aggregates and return the other
+  // table counts in the same statement and database snapshot.
+  const [usage] = await db
+    .select({
+      total: sql<number>`(SELECT count(*) FROM ${accountTable})`.mapWith(
+        Number,
       ),
-    "activeMonth",
-  );
-  const activeHalfyear = firstCount(
-    await db
-      .select({
-        activeHalfyear: countDistinct(articleSourceTable.accountId),
-      })
-      .from(articleSourceTable)
-      .where(
-        gt(
-          articleSourceTable.published,
-          sql`CURRENT_TIMESTAMP - INTERVAL '6 months'`,
-        ),
+      activeMonth: sql<number>`count(DISTINCT ${articleSourceTable.accountId})
+        FILTER (WHERE ${articleSourceTable.published} > CURRENT_TIMESTAMP - INTERVAL '1 month')`.mapWith(
+        Number,
       ),
-    "activeHalfyear",
-  );
-  const localArticles = firstCount(
-    await db.select({ localArticles: count() }).from(articleSourceTable),
-    "localArticles",
-  );
-  const localNotes = firstCount(
-    await db.select({ localNotes: count() }).from(noteSourceTable),
-    "localNotes",
-  );
+      activeHalfyear:
+        sql<number>`count(DISTINCT ${articleSourceTable.accountId})
+        FILTER (WHERE ${articleSourceTable.published} > CURRENT_TIMESTAMP - INTERVAL '6 months')`.mapWith(
+          Number,
+        ),
+      localArticles: count(),
+      localNotes:
+        sql<number>`(SELECT count(*) FROM ${noteSourceTable})`.mapWith(Number),
+    })
+    .from(articleSourceTable);
   return {
     software: {
       name: "hackerspub",
@@ -70,12 +44,12 @@ builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
     },
     usage: {
       users: {
-        total,
-        activeMonth,
-        activeHalfyear,
+        total: usage.total,
+        activeMonth: usage.activeMonth,
+        activeHalfyear: usage.activeHalfyear,
       },
       localComments: 0, // TODO
-      localPosts: localArticles + localNotes,
+      localPosts: usage.localArticles + usage.localNotes,
     },
   };
 });
