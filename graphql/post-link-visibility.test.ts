@@ -19,9 +19,79 @@ interface QueryPlan {
   "Relation Name"?: string;
   "Actual Rows"?: number;
   "Rows Removed by Filter"?: number;
+  "Rows Removed by Index Recheck"?: number;
   "Actual Loops"?: number;
   Plans?: QueryPlan[];
 }
+
+function inspectedPostUpperBound(plan: QueryPlan): number {
+  let rows = 0;
+  const loops = plan["Actual Loops"] ?? 0;
+  if (plan["Relation Name"] === "post" && loops > 0) {
+    const counts = [
+      plan["Actual Rows"] ?? 0,
+      plan["Rows Removed by Filter"] ?? 0,
+      plan["Rows Removed by Index Recheck"] ?? 0,
+    ];
+    // PostgreSQL 16/17 round per-loop averages to integers. One row across
+    // two loops can therefore report zero. Bound each count conservatively
+    // instead of treating the rounded values as exact totals.
+    rows = Math.ceil(
+      counts.reduce(
+        (total, count) => total + count + (loops > 1 ? 0.5 : 0),
+        0,
+      ) * loops,
+    );
+  }
+  return (
+    rows +
+    (plan.Plans ?? []).reduce(
+      (total, child) => total + inspectedPostUpperBound(child),
+      0,
+    )
+  );
+}
+
+test("PostLink plan accounting bounds rounded per-loop row counts", () => {
+  assert.equal(
+    inspectedPostUpperBound({
+      "Relation Name": "post",
+      "Actual Rows": 0,
+      "Actual Loops": 2,
+    }),
+    3,
+  );
+  assert.equal(
+    inspectedPostUpperBound({
+      "Relation Name": "post",
+      "Actual Rows": 4001,
+      "Actual Loops": 1,
+    }),
+    4001,
+  );
+  assert.equal(
+    inspectedPostUpperBound({
+      "Relation Name": "post",
+      "Actual Rows": 0,
+      "Actual Loops": 0,
+    }),
+    0,
+  );
+  assert.equal(
+    inspectedPostUpperBound({
+      Plans: [
+        {
+          "Relation Name": "post",
+          "Actual Rows": 1,
+          "Rows Removed by Filter": 4,
+          "Rows Removed by Index Recheck": 2,
+          "Actual Loops": 1,
+        },
+      ],
+    }),
+    7,
+  );
+});
 
 test("PostLink visibility stops after finding a visible referencing post", async (t) => {
   await withRollback(async (tx) => {
@@ -122,23 +192,14 @@ test("PostLink visibility stops after finding a visible referencing post", async
       const plan = (
         rows[0]["QUERY PLAN"] as unknown as { Plan: QueryPlan }[]
       )[0].Plan;
-      const walk = (node: QueryPlan): void => {
-        if (node["Relation Name"] === "post") {
-          inspectedPosts +=
-            ((node["Actual Rows"] ?? 0) +
-              (node["Rows Removed by Filter"] ?? 0)) *
-            (node["Actual Loops"] ?? 0);
-        }
-        for (const child of node.Plans ?? []) walk(child);
-      };
-      walk(plan);
+      inspectedPosts += inspectedPostUpperBound(plan);
     }
     t.diagnostic(
-      `Link visibility inspected ${inspectedPosts} referencing posts`,
+      `Link visibility inspected at most ${inspectedPosts} referencing posts`,
     );
     assert.ok(
       inspectedPosts > 0 && inspectedPosts <= 32,
-      `Visibility inspected ${inspectedPosts} referencing posts`,
+      `Visibility inspected at most ${inspectedPosts} referencing posts`,
     );
   });
 });
