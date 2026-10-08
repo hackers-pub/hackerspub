@@ -1,14 +1,89 @@
 import assert from "node:assert";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import { eq } from "drizzle-orm";
+import { execute, parse } from "graphql";
+import { postTable } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { createYogaServer } from "./mod.ts";
+import { createYogaServer, schema } from "./mod.ts";
 import {
   insertAccountWithActor,
+  insertNotePost,
   makeGuestContext,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
+
+const postNodeQuery = parse(`
+  query PostNode($id: ID!) {
+    node(id: $id) { id }
+  }
+`);
+
+test("node still reports database errors while loading posts", async () => {
+  await withRollback(async (tx) => {
+    const result = await execute({
+      schema,
+      document: postNodeQuery,
+      variableValues: { id: encodeGlobalID("Note", "not-a-uuid") },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok(result.errors?.length);
+    assert.match(result.errors[0].message, /Failed query:/);
+    assert.equal(result.data?.node, null);
+  });
+});
+
+for (const typename of ["Note", "Article", "Question"]) {
+  test(`node returns null for a missing ${typename}`, async () => {
+    await withRollback(async (tx) => {
+      const result = await execute({
+        schema,
+        document: postNodeQuery,
+        variableValues: { id: encodeGlobalID(typename, generateUuidV7()) },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(result.errors, undefined);
+      assert.equal(result.data?.node, null);
+    });
+  });
+}
+
+test("node returns null after a previously visible post is deleted", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "deletednode",
+      name: "Deleted Node",
+      email: "deletednode@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: author.account });
+    const variables = { id: encodeGlobalID("Note", post.id) };
+    const visible = await execute({
+      schema,
+      document: postNodeQuery,
+      variableValues: variables,
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(visible.errors, undefined);
+    assert.ok(visible.data?.node);
+    assert.equal((visible.data.node as { id: string }).id, variables.id);
+
+    await tx.delete(postTable).where(eq(postTable.id, post.id));
+    const deleted = await execute({
+      schema,
+      document: postNodeQuery,
+      variableValues: variables,
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(deleted.errors, undefined);
+    assert.equal(deleted.data?.node, null);
+  });
+});
 
 const quotesNoteEngagementQueryPath = new URL(
   "../web-next/src/__generated__/quotesNoteEngagementQuery.graphql.ts",

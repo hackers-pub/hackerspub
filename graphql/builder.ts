@@ -64,6 +64,7 @@ import type {
 } from "@hackerspub/models/schema";
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
+import { resolvePostNode } from "./node.ts";
 
 export type ValuesOfEnumType<T> =
   T extends PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
@@ -310,6 +311,22 @@ export const builder = new SchemaBuilder<PothosTypes>({
     }),
   },
   relay: {
+    nodeQueryOptions: {
+      description:
+        "Look up a node using its opaque global ID. Returns `null` for a post that has been deleted; other loading failures are reported as errors.",
+      args: {
+        id: {
+          description:
+            "The opaque global `ID` returned by a node's `id` field, not its database UUID or ActivityPub IRI.",
+        },
+      },
+      resolve: (_parent, args, _ctx, info, load) =>
+        resolvePostNode(
+          args.id.id,
+          info.schema.getType(args.id.typename)?.extensions.pothosDrizzleModel,
+          () => load(args.id),
+        ),
+    },
     clientMutationId: "optional",
     clientMutationIdInputOptions: {
       description:

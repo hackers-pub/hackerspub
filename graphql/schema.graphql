@@ -6782,7 +6782,16 @@ type Query {
     """
     id: UUID!
   ): PostLink
-  node(id: ID!): Node
+
+  """
+  Look up a node using its opaque global ID. Returns `null` for a post that has been deleted; other loading failures are reported as errors.
+  """
+  node(
+    """
+    The opaque global `ID` returned by a node's `id` field, not its database UUID or ActivityPub IRI.
+    """
+    id: ID!
+  ): Node
   nodes(ids: [ID!]!): [Node]!
 
   """
