@@ -1,6 +1,10 @@
 import assert from "node:assert";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import test from "node:test";
 import * as vocab from "@fedify/vocab";
+import { eq } from "drizzle-orm";
+import ffmpeg from "fluent-ffmpeg";
 import sharp from "sharp";
 import {
   createMediumFromBytes,
@@ -8,6 +12,7 @@ import {
   persistPostMedium,
   UnsafeMediumUrlError,
 } from "./medium.ts";
+import { postTable } from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -201,6 +206,107 @@ test("persistPostMedium() stores image attachments and infers media type from co
         assert.equal(medium.alt, "Alt text");
         assert.equal(medium.width, 640);
         assert.equal(medium.height, 480);
+      },
+    );
+  });
+});
+
+test("persistPostMedium() ignores an attachment when its post disappears during fetch", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "deletedmediaowner",
+      name: "Deleted Media Owner",
+      email: "deletedmediaowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Deleted while downloading its attachment",
+    });
+    await withMockFetch(
+      async () => {
+        await tx.delete(postTable).where(eq(postTable.id, post.id));
+        return new Response(new Uint8Array([1, 2, 3]), {
+          headers: { "Content-Type": "image/png" },
+        });
+      },
+      async () => {
+        assert.equal(
+          await persistPostMedium(
+            fedCtx,
+            new vocab.Image({
+              url: new URL("https://remote.example/deleted.png"),
+            }),
+            post.id,
+            0,
+          ),
+          undefined,
+        );
+        assert.equal(
+          await tx.query.postMediumTable.findFirst({
+            where: { postId: post.id },
+          }),
+          undefined,
+        );
+      },
+    );
+  });
+});
+
+test("persistPostMedium() removes an unused video thumbnail after post deletion", async (t) => {
+  t.mock.method(
+    Object.getPrototypeOf(ffmpeg()) as ffmpeg.FfmpegCommand,
+    "screenshots",
+    function (this: ffmpeg.FfmpegCommand, options: ffmpeg.ScreenshotsConfig) {
+      assert.ok(options.folder != null && options.filename != null);
+      void writeFile(
+        join(options.folder, options.filename),
+        new Uint8Array([1]),
+      )
+        .then(() => this.emit("end"))
+        .catch((error: unknown) => this.emit("error", error));
+      return this;
+    },
+  );
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "deletedvideoowner",
+      name: "Deleted Video Owner",
+      email: "deletedvideoowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Deleted while downloading its video",
+    });
+    const puts = t.mock.method(fedCtx.storage, "put");
+    const deletes = t.mock.method(fedCtx.storage, "delete");
+    await withMockFetch(
+      async () => {
+        await tx.delete(postTable).where(eq(postTable.id, post.id));
+        return new Response(new Uint8Array([1]), {
+          headers: { "Content-Type": "video/mp4" },
+        });
+      },
+      async () => {
+        assert.equal(
+          await persistPostMedium(
+            fedCtx,
+            new vocab.Video({
+              url: new URL("https://remote.example/deleted.mp4"),
+              width: 640,
+              height: 480,
+            }),
+            post.id,
+            0,
+          ),
+          undefined,
+        );
+        assert.equal(puts.mock.callCount(), 1);
+        assert.equal(deletes.mock.callCount(), 1);
+        const key = puts.mock.calls[0].arguments[0];
+        assert.equal(deletes.mock.calls[0].arguments[0], key);
+        await assert.rejects(async () => fedCtx.storage.getBytes(key));
       },
     );
   });

@@ -27,6 +27,7 @@ export interface StorageService {
   ): Promise<void>;
   getUrl(key: string): Promise<string>;
   getBytes(key: string): Promise<Uint8Array>;
+  delete(key: string): Promise<void>;
 }
 
 /** Opaque AI model handle interpreted only by the configured AI adapter. */

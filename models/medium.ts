@@ -8,12 +8,13 @@ import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
+import { eq } from "drizzle-orm";
 import ffmpeg from "fluent-ffmpeg";
 import type { StorageService } from "./context.ts";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { ApplicationContext } from "./context.ts";
-import type { Database } from "./db.ts";
+import { type Database, runInTransaction } from "./db.ts";
 import metadata from "./package.json" with { type: "json" };
 import {
   isPostMediumType,
@@ -25,6 +26,7 @@ import {
   type PostMedium,
   postMediumTable,
   type PostMediumType,
+  postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
@@ -481,13 +483,34 @@ export async function persistPostMedium(
     thumbnailKey,
     sensitive: document.sensitive ?? false,
   } satisfies NewPostMedium;
-  const result = await fedCtx.db
-    .insert(postMediumTable)
-    .values(values)
-    .onConflictDoUpdate({
-      target: [postMediumTable.postId, postMediumTable.index],
-      set: values,
-    })
-    .returning();
-  return result.length > 0 ? result[0] : undefined;
+  const medium = await runInTransaction(fedCtx.db, async (tx) => {
+    // Downloads can outlive the post. Lock only after network and media work
+    // finishes, then keep a concurrent deletion from racing the FK check.
+    const posts = await tx
+      .select({ id: postTable.id })
+      .from(postTable)
+      .where(eq(postTable.id, postId))
+      .for("key share");
+    if (posts.length === 0) return undefined;
+    const result = await tx
+      .insert(postMediumTable)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [postMediumTable.postId, postMediumTable.index],
+        set: values,
+      })
+      .returning();
+    return result.length > 0 ? result[0] : undefined;
+  });
+  if (medium == null && thumbnailKey != null) {
+    try {
+      await fedCtx.storage.delete(thumbnailKey);
+    } catch (error) {
+      logger.warn("Failed to remove unused thumbnail {key}: {error}", {
+        key: thumbnailKey,
+        error,
+      });
+    }
+  }
+  return medium;
 }
