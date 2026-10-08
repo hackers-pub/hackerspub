@@ -231,15 +231,17 @@ export function createYogaServer(): YogaServerInstance<
       // used.  Must come after the NO_PROPAGATE wrapper above so the
       // transaction layers on top of the configured executeFn.
       useQuerySnapshotTransaction(),
-      // Capture unhandled resolver exceptions in Sentry. Yoga otherwise
+      // Capture unhandled resolver and execution-wrapper exceptions in Sentry.
+      // The latter include snapshot transaction failures. Yoga otherwise
       // catches throws and folds them into the response `errors[]`, so
       // they never bubble up to the HTTP boundary where the SDK's default
       // integrations would see them. Pothos's ErrorsPlugin-handled errors
       // (declared `errors.types`) are already converted to result unions
       // before this point, so they don't show up as `errors[]` either.
-      // The plugin's default `skipError` (`isOriginalGraphQLError`) skips
+      // The plugin's `isOriginalGraphQLError` check skips
       // intentionally-thrown GraphQLErrors (validation, not-found, …) and
       // only reports errors whose `originalError` is a real exception.
+      // Pothos authorization and input validation failures are also excluded.
       ...(sentryEnabled ? [useSentry()] : []),
     ],
   });

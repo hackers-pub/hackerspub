@@ -3,11 +3,14 @@ import {
   handleStreamOrSingleExecutionResult,
   isOriginalGraphQLError,
 } from "@envelop/core";
+import { getLogger } from "@logtape/logtape";
 import { PothosValidationError } from "@pothos/core";
 import { ForbiddenError } from "@pothos/plugin-scope-auth";
 import * as Sentry from "@sentry/node";
-import { getOperationAST, print, type GraphQLError } from "graphql";
+import { getOperationAST, GraphQLError, print } from "graphql";
 import type { Plugin } from "graphql-yoga";
+
+const logger = getLogger(["hackerspub", "graphql", "sentry-plugin"]);
 
 interface SentrySpan {
   setAttribute(name: string, value: unknown): void;
@@ -93,7 +96,51 @@ export function useSentry(
         (rootSpan) => {
           rootSpan.setAttribute("document", document);
           setExecuteFn((executeArgs) =>
-            sentry.withActiveSpan(rootSpan, () => executeFn(executeArgs)),
+            sentry.withActiveSpan(rootSpan, async () => {
+              try {
+                return await executeFn(executeArgs);
+              } catch (error) {
+                // Envelop skips onExecuteDone when an execution wrapper
+                // throws, including snapshot transaction failures.
+                const originalError =
+                  error instanceof GraphQLError
+                    ? (error.originalError ?? error)
+                    : error;
+                try {
+                  if (
+                    !isOriginalGraphQLError(error) &&
+                    !(originalError instanceof ForbiddenError) &&
+                    !(originalError instanceof PothosValidationError)
+                  ) {
+                    sentry.withScope((scope) => {
+                      scope.setTransactionName(operationName);
+                      scope.setTag("operation", operationType);
+                      scope.setTag("operationName", operationName);
+                      scope.setExtra("document", document);
+                      sentry.captureException(originalError, {
+                        fingerprint: [
+                          "graphql",
+                          "$execute",
+                          operationName,
+                          operationType,
+                        ],
+                        contexts: {
+                          GraphQL: { operationName, operationType },
+                        },
+                      });
+                    });
+                  }
+                } catch (reportingError) {
+                  logger.warn(
+                    "Failed to report GraphQL execution failure: {reportingError}",
+                    { reportingError, operationName, operationType },
+                  );
+                } finally {
+                  rootSpan.end();
+                }
+                throw error;
+              }
+            }),
           );
           return {
             onExecuteDone(payload) {

@@ -29,7 +29,7 @@ const MAX_LANGUAGE_FILTERS = 20;
 // `GraphQLError` so Yoga doesn't fold it into a generic
 // "Unexpected error." (which obscures the cause and forces clients to
 // pattern-match on a message they can't trust) and so `useSentry()`'s
-// default `isOriginalGraphQLError` skipError filter doesn't report it
+// `isOriginalGraphQLError` check doesn't report it
 // as an unhandled exception. The `AUTHENTICATION_REQUIRED` extension
 // code lets clients filter these out of their own Sentry captures
 // without string-matching the message.
