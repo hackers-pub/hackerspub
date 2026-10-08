@@ -41,8 +41,12 @@ export function getCompleteActingAccount(
 }
 
 export function getCompleteActingOrganizations(
-  memberships: readonly (OrganizationMembershipSnapshot | null | undefined)[],
+  memberships:
+    | readonly (OrganizationMembershipSnapshot | null | undefined)[]
+    | null
+    | undefined,
 ): readonly ActingOrganizationMembership[] | null {
+  if (memberships == null) return null;
   const organizations: ActingOrganizationMembership[] = [];
   for (const membership of memberships) {
     const organization = membership?.organization;

@@ -100,7 +100,7 @@ function AuthenticatedWithoutSharesFeedTimeline() {
           <Show keyed when={d.viewer}>
             {(viewer) => (
               <FollowRecommendations
-                followeesCount={viewer.actor.followees.totalCount}
+                followeesCount={viewer.actor?.followees?.totalCount}
                 postCount={viewer.postCount}
               />
             )}

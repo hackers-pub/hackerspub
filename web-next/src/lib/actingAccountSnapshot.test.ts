@@ -34,6 +34,9 @@ test("getCompleteActingAccount() copies a complete account", () => {
 });
 
 test("getCompleteActingOrganizations() rejects incomplete Relay snapshots", () => {
+  assert.equal(getCompleteActingOrganizations(undefined), null);
+  assert.equal(getCompleteActingOrganizations(null), null);
+  assert.deepEqual(getCompleteActingOrganizations([]), []);
   assert.equal(
     getCompleteActingOrganizations([
       {

@@ -98,7 +98,7 @@ export default function LocalTimeline() {
                 <>
                   <TimelineNoteComposer />
                   <FollowRecommendations
-                    followeesCount={viewer.actor.followees.totalCount}
+                    followeesCount={viewer.actor?.followees?.totalCount}
                     postCount={viewer.postCount}
                   />
                 </>

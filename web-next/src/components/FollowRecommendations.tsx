@@ -27,7 +27,7 @@ const BATCH_SIZE = 50;
 const MAX_VISIBLE = 5;
 
 export interface FollowRecommendationsProps {
-  followeesCount: number;
+  followeesCount: number | undefined;
   postCount?: number | null;
 }
 
@@ -244,6 +244,7 @@ export function FollowRecommendations(props: FollowRecommendationsProps) {
   });
 
   const eligible = () =>
+    props.followeesCount != null &&
     shouldShowFollowRecommendations(props.followeesCount, props.postCount ?? 0);
 
   return (
