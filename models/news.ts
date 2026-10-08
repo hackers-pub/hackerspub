@@ -844,35 +844,13 @@ async function zeroStaleLinks(
   db: Database,
   scope: RecomputeScope,
 ): Promise<void> {
+  // UNION has to prepare both share branches before yielding a link id,
+  // even when one public share already proves the link should stay scored.
+  // CASE checks direct shares first; OFFSET 0 keeps the probes correlated
+  // instead of letting the planner hash every qualifying share up front.
   await db.execute(sql`
     with target_links as (
       ${staleTargetLinks(scope)}
-    ),
-    qualifying_links as (
-      select p.link_id as link_id
-      from target_links tl
-      join post p on p.link_id = tl.id
-      join actor a on a.id = p.actor_id
-      where p.visibility in ('public', 'unlisted')
-        and p.censored is null
-        and p.shared_post_id is null
-        and ${qualifyingSharerCondition}
-        and ${sanctionVisibleActorCondition("a")}
-      union
-      select original.link_id as link_id
-      from target_links tl
-      join post original on original.link_id = tl.id
-      join actor oa on oa.id = original.actor_id
-      join post p on p.shared_post_id = original.id
-      join actor a on a.id = p.actor_id
-      where original.type = 'Article'
-        and original.visibility in ('public', 'unlisted')
-        and original.censored is null
-        and ${sanctionVisibleActorCondition("oa")}
-        and p.visibility in ('public', 'unlisted')
-        and p.censored is null
-        and ${qualifyingSharerCondition}
-        and ${sanctionVisibleActorCondition("a")}
     )
     update post_link pl set
       score = 0,
@@ -886,11 +864,34 @@ async function zeroStaleLinks(
     from target_links tl
     where pl.id = tl.id
       and pl.latest_activity is not null
-      and not exists (
+      and case when exists (
         select 1
-        from qualifying_links q
-        where q.link_id = pl.id
-      )
+        from post p
+        join actor a on a.id = p.actor_id
+        where p.link_id = pl.id
+          and p.visibility in ('public', 'unlisted')
+          and p.censored is null
+          and p.shared_post_id is null
+          and ${qualifyingSharerCondition}
+          and ${sanctionVisibleActorCondition("a")}
+        offset 0
+      ) then false else not exists (
+        select 1
+        from post original
+        join actor oa on oa.id = original.actor_id
+        join post p on p.shared_post_id = original.id
+        join actor a on a.id = p.actor_id
+        where original.link_id = pl.id
+          and original.type = 'Article'
+          and original.visibility in ('public', 'unlisted')
+          and original.censored is null
+          and ${sanctionVisibleActorCondition("oa")}
+          and p.visibility in ('public', 'unlisted')
+          and p.censored is null
+          and ${qualifyingSharerCondition}
+          and ${sanctionVisibleActorCondition("a")}
+        offset 0
+      ) end
   `);
 }
 

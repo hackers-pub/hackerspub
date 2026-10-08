@@ -46,7 +46,7 @@ import {
   newsRescoreQueueTable,
   postTable,
 } from "./schema.ts";
-import type { Uuid } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -952,6 +952,52 @@ test("recomputeNewsScores counts boosts of Article news posts", async () => {
       remote: 0,
       bluesky: 0,
     });
+  });
+});
+
+test("recomputeNewsScores keeps bot-authored Articles boosted by a human", async () => {
+  await withRollback(async (tx) => {
+    const human = await insertAccountWithActor(tx, {
+      username: "boostonly",
+      name: "Boost Only",
+      email: "boostonly@example.com",
+    });
+    const bot = await insertRemoteActor(tx, {
+      username: "articlebot",
+      name: "Article Bot",
+      host: "bots.example",
+      type: "Service",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/boost-only",
+    });
+    const { post: article } = await insertNotePost(tx, {
+      account: human.account,
+      actorId: bot.id,
+      published: new Date("2026-05-10T00:00:00.000Z"),
+      link: { id: link.id, url: link.url },
+    });
+    await tx
+      .update(postTable)
+      .set({ type: "Article", noteSourceId: null, name: "Bot Article" })
+      .where(eq(postTable.id, article.id));
+    const published = new Date("2026-05-11T00:00:00.000Z");
+    await insertNotePost(tx, {
+      account: human.account,
+      sharedPostId: article.id,
+      published,
+    });
+
+    for (const options of [
+      { linkIds: [link.id] },
+      { activeSince: article.published },
+    ]) {
+      await recomputeNewsScores(tx, options);
+      const row = await readLink(tx, link.id);
+      assert.equal(row.postCount, 1);
+      assert.equal(row.latestActivity?.getTime(), published.getTime());
+      assertAlmostEquals(row.weightedMass, NEWS_W_SHARE, 0.000001);
+    }
   });
 });
 
@@ -2500,5 +2546,82 @@ test("enqueueNewsRescore marks an already-queued actor dirty", async () => {
       .where(eq(newsRescoreQueueTable.actorId, actor.actor.id));
     assert.deepEqual(rows.length, 1);
     assert.deepEqual(rows[0].dirty, true);
+  });
+});
+
+interface ExecutionPlan {
+  "Relation Name"?: string;
+  "Actual Rows"?: number;
+  "Rows Removed by Filter"?: number;
+  "Actual Loops"?: number;
+  Plans?: ExecutionPlan[];
+}
+
+test("recomputeNewsScores stops stale checks after finding a public share", async (t) => {
+  await withRollback(async (tx) => {
+    const sharer = await insertAccountWithActor(tx, {
+      username: "newsplan",
+      name: "News plan",
+      email: "newsplan@example.com",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/news-plan",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: sharer.account,
+      link: { id: link.id, url: link.url },
+    });
+    await recomputeNewsScores(tx, { linkIds: [link.id] });
+    const rows = Array.from({ length: 2000 }, () => {
+      const id = generateUuidV7();
+      return {
+        ...post,
+        id,
+        noteSourceId: null,
+        iri: `https://example.com/posts/${id}`,
+        url: `https://example.com/posts/${id}`,
+      };
+    });
+    await tx.insert(postTable).values(rows);
+    const originalExecute = tx.execute.bind(tx);
+    let measured = 0;
+    t.mock.method(
+      tx,
+      "execute",
+      async (query: Parameters<typeof tx.execute>[0]) => {
+        if (!sqlText(query).includes("weighted_mass = 0"))
+          return await originalExecute(query);
+        measured++;
+        const result = await originalExecute(
+          sql`explain (analyze, format json) ${query}`,
+        );
+        const plan = (
+          result[0]["QUERY PLAN"] as unknown as { Plan: ExecutionPlan }[]
+        )[0];
+        let inspectedPosts = 0;
+        const walk = (node: ExecutionPlan): void => {
+          if (node["Relation Name"] === "post") {
+            inspectedPosts +=
+              ((node["Actual Rows"] ?? 0) +
+                (node["Rows Removed by Filter"] ?? 0)) *
+              (node["Actual Loops"] ?? 0);
+          }
+          for (const child of node.Plans ?? []) walk(child);
+        };
+        walk(plan.Plan);
+        assert.ok(
+          inspectedPosts <= 32,
+          `A live link should stop checking shares early, but inspected ${inspectedPosts} posts`,
+        );
+        return [];
+      },
+    );
+    await recomputeNewsScores(tx, { linkIds: [link.id] });
+    await recomputeNewsScores(tx, { activeSince: post.published });
+    const actual = await tx.query.postLinkTable.findFirst({
+      where: { id: link.id },
+    });
+    assert.equal(measured, 2);
+    assert.equal(actual?.postCount, 2001);
   });
 });
