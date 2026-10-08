@@ -206,34 +206,73 @@ export async function persistPoll(
   const existingOptions = await db.query.pollOptionTable.findMany({
     where: { postId },
   });
-  for (const existing of existingOptions) {
-    const newIndex = newOptionTitles.get(existing.title);
-    if (newIndex == null || newIndex !== existing.index) {
-      await db
-        .delete(pollVoteTable)
-        .where(
-          and(
-            eq(pollVoteTable.postId, postId),
-            eq(pollVoteTable.optionIndex, existing.index),
-          ),
-        );
-      await db
-        .delete(pollOptionTable)
-        .where(
-          and(
-            eq(pollOptionTable.postId, postId),
-            eq(pollOptionTable.index, existing.index),
-          ),
-        );
-    }
+  const removedIndexes = existingOptions
+    .filter((existing) => {
+      const newIndex = newOptionTitles.get(existing.title);
+      return newIndex == null || newIndex !== existing.index;
+    })
+    .map((existing) => existing.index);
+  if (removedIndexes.length > 0) {
+    await db
+      .delete(pollVoteTable)
+      .where(
+        and(
+          eq(pollVoteTable.postId, postId),
+          inArray(pollVoteTable.optionIndex, removedIndexes),
+        ),
+      );
+    await db
+      .delete(pollOptionTable)
+      .where(
+        and(
+          eq(pollOptionTable.postId, postId),
+          inArray(pollOptionTable.index, removedIndexes),
+        ),
+      );
   }
 
-  let index = 0;
-  for (const option of options) {
-    await persistPollOption(db, option, postId, index);
-    index++;
+  const optionValues: NewPollOption[] = [];
+  for (const [index, option] of options.entries()) {
+    const values = await getPollOptionValues(option, postId, index);
+    if (values != null) optionValues.push(values);
+  }
+  // An omitted count must retain an existing remote total. On insert it uses
+  // the database's default, but using that default in UPDATE would erase votes.
+  for (const counted of [true, false]) {
+    const values = optionValues.filter(
+      (option) => (option.votesCount != null) === counted,
+    );
+    if (values.length < 1) continue;
+    await db
+      .insert(pollOptionTable)
+      .values(values)
+      .onConflictDoUpdate({
+        target: [pollOptionTable.postId, pollOptionTable.index],
+        set: counted
+          ? {
+              title: sql`excluded."title"`,
+              votesCount: sql`excluded."votes_count"`,
+            }
+          : { title: sql`excluded."title"` },
+      });
   }
   return rows[0];
+}
+
+async function getPollOptionValues(
+  object: vocab.Object,
+  postId: Uuid,
+  index: number,
+): Promise<NewPollOption | undefined> {
+  const title = object.name?.toString();
+  if (title == null) return undefined;
+  const replies = await object.getReplies();
+  return {
+    postId,
+    index,
+    title,
+    votesCount: replies?.totalItems ?? undefined,
+  };
 }
 
 export async function persistPollOption(
@@ -242,15 +281,8 @@ export async function persistPollOption(
   postId: Uuid,
   index: number,
 ): Promise<PollOption | undefined> {
-  const title = object.name?.toString();
-  if (title == null) return undefined;
-  const replies = await object.getReplies();
-  const values: NewPollOption = {
-    postId,
-    index,
-    title,
-    votesCount: replies?.totalItems ?? undefined,
-  };
+  const values = await getPollOptionValues(object, postId, index);
+  if (values == null) return undefined;
   const rows = await db
     .insert(pollOptionTable)
     .values(values)

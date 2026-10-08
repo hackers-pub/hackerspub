@@ -22,6 +22,7 @@ import {
   postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
+import { postgres } from "../test/database.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -740,6 +741,140 @@ test("persistPoll() ignores duplicate remote option titles", async () => {
         { index: 0, title: "idk" },
         { index: 1, title: "yes" },
       ],
+    );
+  });
+});
+
+test("persistPoll() batches options while retaining unspecified vote counts", async (t) => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "batchpollauthor",
+      name: "Batch Poll Author",
+      email: "batchpollauthor@example.com",
+    });
+    const { post } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: true,
+      optionTitles: Array.from({ length: 8 }, (_, index) => `Option ${index}`),
+    });
+    await tx
+      .update(pollOptionTable)
+      .set({ votesCount: 5 })
+      .where(eq(pollOptionTable.postId, post.id));
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => {
+      queries.push(query);
+    };
+    let upserts = 0;
+    try {
+      await persistPoll(
+        tx,
+        new vocab.Question({
+          endTime: Temporal.Instant.from("2026-12-01T00:00:00Z"),
+          inclusiveOptions: Array.from(
+            { length: 8 },
+            (_, index) =>
+              new vocab.Note({
+                name: `Option ${index}`,
+                replies:
+                  index % 2 === 0
+                    ? new vocab.Collection({ totalItems: index })
+                    : undefined,
+              }),
+          ),
+        }),
+        post.id,
+      );
+      upserts = queries.filter((query) =>
+        query.startsWith('insert into "poll_option"'),
+      ).length;
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: post.id },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(
+      options.map((option) => [option.title, option.votesCount]),
+      Array.from({ length: 8 }, (_, index) => [
+        `Option ${index}`,
+        index % 2 === 0 ? index : 5,
+      ]),
+    );
+    t.diagnostic(`Eight options emitted ${upserts} option upserts`);
+    assert.ok(
+      upserts > 0 && upserts <= 2,
+      `Eight options emitted ${upserts} upserts`,
+    );
+  });
+});
+
+test("persistPoll() batches removals without moving old votes to new options", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "reorderedpollauthor",
+      name: "Reordered Poll Author",
+      email: "reorderedpollauthor@example.com",
+    });
+    const { post } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: true,
+      optionTitles: ["A", "B", "C", "D", "E", "F"],
+    });
+    await tx
+      .update(pollOptionTable)
+      .set({ votesCount: 5 })
+      .where(eq(pollOptionTable.postId, post.id));
+    await tx.insert(pollVoteTable).values(
+      [0, 1, 2, 3, 4, 5].map((index) => ({
+        postId: post.id,
+        optionIndex: index,
+        actorId: author.actor.id,
+      })),
+    );
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => {
+      queries.push(query);
+    };
+    try {
+      await persistPoll(
+        tx,
+        new vocab.Question({
+          endTime: Temporal.Instant.from("2026-12-01T00:00:00Z"),
+          exclusiveOptions: ["D", "B", "New"].map(
+            (name) => new vocab.Note({ name }),
+          ),
+        }),
+        post.id,
+      );
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: post.id },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(
+      options.map((option) => [option.title, option.votesCount]),
+      [
+        ["D", 0],
+        ["B", 5],
+        ["New", 0],
+      ],
+    );
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.deepEqual(
+      votes.map((vote) => vote.optionIndex),
+      [1],
+    );
+    assert.equal(
+      queries.filter((query) => query.startsWith('delete from "poll_')).length,
+      2,
     );
   });
 });
