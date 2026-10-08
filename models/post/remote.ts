@@ -32,7 +32,7 @@ import type { ApplicationContext } from "../context.ts";
 import { toDate } from "../date.ts";
 import { type Database, runInTransaction } from "../db.ts";
 import { extractExternalLinks } from "../html.ts";
-import { persistPostMedium } from "../medium.ts";
+import { persistPostMedia } from "../medium.ts";
 import { refreshNewsScores, refreshNewsScoresForPostLinks } from "../news.ts";
 import { persistPoll } from "../poll.ts";
 import {
@@ -879,14 +879,10 @@ export async function persistPost(
       .delete(postMediumTable)
       .where(eq(postMediumTable.postId, persistedPost.id));
   }
-  let i = 0;
   if (fetchRemote) {
-    for (const attachment of attachments) {
-      await persistPostMedium(ctx, attachment, persistedPost.id, i, {
-        signal: overallSignal,
-      });
-      i++;
-    }
+    await persistPostMedia(ctx, attachments, persistedPost.id, {
+      signal: overallSignal,
+    });
   }
   if (options.replies && depth === 0 && replies != null) {
     const totalItems = replies.totalItems ?? 0;

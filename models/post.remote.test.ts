@@ -47,7 +47,7 @@ import {
   withRollback,
   withMockFetch,
 } from "../test/postgres.ts";
-import { db } from "../test/database.ts";
+import { db, postgres } from "../test/database.ts";
 
 async function waitFor<T>(
   read: () => Promise<T | undefined>,
@@ -262,6 +262,85 @@ test("persistPost() shares its overall budget with video attachments", async () 
           await pending;
         }
       },
+    );
+  });
+});
+
+test("persistPost() stores remote attachments in bounded database batches", async (t) => {
+  await withRollback(async (tx) => {
+    const actor = await insertRemoteActor(tx, {
+      username: "mediainsertbatch",
+      name: "Media Insert Batch",
+      host: "remote.example",
+    });
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => {
+      queries.push(query);
+    };
+    let inserts = 0;
+    try {
+      await withMockFetch(
+        async () =>
+          new Response(new Uint8Array([1, 2, 3]), {
+            headers: { "Content-Type": "image/png" },
+          }),
+        async () => {
+          const post = await persistPost(
+            createFedCtx(tx),
+            new Note({
+              id: new URL("https://remote.example/posts/media-insert-batch"),
+              attribution: new URL(actor.iri),
+              to: PUBLIC_COLLECTION,
+              content: "Many images",
+              attachments: Array.from(
+                { length: 8 },
+                (_, index) =>
+                  new Image({
+                    url: new URL(`https://remote.example/images/${index}.png`),
+                    name: `Image ${index}`,
+                    width: 100 + index,
+                    height: 200 + index,
+                    sensitive: index % 2 === 0,
+                  }),
+              ),
+            }),
+          );
+          assert.ok(post != null);
+          inserts = queries.filter((query) =>
+            query.startsWith('insert into "post_medium"'),
+          ).length;
+          const media = await tx.query.postMediumTable.findMany({
+            where: { postId: post.id },
+            orderBy: { index: "asc" },
+          });
+          assert.deepEqual(
+            media.map((medium) => [
+              medium.index,
+              medium.url,
+              medium.alt,
+              medium.width,
+              medium.height,
+              medium.sensitive,
+            ]),
+            Array.from({ length: 8 }, (_, index) => [
+              index,
+              `https://remote.example/images/${index}.png`,
+              `Image ${index}`,
+              100 + index,
+              200 + index,
+              index % 2 === 0,
+            ]),
+          );
+        },
+      );
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+    t.diagnostic(`Eight attachments emitted ${inserts} media inserts`);
+    assert.ok(
+      inserts > 0 && inserts <= 2,
+      `Eight attachments emitted ${inserts} inserts`,
     );
   });
 });

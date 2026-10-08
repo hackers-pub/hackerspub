@@ -9,11 +9,11 @@ import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { ApplicationContext, StorageService } from "./context.ts";
-import { type Database, runInTransaction } from "./db.ts";
+import type { Database } from "./db.ts";
 import metadata from "./package.json" with { type: "json" };
 import {
   isPostMediumType,
@@ -395,13 +395,13 @@ export async function getMediumUrl(
   return await disk.getUrl(medium.key);
 }
 
-export async function persistPostMedium(
+async function preparePostMedium(
   fedCtx: ApplicationContext,
   document: vocab.Document,
   postId: Uuid,
   index: number,
   options: { signal?: AbortSignal } = {},
-): Promise<PostMedium | undefined> {
+): Promise<NewPostMedium | undefined> {
   const signal = AbortSignal.any([
     AbortSignal.timeout(REMOTE_MEDIUM_FETCH_TIMEOUT_MS),
     ...(options.signal == null ? [] : [options.signal]),
@@ -470,7 +470,14 @@ export async function persistPostMedium(
     try {
       if (response.body == null) return undefined;
       await writeResponseToFile(response, source, signal);
-      if (width == null || height == null) {
+      if (
+        width == null ||
+        height == null ||
+        width <= 0 ||
+        height <= 0 ||
+        width > 2147483647 ||
+        height > 2147483647
+      ) {
         const { stdout } = await runMediaProcess(
           process.env.FFPROBE_PATH ?? "ffprobe",
           [
@@ -543,6 +550,20 @@ export async function persistPostMedium(
       thumbnailBytes,
     );
   }
+  // Remote metadata may contain zero, an incomplete pair, or integers beyond
+  // PostgreSQL's range. Keep the attachment and treat those dimensions as unknown.
+  if (
+    width == null ||
+    height == null ||
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width <= 0 ||
+    height <= 0 ||
+    width > 2147483647 ||
+    height > 2147483647
+  ) {
+    width = height = null;
+  }
   const values = {
     postId,
     index,
@@ -554,34 +575,125 @@ export async function persistPostMedium(
     thumbnailKey,
     sensitive: document.sensitive ?? false,
   } satisfies NewPostMedium;
-  const medium = await runInTransaction(fedCtx.db, async (tx) => {
-    // Downloads can outlive the post. Lock only after network and media work
-    // finishes, then keep a concurrent deletion from racing the FK check.
-    const posts = await tx
-      .select({ id: postTable.id })
-      .from(postTable)
-      .where(eq(postTable.id, postId))
-      .for("key share");
-    if (posts.length === 0) return undefined;
-    const result = await tx
-      .insert(postMediumTable)
-      .values(values)
-      .onConflictDoUpdate({
-        target: [postMediumTable.postId, postMediumTable.index],
-        set: values,
-      })
-      .returning();
-    return result.length > 0 ? result[0] : undefined;
-  });
-  if (medium == null && thumbnailKey != null) {
+  return values;
+}
+
+async function removeUnusedThumbnails(
+  ctx: ApplicationContext,
+  keys: readonly string[],
+): Promise<void> {
+  for (const key of new Set(keys)) {
     try {
-      await fedCtx.storage.delete(thumbnailKey);
+      await ctx.storage.delete(key);
     } catch (error) {
       logger.warn("Failed to remove unused thumbnail {key}: {error}", {
-        key: thumbnailKey,
+        key,
         error,
       });
     }
   }
-  return medium;
+}
+
+async function storePostMedia(
+  ctx: ApplicationContext,
+  postId: Uuid,
+  values: NewPostMedium[],
+): Promise<PostMedium[]> {
+  if (values.length < 1) return [];
+  let media: PostMedium[] = [];
+  try {
+    // A savepoint when called inside a transaction keeps both upsert groups
+    // atomic, so thumbnails can be cleaned up safely if either group fails.
+    media = await ctx.db.transaction(async (tx) => {
+      // Lock only after network and processing work. Concurrent post deletion
+      // must not race the FK check or leave uploaded thumbnails unreferenced.
+      const posts = await tx
+        .select({ id: postTable.id })
+        .from(postTable)
+        .where(eq(postTable.id, postId))
+        .for("key share");
+      if (posts.length < 1) return [];
+      const rows: PostMedium[] = [];
+      const updates = {
+        type: sql`excluded."type"`,
+        url: sql`excluded."url"`,
+        width: sql`excluded."width"`,
+        height: sql`excluded."height"`,
+        thumbnailKey: sql`excluded."thumbnail_key"`,
+        sensitive: sql`excluded."sensitive"`,
+      };
+      // An omitted alt text preserves the previous value on conflict, just
+      // like the single-attachment API. New rows still use the null default.
+      for (const withAlt of [true, false]) {
+        const group = values.filter(
+          (value) => (value.alt !== undefined) === withAlt,
+        );
+        if (group.length < 1) continue;
+        rows.push(
+          ...(await tx
+            .insert(postMediumTable)
+            .values(group)
+            .onConflictDoUpdate({
+              target: [postMediumTable.postId, postMediumTable.index],
+              set: withAlt ? { ...updates, alt: sql`excluded."alt"` } : updates,
+            })
+            .returning()),
+        );
+      }
+      return rows.sort((a, b) => a.index - b.index);
+    });
+    return media;
+  } finally {
+    const storedKeys = new Set(media.map((medium) => medium.thumbnailKey));
+    await removeUnusedThumbnails(
+      ctx,
+      values.flatMap((value) =>
+        value.thumbnailKey != null && !storedKeys.has(value.thumbnailKey)
+          ? [value.thumbnailKey]
+          : [],
+      ),
+    );
+  }
+}
+
+export async function persistPostMedium(
+  ctx: ApplicationContext,
+  document: vocab.Document,
+  postId: Uuid,
+  index: number,
+  options: { signal?: AbortSignal } = {},
+): Promise<PostMedium | undefined> {
+  const values = await preparePostMedium(ctx, document, postId, index, options);
+  if (values == null) return undefined;
+  return (await storePostMedia(ctx, postId, [values]))[0];
+}
+
+export async function persistPostMedia(
+  ctx: ApplicationContext,
+  documents: readonly vocab.Document[],
+  postId: Uuid,
+  options: { signal?: AbortSignal } = {},
+): Promise<PostMedium[]> {
+  const values: NewPostMedium[] = [];
+  try {
+    for (const [index, document] of documents.entries()) {
+      const medium = await preparePostMedium(
+        ctx,
+        document,
+        postId,
+        index,
+        options,
+      );
+      if (medium != null) values.push(medium);
+    }
+  } catch (error) {
+    await removeUnusedThumbnails(
+      ctx,
+      values.flatMap((value) =>
+        value.thumbnailKey == null ? [] : [value.thumbnailKey],
+      ),
+    );
+    throw error;
+  }
+  return await storePostMedia(ctx, postId, values);
 }

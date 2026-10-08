@@ -6,11 +6,12 @@ import { promisify } from "node:util";
 import { join } from "node:path";
 import test from "node:test";
 import * as vocab from "@fedify/vocab";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import {
   createMediumFromBytes,
   createMediumFromUrl,
+  persistPostMedia,
   persistPostMedium,
   UnsafeMediumUrlError,
 } from "./medium.ts";
@@ -803,4 +804,301 @@ test("persistPostMedium() ignores unsupported non-image documents", async () => 
 
     assert.equal(medium, undefined);
   });
+});
+
+test("persistPostMedia() preserves omitted alt text and skipped indices", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "batchmedia",
+      name: "Batch Media",
+      email: "batchmedia@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: account.account });
+    const ctx = createFedCtx(tx);
+    await withMockFetch(
+      async (input) =>
+        String(input).endsWith("missing.png")
+          ? new Response(null, { status: 404 })
+          : new Response(new Uint8Array([1]), {
+              headers: { "Content-Type": "image/png" },
+            }),
+      async () => {
+        for (const index of [0, 2]) {
+          await persistPostMedium(
+            ctx,
+            new vocab.Image({
+              url: new URL(`https://remote.example/old${index}.png`),
+              name: `Original ${index}`,
+            }),
+            post.id,
+            index,
+          );
+        }
+        const rows = await persistPostMedia(
+          ctx,
+          [
+            new vocab.Image({
+              url: new URL("https://remote.example/zero.png"),
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/missing.png"),
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/two.png"),
+              name: "Replacement",
+              sensitive: true,
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/three.png"),
+            }),
+          ],
+          post.id,
+        );
+        assert.deepStrictEqual(
+          rows.map(({ index, alt, sensitive }) => ({ index, alt, sensitive })),
+          [
+            { index: 0, alt: "Original 0", sensitive: false },
+            { index: 2, alt: "Replacement", sensitive: true },
+            { index: 3, alt: null, sensitive: false },
+          ],
+        );
+        assert.equal(
+          (
+            await tx.query.postMediumTable.findMany({
+              where: { postId: post.id },
+            })
+          ).length,
+          3,
+        );
+      },
+    );
+  });
+});
+
+test("persistPostMedia() stores valid attachments despite invalid dimension metadata", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "baddimensions",
+      name: "Bad Dimensions",
+      email: "baddimensions@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: account.account });
+    await withMockFetch(
+      async () =>
+        new Response(new Uint8Array([1]), {
+          headers: { "Content-Type": "image/png" },
+        }),
+      async () => {
+        const media = await persistPostMedia(
+          createFedCtx(tx),
+          [
+            new vocab.Image({
+              url: new URL("https://remote.example/valid.png"),
+              width: 100,
+              height: 200,
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/zero.png"),
+              width: 0,
+              height: 100,
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/partial.png"),
+              width: 100,
+            }),
+            new vocab.Image({
+              url: new URL("https://remote.example/huge.png"),
+              width: 2147483648,
+              height: 100,
+            }),
+          ],
+          post.id,
+        );
+        assert.deepStrictEqual(
+          media.map(({ width, height }) => [width, height]),
+          [
+            [100, 200],
+            [null, null],
+            [null, null],
+            [null, null],
+          ],
+        );
+      },
+    );
+  });
+});
+
+test("persistPostMedia() rolls back both upsert groups and removes thumbnails on a database failure", async (t) => {
+  const video = await createTestVideo();
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "batchmedia",
+      name: "Batch Media",
+      email: "batchmedia@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: account.account });
+    await tx.execute(
+      sql`alter table post_medium add constraint test_batch_media_failure check (url <> 'https://remote.example/invalid.png')`,
+    );
+    const ctx = createFedCtx(tx);
+    const puts = t.mock.method(ctx.storage, "put");
+    const deletes = t.mock.method(ctx.storage, "delete");
+    await withMockFetch(
+      async (input) =>
+        String(input).endsWith(".mp4")
+          ? new Response(video, { headers: { "Content-Type": "video/mp4" } })
+          : new Response(new Uint8Array([1]), {
+              headers: { "Content-Type": "image/png" },
+            }),
+      async () => {
+        await assert.rejects(
+          () =>
+            persistPostMedia(
+              ctx,
+              [
+                new vocab.Video({
+                  url: new URL("https://remote.example/valid.mp4"),
+                  name: "Video",
+                }),
+                new vocab.Image({
+                  url: new URL("https://remote.example/invalid.png"),
+                  width: 1,
+                  height: 1,
+                }),
+              ],
+              post.id,
+            ),
+          (error: unknown) => {
+            assert.ok(error instanceof Error && "cause" in error);
+            assert.equal((error.cause as { code?: string }).code, "23514");
+            return true;
+          },
+        );
+        assert.deepStrictEqual(
+          await tx.query.postMediumTable.findMany({
+            where: { postId: post.id },
+          }),
+          [],
+        );
+        assert.equal(puts.mock.callCount(), 1);
+        assert.equal(deletes.mock.callCount(), 1);
+        const key = puts.mock.calls[0].arguments[0];
+        assert.equal(deletes.mock.calls[0].arguments[0], key);
+        await assert.rejects(async () => ctx.storage.getBytes(key));
+        assert.ok(
+          await tx.query.postTable.findFirst({ where: { id: post.id } }),
+        );
+      },
+    );
+  });
+});
+
+test("persistPostMedia() removes prepared thumbnails when a later upload fails", async (t) => {
+  const video = await createTestVideo();
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "batchmedia",
+      name: "Batch Media",
+      email: "batchmedia@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: account.account });
+    const ctx = createFedCtx(tx);
+    const originalPut = ctx.storage.put.bind(ctx.storage);
+    const failure = new Error("storage unavailable");
+    let uploads = 0;
+    const puts = t.mock.method(
+      ctx.storage,
+      "put",
+      async (...args: Parameters<typeof originalPut>) => {
+        if (++uploads === 2) throw failure;
+        return await originalPut(...args);
+      },
+    );
+    const deletes = t.mock.method(ctx.storage, "delete");
+    await withMockFetch(
+      async () =>
+        new Response(video, { headers: { "Content-Type": "video/mp4" } }),
+      async () => {
+        await assert.rejects(
+          () =>
+            persistPostMedia(
+              ctx,
+              [
+                new vocab.Video({
+                  url: new URL("https://remote.example/first.mp4"),
+                }),
+                new vocab.Video({
+                  url: new URL("https://remote.example/second.mp4"),
+                }),
+              ],
+              post.id,
+            ),
+          (error: unknown) => error === failure,
+        );
+        assert.equal(puts.mock.callCount(), 2);
+        assert.equal(deletes.mock.callCount(), 1);
+        const key = puts.mock.calls[0].arguments[0];
+        assert.equal(deletes.mock.calls[0].arguments[0], key);
+        await assert.rejects(async () => ctx.storage.getBytes(key));
+        assert.deepStrictEqual(
+          await tx.query.postMediumTable.findMany({
+            where: { postId: post.id },
+          }),
+          [],
+        );
+      },
+    );
+  });
+});
+
+test("persistPostMedia() normalizes invalid ffprobe dimensions after video processing", async () => {
+  const video = await createTestVideo();
+  const directory = await mkdtemp(
+    join(tmpdir(), "hackerspub-probe-dimensions-"),
+  );
+  const executable = join(directory, "probe.mjs");
+  const previous = process.env.FFPROBE_PATH;
+  try {
+    await writeFile(
+      executable,
+      "#!/usr/bin/env node\nconsole.log(JSON.stringify({streams: [{width: 0, height: 0}]}));\n",
+      { mode: 0o755 },
+    );
+    process.env.FFPROBE_PATH = executable;
+    await withRollback(async (tx) => {
+      const account = await insertAccountWithActor(tx, {
+        username: "probezero",
+        name: "Probe Zero",
+        email: "probezero@example.com",
+      });
+      const { post } = await insertNotePost(tx, { account: account.account });
+      const ctx = createFedCtx(tx);
+      await withMockFetch(
+        async () =>
+          new Response(video, { headers: { "Content-Type": "video/mp4" } }),
+        async () => {
+          const media = await persistPostMedia(
+            ctx,
+            [
+              new vocab.Video({
+                url: new URL("https://remote.example/probe-zero.mp4"),
+              }),
+            ],
+            post.id,
+          );
+          assert.equal(media.length, 1);
+          assert.equal(media[0].width, null);
+          assert.equal(media[0].height, null);
+          assert.ok(media[0].thumbnailKey != null);
+          assert.ok(
+            (await ctx.storage.getBytes(media[0].thumbnailKey)).length > 0,
+          );
+        },
+      );
+    });
+  } finally {
+    if (previous == null) delete process.env.FFPROBE_PATH;
+    else process.env.FFPROBE_PATH = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
 });
