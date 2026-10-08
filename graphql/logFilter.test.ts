@@ -91,6 +91,38 @@ test("docloader: keeps a status-less redirect-loop error", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("docloader: drops the bounded remote document timeout", () => {
+  assert.equal(
+    isRoutineFederationError(
+      record(
+        ["fedify", "runtime", "docloader"],
+        "Timed out after {timeout} ms while fetching document: {url}",
+        { timeout: 10000, url: "https://bsky.brid.gy/ap/did:plc:example" },
+      ),
+    ),
+    true,
+  );
+});
+
+test("docloader: keeps unknown timeout messages and other categories", () => {
+  for (const [category, message] of [
+    [["fedify", "runtime", "docloader"], "Timed out while processing data"],
+    [
+      ["fedify", "utils", "docloader"],
+      "Timed out after {timeout} ms while fetching document: {url}",
+    ],
+    [
+      ["hackerspub", "runtime", "docloader"],
+      "Timed out after {timeout} ms while fetching document: {url}",
+    ],
+  ] as const) {
+    assert.equal(
+      isRoutineFederationError(record([...category], message)),
+      false,
+    );
+  }
+});
+
 test("docloader: keeps a non-error status (< 400)", () => {
   const r = record(
     ["fedify", "runtime", "docloader"],

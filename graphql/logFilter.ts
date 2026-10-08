@@ -198,12 +198,17 @@ export function isRoutineFederationError(record: LogRecord): boolean {
   // document (a deleted note 404/410, a peer 5xx, ...), or pointed us at a
   // private/invalid address that the loader refused to fetch (SSRF protection).
   // Both the vocab-runtime ("runtime") and fedify ("utils") document loaders log
-  // under a `*.docloader` category. Other status-less docloader errors (redirect
-  // loops, too many redirections) still reach Sentry.
+  // under a `*.docloader` category. The bounded remote timeout has no status
+  // or error property (GRAPHQL-A7). Other status-less errors remain visible.
   if (category[2] === "docloader") {
     const status = properties.status;
     if (typeof status === "number" && status >= 400) return true;
-    return message.startsWith("Disallowed private URL");
+    return (
+      message.startsWith("Disallowed private URL") ||
+      (category[1] === "runtime" &&
+        message ===
+          "Timed out after {timeout} ms while fetching document: {url}")
+    );
   }
 
   // vocab: a getter called with `suppressError: true` caught a dereference
