@@ -260,7 +260,14 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     // error occurred in ... handler") have a different prefix and still reach
     // Sentry.
     if (category[2] === "outbox") {
-      return message.startsWith("Failed to send activity");
+      return (
+        message.startsWith("Failed to send activity") ||
+        ((message === "DNS resolution failed for URL: {url}" ||
+          message === "Disallowed private URL: {url}") &&
+          typeof properties.error === "object" &&
+          properties.error !== null &&
+          stringProp(properties.error, "name") === "UrlError")
+      );
     }
     if (category[2] === "inbox") {
       // Remote-driven request failures: an HTTP signature we could not verify

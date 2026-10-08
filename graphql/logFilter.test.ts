@@ -153,6 +153,33 @@ test("outbox: keeps an unexpected handler error", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("outbox: drops remote DNS and private-address validation failures", () => {
+  for (const rawMessage of [
+    "DNS resolution failed for URL: {url}",
+    "Disallowed private URL: {url}",
+  ]) {
+    const error = new Error("DNS lookup failed");
+    error.name = "UrlError";
+    assert.equal(
+      isRoutineFederationError(
+        record(["fedify", "federation", "outbox"], rawMessage, {
+          url: "https://seoul-earth.eunha.social/inbox",
+          error,
+        }),
+      ),
+      true,
+    );
+    assert.equal(
+      isRoutineFederationError(
+        record(["fedify", "federation", "outbox"], rawMessage, {
+          error: new Error("application failure"),
+        }),
+      ),
+      false,
+    );
+  }
+});
+
 test("transactional outbox: drops expected delivery retries and failures", () => {
   for (const [rawMessage, errorName] of [
     ["Outbox event {eventId} exhausted its retry limit.", "SendActivityError"],
