@@ -1,4 +1,13 @@
-import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  sql,
+} from "drizzle-orm";
 import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
 import { transactional } from "./tx.ts";
 import { syncActorFromAccount } from "./actor.ts";
@@ -1181,67 +1190,124 @@ export async function getOrganizationNotificationBadge(
       });
   }
 
-  const globalReadMarker = sql`
-    COALESCE(
-      (
-        SELECT MAX(${organizationNotificationReadTable.read})
-        FROM ${organizationNotificationReadTable}
-        JOIN ${organizationMembershipTable}
-          ON ${organizationMembershipTable.organizationAccountId} =
-            ${organizationNotificationReadTable.organizationAccountId}
-          AND ${organizationMembershipTable.memberAccountId} =
-            ${organizationNotificationReadTable.memberAccountId}
-        WHERE ${organizationNotificationReadTable.organizationAccountId} =
-          ${organizationAccountId}
-          AND ${organizationMembershipTable.accepted} IS NOT NULL
-      ),
-      '-infinity'::timestamptz
-    )
-  `;
-  const memberReadMarker = sql`
-    COALESCE(
-      (
-        SELECT ${organizationNotificationReadTable.read}
-        FROM ${organizationNotificationReadTable}
-        WHERE ${organizationNotificationReadTable.organizationAccountId} =
-          ${organizationAccountId}
-          AND ${organizationNotificationReadTable.memberAccountId} =
-          ${memberAccountId}
-      ),
-      '-infinity'::timestamptz
-    )
-  `;
-  const notificationHasExistingActors = sql`EXISTS (
-    SELECT 1
-    FROM ${actorTable}
-    WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
-  )`;
-  const redRows = await db
-    .select({ count: count() })
-    .from(notificationTable)
-    .where(
-      and(
-        eq(notificationTable.accountId, organizationAccountId),
-        sql`${notificationTable.created} > ${globalReadMarker}`,
-        notificationHasExistingActors,
-      ),
-    );
-  const redCount = Number(redRows[0]?.count ?? 0);
-  if (redCount > 0) return { color: "red", count: redCount };
+  const badges = await queryOrganizationNotificationBadges(
+    db,
+    [organizationAccountId],
+    memberAccountId,
+  );
+  return badges.get(organizationAccountId)!;
+}
 
-  const grayRows = await db
-    .select({ count: count() })
+/** Return badges only for organizations with an accepted membership. */
+export async function getOrganizationNotificationBadges(
+  db: Database | Transaction,
+  organizationAccountIds: readonly Uuid[],
+  memberAccountId: Uuid,
+): Promise<Map<Uuid, OrganizationNotificationBadge>> {
+  if (organizationAccountIds.length < 1) return new Map();
+  const memberships = await db.query.organizationMembershipTable.findMany({
+    where: {
+      organizationAccountId: { in: [...new Set(organizationAccountIds)] },
+      memberAccountId,
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+  });
+  return await queryOrganizationNotificationBadges(
+    db,
+    memberships.map((membership) => membership.organizationAccountId),
+    memberAccountId,
+  );
+}
+
+async function queryOrganizationNotificationBadges(
+  db: Database | Transaction,
+  organizationAccountIds: readonly Uuid[],
+  memberAccountId: Uuid,
+): Promise<Map<Uuid, OrganizationNotificationBadge>> {
+  const badges = new Map<Uuid, OrganizationNotificationBadge>(
+    organizationAccountIds.map((id) => [id, { color: null, count: 0 }]),
+  );
+  if (organizationAccountIds.length < 1) return badges;
+  // Aggregate accepted members' read markers once per organization, before
+  // joining notifications. Former members must not turn a red badge gray.
+  const globalRead = db.$with("organization_global_read").as(
+    db
+      .select({
+        organizationAccountId:
+          organizationNotificationReadTable.organizationAccountId,
+        read: sql<Date | null>`max(${organizationNotificationReadTable.read})`.as(
+          "read",
+        ),
+      })
+      .from(organizationNotificationReadTable)
+      .innerJoin(
+        organizationMembershipTable,
+        and(
+          eq(
+            organizationMembershipTable.organizationAccountId,
+            organizationNotificationReadTable.organizationAccountId,
+          ),
+          eq(
+            organizationMembershipTable.memberAccountId,
+            organizationNotificationReadTable.memberAccountId,
+          ),
+        ),
+      )
+      .where(
+        and(
+          inArray(organizationNotificationReadTable.organizationAccountId, [
+            ...organizationAccountIds,
+          ]),
+          isNotNull(organizationMembershipTable.accepted),
+        ),
+      )
+      .groupBy(organizationNotificationReadTable.organizationAccountId),
+  );
+  const counts = await db
+    .with(globalRead)
+    .select({
+      organizationAccountId: notificationTable.accountId,
+      red: sql<number>`count(*) FILTER (WHERE ${notificationTable.created} > COALESCE(${globalRead.read}, '-infinity'::timestamptz))`.mapWith(
+        Number,
+      ),
+      gray: sql<number>`count(*) FILTER (WHERE ${notificationTable.created} > COALESCE(${organizationNotificationReadTable.read}, '-infinity'::timestamptz))`.mapWith(
+        Number,
+      ),
+    })
     .from(notificationTable)
+    .leftJoin(
+      globalRead,
+      eq(globalRead.organizationAccountId, notificationTable.accountId),
+    )
+    .leftJoin(
+      organizationNotificationReadTable,
+      and(
+        eq(
+          organizationNotificationReadTable.organizationAccountId,
+          notificationTable.accountId,
+        ),
+        eq(organizationNotificationReadTable.memberAccountId, memberAccountId),
+      ),
+    )
     .where(
       and(
-        eq(notificationTable.accountId, organizationAccountId),
-        sql`${notificationTable.created} > ${memberReadMarker}`,
-        notificationHasExistingActors,
+        inArray(notificationTable.accountId, [...organizationAccountIds]),
+        sql`EXISTS (SELECT 1 FROM ${actorTable} WHERE ${actorTable.id} = ANY(${notificationTable.actorIds}))`,
       ),
+    )
+    .groupBy(notificationTable.accountId);
+  for (const row of counts) {
+    badges.set(
+      row.organizationAccountId,
+      row.red > 0
+        ? { color: "red", count: row.red }
+        : row.gray > 0
+          ? { color: "gray", count: row.gray }
+          : { color: null, count: 0 },
     );
-  const grayCount = Number(grayRows[0]?.count ?? 0);
-  if (grayCount > 0) return { color: "gray", count: grayCount };
-  return { color: null, count: 0 };
+  }
+  return badges;
 }
 
 export async function markOrganizationNotificationsReadThrough(

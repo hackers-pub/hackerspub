@@ -4,6 +4,7 @@ import {
   acceptOrganizationInvitation as acceptOrganizationInvitationModel,
   createOrganization as createOrganizationModel,
   getOrganizationNotificationBadge,
+  getOrganizationNotificationBadges,
   inviteOrganizationMember as inviteOrganizationMemberModel,
   LastOrganizationAdminError,
   LastOrganizationMemberError,
@@ -266,12 +267,10 @@ OrganizationMembershipRef.implement({
         ) {
           return null;
         }
-        const badge = await getOrganizationNotificationBadge(
-          ctx.db,
+        return await loadOrganizationBadge(
+          ctx,
           membership.organizationAccountId,
-          membership.memberAccountId,
         );
-        return badge;
       },
     }),
   }),
@@ -315,6 +314,34 @@ OrganizationConversionRequestRef.implement({
     }),
   }),
 });
+
+const organizationBadgeLoaders = new WeakMap<
+  UserContext,
+  DataLoader<Uuid, OrganizationNotificationBadgeShape>
+>();
+
+async function loadOrganizationBadge(ctx: UserContext, id: Uuid) {
+  const memberId = ctx.account?.id;
+  if (memberId == null) throw new OrganizationPermissionError();
+  let loader = organizationBadgeLoaders.get(ctx);
+  if (loader == null) {
+    loader = new DataLoader<Uuid, OrganizationNotificationBadgeShape>(
+      async (ids) => {
+        const badges = await getOrganizationNotificationBadges(
+          ctx.db,
+          ids,
+          memberId,
+        );
+        return ids.map(
+          (id) => badges.get(id) ?? new OrganizationPermissionError(),
+        );
+      },
+      { cache: false },
+    );
+    organizationBadgeLoaders.set(ctx, loader);
+  }
+  return await loader.load(id);
+}
 
 async function getMembershipAccounts(ctx: UserContext, ids: readonly Uuid[]) {
   return await ctx.db.query.accountTable.findMany({
