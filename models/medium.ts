@@ -1,3 +1,4 @@
+import { execFile } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -9,11 +10,9 @@ import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { eq } from "drizzle-orm";
-import ffmpeg from "fluent-ffmpeg";
-import type { StorageService } from "./context.ts";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
-import type { ApplicationContext } from "./context.ts";
+import type { ApplicationContext, StorageService } from "./context.ts";
 import { type Database, runInTransaction } from "./db.ts";
 import metadata from "./package.json" with { type: "json" };
 import {
@@ -29,6 +28,34 @@ import {
   postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+
+class MediaProcessError extends Error {
+  constructor(cause: Error) {
+    super("Media process failed.", { cause });
+    this.name = "MediaProcessError";
+  }
+}
+
+function runMediaProcess(
+  executable: string,
+  args: string[],
+  options: { signal: AbortSignal; killSignal: "SIGKILL" },
+): Promise<{ stdout: string }> {
+  return new Promise((resolve, reject) => {
+    let failure: Error | null = null;
+    let output = "";
+    const child = execFile(executable, args, options, (error, stdout) => {
+      failure = error;
+      output = stdout;
+    });
+    // Abort invokes execFile's callback before the process has necessarily
+    // exited. Wait for close before deleting its temporary inputs/outputs.
+    child.once("close", () => {
+      if (failure != null) reject(new MediaProcessError(failure));
+      else resolve({ stdout: output });
+    });
+  });
+}
 
 const logger = getLogger(["hackerspub", "models", "medium"]);
 
@@ -62,12 +89,13 @@ const localMediumType: MediumType = "image/webp";
 export async function writeResponseToFile(
   response: Response,
   path: string,
+  signal?: AbortSignal,
 ): Promise<void> {
   if (response.body == null) {
     throw new TypeError("Response body is unavailable.");
   }
   const body = response.body as unknown as NodeReadableStream<Uint8Array>;
-  await pipeline(Readable.fromWeb(body), createWriteStream(path));
+  await pipeline(Readable.fromWeb(body), createWriteStream(path), { signal });
 }
 
 type MediumPreprocess = (
@@ -125,35 +153,27 @@ function assertSafeRemoteMediumUrl(url: URL): void {
 async function fetchMediumUrl(
   url: URL,
   userAgentUrl: URL | undefined,
+  signal: AbortSignal = AbortSignal.timeout(REMOTE_MEDIUM_FETCH_TIMEOUT_MS),
 ): Promise<Response> {
   let current = url;
   for (let redirects = 0; redirects < 6; redirects++) {
     assertSafeRemoteMediumUrl(current);
-    const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      REMOTE_MEDIUM_FETCH_TIMEOUT_MS,
-    );
-    let response: Response;
-    try {
-      response = await fetch(current, {
-        headers: {
-          "User-Agent": getUserAgent({
-            software: `HackersPub/${metadata.version}`,
-            url: userAgentUrl ?? new URL("https://hackers.pub/"),
-          }),
-        },
-        redirect: "manual",
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response = await fetch(current, {
+      headers: {
+        "User-Agent": getUserAgent({
+          software: `HackersPub/${metadata.version}`,
+          url: userAgentUrl ?? new URL("https://hackers.pub/"),
+        }),
+      },
+      redirect: "manual",
+      signal,
+    });
     if (![301, 302, 303, 307, 308].includes(response.status)) {
       return response;
     }
     const location = response.headers.get("Location");
     if (location == null) return response;
+    await response.body?.cancel().catch(() => {});
     current = new URL(location, current);
   }
   return new Response(null, { status: 508 });
@@ -380,7 +400,12 @@ export async function persistPostMedium(
   document: vocab.Document,
   postId: Uuid,
   index: number,
+  options: { signal?: AbortSignal } = {},
 ): Promise<PostMedium | undefined> {
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(REMOTE_MEDIUM_FETCH_TIMEOUT_MS),
+    ...(options.signal == null ? [] : [options.signal]),
+  ]);
   const url =
     document.url instanceof vocab.Link ? document.url.href : document.url;
   if (url == null) return undefined;
@@ -405,7 +430,11 @@ export async function persistPostMedium(
   }
   let response: Response;
   try {
-    response = await fetchMediumUrl(url, new URL(fedCtx.canonicalOrigin));
+    response = await fetchMediumUrl(
+      url,
+      new URL(fedCtx.canonicalOrigin),
+      signal,
+    );
   } catch (error) {
     logger.warn("Failed to fetch remote medium {url}: {error}", {
       url: url.href,
@@ -435,42 +464,84 @@ export async function persistPostMedium(
   if (mediumType.startsWith("video/")) {
     const tmpDir = await mkdtemp(join(tmpdir(), "hackerspub-"));
     const source = join(tmpDir, "source");
+    // Do not let a playlist disguised as a video choose a network/file demuxer.
+    const format = mediumType === "video/webm" ? "matroska" : "mov";
+    let thumbnailBytes: Uint8Array;
     try {
       if (response.body == null) return undefined;
-      await writeResponseToFile(response, source);
+      await writeResponseToFile(response, source, signal);
       if (width == null || height == null) {
-        let metadata: ffmpeg.FfprobeData;
-        try {
-          metadata = await new Promise((resolve, reject) =>
-            ffmpeg(source).ffprobe((err, data) =>
-              err ? reject(err) : resolve(data),
-            ),
-          );
-        } catch {
+        const { stdout } = await runMediaProcess(
+          process.env.FFPROBE_PATH ?? "ffprobe",
+          [
+            "-v",
+            "error",
+            "-print_format",
+            "json",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height",
+            "-f",
+            format,
+            source,
+          ],
+          { signal, killSignal: "SIGKILL" },
+        );
+        const metadata = JSON.parse(stdout) as {
+          streams: { width?: number; height?: number }[];
+        };
+        width = metadata.streams[0]?.width ?? null;
+        height = metadata.streams[0]?.height ?? null;
+      }
+      const screenshot = join(tmpDir, "screenshot.png");
+      await runMediaProcess(
+        process.env.FFMPEG_PATH ?? "ffmpeg",
+        [
+          "-v",
+          "error",
+          "-y",
+          "-ss",
+          "0",
+          "-f",
+          format,
+          "-i",
+          source,
+          "-frames:v",
+          "1",
+          screenshot,
+        ],
+        { signal, killSignal: "SIGKILL" },
+      );
+      try {
+        thumbnailBytes = await readFile(screenshot);
+      } catch (error) {
+        // A valid container can finish decoding without producing a frame.
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
           return undefined;
         }
-        width = metadata.streams[0].width ?? null;
-        height = metadata.streams[0].height ?? null;
+        throw error;
       }
-      const screenshotCreated = await new Promise<boolean>((resolve) =>
-        ffmpeg(source)
-          .on("end", () => resolve(true))
-          .on("error", () => resolve(false))
-          .screenshots({
-            timestamps: [0],
-            filename: "screenshot.png",
-            folder: tmpDir,
-          }),
-      );
-      if (!screenshotCreated) return undefined;
-      const screenshot = join(tmpDir, "screenshot.png");
-      await fedCtx.storage.put(
-        (thumbnailKey = `videos/${crypto.randomUUID()}.png`),
-        await readFile(screenshot),
-      );
+    } catch (error) {
+      if (!signal.aborted && !(error instanceof MediaProcessError)) {
+        throw error;
+      }
+      logger.warn("Failed to process remote video {url}: {error}", {
+        url: url.href,
+        error,
+      });
+      return undefined;
     } finally {
       await rm(tmpDir, { recursive: true, force: true });
     }
+    await fedCtx.storage.put(
+      (thumbnailKey = `videos/${crypto.randomUUID()}.png`),
+      thumbnailBytes,
+    );
   }
   const values = {
     postId,

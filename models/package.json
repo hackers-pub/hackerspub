@@ -108,7 +108,6 @@
     "cssfilter": "catalog:",
     "drizzle-orm": "catalog:",
     "es-toolkit": "catalog:",
-    "fluent-ffmpeg": "catalog:",
     "flydrive": "catalog:",
     "iconv-lite": "catalog:",
     "katex": "catalog:",
@@ -133,7 +132,6 @@
   },
   "devDependencies": {
     "@c4spar/mock-fetch": "catalog:",
-    "@types/fluent-ffmpeg": "catalog:",
     "ai": "catalog:"
   }
 }

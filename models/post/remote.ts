@@ -882,7 +882,9 @@ export async function persistPost(
   let i = 0;
   if (fetchRemote) {
     for (const attachment of attachments) {
-      await persistPostMedium(ctx, attachment, persistedPost.id, i);
+      await persistPostMedium(ctx, attachment, persistedPost.id, i, {
+        signal: overallSignal,
+      });
       i++;
     }
   }

@@ -16,6 +16,7 @@ import {
   PUBLIC_COLLECTION,
   Question,
   QuoteAuthorization,
+  Video,
 } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
 import { getPostByUsernameAndId } from "./post/core.ts";
@@ -44,6 +45,7 @@ import {
   insertRemoteActor,
   insertRemotePost,
   withRollback,
+  withMockFetch,
 } from "../test/postgres.ts";
 import { db } from "../test/database.ts";
 
@@ -57,6 +59,26 @@ async function waitFor<T>(
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
   throw new Error(message);
+}
+
+async function finishWithin<T>(pending: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      pending,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () =>
+            reject(
+              new Error("Cancellation did not finish within five seconds."),
+            ),
+          5000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 test("getPostByUsernameAndId() requires a full handle and returns a matching post", async () => {
@@ -184,6 +206,63 @@ test("deleteSharedPost() removes a remote share and decrements the target share 
     });
     assert.ok(updatedOriginal != null);
     assert.equal(updatedOriginal.sharesCount, 0);
+  });
+});
+
+test("persistPost() shares its overall budget with video attachments", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertRemoteActor(tx, {
+      username: "videobudget",
+      name: "Video Budget",
+      host: "remote.example",
+    });
+    const controller = new AbortController();
+    const started = Promise.withResolvers<void>();
+    let streamController: ReadableStreamDefaultController<Uint8Array>;
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({
+      start(value) {
+        streamController = value;
+        value.enqueue(new Uint8Array([1]));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    await withMockFetch(
+      async () => {
+        started.resolve();
+        return new Response(body, { headers: { "Content-Type": "video/mp4" } });
+      },
+      async () => {
+        const pending = persistPost(
+          createFedCtx(tx),
+          new Note({
+            id: new URL("https://remote.example/objects/video-budget"),
+            attribution: new URL(actor.iri),
+            to: PUBLIC_COLLECTION,
+            content: "A post with a stalled video",
+            attachments: [
+              new Video({
+                url: new URL("https://remote.example/stalled.mp4"),
+                width: 16,
+                height: 16,
+              }),
+            ],
+          }),
+          { signal: controller.signal },
+        );
+        await started.promise;
+        controller.abort();
+        try {
+          assert.ok((await finishWithin(pending)) != null);
+          assert.equal(cancelled, true);
+        } finally {
+          if (!cancelled) streamController!.close();
+          await pending;
+        }
+      },
+    );
   });
 });
 
