@@ -18,6 +18,7 @@ import {
   isExpectedAuthResponse,
 } from "~/lib/graphqlAuthError.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
+import { createRelayResponseObservable } from "~/lib/relayResponse.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
 import { createUpstreamRequestInit } from "~/lib/upstreamRequest.ts";
 import {
@@ -387,7 +388,6 @@ function createRelayEnvironment(): IEnvironment {
       const canRetry = !isServer && params.operationKind === "query";
 
       let attempt = 0;
-      let currentController: AbortController | null = null;
       let currentSubscription: { unsubscribe: () => void } | null = null;
       let pendingTimer: ReturnType<typeof setTimeout> | null = null;
       let onlineListener: (() => void) | null = null;
@@ -408,8 +408,6 @@ function createRelayEnvironment(): IEnvironment {
       };
 
       const abortCurrent = () => {
-        currentController?.abort();
-        currentController = null;
         currentSubscription?.unsubscribe();
         currentSubscription = null;
       };
@@ -452,7 +450,6 @@ function createRelayEnvironment(): IEnvironment {
         if (disposed) return;
         attempt += 1;
         const controller = new AbortController();
-        currentController = controller;
         // SSR runs `fetchFn` in-process; the server-side `try/catch` already
         // propagates the inbound request's signal to the upstream fetch, so
         // the client-side controller is only meaningful in the browser.
@@ -486,8 +483,9 @@ function createRelayEnvironment(): IEnvironment {
         // both through `Observable.from` so the inner subscription's
         // `next`/`complete`/`error` are forwarded faithfully and we can
         // unsubscribe it from cleanup.
-        currentSubscription = Observable.from(
+        currentSubscription = createRelayResponseObservable(
           callable(params, variables, cacheConfig),
+          controller,
         ).subscribe({
           next: (response) => {
             if (!isGraphQLResponse(response)) {
@@ -498,7 +496,6 @@ function createRelayEnvironment(): IEnvironment {
               // The root viewer snapshot can remain authenticated after a
               // session expires. Reload so it is fetched again and the
               // protected route's normal sign-in redirect takes over.
-              currentController = null;
               currentSubscription = null;
               window.location.reload();
               sink.complete();
@@ -507,14 +504,8 @@ function createRelayEnvironment(): IEnvironment {
             sink.next(response);
           },
           complete: () => {
-            // Null out the controller and subscription before calling
-            // sink.complete() so that the synchronous cleanup Relay runs
-            // inside sink.complete() does not call abort() on a request
-            // that already finished. SolidStart's withOptions proxy
-            // registers an abort-event listener that rejects an internal
-            // Promise; if abort() fires after the fetch resolved, that
-            // Promise rejects with no handler → unhandled AbortError.
-            currentController = null;
+            // Release completed requests before synchronous Relay cleanup
+            // can abort their transport while forwarding completion.
             currentSubscription = null;
             sink.complete();
           },
