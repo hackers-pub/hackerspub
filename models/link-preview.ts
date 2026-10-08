@@ -577,7 +577,14 @@ export async function persistPostLink(
   if (link == null) {
     const priorPost = await db.query.postTable.findFirst({
       columns: { linkId: true },
-      where: { linkUrl: url.href },
+      where: {
+        AND: [
+          { linkUrl: url.href },
+          // Match idx_post_link_url_latest so LIMIT can stop before sorting
+          // every post that shares this URL; exact equality above is retained.
+          { RAW: (table) => sql`md5(${table.linkUrl}) = md5(${url.href})` },
+        ],
+      },
       orderBy: { updated: "desc" },
     });
     if (priorPost?.linkId != null) {

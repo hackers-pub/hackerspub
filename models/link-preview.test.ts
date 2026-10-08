@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { persistPostLink, repairBrokenLinkPreviews } from "./link-preview.ts";
 import { NEWS_PENALTY_DEMOTE } from "./news.ts";
 import { postLinkTable, postTable } from "./schema.ts";
@@ -39,6 +39,139 @@ test("persistPostLink() reuses redirected links by authored URL", async () => {
 
       assert.equal(link?.id, destinationLink.id);
       assert.equal(link?.url, destinationLink.url);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
+interface LinkLookupPlan {
+  "Relation Name"?: string;
+  "Actual Rows"?: number;
+  "Rows Removed by Filter"?: number;
+  "Actual Loops"?: number;
+  Plans?: LinkLookupPlan[];
+}
+
+test("persistPostLink() supports long authored URLs and keeps fragments distinct", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "longauthoredlink",
+      name: "Long Authored Link",
+      email: "longauthoredlink@example.com",
+    });
+    const baseUrl = `https://short.example/${"long".repeat(1500)}`;
+    const expected = await insertPostLink(tx, {
+      url: "https://destination.example/long-authored",
+    });
+    const other = await insertPostLink(tx, {
+      url: "https://destination.example/other-fragment",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      link: { id: expected.id, url: `${baseUrl}#comments` },
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      link: { id: other.id, url: `${baseUrl}#other` },
+      updated: new Date("2026-04-16T00:00Z"),
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = () => {
+      throw new Error("The cached long URL should not be fetched");
+    };
+    try {
+      const link = await persistPostLink(
+        createFedCtx(tx),
+        `${baseUrl}#comments`,
+      );
+      assert.equal(link?.id, expected.id);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
+test("persistPostLink() bounds rows read for a frequently shared authored URL", async (t) => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "linklookupplan",
+      name: "Link Lookup",
+      email: "linklookupplan@example.com",
+    });
+    const authoredUrl = "https://short.example/shared-plan";
+    const olderLink = await insertPostLink(tx, {
+      url: "https://destination.example/old-plan",
+    });
+    const latestLink = await insertPostLink(tx, {
+      url: "https://destination.example/new-plan",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      link: { id: olderLink.id, url: authoredUrl },
+    });
+    await tx.insert(postTable).values(
+      Array.from({ length: 2000 }, (_, index) => {
+        const id = generateUuidV7();
+        return {
+          ...post,
+          id,
+          noteSourceId: null,
+          iri: `https://example.com/posts/${id}`,
+          url: `https://example.com/posts/${id}`,
+          updated: new Date(post.updated.getTime() + index + 1),
+        };
+      }),
+    );
+    await insertNotePost(tx, {
+      account: author.account,
+      link: { id: latestLink.id, url: authoredUrl },
+      updated: new Date(post.updated.getTime() + 10000),
+    });
+    await tx.execute(sql`analyze ${postTable}`);
+    const findFirst = tx.query.postTable.findFirst.bind(tx.query.postTable);
+    let inspectedPosts = 0;
+    let measured = 0;
+    t.mock.method(
+      tx.query.postTable,
+      "findFirst",
+      (options: Parameters<typeof findFirst>[0]) => {
+        const query = findFirst(options);
+        if (!options?.columns?.linkId) return query;
+        return (async () => {
+          const rows = await tx.execute(
+            sql`explain (analyze, format json) ${query.getSQL()}`,
+          );
+          const plan = (
+            rows[0]["QUERY PLAN"] as unknown as { Plan: LinkLookupPlan }[]
+          )[0];
+          measured++;
+          const walk = (node: LinkLookupPlan): void => {
+            if (node["Relation Name"] === "post")
+              inspectedPosts +=
+                ((node["Actual Rows"] ?? 0) +
+                  (node["Rows Removed by Filter"] ?? 0)) *
+                (node["Actual Loops"] ?? 0);
+            for (const child of node.Plans ?? []) walk(child);
+          };
+          walk(plan.Plan);
+          return await query;
+        })();
+      },
+    );
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = () => {
+      throw new Error("The cached link should not be fetched");
+    };
+    try {
+      const link = await persistPostLink(createFedCtx(tx), authoredUrl);
+      assert.equal(link?.id, latestLink.id);
+      assert.equal(measured, 1);
+      t.diagnostic(`Authored URL lookup inspected ${inspectedPosts} posts`);
+      assert.ok(
+        inspectedPosts > 0 && inspectedPosts <= 32,
+        `Lookup inspected ${inspectedPosts} posts`,
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }

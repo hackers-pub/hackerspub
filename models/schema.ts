@@ -1679,6 +1679,12 @@ export const postTable = pgTable(
     index("idx_post_link_url_hash")
       .using("hash", table.linkUrl)
       .where(isNotNull(table.linkUrl)),
+    // Bound latest-link lookups even when many posts share one authored URL.
+    // Hash the unbounded URL to avoid B-tree entry-size limits, and retain
+    // exact URL equality in queries so hash collisions cannot match a link.
+    index("idx_post_link_url_latest")
+      .on(sql`md5(${table.linkUrl})`, desc(table.updated))
+      .where(isNotNull(table.linkUrl)),
     // URL search only performs equality lookups. A hash index avoids the
     // B-tree entry-size limit for unbounded remote URLs while keeping null
     // rows out of the index.

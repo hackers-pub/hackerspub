@@ -120,6 +120,37 @@ Cutover
     Run the inspection query again after the build.  Do not continue until it
     reports the expected definition with both flags set to `t`.
 
+    A release adding the latest authored-link lookup also needs
+    `idx_post_link_url_latest` before its migration. Inspect any existing index:
+
+    ~~~~ sh
+    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+    SELECT i.indisready, i.indisvalid, pg_get_indexdef(i.indexrelid)
+    FROM pg_index AS i
+    JOIN pg_class AS c ON c.oid = i.indexrelid
+    WHERE i.indrelid = 'post'::regclass
+      AND c.relname = 'idx_post_link_url_latest';
+    SQL
+    ~~~~
+
+    Both flags must be `t`, and the definition must be a B-tree on
+    `(md5(link_url), updated DESC)` with the `link_url IS NOT NULL` predicate.
+    If no index exists, build it outside a transaction:
+
+    ~~~~ sh
+    PGOPTIONS='-c statement_timeout=0' \
+      psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+    CREATE INDEX CONCURRENTLY idx_post_link_url_latest
+      ON post (md5(link_url), updated DESC) WHERE link_url IS NOT NULL;
+    SQL
+    ~~~~
+
+    If an existing index has invalid flags or a different definition, remove
+    it with `DROP INDEX CONCURRENTLY idx_post_link_url_latest` and repeat the
+    build in separate invocations. Inspect the index again before continuing.
+    Keep `idx_post_link_url_hash` through the rollback window: the previous
+    release's lookup needs it because it cannot use the new expression index.
+
 5.  A release that switches email delivery from Mailgun to Maileroo needs a
     verified Maileroo sending domain before it starts.  Give the API and
     worker `MAILEROO_KEY` (the domain's sending key) and set `EMAIL_FROM` to an
