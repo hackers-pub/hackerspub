@@ -906,9 +906,18 @@ export async function verifyAccountLink(
   logger.debug("Verifying account link {url}...", () => ({
     url: url.toString(),
   }));
-  const response = await fetch(url);
-  if (!response.ok) return false;
-  const text = await response.text();
+  let text: string;
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    if (!response.ok) return false;
+    text = await response.text();
+  } catch (error) {
+    logger.warning("Could not verify account link {url}: {error}", () => ({
+      url: url.toString(),
+      error,
+    }));
+    return false;
+  }
   for (const match of text.matchAll(LINK_PATTERN)) {
     const attributes: Record<string, string> = {};
     for (const attrMatch of match[1].matchAll(LINK_ATTRIBUTE_PATTERN)) {
@@ -1048,14 +1057,27 @@ export async function fetchAccountLinkMetadata(
     apiUrl.searchParams.set("inprop", "displaytitle");
     apiUrl.searchParams.set("format", "json");
     apiUrl.searchParams.set("titles", title);
-    const response = await fetch(apiUrl);
-    if (!response.ok) return { icon: "wikipedia" };
-    const result = (await response.json()) as any;
-    const pages = Object.values(result.query.pages);
-    if (pages.length < 1) return { icon: "wikipedia" };
-    const page = pages[0] as { pageid?: number; displaytitle: string };
-    if (page.pageid == null) return { icon: "wikipedia" };
-    return { icon: "wikipedia", handle: page.displaytitle };
+    try {
+      const response = await fetch(apiUrl, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) return { icon: "wikipedia" };
+      const result = (await response.json()) as any;
+      const pages = Object.values(result.query.pages);
+      if (pages.length < 1) return { icon: "wikipedia" };
+      const page = pages[0] as { pageid?: number; displaytitle: string };
+      if (page.pageid == null) return { icon: "wikipedia" };
+      return { icon: "wikipedia", handle: page.displaytitle };
+    } catch (error) {
+      logger.warning(
+        "Could not fetch Wikipedia link metadata {url}: {error}",
+        () => ({
+          url: url.href,
+          error,
+        }),
+      );
+      return { icon: "wikipedia" };
+    }
   } else if (host === "x.com" || host === "twitter.com") {
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "x", handle: `@${m[1]}` };
@@ -1066,10 +1088,27 @@ export async function fetchAccountLinkMetadata(
   logger.debug("Fetching metadata for {url}...", { url: url.href });
   const nodeInfo = await getNodeInfo(url, { parse: "best-effort" });
   if (nodeInfo?.protocols.includes("activitypub")) {
-    const object = await lookupObject(url);
-    if (isActor(object)) {
-      const handle = await getActorHandle(object);
-      if (handle != null) {
+    let handleTimeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const object = await lookupObject(url, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (isActor(object)) {
+        const handle = await Promise.race([
+          getActorHandle(object),
+          new Promise<never>((_, reject) => {
+            handleTimeout = setTimeout(
+              () =>
+                reject(
+                  new DOMException(
+                    "Actor handle lookup timed out",
+                    "TimeoutError",
+                  ),
+                ),
+              10_000,
+            );
+          }),
+        ]);
         const sw = nodeInfo.software.name;
         return {
           icon:
@@ -1084,6 +1123,16 @@ export async function fetchAccountLinkMetadata(
           handle,
         };
       }
+    } catch (error) {
+      logger.warning(
+        "Could not fetch ActivityPub link metadata {url}: {error}",
+        () => ({
+          url: url.href,
+          error,
+        }),
+      );
+    } finally {
+      clearTimeout(handleTimeout);
     }
     return { icon: "activitypub" };
   }
