@@ -857,10 +857,13 @@ export const Post = builder.drizzleInterface("postTable", {
         "the post is censored or its author is hidden by a moderation " +
         "sanction, and the viewer is neither the author nor a " +
         "moderator: attachments are part of the hidden content.",
-      select: {
+      select: (_, __, nestedSelection) => ({
         columns: { censored: true, actorId: true },
-        with: { actor: sanctionActorSelection, media: true },
-      },
+        with: {
+          actor: sanctionActorSelection,
+          media: nestedSelection({ orderBy: { index: "asc" as const } }),
+        },
+      }),
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? [] : post.media,
     }),
@@ -2092,6 +2095,36 @@ export const mentionConnectionHelpers = drizzleConnectionHelpers(
   },
 );
 
+async function getMediaParents(ctx: UserContext, ids: readonly Uuid[]) {
+  return await ctx.db.query.postTable.findMany({
+    where: { id: { in: [...new Set(ids)] } },
+    columns: { id: true, censored: true, actorId: true },
+    with: { actor: sanctionActorSelection },
+  });
+}
+
+type MediaParent = Awaited<ReturnType<typeof getMediaParents>>[number];
+const mediaParentLoaders = new WeakMap<
+  UserContext,
+  DataLoader<Uuid, MediaParent | undefined>
+>();
+
+function loadMediaParent(ctx: UserContext, id: Uuid) {
+  let loader = mediaParentLoaders.get(ctx);
+  if (loader == null) {
+    loader = new DataLoader(
+      async (ids: readonly Uuid[]) => {
+        const rows = await getMediaParents(ctx, ids);
+        const byId = new Map(rows.map((row) => [row.id, row]));
+        return ids.map((id) => byId.get(id));
+      },
+      { cache: false },
+    );
+    mediaParentLoaders.set(ctx, loader);
+  }
+  return loader.load(id);
+}
+
 export const PostMediumRef = builder.drizzleNode("postMediumTable", {
   name: "PostMedium",
   description:
@@ -2103,11 +2136,7 @@ export const PostMediumRef = builder.drizzleNode("postMediumTable", {
     "and are only resolvable by the author and moderators, even through " +
     "direct `node(id:)` lookups.",
   authScopes: async (medium, ctx) => {
-    const post = await ctx.db.query.postTable.findFirst({
-      where: { id: medium.postId },
-      columns: { censored: true, actorId: true },
-      with: { actor: sanctionActorSelection },
-    });
+    const post = await loadMediaParent(ctx, medium.postId);
     if (
       post == null ||
       (post.censored == null && !isActorSanctionHidden(post.actor))
@@ -2123,13 +2152,18 @@ export const PostMediumRef = builder.drizzleNode("postMediumTable", {
   },
   fields: (t) => ({
     type: t.expose("type", { type: "MediaType" }),
-    url: t.field({ type: "URL", resolve: (medium) => new URL(medium.url) }),
+    url: t.field({
+      type: "URL",
+      select: { columns: { url: true } },
+      resolve: (medium) => new URL(medium.url),
+    }),
     alt: t.exposeString("alt", { nullable: true }),
     width: t.exposeInt("width", { nullable: true }),
     height: t.exposeInt("height", { nullable: true }),
     sensitive: t.exposeBoolean("sensitive"),
     thumbnailUrl: t.string({
       nullable: true,
+      select: { columns: { thumbnailKey: true } },
       resolve(medium, _, ctx) {
         if (medium.thumbnailKey == null) return;
         return ctx.disk.getUrl(medium.thumbnailKey);
