@@ -7,12 +7,14 @@ import {
   accountTable,
   actorTable,
   customEmojiTable,
+  postTable,
   reactionTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
+import { postgres } from "../test/database.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -28,6 +30,149 @@ interface ReactedNoteSeedResult {
   customEmojiId: string;
   reactors: { id: string; handle: string; avatarUrl: string }[];
 }
+
+test("reactor pages batch database queries across reaction groups", async () => {
+  await withRollback(async (tx) => {
+    const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
+    const emojis = ["🚀", "🍰", "🎉", "👍", "💡", "🔥"];
+    const rows = emojis.flatMap((emoji, group) =>
+      reactors.map((reactor, index) => ({
+        iri: `http://localhost/reactions/batch/${group}/${index}`,
+        postId: noteId as typeof reactionTable.$inferInsert.postId,
+        actorId: reactor.id as typeof reactionTable.$inferInsert.actorId,
+        emoji,
+        created: new Date("2026-04-15T00:00:00.000Z"),
+      })),
+    );
+    await tx.insert(reactionTable).values(rows);
+    await tx
+      .update(postTable)
+      .set({
+        reactionsCounts: Object.fromEntries(emojis.map((emoji) => [emoji, 2])),
+      })
+      .where(eq(postTable.id, noteId as typeof postTable.$inferSelect.id));
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => {
+      if (/from "reaction"(?: as "d0"| inner join)/.test(query))
+        queries.push(query);
+    };
+    try {
+      const result = await execute({
+        schema,
+        document: parse(`query($id: ID!) {
+          node(id: $id) { ... on Post { reactionGroups {
+            ... on EmojiReactionGroup { emoji }
+            first: reactors(first: 1) {
+              totalCount
+              pageInfo { hasNextPage hasPreviousPage }
+              edges { cursor node { id handle } }
+            }
+            last: reactors(last: 1) {
+              pageInfo { hasNextPage hasPreviousPage }
+              edges { cursor node { id handle } }
+            }
+          } } }
+        }`),
+        variableValues: { id: encodeGlobalID("Note", noteId) },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(result.errors, undefined);
+      interface Connection {
+        totalCount?: number;
+        pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+        edges: {
+          cursor: string;
+          node: { id: string; handle: string; account?: { id: string } | null };
+        }[];
+      }
+      const data = result.data as unknown as {
+        node: {
+          reactionGroups: {
+            emoji: string;
+            first: Connection;
+            last: Connection;
+          }[];
+        };
+      };
+      assert.equal(data.node.reactionGroups.length, emojis.length);
+      for (const group of data.node.reactionGroups) {
+        assert.equal(group.first.totalCount, 2);
+        assert.equal(group.first.edges.length, 1);
+        assert.equal(group.last.edges.length, 1);
+        assert.equal(
+          group.first.edges[0].node.id,
+          encodeGlobalID("Actor", reactors[0].id),
+        );
+        assert.equal(
+          group.last.edges[0].node.id,
+          encodeGlobalID("Actor", reactors[1].id),
+        );
+        assert.deepEqual(group.first.pageInfo, {
+          hasNextPage: true,
+          hasPreviousPage: false,
+        });
+        assert.deepEqual(group.last.pageInfo, {
+          hasNextPage: false,
+          hasPreviousPage: true,
+        });
+      }
+      assert.equal(queries.length, 3);
+      queries.length = 0;
+      const continued = await execute({
+        schema,
+        document: parse(`query($id: ID!, $after: String!, $before: String!) {
+          node(id: $id) { ... on Post {
+            a: reactionGroup(emoji: "🚀") {
+              reactors(first: 1, after: $after) { edges { node { handle } } }
+            }
+            b: reactionGroup(emoji: "🍰") {
+              reactors(last: 1, before: $before) { edges { node { id avatarUrl account { id } } } }
+            }
+            empty: reactionGroup(emoji: "🚀") {
+              reactors(first: 1, after: $before) { edges { node { handle } } }
+            }
+          } }
+        }`),
+        variableValues: {
+          id: encodeGlobalID("Note", noteId),
+          after: data.node.reactionGroups.find((group) => group.emoji === "🚀")!
+            .first.edges[0].cursor,
+          before: data.node.reactionGroups.find(
+            (group) => group.emoji === "🍰",
+          )!.last.edges[0].cursor,
+        },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(continued.errors, undefined);
+      const continuedData = continued.data as unknown as {
+        node: {
+          a: { reactors: Connection };
+          b: { reactors: Connection };
+          empty: { reactors: Connection };
+        };
+      };
+      assert.deepEqual(
+        continuedData.node.a.reactors.edges.map((edge) => edge.node.handle),
+        [reactors[1].handle],
+      );
+      assert.deepEqual(
+        continuedData.node.b.reactors.edges.map((edge) => edge.node.id),
+        [encodeGlobalID("Actor", reactors[0].id)],
+      );
+      assert.equal(
+        continuedData.node.b.reactors.edges[0].node.account?.id,
+        encodeGlobalID("Account", viewerAccount.id),
+      );
+      assert.deepEqual(continuedData.node.empty.reactors.edges, []);
+      assert.equal(queries.length, 5);
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});
 
 const reactorsQuery = parse(`
   query ReactorsQuery($id: ID!) {

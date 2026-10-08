@@ -9,7 +9,9 @@ import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
 import {
   and,
+  asc,
   count,
+  desc,
   eq,
   gt,
   inArray,
@@ -17,6 +19,7 @@ import {
   isNull,
   lte,
   or,
+  sql,
 } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
@@ -225,7 +228,7 @@ export const ReactionGroup = builder
                       { actor: getSanctionVisibleActorFilter(now) },
                     ],
                   };
-            const reactions = await ctx.db.query.reactionTable.findMany({
+            const reactions = await loadReactorPage(ctx, {
               ...query,
               where,
             });
@@ -327,6 +330,109 @@ const reactorConnectionHelpers = drizzleConnectionHelpers(
     resolveNode: (reaction) => reaction.actor,
   },
 );
+
+type ReactorQuery = ReturnType<typeof reactorConnectionHelpers.getQuery> & {
+  limit?: number;
+  offset?: number;
+};
+
+function fetchReactorRows(ctx: UserContext, query: ReactorQuery) {
+  return ctx.db.query.reactionTable.findMany(query);
+}
+
+type ReactorRows = Awaited<ReturnType<typeof fetchReactorRows>>;
+const reactorPageLoaders = new WeakMap<
+  UserContext,
+  DataLoader<ReactorQuery, ReactorRows>
+>();
+
+function loadReactorPage(
+  ctx: UserContext,
+  query: ReactorQuery,
+): Promise<ReactorRows> {
+  let loader = reactorPageLoaders.get(ctx);
+  if (loader == null) {
+    loader = new DataLoader<ReactorQuery, ReactorRows>(
+      async (queries) => {
+        // Only combine identical projections and relation filters. Cursor,
+        // ordering and page limits belong to each individual connection.
+        const groups = new Map<
+          string,
+          { query: ReactorQuery; indexes: number[] }
+        >();
+        for (const [index, request] of queries.entries()) {
+          const projection = {
+            ...request,
+            where: { iri: { eq: "" } },
+            orderBy: {},
+            limit: undefined,
+            offset: undefined,
+          };
+          const compiled = ctx.db.query.reactionTable
+            .findMany(projection)
+            .toSQL();
+          const key = JSON.stringify([compiled.sql, compiled.params]);
+          const group = groups.get(key);
+          if (group == null)
+            groups.set(key, { query: projection, indexes: [index] });
+          else group.indexes.push(index);
+        }
+        const results: ReactorRows[] = queries.map(() => []);
+        for (const group of groups.values()) {
+          const windows = group.indexes.map((index) => {
+            const request = queries[index];
+            const order = Object.entries(request.orderBy).map(
+              ([column, direction]) =>
+                direction === "desc"
+                  ? desc(sql.identifier(column))
+                  : asc(sql.identifier(column)),
+            );
+            const columns = Object.fromEntries([
+              ["iri", true],
+              ...Object.keys(request.orderBy).map((column) => [column, true]),
+            ]) as { iri: true };
+            const window = ctx.db.query.reactionTable.findMany({
+              columns,
+              where: request.where,
+              orderBy: request.orderBy,
+              limit: request.limit,
+              offset: request.offset,
+            });
+            return sql`select ${index}::integer as batch_index,
+            coalesce(json_agg(iri order by ${sql.join(order, sql`, `)}), '[]'::json) as iris
+            from (${window.getSQL()}) as reactor_window`;
+          });
+          const pages = await ctx.db.execute<{
+            batch_index: number;
+            iris: string[];
+          }>(sql.join(windows, sql` union all `));
+          const ids = [...new Set(pages.flatMap((page) => page.iris))];
+          if (ids.length === 0) continue;
+          const rows = await fetchReactorRows(ctx, {
+            ...group.query,
+            where: {
+              AND: [
+                { iri: { in: ids } },
+                { OR: group.indexes.map((index) => queries[index].where) },
+              ],
+            },
+          });
+          const byId = new Map(rows.map((row) => [row.iri, row]));
+          for (const page of pages) {
+            results[page.batch_index] = page.iris.flatMap((id) => {
+              const row = byId.get(id);
+              return row == null ? [] : [row];
+            });
+          }
+        }
+        return results;
+      },
+      { cache: false },
+    );
+    reactorPageLoaders.set(ctx, loader);
+  }
+  return loader.load(query);
+}
 
 // Batches `ReactionGroup.reactors.totalCount` across every group in the
 // request, so a list of posts resolves the counts in one query instead of one
