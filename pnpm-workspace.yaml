@@ -128,3 +128,5 @@ patchedDependencies:
   '@solidjs/start@2.0.0-alpha.2': patches/@solidjs__start@2.0.0-alpha.2.patch
   solid-js@1.9.12: patches/solid-js@1.9.12.patch
   '@floating-ui/utils@0.2.11': patches/@floating-ui__utils@0.2.11.patch
+  '@sentry/core@10.51.0': patches/@sentry__core@10.51.0.patch
+  '@sentry/node@10.51.0': patches/@sentry__node@10.51.0.patch

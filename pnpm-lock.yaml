@@ -347,6 +347,12 @@ patchedDependencies:
   '@kobalte/core@0.13.11':
     hash: 0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4
     path: patches/@kobalte__core@0.13.11.patch
+  '@sentry/core@10.51.0':
+    hash: f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851
+    path: patches/@sentry__core@10.51.0.patch
+  '@sentry/node@10.51.0':
+    hash: 2c5dbe27e8dcee1e88b0ad98dced0570a5a39882730f3077c41f9b86cc66d83e
+    path: patches/@sentry__node@10.51.0.patch
   '@solidjs/start@2.0.0-alpha.2':
     hash: bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f
     path: patches/@solidjs__start@2.0.0-alpha.2.patch
@@ -575,10 +581,10 @@ importers:
         version: 2.6.2
       '@sentry/node':
         specifier: 'catalog:'
-        version: '@sentry/core@10.51.0'
+        version: '@sentry/core@10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)'
       '@sentry/node-sdk':
         specifier: 'catalog:'
-        version: '@sentry/node@10.51.0'
+        version: '@sentry/node@10.51.0(patch_hash=2c5dbe27e8dcee1e88b0ad98dced0570a5a39882730f3077c41f9b86cc66d83e)'
       '@simplewebauthn/server':
         specifier: 'catalog:'
         version: 13.3.2
@@ -12064,21 +12070,21 @@ snapshots:
 
   '@sentry-internal/browser-utils@10.51.0':
     dependencies:
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry-internal/feedback@10.51.0':
     dependencies:
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry-internal/replay-canvas@10.51.0':
     dependencies:
       '@sentry-internal/replay': 10.51.0
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry-internal/replay@10.51.0':
     dependencies:
       '@sentry-internal/browser-utils': 10.51.0
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry/babel-plugin-component-annotate@5.2.1': {}
 
@@ -12088,7 +12094,7 @@ snapshots:
       '@sentry-internal/feedback': 10.51.0
       '@sentry-internal/replay': 10.51.0
       '@sentry-internal/replay-canvas': 10.51.0
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry/bundler-plugin-core@5.2.1(encoding@0.1.13)':
     dependencies:
@@ -12149,7 +12155,7 @@ snapshots:
 
   '@sentry/conventions@0.16.0': {}
 
-  '@sentry/core@10.51.0': {}
+  '@sentry/core@10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)': {}
 
   '@sentry/core@10.67.0':
     dependencies:
@@ -12157,7 +12163,7 @@ snapshots:
 
   '@sentry/node-core@10.51.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)':
     dependencies:
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
       '@sentry/opentelemetry': 10.51.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)
       import-in-the-middle: 3.0.1
     optionalDependencies:
@@ -12167,7 +12173,7 @@ snapshots:
       '@opentelemetry/sdk-trace-base': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.40.0
 
-  '@sentry/node@10.51.0':
+  '@sentry/node@10.51.0(patch_hash=2c5dbe27e8dcee1e88b0ad98dced0570a5a39882730f3077c41f9b86cc66d83e)':
     dependencies:
       '@fastify/otel': 0.18.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/api': 1.9.1
@@ -12196,7 +12202,7 @@ snapshots:
       '@opentelemetry/sdk-trace-base': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.40.0
       '@prisma/instrumentation': 7.6.0(@opentelemetry/api@1.9.1)
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
       '@sentry/node-core': 10.51.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/instrumentation@0.214.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)
       '@sentry/opentelemetry': 10.51.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.40.0)
       import-in-the-middle: 3.0.1
@@ -12210,7 +12216,7 @@ snapshots:
       '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.40.0
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
 
   '@sentry/rollup-plugin@5.2.1(encoding@0.1.13)(rollup@4.60.1)':
     dependencies:
@@ -12225,15 +12231,15 @@ snapshots:
   '@sentry/solid@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870)))(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870))':
     dependencies:
       '@sentry/browser': 10.51.0
-      '@sentry/core': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
       solid-js: 1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870)
     optionalDependencies:
       '@solidjs/router': 0.15.4(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870))
 
   '@sentry/solidstart@10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870)))(@solidjs/start@2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0)))(encoding@0.1.13)(rollup@4.60.1)(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870))':
     dependencies:
-      '@sentry/core': 10.51.0
-      '@sentry/node': 10.51.0
+      '@sentry/core': 10.51.0(patch_hash=f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851)
+      '@sentry/node': 10.51.0(patch_hash=2c5dbe27e8dcee1e88b0ad98dced0570a5a39882730f3077c41f9b86cc66d83e)
       '@sentry/solid': 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870)))(solid-js@1.9.12(patch_hash=a3aa0d8f6df66a003d3867f438eb6e1f9dc3de6e6d554d00e8b9e5b7863c2870))
       '@sentry/vite-plugin': 5.2.1(encoding@0.1.13)(rollup@4.60.1)
       '@solidjs/start': 2.0.0-alpha.2(patch_hash=bf50cdfe7b9a27ec6fc7fe6d0b08e8d2c84f4222a06916d97ad61535d5176e3f)(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))

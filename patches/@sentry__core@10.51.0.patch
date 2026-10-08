@@ -1,0 +1,26 @@
+diff --git a/build/cjs/integrations/postgresjs.js b/build/cjs/integrations/postgresjs.js
+index 457c4dabd0129b412863679c07bdd838acc7cbba..436cb88d4a589847b0fc106b66933bbc8c9c72b3 100644
+--- a/build/cjs/integrations/postgresjs.js
++++ b/build/cjs/integrations/postgresjs.js
+@@ -200,7 +200,7 @@ function _wrapSingleQueryHandle(
+   // IMPORTANT: We must replace the handle function directly, not use a Proxy,
+   // because Query.then() internally calls this.handle(), which would bypass a Proxy wrapper.
+   const wrappedHandle = async function ( ...args) {
+-    if (!_shouldCreateSpans(options)) {
++    if (this.executed || !_shouldCreateSpans(options)) {
+       return originalHandle.apply(this, args);
+     }
+ 
+diff --git a/build/esm/integrations/postgresjs.js b/build/esm/integrations/postgresjs.js
+index 81c1bf9c6cc9d72ca2d19df86f7f3bb82c5e9a31..6ced4c446702b7255049ef8c56163070a4d54136 100644
+--- a/build/esm/integrations/postgresjs.js
++++ b/build/esm/integrations/postgresjs.js
+@@ -198,7 +198,7 @@ function _wrapSingleQueryHandle(
+   // IMPORTANT: We must replace the handle function directly, not use a Proxy,
+   // because Query.then() internally calls this.handle(), which would bypass a Proxy wrapper.
+   const wrappedHandle = async function ( ...args) {
+-    if (!_shouldCreateSpans(options)) {
++    if (this.executed || !_shouldCreateSpans(options)) {
+       return originalHandle.apply(this, args);
+     }
+ 

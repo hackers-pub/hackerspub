@@ -1,0 +1,26 @@
+diff --git a/build/cjs/integrations/tracing/postgresjs.js b/build/cjs/integrations/tracing/postgresjs.js
+index 7c160652fc5d9e6945ff909317efcd14e9d63e6f..1bb268e3e673253234a4ba1496fe3f4a1b61e444 100644
+--- a/build/cjs/integrations/tracing/postgresjs.js
++++ b/build/cjs/integrations/tracing/postgresjs.js
+@@ -236,7 +236,7 @@ class PostgresJsInstrumentation extends instrumentation.InstrumentationBase {
+       ...args
+     ) {
+       // Skip if this query came from an instrumented sql instance (already handled by wrapper)
+-      if ((this )[QUERY_FROM_INSTRUMENTED_SQL]) {
++      if (this.executed || (this )[QUERY_FROM_INSTRUMENTED_SQL]) {
+         return originalHandle.apply(this, args);
+       }
+ 
+diff --git a/build/esm/integrations/tracing/postgresjs.js b/build/esm/integrations/tracing/postgresjs.js
+index a9ff84785e885ce7f9d0b0183ce78056ecafb53f..65d700a9c07b8f4a15ebbf9bc423922f7fa07198 100644
+--- a/build/esm/integrations/tracing/postgresjs.js
++++ b/build/esm/integrations/tracing/postgresjs.js
+@@ -234,7 +234,7 @@ class PostgresJsInstrumentation extends InstrumentationBase {
+       ...args
+     ) {
+       // Skip if this query came from an instrumented sql instance (already handled by wrapper)
+-      if ((this )[QUERY_FROM_INSTRUMENTED_SQL]) {
++      if (this.executed || (this )[QUERY_FROM_INSTRUMENTED_SQL]) {
+         return originalHandle.apply(this, args);
+       }
+ 
