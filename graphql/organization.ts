@@ -1,3 +1,4 @@
+import DataLoader from "dataloader";
 import {
   acceptOrganizationConversion as acceptOrganizationConversionModel,
   acceptOrganizationInvitation as acceptOrganizationInvitationModel,
@@ -315,17 +316,43 @@ OrganizationConversionRequestRef.implement({
   }),
 });
 
+async function getMembershipAccounts(ctx: UserContext, ids: readonly Uuid[]) {
+  return await ctx.db.query.accountTable.findMany({
+    where: { id: { in: [...new Set(ids)] } },
+    with: { actor: true },
+  });
+}
+
+type MembershipAccount = Awaited<
+  ReturnType<typeof getMembershipAccounts>
+>[number];
+const membershipAccountLoaders = new WeakMap<
+  UserContext,
+  DataLoader<Uuid, MembershipAccount>
+>();
+
 async function loadAccount(
   ctx: UserContext,
   id: Uuid,
 ): Promise<AccountRow & { actor: NonNullable<unknown> }> {
-  const account = await ctx.db.query.accountTable.findFirst({
-    where: { id },
-    with: { actor: true },
-  });
-  if (account == null || account.actor == null) {
-    throw new InvalidInputError("accountId");
+  let loader = membershipAccountLoaders.get(ctx);
+  if (loader == null) {
+    loader = new DataLoader<Uuid, MembershipAccount>(
+      async (ids: readonly Uuid[]) => {
+        const accounts = await getMembershipAccounts(ctx, ids);
+        const byId = new Map(accounts.map((account) => [account.id, account]));
+        return ids.map((id) => {
+          const account = byId.get(id);
+          return account?.actor == null
+            ? new InvalidInputError("accountId")
+            : account;
+        });
+      },
+      { cache: false },
+    );
+    membershipAccountLoaders.set(ctx, loader);
   }
+  const account = await loader.load(id);
   return account as AccountRow & { actor: NonNullable<unknown> };
 }
 
