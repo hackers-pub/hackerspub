@@ -3,6 +3,7 @@ import {
   handleStreamOrSingleExecutionResult,
   isOriginalGraphQLError,
 } from "@envelop/core";
+import { PothosValidationError } from "@pothos/core";
 import { ForbiddenError } from "@pothos/plugin-scope-auth";
 import * as Sentry from "@sentry/node";
 import { getOperationAST, print, type GraphQLError } from "graphql";
@@ -107,7 +108,10 @@ export function useSentry(
                       scope.setExtra("document", document);
                       const errors = result.errors?.map((error) => {
                         if (isOriginalGraphQLError(error)) return error;
-                        if (error.originalError instanceof ForbiddenError) {
+                        if (
+                          error.originalError instanceof ForbiddenError ||
+                          error.originalError instanceof PothosValidationError
+                        ) {
                           return error;
                         }
                         const errorPath = (error.path ?? [])

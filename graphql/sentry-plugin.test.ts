@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { decodeGlobalID } from "@pothos/plugin-relay";
 import { ForbiddenError } from "@pothos/plugin-scope-auth";
 import { GraphQLError } from "graphql";
 import { createSchema, createYoga } from "graphql-yoga";
@@ -40,7 +41,7 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
     plugins: [useSentry(client)],
     schema: createSchema({
       typeDefs:
-        "type Query { fails(secretToken: String): String, expected: String, forbidden: String }",
+        "type Query { fails(secretToken: String): String, expected: String, forbidden: String, invalidId: String }",
       resolvers: {
         Query: {
           fails() {
@@ -51,6 +52,9 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
           },
           forbidden() {
             throw new ForbiddenError("Not authorized to resolve this field.");
+          },
+          invalidId() {
+            return decodeGlobalID("1").id;
           },
         },
       },
@@ -105,7 +109,23 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
     };
     assert.equal(captured.length, 1);
     assert.equal(forbidden.errors[0].extensions?.sentryEventId, undefined);
-    assert.deepEqual(ended, [true, true, true]);
+    const invalidResponse = await yoga.fetch("http://localhost/graphql", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query: "{ invalidId }" }),
+    });
+    const invalid = (await invalidResponse.json()) as {
+      readonly errors: readonly [
+        {
+          readonly message: string;
+          readonly extensions?: { readonly sentryEventId?: string };
+        },
+      ];
+    };
+    assert.equal(invalid.errors[0].message, "Invalid global ID: 1");
+    assert.equal(captured.length, 1);
+    assert.equal(invalid.errors[0].extensions?.sentryEventId, undefined);
+    assert.deepEqual(ended, [true, true, true, true]);
   } finally {
     await yoga.dispose();
   }
