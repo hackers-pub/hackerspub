@@ -417,6 +417,41 @@ test("webfinger: drops remote URL and DNS failures", () => {
   }
 });
 
+test("webfinger: drops rejected remote redirects only in lookups", () => {
+  for (const message of [
+    "Too many redirections ({redirections}) while fetching WebFinger resource descriptor.",
+    "Redirected to a different protocol ({protocol} to {redirectedProtocol}) while fetching WebFinger resource descriptor.",
+  ]) {
+    assert.equal(
+      isRoutineFederationError(
+        record(["fedify", "webfinger", "lookup"], message),
+      ),
+      true,
+    );
+    assert.equal(
+      isRoutineFederationError(
+        record(["fedify", "webfinger", "server"], message),
+      ),
+      false,
+    );
+    assert.equal(
+      isRoutineFederationError(
+        record(["hackerspub", "webfinger", "lookup"], message),
+      ),
+      false,
+    );
+  }
+  assert.equal(
+    isRoutineFederationError(
+      record(
+        ["fedify", "webfinger", "lookup"],
+        "Unexpected redirect handling failure.",
+      ),
+    ),
+    false,
+  );
+});
+
 test("vocab: drops a suppressed fetch failure (HTTP 403 followers)", () => {
   const error = new Error(
     "https://yodangang.express/users/x/followers: HTTP 403: " +

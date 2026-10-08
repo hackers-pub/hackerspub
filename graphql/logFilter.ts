@@ -249,7 +249,12 @@ export function isRoutineFederationError(record: LogRecord): boolean {
   if (category[1] === "webfinger") {
     return (
       (message.startsWith("Actor ") && message.includes("not found")) ||
-      isRemoteTransportError(properties.error)
+      isRemoteTransportError(properties.error) ||
+      (category[2] === "lookup" &&
+        (message ===
+          "Too many redirections ({redirections}) while fetching WebFinger resource descriptor." ||
+          message ===
+            "Redirected to a different protocol ({protocol} to {redirectedProtocol}) while fetching WebFinger resource descriptor."))
     );
   }
 
