@@ -11,6 +11,7 @@ import {
   shouldSuppressStaleModuleError,
 } from "~/lib/networkError.ts";
 import { installPromiseWithResolversPolyfill } from "~/lib/promiseWithResolvers.ts";
+import { isSafariMediaControlError } from "~/lib/safariMediaError.ts";
 import { isTransientUpstreamGraphQLErrorEvent } from "~/lib/upstreamGraphQLError.ts";
 import packageJson from "../package.json" with { type: "json" };
 
@@ -46,6 +47,7 @@ if (sentryDsn) {
     // users where useful.
     sendDefaultPii: true,
     beforeSend(event, hint) {
+      if (isSafariMediaControlError(event, navigator.userAgent)) return null;
       if (isTransientUpstreamGraphQLErrorEvent(event, hint)) return null;
       if (isNetworkError(hint.originalException)) return null;
       if (
