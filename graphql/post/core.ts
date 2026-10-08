@@ -8,7 +8,18 @@ import {
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
-import { and, eq, gt, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
+import {
+  and,
+  eq,
+  exists,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { generateAltText } from "@hackerspub/ai/alttext";
 import {
@@ -35,7 +46,12 @@ import {
   isActorSanctionHidden,
   type PostInteractionPolicy,
 } from "@hackerspub/models/post/visibility";
-import { actorTable, pinTable, postTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  pinTable,
+  postLinkTable,
+  postTable,
+} from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import {
   DESCENDANT_TREE_MAX_DEPTH,
@@ -2392,26 +2408,38 @@ export const PostLink = builder.drizzleNode("postLinkTable", {
             ),
           ),
         )!;
-        const visible = await ctx.db
-          .selectDistinct({ linkId: postTable.linkId })
+        // Each link needs one visible reference, or proof that it is orphaned.
+        // EXISTS avoids reading every post that references a popular link.
+        const visibleReference = ctx.db
+          .select({ id: postTable.id })
           .from(postTable)
           .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
           .where(
             and(
-              inArray(postTable.linkId, ids),
+              eq(postTable.linkId, postLinkTable.id),
               viewerActorId == null
                 ? shows
                 : or(eq(postTable.actorId, viewerActorId), shows),
             ),
           );
-        const visibleSet = new Set(visible.map((row) => row.linkId));
-        if (visibleSet.size === ids.length) return ids.map(() => true);
-        const referenced = await ctx.db
-          .selectDistinct({ linkId: postTable.linkId })
+        const reference = ctx.db
+          .select({ id: postTable.id })
           .from(postTable)
-          .where(inArray(postTable.linkId, ids));
-        const referencedSet = new Set(referenced.map((row) => row.linkId));
-        return ids.map((id) => visibleSet.has(id) || !referencedSet.has(id));
+          .where(eq(postTable.linkId, postLinkTable.id));
+        const links = await ctx.db
+          .select({
+            id: postLinkTable.id,
+            visible: sql<boolean>`case
+              when ${exists(visibleReference)} then true
+              else not ${exists(reference)}
+            end`,
+          })
+          .from(postLinkTable)
+          .where(inArray(postLinkTable.id, ids));
+        const visibility = new Map(
+          links.map((link) => [link.id, link.visible]),
+        );
+        return ids.map((id) => visibility.get(id) ?? false);
       },
     );
     return ctx.postLinkVisibleLoader.load(link.id);
