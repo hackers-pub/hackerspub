@@ -12,6 +12,7 @@ import {
   Like,
   Mention,
   Note,
+  Object as ActivityPubObject,
   PUBLIC_COLLECTION,
   Question,
   QuoteAuthorization,
@@ -572,6 +573,144 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
     assert.equal(persisted.mentions[0].actor.id, mentionedActor.id);
   });
 });
+
+for (const [label, remoteContext] of [
+  [
+    "invalid JSON-LD",
+    {
+      broken: {
+        "@id": "https://broken.example/ns#broken",
+        "@type": "not-an-absolute-iri",
+      },
+    },
+  ],
+  ["an unavailable context", "https://broken.example/context"],
+  ["a cyclic context", "https://broken.example/cyclic-context"],
+] as const) {
+  test(`persistPost() keeps posts and known mentions when a remote mention has ${label}`, async () => {
+    await withRollback(async (tx) => {
+      const author = await insertRemoteActor(tx, {
+        username: "brokenmentionauthor",
+        name: "Broken Mention Author",
+        host: "remote.example",
+      });
+      const mentionedActor = await insertRemoteActor(tx, {
+        username: "knownmention",
+        name: "Known Mention",
+        host: "remote.example",
+      });
+      const brokenHref = "https://broken.example/actors/mentioned";
+      const requestedUrls: string[] = [];
+      const post = new Note({
+        id: new URL("https://remote.example/posts/broken-mention"),
+        attribution: new URL(author.iri),
+        to: PUBLIC_COLLECTION,
+        content: "A valid post with one malformed remote mention",
+        tags: [
+          new Mention({ href: new URL(mentionedActor.iri) }),
+          new Mention({ href: new URL(brokenHref) }),
+        ],
+      });
+      const persisted = await persistPost(createFedCtx(tx), post, {
+        contextLoader: async (url) => {
+          if (label === "a cyclic context") {
+            return {
+              contextUrl: null,
+              documentUrl: url,
+              document: { "@context": url },
+            };
+          }
+          throw new TypeError("fetch failed");
+        },
+        documentLoader: async (url) => {
+          requestedUrls.push(url);
+          return {
+            contextUrl: null,
+            documentUrl: url,
+            document: {
+              "@context": remoteContext,
+              id: url,
+              type: "Person",
+            },
+          };
+        },
+      });
+      assert.deepEqual(requestedUrls, [brokenHref]);
+      assert.ok(persisted != null);
+      assert.equal(persisted.iri, post.id?.href);
+      assert.deepEqual(
+        persisted.mentions.map((mention) => mention.actor.id),
+        [mentionedActor.id],
+      );
+      assert.ok(
+        await tx.query.postTable.findFirst({ where: { id: persisted.id } }),
+      );
+    });
+  });
+}
+
+test("persistPost() preserves database failures while resolving mentions", async (t) => {
+  await withRollback(async (tx) => {
+    const author = await insertRemoteActor(tx, {
+      username: "mentiondbfailure",
+      name: "Mention DB Failure",
+      host: "remote.example",
+    });
+    const error = new Error("Mention database query failed");
+    t.mock.method(tx.query.actorTable, "findMany", () => Promise.reject(error));
+    const post = new Note({
+      id: new URL("https://remote.example/posts/mention-db-failure"),
+      attribution: new URL(author.iri),
+      to: PUBLIC_COLLECTION,
+      content: "A post whose mention lookup database is unavailable",
+      tags: [
+        new Mention({ href: new URL("https://remote.example/actors/mention") }),
+      ],
+    });
+    await assert.rejects(
+      persistPost(createFedCtx(tx), post),
+      (caught) => caught === error,
+    );
+  });
+});
+
+for (const name of ["Error", "jsonld.OptionsError"]) {
+  test(`persistPost() preserves unexpected mention parser errors (${name})`, async (t) => {
+    await withRollback(async (tx) => {
+      const author = await insertRemoteActor(tx, {
+        username: "mentionparserfailure",
+        name: "Mention Parser Failure",
+        host: "remote.example",
+      });
+      const error = new Error("Unexpected parser failure");
+      error.name = name;
+      t.mock.method(ActivityPubObject, "fromJsonLd", () =>
+        Promise.reject(error),
+      );
+      const post = new Note({
+        id: new URL("https://remote.example/posts/mention-parser-failure"),
+        attribution: new URL(author.iri),
+        to: PUBLIC_COLLECTION,
+        content: "A post with an application parser failure",
+        tags: [
+          new Mention({
+            href: new URL("https://remote.example/actors/mention"),
+          }),
+        ],
+      });
+      await assert.rejects(
+        persistPost(createFedCtx(tx), post, {
+          documentLoader: async (url) => ({
+            contextUrl: null,
+            documentUrl: url,
+            document: {},
+          }),
+        }),
+        (caught) => caught === error,
+      );
+    });
+  });
+}
 
 test("persistPost() keeps a post when inline replies traversal fails", async () => {
   await withRollback(async (tx) => {

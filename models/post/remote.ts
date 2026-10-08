@@ -89,6 +89,14 @@ const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
 const EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS = 300_000;
 const EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS = 30_000;
 const MAX_EMOJI_REACTIONS_BACKFILL = 500;
+const REMOTE_MENTION_CONTEXT_ERRORS = new Set([
+  "jsonld.ContextUrlError",
+  "jsonld.CyclicalContext",
+  "jsonld.InvalidUrl",
+  "jsonld.ProcessingModeConflict",
+  "jsonld.SyntaxError",
+  "jsonld.UnsupportedVersion",
+]);
 const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
 const disabledDocumentLoader: DocumentLoader = (url) =>
   Promise.reject(new TypeError(`Remote fetch disabled for ${url}`));
@@ -219,7 +227,25 @@ async function resolveMentionedActors(
   }
   if (!fetchRemote) return [...actorsById.values()];
   for (const href of unresolvedHrefs) {
-    const apActor = await lookupObject(href, options);
+    let apActor: Awaited<ReturnType<typeof lookupObject>>;
+    try {
+      apActor = await lookupObject(href, options);
+    } catch (error) {
+      // A mention's remote profile is optional metadata. Its malformed or
+      // unavailable context must not prevent storing an otherwise valid post.
+      // Keep persistence and unrelated loader failures outside this boundary.
+      if (
+        !(error instanceof Error) ||
+        !REMOTE_MENTION_CONTEXT_ERRORS.has(error.name)
+      ) {
+        throw error;
+      }
+      logger.warn("Failed to parse mentioned actor {href}: {error}", {
+        href,
+        error,
+      });
+      continue;
+    }
     if (!isActor(apActor)) continue;
     let actor = await persistActor(ctx, apActor, options);
     if (actor == null) continue;
