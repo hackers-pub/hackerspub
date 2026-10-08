@@ -329,7 +329,20 @@ export class TransactionalOutboxQueue implements MessageQueue {
       processing.event.eventType === this.#eventType &&
       processing.event.messageId === message.id
     ) {
+      // Fedify re-enqueues a circuit-held delivery without incrementing its
+      // attempt, and does not call onOutboxError because no send took place.
+      // Keep the queue's defensive limit for real failures and other retries.
+      const circuitHeld =
+        this.#eventType === "activitypub.delivery" &&
+        processing.deliveryError == null &&
+        message.circuitHeld === true &&
+        typeof message.attempt === "number" &&
+        Number.isSafeInteger(message.attempt) &&
+        message.attempt >= 0 &&
+        message.attempt ===
+          validateMessage(this.#eventType, processing.event.payload).attempt;
       if (
+        !circuitHeld &&
         processing.event.processingAttempts >= this.#maximumProcessingAttempts
       ) {
         const error = processing.deliveryError ?? {
@@ -359,17 +372,29 @@ export class TransactionalOutboxQueue implements MessageQueue {
         {
           payload: message,
           available,
-          error: processing.deliveryError ?? {
-            name: "OutboxRetry",
-            message: "The queue handler requested another attempt.",
-          },
+          countAttempt: !circuitHeld,
+          error:
+            processing.deliveryError ??
+            (circuitHeld
+              ? {
+                  name: "OutboxCircuitHeld",
+                  message:
+                    "The remote host circuit deferred delivery without sending.",
+                  details: { inbox: message.inbox },
+                }
+              : {
+                  name: "OutboxRetry",
+                  message: "The queue handler requested another attempt.",
+                }),
         },
         now,
       );
       if (!updated) throw new Error("The leased outbox event was lost.");
       processing.requeued = true;
-      logger.warning(
-        "Scheduled outbox event {eventId} for another delivery attempt.",
+      logger[circuitHeld ? "debug" : "warning"](
+        circuitHeld
+          ? "Deferred outbox event {eventId} while the remote host circuit is open."
+          : "Scheduled outbox event {eventId} for another delivery attempt.",
         {
           eventId: processing.event.id,
           eventType: processing.event.eventType,

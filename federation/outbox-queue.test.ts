@@ -476,6 +476,120 @@ test("Fedify retries stop at the configured processing-attempt limit", async () 
   });
 });
 
+for (const scenario of [
+  {
+    name: "circuit holds",
+    attempt: 0,
+    circuitHeld: true,
+    error: false,
+    status: "pending",
+    attempts: 0,
+  },
+  {
+    name: "failed sends followed by a hold",
+    attempt: 0,
+    circuitHeld: true,
+    error: true,
+    status: "dead",
+    attempts: 1,
+  },
+  {
+    name: "new attempts with a hold flag",
+    attempt: 1,
+    circuitHeld: true,
+    error: false,
+    status: "dead",
+    attempts: 1,
+  },
+  {
+    name: "holds without an attempt number",
+    attempt: undefined,
+    circuitHeld: true,
+    error: false,
+    status: "dead",
+    attempts: 1,
+  },
+  {
+    name: "ordinary retries",
+    attempt: 1,
+    circuitHeld: false,
+    error: false,
+    status: "dead",
+    attempts: 1,
+  },
+]) {
+  test(`delivery attempt accounting handles ${scenario.name}`, async () => {
+    await withRollback(async (tx) => {
+      await tx.delete(outboxEventTable);
+      const queue = new TransactionalOutboxQueue(tx, "activitypub.delivery", {
+        now: () => now,
+        pollInterval: { milliseconds: 1 },
+        maximumProcessingAttempts: 1,
+      });
+      await queue.enqueue(message("circuit-budget"));
+      const controller = new AbortController();
+      await queue.listen(
+        async () => {
+          if (scenario.error)
+            recordOutboxDeliveryError(new Error("send failed"));
+          await queue.enqueue(
+            {
+              ...message("circuit-budget"),
+              attempt: scenario.attempt,
+              circuitHeld: scenario.circuitHeld,
+            },
+            { delay: Temporal.Duration.from({ minutes: 5 }) },
+          );
+          controller.abort();
+        },
+        { signal: controller.signal },
+      );
+      const [row] = await tx.select().from(outboxEventTable);
+      assert.equal(row.status, scenario.status);
+      assert.equal(row.processingAttempts, scenario.attempts);
+    });
+  });
+}
+
+test("repeated circuit holds preserve the budget until a real send fails", async () => {
+  await withRollback(async (tx) => {
+    await tx.delete(outboxEventTable);
+    let instant = now;
+    const queue = new TransactionalOutboxQueue(tx, "activitypub.delivery", {
+      now: () => instant,
+      pollInterval: { milliseconds: 1 },
+      maximumProcessingAttempts: 1,
+    });
+    await queue.enqueue(message("repeated-hold"));
+    for (let cycle = 0; cycle < 4; cycle++) {
+      const controller = new AbortController();
+      await queue.listen(
+        async () => {
+          if (cycle === 3) recordOutboxDeliveryError(new Error("send failed"));
+          await queue.enqueue(
+            {
+              ...message("repeated-hold", cycle === 3 ? 1 : 0),
+              circuitHeld: true,
+              circuitHeldSince: now.toISOString(),
+            },
+            { delay: Temporal.Duration.from({ minutes: 5 }) },
+          );
+          controller.abort();
+        },
+        { signal: controller.signal },
+      );
+      const [row] = await tx.select().from(outboxEventTable);
+      assert.equal(row.status, cycle === 3 ? "dead" : "pending");
+      assert.equal(row.processingAttempts, cycle === 3 ? 1 : 0);
+      assert.equal(
+        row.lastError?.name,
+        cycle === 3 ? "Error" : "OutboxCircuitHeld",
+      );
+      instant = new Date(instant.getTime() + 5 * 60_000 + 1);
+    }
+  });
+});
+
 test("a delivery error without a Fedify retry becomes a dead letter", async () => {
   await withRollback(async (tx) => {
     await tx.delete(outboxEventTable);

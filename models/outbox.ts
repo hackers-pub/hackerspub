@@ -51,6 +51,8 @@ export interface RetryOutboxOptions {
   readonly payload: unknown;
   readonly available: Date;
   readonly error: OutboxEventError;
+  /** A circuit hold did not send anything, so refund the current claim. */
+  readonly countAttempt?: boolean;
 }
 
 export interface OutboxDepth {
@@ -370,6 +372,11 @@ export async function retryOutboxEvent(
       leased: null,
       lastError: options.error,
       failed: null,
+      ...(options.countAttempt === false
+        ? {
+            processingAttempts: sql`greatest(0, ${outboxEventTable.processingAttempts} - 1)`,
+          }
+        : {}),
       updated: now,
     })
     .where(
