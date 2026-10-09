@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { follow } from "./following.ts";
 import { mute } from "./muting.ts";
 import { sharePost } from "./post.ts";
@@ -10,6 +10,7 @@ import {
   getPublicTimeline,
 } from "./timeline.ts";
 import { postTable, timelineItemTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -831,3 +832,181 @@ test("getPublicTimeline() refills past muted candidate batches", async () => {
     );
   });
 });
+
+interface TimelineQueryPlan {
+  "Relation Name"?: string;
+  "Actual Rows"?: number;
+  "Rows Removed by Filter"?: number;
+  "Actual Loops"?: number;
+  Plans?: TimelineQueryPlan[];
+}
+
+test("local public timeline does not scan newer remote shares", async (t) => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "localplan",
+      name: "Local plan",
+      email: "localplan@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Older local post",
+      published: new Date("2026-04-15T00:00:00Z"),
+    });
+    const remote = await insertRemoteActor(tx, {
+      username: "remoteplan",
+      name: "Remote plan",
+      host: "remote.example",
+    });
+    const originals = Array.from({ length: 1000 }, (_, index) => {
+      const id = generateUuidV7();
+      return {
+        ...post,
+        id,
+        actorId: remote.id,
+        noteSourceId: null,
+        iri: `https://remote.example/originals/${id}`,
+        published: new Date(post.published.getTime() + index + 1),
+      };
+    });
+    await tx.insert(postTable).values(originals);
+    await tx.insert(postTable).values(
+      originals.map((original) => {
+        const id = generateUuidV7();
+        return {
+          ...original,
+          id,
+          iri: `https://remote.example/shares/${id}`,
+          sharedPostId: original.id,
+        };
+      }),
+    );
+    await tx.execute(sql`analyze ${postTable}`);
+    let inspected = 0;
+    let measured = 0;
+    const measure = async (query: { getSQL(): ReturnType<typeof sql> }) => {
+      const rows = await tx.execute(
+        sql`explain (analyze, format json) ${query.getSQL()}`,
+      );
+      const plan = (
+        rows[0]["QUERY PLAN"] as unknown as { Plan: TimelineQueryPlan }[]
+      )[0];
+      const walk = (node: TimelineQueryPlan): void => {
+        if (node["Relation Name"] === "post")
+          inspected +=
+            ((node["Actual Rows"] ?? 0) +
+              (node["Rows Removed by Filter"] ?? 0)) *
+            (node["Actual Loops"] ?? 0);
+        for (const child of node.Plans ?? []) walk(child);
+      };
+      walk(plan.Plan);
+      measured++;
+    };
+    const findMany = tx.query.postTable.findMany.bind(tx.query.postTable);
+    t.mock.method(
+      tx.query.postTable,
+      "findMany",
+      (options: Parameters<typeof findMany>[0]) => {
+        const query = findMany(options);
+        if (options?.columns?.id && options.columns.published) {
+          const execute = query.execute.bind(query);
+          t.mock.method(query, "execute", async () => {
+            await measure(query);
+            return execute();
+          });
+        }
+        return query;
+      },
+    );
+    const select = tx.select.bind(tx);
+    t.mock.method(tx, "select", (...args: Parameters<typeof select>) => {
+      const query = select(...args);
+      if (args[0] && "id" in args[0] && "published" in args[0]) {
+        const from = query.from.bind(query);
+        t.mock.method(query, "from", (...fromArgs: Parameters<typeof from>) => {
+          const selection = from(...fromArgs);
+          const execute = selection.execute.bind(selection);
+          t.mock.method(selection, "execute", async () => {
+            await measure(selection);
+            return execute();
+          });
+          return selection;
+        });
+      }
+      return query;
+    });
+    const entries = await getPublicTimeline(tx, { local: true, window: 1 });
+    assert.deepEqual(
+      entries.map((entry) => entry.post.id),
+      [post.id],
+    );
+    assert.ok(measured > 0);
+    t.diagnostic(`Local timeline inspected ${inspected} posts`);
+    assert.ok(inspected <= 128, `Local timeline inspected ${inspected} posts`);
+  });
+});
+
+for (const direction of ["forward", "backward"] as const) {
+  test(`local timeline merges tied notes and shares across ${direction} pages`, async () => {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: `localmerge${direction}`,
+        name: "Local merge",
+        email: `localmerge${direction}@example.com`,
+      });
+      const remote = await insertRemoteActor(tx, {
+        username: `mergeremote${direction}`,
+        name: "Remote merge",
+        host: "remote.example",
+      });
+      const published = new Date("2026-04-15T00:00:01.000Z");
+      const expected = [];
+      for (let index = 0; index < 10; index++) {
+        const { post } = await insertNotePost(tx, {
+          account: author.account,
+          content: `Merge note ${index}`,
+          published,
+        });
+        expected.push(post.id);
+        if (index % 2 === 0) {
+          const original = await insertRemotePost(tx, {
+            actorId: remote.id,
+            contentHtml: "<p>Original</p>",
+          });
+          const id = generateUuidV7();
+          await tx.insert(postTable).values({
+            ...post,
+            id,
+            noteSourceId: null,
+            iri: `https://example.com/merge-shares/${id}`,
+            sharedPostId: original.id,
+          });
+          // The cutoff must compare at cursor precision, including ties
+          // whose original timestamps are on opposite sides of a millisecond.
+          await tx.execute(sql`update ${postTable}
+            set published = ${published.toISOString()}::timestamptz + interval '0.1 milliseconds'
+            where id = ${id}`);
+          expected.push(id);
+        }
+      }
+      expected.sort((a, b) =>
+        direction === "forward" ? b.localeCompare(a) : a.localeCompare(b),
+      );
+      const seen = [];
+      let cursor;
+      for (let page = 0; page < 6; page++) {
+        const entries = await getPublicTimeline(tx, {
+          local: true,
+          direction,
+          window: 3,
+          ...(direction === "forward" ? { until: cursor } : { since: cursor }),
+        });
+        seen.push(...entries.map((entry) => entry.post.id));
+        const tail = entries.at(-1);
+        if (tail == null) break;
+        cursor = { timestamp: tail.post.published, postId: tail.post.id };
+      }
+      assert.deepEqual(seen, expected);
+    });
+  });
+}

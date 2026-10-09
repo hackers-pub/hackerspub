@@ -1,5 +1,5 @@
 import process from "node:process";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
 import {
   getCensoredPostExclusionFilter,
@@ -10,6 +10,7 @@ import {
 import {
   type Account,
   type Actor,
+  actorTable,
   type Blocking,
   type Following,
   followingTable,
@@ -933,23 +934,87 @@ export async function getPublicTimeline(
             ],
           };
 
-    const candidatePosts = await db.query.postTable.findMany({
-      columns: {
-        id: true,
-        published: true,
-      },
-      where: candidateFilter,
-      orderBy: (post, { asc, desc }) => {
-        const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
-        return [
-          direction === "backward"
-            ? asc(cursorTimestamp)
-            : desc(cursorTimestamp),
-          direction === "backward" ? asc(post.id) : desc(post.id),
-        ];
-      },
-      limit: batchLimit,
-    });
+    const candidateQuery = (filter: RelationsFilter<"postTable"> = {}) =>
+      db.query.postTable.findMany({
+        columns: {
+          id: true,
+          published: true,
+        },
+        where: { AND: [candidateFilter, filter] },
+        orderBy: (post, { asc, desc }) => {
+          const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
+          return [
+            direction === "backward"
+              ? asc(cursorTimestamp)
+              : desc(cursorTimestamp),
+            direction === "backward" ? asc(post.id) : desc(post.id),
+          ];
+        },
+        limit: batchLimit,
+      });
+    let candidatePosts: { id: Uuid; published: Date }[];
+    if (local) {
+      // The broad local-timeline index also includes every remote share.
+      // Limit each disjoint source stream before merging it. For shares,
+      // start with local actors so remote boosts cannot dominate the scan.
+      const order = direction === "backward" ? sql`asc` : sql`desc`;
+      const branches = [
+        sql`(${candidateQuery({ noteSourceId: { isNotNull: true } })})`,
+        sql`(${candidateQuery({
+          noteSourceId: { isNull: true },
+          articleSourceId: { isNotNull: true },
+        })})`,
+      ];
+      let combined = sql.join(branches, sql` union all `);
+      if (!withoutShares) {
+        const localActors = db
+          .select({ id: actorTable.id })
+          .from(actorTable)
+          .where(isNotNull(actorTable.accountId));
+        const localShares = candidateQuery({
+          noteSourceId: { isNull: true },
+          articleSourceId: { isNull: true },
+          sharedPostId: { isNotNull: true },
+          RAW: (post) => {
+            const cutoff = direction === "backward" ? sql`max` : sql`min`;
+            const fallback =
+              direction === "backward" ? sql`'infinity'` : sql`'-infinity'`;
+            const comparison = direction === "backward" ? sql`<=` : sql`>=`;
+            return sql`${post.actorId} = local_actors.id and
+              ${post.published}::timestamptz(3) ${comparison}
+              (select case when count(*) = ${batchLimit}
+                then ${cutoff}(published::timestamptz(3))
+                else ${fallback}::timestamptz end from source_candidates)`;
+          },
+        });
+        const sources = sql`select id, published from
+          (${sql.join(branches, sql` union all `)}) as authored_candidates
+          order by published::timestamptz(3) ${order}, id ${order}
+          limit ${batchLimit}`;
+        // Once authored posts fill the candidate window, older (or newer
+        // for backward pagination) shares cannot enter its merged top rows.
+        // The millisecond cutoff remains inclusive to preserve UUID tie order.
+        combined = sql`with source_candidates as materialized (${sources})
+          select id, published from source_candidates
+          union all
+          select local_shares.id, local_shares.published
+            from (${localActors}) as local_actors
+            cross join lateral (${localShares}) as local_shares`;
+      }
+      const candidates = sql`(${combined}) as local_candidates`;
+      candidatePosts = await db
+        .select({
+          id: sql<Uuid>`id`,
+          published: sql<Date>`published::timestamptz`.mapWith(
+            postTable.published,
+          ),
+        })
+        .from(candidates)
+        .orderBy(sql`published::timestamptz(3) ${order}`, sql`id ${order}`)
+        .limit(batchLimit);
+    } else {
+      candidatePosts = await candidateQuery();
+    }
 
     if (candidatePosts.length === 0) break;
 
