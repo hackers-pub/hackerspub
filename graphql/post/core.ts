@@ -10,6 +10,7 @@ import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
 import {
   and,
+  count,
   eq,
   exists,
   gt,
@@ -1487,10 +1488,9 @@ export async function visibleRelatedPostsPage(
 
 // Exact count of everything `visibleRelatedPostsPage` would return across all
 // pages, for a connection `totalCount` that is not capped by the page size.
-// Direct replies/quotes/shares of one post are bounded, so counting ids is
-// acceptable; the relational visibility filter cannot be expressed as a plain
-// SQL `$count` predicate.  `resolveViewerActorId`/`getActorById` are
-// per-request cached, so re-resolving them here is free.
+// Aggregate the filtered relational query in SQL so popular posts do not
+// transfer every matching id just to count them. `resolveViewerActorId` and
+// `getActorById` are per-request cached, so re-resolving them here is free.
 export async function countVisibleRelatedPosts(
   ctx: UserContext,
   args: ActingAccountIdArg,
@@ -1500,7 +1500,7 @@ export async function countVisibleRelatedPosts(
   const viewerActorId = await resolveViewerActorId(ctx, args);
   const viewerActor =
     viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
-  const rows = await ctx.db.query.postTable.findMany({
+  const visiblePosts = ctx.db.query.postTable.findMany({
     columns: { id: true },
     where: {
       AND: [
@@ -1511,7 +1511,10 @@ export async function countVisibleRelatedPosts(
       ],
     },
   });
-  return rows.length;
+  const [row] = await ctx.db
+    .select({ total: count() })
+    .from(sql`(${visiblePosts}) as visible_posts`);
+  return row.total;
 }
 
 // The id-only companion of loadVisibleThreadPosts, for checking path
