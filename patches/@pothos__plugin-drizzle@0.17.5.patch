@@ -1,0 +1,135 @@
+diff --git a/dts/utils/loader-map.d.ts b/dts/utils/loader-map.d.ts
+index c35e8d269f751cd655e8217e8582f8a095449b82..ca6233fd9665787630908e923e71ac31415fef36 100644
+--- a/dts/utils/loader-map.d.ts
++++ b/dts/utils/loader-map.d.ts
+@@ -5,7 +5,7 @@ export type LoaderMappings = Record<string, {
+     mappings: LoaderMappings;
+     indirectPath: string[];
+ }>;
+-export declare function cacheKey(type: string, path: GraphQLResolveInfo['path'], subPath?: string[]): string;
++export declare function cacheKey(type: string, path: GraphQLResolveInfo['path'], subPath?: string[], includeListIndices?: boolean): string;
+ export declare function setLoaderMappings(ctx: object, info: GraphQLResolveInfo, value: LoaderMappings): void;
+ export declare function getLoaderMapping(ctx: object, path: GraphQLResolveInfo['path'], type: string): LoaderMappings | null;
+ //# sourceMappingURL=loader-map.d.ts.map
+\ No newline at end of file
+diff --git a/esm/utils/loader-map.js b/esm/utils/loader-map.js
+index d15f144470ad62a3b9590f8d7c954d02bf2da98b..c389a5fb076d065ca9de4c049ab9ff6daeb6a8a3 100644
+--- a/esm/utils/loader-map.js
++++ b/esm/utils/loader-map.js
+@@ -1,11 +1,11 @@
+ import { createContextCache } from '@pothos/core';
+ const cache = createContextCache(()=>new Map());
+-export function cacheKey(type, path, subPath = []) {
++export function cacheKey(type, path, subPath = [], includeListIndices = false) {
+     let key = '';
+     let current = path;
+     while(current){
+-        if (typeof current.key === 'string') {
+-            key = key ? `${current.key}.${key}` : current.key;
++        if (includeListIndices || typeof current.key === 'string') {
++            key = key ? `${current.key}.${key}` : `${current.key}`;
+         }
+         current = current.prev;
+     }
+@@ -21,15 +21,14 @@ export function setLoaderMappings(ctx, info, value) {
+             ...mapping.indirectPath,
+             field
+         ];
+-        const key = cacheKey(mapping.type, info.path, subPath);
++        const key = cacheKey(mapping.type, info.path, subPath, true);
+         map.set(key, mapping.mappings);
+     }
+ }
+ export function getLoaderMapping(ctx, path, type) {
+-    var _map_get;
+     const map = cache(ctx);
+-    const key = cacheKey(type, path, []);
+-    return (_map_get = map.get(key)) !== null && _map_get !== void 0 ? _map_get : null;
++    const key = cacheKey(type, path, [], true);
++    return map.get(key) ?? map.get(cacheKey(type, path, [])) ?? null;
+ }
+ 
+ //# sourceMappingURL=loader-map.js.map
+\ No newline at end of file
+diff --git a/lib/utils/loader-map.js b/lib/utils/loader-map.js
+index cd3426a5e0f280000bf8aa2fd1a5cd639154a288..54e86d9b46ec466c39ed3e9379a90e0734881852 100644
+--- a/lib/utils/loader-map.js
++++ b/lib/utils/loader-map.js
+@@ -21,12 +21,12 @@ _export(exports, {
+ });
+ const _core = require("@pothos/core");
+ const cache = (0, _core.createContextCache)(()=>new Map());
+-function cacheKey(type, path, subPath = []) {
++function cacheKey(type, path, subPath = [], includeListIndices = false) {
+     let key = '';
+     let current = path;
+     while(current){
+-        if (typeof current.key === 'string') {
+-            key = key ? `${current.key}.${key}` : current.key;
++        if (includeListIndices || typeof current.key === 'string') {
++            key = key ? `${current.key}.${key}` : `${current.key}`;
+         }
+         current = current.prev;
+     }
+@@ -42,15 +42,14 @@ function setLoaderMappings(ctx, info, value) {
+             ...mapping.indirectPath,
+             field
+         ];
+-        const key = cacheKey(mapping.type, info.path, subPath);
++        const key = cacheKey(mapping.type, info.path, subPath, true);
+         map.set(key, mapping.mappings);
+     }
+ }
+ function getLoaderMapping(ctx, path, type) {
+-    var _map_get;
+     const map = cache(ctx);
+-    const key = cacheKey(type, path, []);
+-    return (_map_get = map.get(key)) !== null && _map_get !== void 0 ? _map_get : null;
++    const key = cacheKey(type, path, [], true);
++    return map.get(key) ?? map.get(cacheKey(type, path, [])) ?? null;
+ }
+ 
+ //# sourceMappingURL=loader-map.js.map
+\ No newline at end of file
+diff --git a/src/utils/loader-map.ts b/src/utils/loader-map.ts
+index 4c467395f502cb98ba067527a28ff7e9d598384c..646803fb9333c28fd5e1273c788b0605147111d9 100644
+--- a/src/utils/loader-map.ts
++++ b/src/utils/loader-map.ts
+@@ -13,13 +13,13 @@ export type LoaderMappings = Record<
+ 
+ const cache = createContextCache(() => new Map<string, LoaderMappings>());
+ 
+-export function cacheKey(type: string, path: GraphQLResolveInfo['path'], subPath: string[] = []) {
++export function cacheKey(type: string, path: GraphQLResolveInfo['path'], subPath: string[] = [], includeListIndices = false) {
+   let key = '';
+   let current: GraphQLResolveInfo['path'] | undefined = path;
+ 
+   while (current) {
+-    if (typeof current.key === 'string') {
+-      key = key ? `${current.key}.${key}` : current.key;
++    if (includeListIndices || typeof current.key === 'string') {
++      key = key ? `${current.key}.${key}` : `${current.key}`;
+     }
+     current = current.prev;
+   }
+@@ -35,7 +35,7 @@ export function setLoaderMappings(ctx: object, info: GraphQLResolveInfo, value:
+   const map = cache(ctx);
+   for (const [field, mapping] of Object.entries(value)) {
+     const subPath = [...mapping.indirectPath, field];
+-    const key = cacheKey(mapping.type, info.path, subPath);
++    const key = cacheKey(mapping.type, info.path, subPath, true);
+ 
+     map.set(key, mapping.mappings);
+   }
+@@ -43,7 +43,9 @@ export function setLoaderMappings(ctx: object, info: GraphQLResolveInfo, value:
+ 
+ export function getLoaderMapping(ctx: object, path: GraphQLResolveInfo['path'], type: string) {
+   const map = cache(ctx);
+-  const key = cacheKey(type, path, []);
++  const key = cacheKey(type, path, [], true);
+ 
+-  return map.get(key) ?? null;
++  // Root query mappings apply to every list item. Mappings published while
++  // resolving one item must never be reused by another item.
++  return map.get(key) ?? map.get(cacheKey(type, path, [])) ?? null;
+ }

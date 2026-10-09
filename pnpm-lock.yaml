@@ -347,6 +347,9 @@ patchedDependencies:
   '@kobalte/core@0.13.11':
     hash: 0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4
     path: patches/@kobalte__core@0.13.11.patch
+  '@pothos/plugin-drizzle@0.17.5':
+    hash: 685269c67d0b349737670d1007d71a3a721cae57da7c615c0d31ecc5187c825c
+    path: patches/@pothos__plugin-drizzle@0.17.5.patch
   '@sentry/core@10.51.0':
     hash: f6662985e37a368de0fe65ab3d693e7bb98a5bb18d13926d20dcde585ac72851
     path: patches/@sentry__core@10.51.0.patch
@@ -557,7 +560,7 @@ importers:
         version: 4.4.5(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(dataloader@2.2.3)(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
       '@pothos/plugin-drizzle':
         specifier: 'catalog:'
-        version: 0.17.5(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(drizzle-orm@1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6))(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
+        version: 0.17.5(patch_hash=685269c67d0b349737670d1007d71a3a721cae57da7c615c0d31ecc5187c825c)(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(drizzle-orm@1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6))(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
       '@pothos/plugin-errors':
         specifier: 'catalog:'
         version: 4.9.1(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
@@ -11820,7 +11823,7 @@ snapshots:
       dataloader: 2.2.3
       graphql: 16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02
 
-  '@pothos/plugin-drizzle@0.17.5(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(drizzle-orm@1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6))(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)':
+  '@pothos/plugin-drizzle@0.17.5(patch_hash=685269c67d0b349737670d1007d71a3a721cae57da7c615c0d31ecc5187c825c)(@pothos/core@4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02))(drizzle-orm@1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6))(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)':
     dependencies:
       '@pothos/core': 4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
       drizzle-orm: 1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6)

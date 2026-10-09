@@ -130,3 +130,4 @@ patchedDependencies:
   '@floating-ui/utils@0.2.11': patches/@floating-ui__utils@0.2.11.patch
   '@sentry/core@10.51.0': patches/@sentry__core@10.51.0.patch
   '@sentry/node@10.51.0': patches/@sentry__node@10.51.0.patch
+  '@pothos/plugin-drizzle@0.17.5': patches/@pothos__plugin-drizzle@0.17.5.patch

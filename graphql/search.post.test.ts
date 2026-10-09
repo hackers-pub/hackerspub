@@ -1,14 +1,17 @@
 import assert from "node:assert";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
-import { accountTable } from "@hackerspub/models/schema";
+import { accountTable, postTable } from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
 import { postgres } from "../test/database.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
+  insertRemotePost,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -30,6 +33,130 @@ const searchPostQuery = parse(`
     }
   }
 `);
+
+test("TagPageQuery loads quoted note content in mixed post results", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "searchquotedcontent",
+      name: "Search Quoted Content",
+      email: "searchquotedcontent@example.com",
+    });
+    const { post: quoted } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: "<p>Quoted post body</p>",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: "<p>searchquotedcontenttarget</p>",
+    });
+    await tx
+      .update(postTable)
+      .set({ quotedPostId: quoted.id })
+      .where(eq(postTable.id, post.id));
+    for (const type of ["Article", "Question"] as const) {
+      const other = await insertRemotePost(tx, {
+        actorId: author.actor.id,
+        contentHtml: "<p>searchquotedcontenttarget other type</p>",
+      });
+      await tx
+        .update(postTable)
+        .set({ type })
+        .where(eq(postTable.id, other.id));
+    }
+    const artifact = readFileSync(
+      new URL(
+        "../web-next/src/__generated__/TagPageQuery.graphql.ts",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+    const tagDocument = artifact.match(/"text": ("(?:[^"\\]|\\.)*")/);
+    assert.ok(
+      tagDocument,
+      "The generated tag query must contain a wire document",
+    );
+    const cardResult = await execute({
+      schema,
+      // Relay's generated artifact imports runtime-only type names, so read
+      // its wire document without importing the module under native stripping.
+      document: parse(JSON.parse(tagDocument[1])),
+      variableValues: {
+        query: "searchquotedcontenttarget",
+        tag: "searchquotedcontenttarget",
+        locale: "en-US",
+        languages: [],
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(cardResult.errors, undefined);
+    const data = toPlainJson(cardResult.data) as {
+      searchPost: {
+        edges: Array<{
+          node: {
+            id: string;
+            quotedPost?: { id: string; content: string } | null;
+          };
+        }>;
+      };
+    };
+    assert.equal(data.searchPost.edges.length, 3);
+    const note = data.searchPost.edges.find(
+      ({ node }) => node.id === encodeGlobalID("Note", post.id),
+    );
+    assert.ok(note?.node.quotedPost);
+    assert.equal(note.node.quotedPost.id, encodeGlobalID("Note", quoted.id));
+    assert.equal(note.node.quotedPost.content, "<p>Quoted post body</p>");
+  });
+});
+
+test("actor search reuses preloaded relations across list items", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "searchmappingviewer",
+      name: "Search Mapping Viewer",
+      email: "searchmappingviewer@example.com",
+    });
+    const usernames = [1, 2, 3].map((index) => `searchmappingactor${index}`);
+    for (const username of usernames) {
+      await insertRemoteActor(tx, {
+        username,
+        name: username,
+        host: "searchmapping.example",
+      });
+    }
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => queries.push(query);
+    try {
+      const result = await execute({
+        schema,
+        document: parse(`query {
+          searchActorsByHandle(prefix: "searchmappingactor") {
+            handle
+            instance { host software }
+          }
+        }`),
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        searchActorsByHandle: usernames.map((username) => ({
+          handle: `@${username}@searchmapping.example`,
+          instance: { host: "searchmapping.example", software: "hackerspub" },
+        })),
+      });
+      assert.equal(
+        queries.filter((query) => query.includes('from "actor"')).length,
+        1,
+        "Root-query selections must avoid reloading actors and their instances",
+      );
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});
 
 test("searchPost selects candidate IDs without reading post bodies twice", async () => {
   await withRollback(async (tx) => {
