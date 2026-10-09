@@ -409,22 +409,40 @@ export const Article = builder.drizzleNode("postTable", {
         field: 1,
         multiplier: args.language == null ? 10 : 1,
       }),
-      select: (args) => ({
+      select: (args, _ctx, nestedSelection) => ({
         columns: { actorId: true, censored: true },
         with: {
           actor: sanctionActorSelection,
           articleSource: {
             with: {
-              contents: args.includeBeingTranslated
-                ? {}
-                : { where: { beingTranslated: false } },
+              contents:
+                args.language == null
+                  ? nestedSelection({
+                      columns: { language: true },
+                      ...(args.includeBeingTranslated
+                        ? {}
+                        : { where: { beingTranslated: false } }),
+                    })
+                  : {
+                      // Negotiate from metadata first. The node loader fetches
+                      // requested fields only for the selected locale afterward.
+                      columns: { sourceId: true, language: true },
+                      ...(args.includeBeingTranslated
+                        ? {}
+                        : { where: { beingTranslated: false } }),
+                    },
             },
           },
         },
       }),
       resolve(post, args, ctx) {
         if (isCensoredForViewer(post, ctx)) return [];
-        const contents = post.articleSource?.contents ?? [];
+        // Both projections contain the composite key. Pothos does not carry
+        // the nested node selection's key type through this conditional.
+        const contents = (post.articleSource?.contents ?? []) as {
+          sourceId: Uuid;
+          language: string;
+        }[];
         if (args.language == null) return contents;
         const availableLocales = contents.map((c) => c.language);
         const selectedLocale = negotiateLocale(args.language, availableLocales);
@@ -851,6 +869,8 @@ function isArticleContentCensoredForViewer(
 
 export const ArticleContent = builder.drizzleNode("articleContentTable", {
   name: "ArticleContent",
+  // A language/title list must not implicitly select every Markdown body.
+  select: { columns: { sourceId: true, language: true } },
   description:
     "A single language version of an `Article`'s content. Each language is " +
     "stored separately; `Article.contents` lists all available translations. " +
@@ -1252,6 +1272,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
         "primary language this is `/@username/year/slug`; for other " +
         "language versions it appends `/{language}` to that path.",
       select: {
+        columns: { originalLanguage: true },
         with: {
           source: {
             columns: {
