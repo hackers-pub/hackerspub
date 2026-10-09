@@ -251,6 +251,7 @@ function getCurrentTranslationDraftRevision(
 }
 
 export const Article = builder.drizzleNode("postTable", {
+  select: { columns: { id: true, type: true, reactionsCounts: true } },
   variant: "Article",
   description:
     "A long-form blog article written on this platform. Articles have a " +

@@ -425,6 +425,7 @@ export function isRowCensoredForViewer(
 }
 
 export const Post = builder.drizzleInterface("postTable", {
+  select: { columns: { id: true, type: true, reactionsCounts: true } },
   variant: "Post",
   description:
     "Abstract base for all content types: `Note` (short microblog posts), " +
@@ -2074,6 +2075,7 @@ export const Hashtag = builder.simpleObject("Hashtag", {
 });
 
 export const PostEngagementStats = builder.drizzleObject("postTable", {
+  select: { columns: { id: true } },
   variant: "PostEngagementStats",
   description:
     "Cached engagement counters for a post. Updated asynchronously; may " +

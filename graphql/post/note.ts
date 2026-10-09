@@ -5,6 +5,7 @@ import { actingAccountIdArgDescription } from "../viewer-actor.ts";
 import { Post } from "./core.ts";
 
 export const Note = builder.drizzleNode("postTable", {
+  select: { columns: { id: true, type: true, reactionsCounts: true } },
   variant: "Note",
   description:
     "A short-form microblog post, equivalent to a Mastodon Status or " +
@@ -60,6 +61,7 @@ export const Note = builder.drizzleNode("postTable", {
 });
 
 export const Question = builder.drizzleNode("postTable", {
+  select: { columns: { id: true, type: true, reactionsCounts: true } },
   variant: "Question",
   description:
     "An ActivityPub `Question` poll. Local Questions are source-backed " +

@@ -198,7 +198,7 @@ export function getActorById(
 }
 
 async function relationshipBooleanKey(
-  actor: ActorRow,
+  actor: Pick<ActorRow, "id">,
   args: ActingAccountIdArg,
   ctx: UserContext,
 ): Promise<RelationshipBooleanKey> {
@@ -422,6 +422,7 @@ const profileHiddenSelection = {
 } as const;
 
 export const Actor = builder.drizzleNode("actorTable", {
+  select: { columns: { id: true } },
   name: "Actor",
   description:
     "An ActivityPub actor: the public identity used for federation. " +
@@ -637,6 +638,7 @@ export const Actor = builder.drizzleNode("actorTable", {
         "actor's posts by default.",
     }),
     url: t.field({
+      select: { columns: { url: true } },
       type: "URL",
       nullable: true,
       description:
