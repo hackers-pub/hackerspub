@@ -14,6 +14,7 @@ import {
   Note,
   Object as ActivityPubObject,
   PUBLIC_COLLECTION,
+  Person,
   Question,
   QuoteAuthorization,
   Video,
@@ -261,6 +262,110 @@ test("persistPost() shares its overall budget with video attachments", async () 
           if (!cancelled) streamController!.close();
           await pending;
         }
+      },
+    );
+  });
+});
+
+test("persistPost() reads existing remote post state once per version", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertRemoteActor(tx, {
+      username: "poststatesnapshot",
+      name: "Post state snapshot",
+      host: "remote.example",
+    });
+    const context = createFedCtx(tx);
+    const iri = new URL("https://remote.example/posts/state-snapshot");
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => queries.push(query);
+    try {
+      let originalId: Uuid | undefined;
+      for (const [index, content] of [
+        "Original body",
+        "Updated body",
+      ].entries()) {
+        queries.length = 0;
+        const post = await persistPost(
+          context,
+          new Note({
+            id: iri,
+            attribution: new URL(actor.iri),
+            to: PUBLIC_COLLECTION,
+            content,
+            updated: Temporal.Instant.from(`2026-10-0${index + 1}T00:00:00Z`),
+          }),
+          { fetchRemote: false },
+        );
+        assert.ok(post != null);
+        assert.equal(post.contentHtml, content);
+        if (originalId == null) originalId = post.id;
+        assert.equal(post.id, originalId);
+        const stateReads = queries.filter(
+          (query) =>
+            query.startsWith("select ") &&
+            query.includes('from "post" as "d0"') &&
+            query.includes('where "d0"."iri" ='),
+        );
+        assert.equal(
+          stateReads.length,
+          1,
+          "Version validation and change detection must share one state read",
+        );
+      }
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});
+
+test("persistPost() refreshes state after importing the author's featured posts", async () => {
+  await withRollback(async (tx) => {
+    const targetActor = await insertRemoteActor(tx, {
+      username: "featuredsnapshottarget",
+      name: "Featured snapshot target",
+      host: "remote.example",
+    });
+    const target = await insertRemotePost(tx, { actorId: targetActor.id });
+    const iri = new URL("https://remote.example/posts/featured-snapshot");
+    const authorIri = new URL("https://remote.example/users/featured-snapshot");
+    const oldVersion = new Note({
+      id: iri,
+      attribution: authorIri,
+      to: PUBLIC_COLLECTION,
+      content: "Old body with a quote",
+      quote: new URL(target.iri),
+      updated: Temporal.Instant.from("2026-10-01T00:00:00Z"),
+    });
+    const author = new Person({
+      id: authorIri,
+      preferredUsername: "featuredsnapshot",
+      inbox: new URL("https://remote.example/inbox"),
+      featured: new Collection({ items: [oldVersion] }),
+    });
+    const newVersion = new Note({
+      id: iri,
+      attribution: author,
+      to: PUBLIC_COLLECTION,
+      content: "New body without a quote",
+      updated: Temporal.Instant.from("2026-10-02T00:00:00Z"),
+    });
+    await withMockFetch(
+      async () => new Response("{}", { status: 404 }),
+      async () => {
+        const saved = await persistPost(createFedCtx(tx), newVersion);
+        assert.ok(saved != null);
+        assert.equal(saved.contentHtml, "New body without a quote");
+        assert.equal(saved.quotedPostId, null);
+        const actualQuotes = await tx.query.postTable.findMany({
+          where: { quotedPostId: target.id },
+        });
+        const storedTarget = await tx.query.postTable.findFirst({
+          where: { id: target.id },
+        });
+        assert.ok(storedTarget != null);
+        assert.equal(actualQuotes.length, 0);
+        assert.equal(storedTarget.quotesCount, 0);
       },
     );
   });

@@ -329,31 +329,45 @@ export async function persistPost(
   // Update). Equal versions are applied, so replays and objects without
   // `updated` behave as before. The write below re-checks both atomically.
   const incomingVersion = toDate(post.updated ?? post.published);
-  const storedVersion = await db.query.postTable.findFirst({
-    columns: { id: true, updated: true },
-    with: { actor: { columns: { iri: true } } },
-    where: { iri: post.id.href },
-  });
-  if (storedVersion != null) {
-    if (storedVersion.actor.iri !== post.attributionId.href) {
+  // Reuse this snapshot for change detection below unless nested persistence
+  // can have changed it. The upsert rechecks attribution/version atomically.
+  const postIri = post.id.href;
+  const readExistingPost = () =>
+    db.query.postTable.findFirst({
+      columns: {
+        id: true,
+        updated: true,
+        name: true,
+        contentHtml: true,
+        quotedPostId: true,
+        linkId: true,
+      },
+      with: { actor: { columns: { iri: true } } },
+      where: { iri: postIri },
+    });
+  let existingPost = await readExistingPost();
+  let nestedPersistence = false;
+  if (existingPost != null) {
+    if (existingPost.actor.iri !== post.attributionId.href) {
       logger.warn(
         "Ignoring {iri}: it is attributed to {attribution}, but the stored " +
           "post belongs to {actor}.",
         {
           iri: post.id.href,
           attribution: post.attributionId.href,
-          actor: storedVersion.actor.iri,
+          actor: existingPost.actor.iri,
         },
       );
       return await getPersistedPost(db, post.id);
     }
-    if (incomingVersion != null && +incomingVersion < +storedVersion.updated) {
+    if (incomingVersion != null && +incomingVersion < +existingPost.updated) {
+      const storedUpdated = existingPost.updated;
       logger.debug(
         "Ignoring an older version of {iri} ({incoming} < {stored}).",
         () => ({
           iri: post.id?.href,
           incoming: incomingVersion.toISOString(),
-          stored: storedVersion.updated.toISOString(),
+          stored: storedUpdated.toISOString(),
         }),
       );
       return await getPersistedPost(db, post.id);
@@ -386,6 +400,7 @@ export async function persistPost(
     // per-fetch timeout and the shared `overallSignal`, so persistActor's own
     // dereferencing (icon/image/attachments/featured/tags) cannot stall this
     // handler past the queue timeout.
+    nestedPersistence = true;
     actor = await persistActor(ctx, apActor, opts);
     if (actor == null) {
       logger.debug("Failed to persist actor: {actor}", { actor: apActor });
@@ -474,6 +489,7 @@ export async function persistPost(
           continue;
         }
         if (!isPostObject(obj)) continue;
+        nestedPersistence = true;
         quotedPost = await persistPost(ctx, obj, {
           replies: false,
           depth: depth + 1,
@@ -508,6 +524,7 @@ export async function persistPost(
     if (replyTarget == null && shouldRecurse) {
       const apReplyTarget = await post.getReplyTarget(opts);
       if (!isPostObject(apReplyTarget)) return;
+      nestedPersistence = true;
       replyTarget = await persistPost(ctx, apReplyTarget, {
         ...options,
         replies: false,
@@ -542,16 +559,9 @@ export async function persistPost(
     quotePoliciesFromInteractionPolicy(post, visibility, actor.followersUrl);
   // Capture the reference before getQuoteAuthorization can replace its ID.
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
-  const existingPost = await db.query.postTable.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      contentHtml: true,
-      quotedPostId: true,
-      linkId: true,
-    },
-    where: { iri: post.id.href },
-  });
+  // Actor bootstrap (including featured posts) or ancestor imports may have
+  // saved another version of this same IRI. Compare with that stored version.
+  if (nestedPersistence) existingPost = await readExistingPost();
   if (quoteAuthorizationIri != null && quotedPost != null) {
     let validAuthorization: boolean;
     if (quotedPost.actor.accountId != null) {
