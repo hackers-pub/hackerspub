@@ -1,6 +1,6 @@
 import type { Database, Transaction } from "./db.ts";
 import {
-  getTranslationReviewStates,
+  getReviewState,
   type TranslationReviewState,
 } from "./article-translation-review.ts";
 import type {
@@ -118,7 +118,18 @@ export async function getPublishedTranslationMetadata(
     (content) => content.originalLanguage != null && !content.beingTranslated,
   );
   if (translations.length < 1) return result;
-  const states = await getTranslationReviewStates(db, { sourceId: source.id });
+  // Published contents are already loaded by both callers. Only the original's
+  // authoritative revision pointer is needed here, never its body or drafts.
+  const original = await db.query.articleContentTable.findFirst({
+    where: {
+      sourceId: source.id,
+      originalLanguage: { isNull: true },
+      translatorId: { isNull: true },
+      translationRequesterId: { isNull: true },
+    },
+    orderBy: { published: "asc" },
+    columns: { sourceRevisionId: true },
+  });
   const baselineIds = [
     ...new Set(
       translations
@@ -147,8 +158,10 @@ export async function getPublishedTranslationMetadata(
   const reference = getArticleReferenceTime(source);
   for (const content of translations) {
     const kind = kindOf(content);
-    const reviewState =
-      states.contents.get(content.language) ?? "unknownBaseline";
+    const reviewState = getReviewState(
+      content.sourceRevisionId,
+      original?.sourceRevisionId,
+    );
     let sourceUpdated: Date | null = null;
     // FEP-22cd defines `sourceUpdated` as the reference value as of the last
     // *human* review, so unreviewed machine output never carries one, and an
