@@ -18,11 +18,15 @@ import {
 import {
   type AccountKey,
   accountKeyTable,
+  accountTable,
   type ActorType,
   type DeletedAccountKey,
+  deletedAccountKeyTable,
+  deletedAccountTable,
   type NewAccountKey,
 } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
+import { eq, sql } from "drizzle-orm";
 import { builder } from "./builder.ts";
 import { getAccountActor } from "./person.ts";
 
@@ -200,27 +204,48 @@ builder
     }
 
     if (!validateUuid(identifier)) return [];
-    const deletedKeyRecords =
-      await ctx.data.db.query.deletedAccountKeyTable.findMany({
-        where: { accountId: identifier },
-      });
-    if (deletedKeyRecords.length > 0) {
-      return await importStoredActorKeys(deletedKeyRecords);
-    }
-    const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
-      where: { accountId: identifier },
-      columns: { accountId: true },
-    });
-    if (deleted != null) return [];
-
-    let keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
-      where: { accountId: identifier },
-    });
-    const account = await ctx.data.db.query.accountTable.findFirst({
-      where: { id: identifier },
-      columns: { id: true },
-    });
-    if (account == null) return [];
+    // Read account existence and keys in one snapshot and round trip. A
+    // left join retains accounts without keys, including unkeyed tombstones.
+    // Deleted records keep precedence over live records if both are present.
+    const rows = await ctx.data.db
+      .select({
+        deleted: sql<boolean>`true`,
+        type: deletedAccountKeyTable.type,
+        public: deletedAccountKeyTable.public,
+        private: deletedAccountKeyTable.private,
+      })
+      .from(deletedAccountTable)
+      .leftJoin(
+        deletedAccountKeyTable,
+        eq(deletedAccountTable.accountId, deletedAccountKeyTable.accountId),
+      )
+      .where(eq(deletedAccountTable.accountId, identifier))
+      .unionAll(
+        ctx.data.db
+          .select({
+            deleted: sql<boolean>`false`,
+            type: accountKeyTable.type,
+            public: accountKeyTable.public,
+            private: accountKeyTable.private,
+          })
+          .from(accountTable)
+          .leftJoin(
+            accountKeyTable,
+            eq(accountTable.id, accountKeyTable.accountId),
+          )
+          .where(eq(accountTable.id, identifier)),
+      );
+    if (rows.length < 1) return [];
+    const deleted = rows.some((row) => row.deleted);
+    let keyRecords: StoredActorKey[] = rows.flatMap((row) =>
+      row.deleted === deleted &&
+      row.type != null &&
+      row.public != null &&
+      row.private != null
+        ? [{ type: row.type, public: row.public, private: row.private }]
+        : [],
+    );
+    if (deleted) return await importStoredActorKeys(keyRecords);
     const existingTypes = new Set(keyRecords.map((r) => r.type));
     const newRecords: NewAccountKey[] = [];
     if (!existingTypes.has("RSASSA-PKCS1-v1_5")) {
