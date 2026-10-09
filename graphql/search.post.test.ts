@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { accountTable } from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
+import { postgres } from "../test/database.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
@@ -29,6 +30,53 @@ const searchPostQuery = parse(`
     }
   }
 `);
+
+test("searchPost selects candidate IDs without reading post bodies twice", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "searchprojection",
+      name: "Search Projection",
+      email: "searchprojection@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: `<p>searchprojectiontarget ${"Long body. ".repeat(10000)}</p>`,
+    });
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => queries.push(query);
+    try {
+      const result = await execute({
+        schema,
+        document: searchPostQuery,
+        variableValues: { query: "searchprojectiontarget", first: 1 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        searchPost: {
+          edges: [{ node: { id: encodeGlobalID("Note", post.id) } }],
+          pageInfo: { hasNextPage: false, hasPreviousPage: false },
+        },
+      });
+      const candidateQuery = queries.find(
+        (query) =>
+          query.includes('from "post" as "d0"') &&
+          query.includes('"d0"."content_html" ilike'),
+      );
+      assert.ok(candidateQuery);
+      assert.ok(
+        !candidateQuery
+          .slice(0, candidateQuery.indexOf('from "post"'))
+          .includes('"content_html"'),
+        "Candidate selection must not transfer post bodies before hydration",
+      );
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});
 
 test("searchPost returns matching public posts and respects language filters", async () => {
   await withRollback(async (tx) => {

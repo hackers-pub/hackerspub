@@ -300,6 +300,7 @@ builder.queryFields((t) => ({
       };
 
       const postPage = await ctx.db.query.postTable.findMany({
+        columns: { id: true },
         where: postFilter,
         orderBy: { published: "desc" },
         limit: window + 1,
