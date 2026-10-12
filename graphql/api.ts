@@ -1,4 +1,5 @@
 import { toApplicationContext } from "@hackerspub/federation/context";
+import { handleNotAcceptable } from "@hackerspub/federation/html-redirect";
 import type { RuntimeResources } from "@hackerspub/runtime/resources";
 import type { YogaServerInstance } from "graphql-yoga";
 import type { ServerContext, UserContext } from "./builder.ts";
@@ -80,7 +81,14 @@ export function createGraphqlApiHandler(
       }
       const contextData = { db, kv, disk, models, services };
       if (isFederationRequestPath(url.pathname)) {
-        return await federation.fetch(request, { contextData });
+        return await federation.fetch(request, {
+          contextData,
+          onNotAcceptable: (request) =>
+            handleNotAcceptable(
+              federation.createContext(request, contextData),
+              request,
+            ),
+        });
       }
       return await yogaServer.fetch(request, {
         altTextGenerator: models.altTextGenerator,
