@@ -5,9 +5,14 @@ import type { YogaServerInstance } from "graphql-yoga";
 import { createGraphqlApiHandler, isFederationRequestPath } from "./api.ts";
 import type { ServerContext, UserContext } from "./builder.ts";
 
+interface FederationFetchOptions {
+  readonly onNotAcceptable?: (request: Request) => Promise<Response>;
+}
+
 interface HandlerFixture {
   readonly handler: ReturnType<typeof createGraphqlApiHandler>;
   readonly federationRequests: Request[];
+  readonly federationOptions: FederationFetchOptions[];
   readonly yogaRequests: Request[];
 }
 
@@ -45,6 +50,7 @@ function createFedifyContext(data: unknown): object {
 
 function createFixture(behindProxy = false): HandlerFixture {
   const federationRequests: Request[] = [];
+  const federationOptions: FederationFetchOptions[] = [];
   const yogaRequests: Request[] = [];
   const disk = {};
   const resources = {
@@ -59,8 +65,9 @@ function createFixture(behindProxy = false): HandlerFixture {
     },
     email: {},
     federation: {
-      fetch: async (request: Request) => {
+      fetch: async (request: Request, options: FederationFetchOptions) => {
         federationRequests.push(request);
+        federationOptions.push(options);
         return new Response("federation");
       },
       createContext: (_request: Request, data: unknown) =>
@@ -82,6 +89,7 @@ function createFixture(behindProxy = false): HandlerFixture {
   } as unknown as YogaServerInstance<ServerContext, UserContext>;
   return {
     federationRequests,
+    federationOptions,
     yogaRequests,
     handler: createGraphqlApiHandler({
       resources,
@@ -162,6 +170,22 @@ test("the runtime-neutral handler delegates federation and GraphQL routes", asyn
   assert.equal(await graphql.text(), "graphql");
   assert.equal(federationRequests.length, 6);
   assert.equal(yogaRequests.length, 1);
+});
+
+test("federation requests get the HTML redirect fallback", async () => {
+  const { federationOptions, handler } = createFixture();
+  await handler(
+    new Request("http://internal.example/ap/notes/1"),
+    connectionInfo,
+  );
+  const onNotAcceptable = federationOptions[0]?.onNotAcceptable;
+  assert.ok(onNotAcceptable != null);
+  const response = await onNotAcceptable(
+    new Request("http://internal.example/ap/notes/1", {
+      headers: { Accept: "image/png" },
+    }),
+  );
+  assert.equal(response.status, 406);
 });
 
 test("trusted forwarding is applied before federation dispatch", async () => {
