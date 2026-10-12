@@ -16,9 +16,15 @@ interface HandlerFixture {
   readonly yogaRequests: Request[];
 }
 
+const redirectAccountId = "0193d0f2-7d6a-7b8e-9a4c-2f1e6d5c4b3a";
+
 function createFedifyContext(data: unknown): object {
   const context = {
     data,
+    parseUri(url: URL) {
+      const match = /^\/ap\/actors\/([^/]+)$/.exec(url.pathname);
+      return match == null ? null : { type: "actor", identifier: match[1] };
+    },
     origin: "http://internal.example",
     canonicalOrigin: "http://internal.example",
     host: "internal.example",
@@ -58,7 +64,16 @@ function createFixture(behindProxy = false): HandlerFixture {
       behindProxy,
       email: { from: "noreply@example.com" },
     },
-    db: {},
+    db: {
+      query: {
+        actorTable: {
+          findFirst: async (query: { where: { accountId: string } }) =>
+            query.where.accountId === redirectAccountId
+              ? { url: "http://internal.example/@alice" }
+              : undefined,
+        },
+      },
+    },
     drive: {
       fileSystemRoot: undefined,
       use: () => disk,
@@ -68,6 +83,13 @@ function createFixture(behindProxy = false): HandlerFixture {
       fetch: async (request: Request, options: FederationFetchOptions) => {
         federationRequests.push(request);
         federationOptions.push(options);
+        // Like Fedify, hand requests that only accept HTML to the fallback.
+        if (
+          request.headers.get("Accept") === "text/html" &&
+          options.onNotAcceptable != null
+        ) {
+          return await options.onNotAcceptable(request);
+        }
         return new Response("federation");
       },
       createContext: (_request: Request, data: unknown) =>
@@ -174,11 +196,23 @@ test("the runtime-neutral handler delegates federation and GraphQL routes", asyn
 
 test("federation requests get the HTML redirect fallback", async () => {
   const { federationOptions, handler } = createFixture();
+  const redirect = await handler(
+    new Request(`http://internal.example/ap/actors/${redirectAccountId}`, {
+      headers: { Accept: "text/html" },
+    }),
+    connectionInfo,
+  );
+  assert.equal(redirect.status, 303);
+  assert.equal(
+    redirect.headers.get("Location"),
+    "http://internal.example/@alice",
+  );
+
   await handler(
     new Request("http://internal.example/ap/notes/1"),
     connectionInfo,
   );
-  const onNotAcceptable = federationOptions[0]?.onNotAcceptable;
+  const onNotAcceptable = federationOptions[1]?.onNotAcceptable;
   assert.ok(onNotAcceptable != null);
   const response = await onNotAcceptable(
     new Request("http://internal.example/ap/notes/1", {
