@@ -37,7 +37,7 @@ export const AlertDialogContent = <T extends ValidComponent = "div">(
       />
       <AlertDialogPrimitive.Content
         class={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg data-[closed]:duration-150 data-[expanded]:duration-150 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 sm:rounded-lg md:w-full",
+          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg data-[closed]:animation-duration-150 data-[expanded]:animation-duration-150 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 sm:rounded-lg md:w-full",
           local.class,
         )}
         {...rest}
