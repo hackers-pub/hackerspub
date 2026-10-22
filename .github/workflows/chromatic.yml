@@ -34,6 +34,7 @@ jobs:
         repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
     - uses: jdx/mise-action@v4
       with:
+        version: "2026.10.17"
         experimental: true
         cache: true
         cache_key_prefix: mise-v4

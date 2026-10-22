@@ -10,7 +10,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update && apt-get -y --no-install-recommends install \
-  build-essential ca-certificates curl ffmpeg jq
+  build-essential ca-certificates curl ffmpeg jq && \
+  dpkg --compare-versions \
+    "$(dpkg-query -W -f='${Version}' ca-certificates)" ge 20250419+deb13u1
 
 ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
@@ -22,7 +24,8 @@ ENV npm_config_fetch_retry_maxtimeout="120000"
 ENV npm_config_fetch_timeout="300000"
 ENV PATH="/mise/shims:$PATH"
 
-RUN curl https://mise.run | sh
+# mise's bundled npm CA store needs the eMudhra distrust update too.
+RUN curl -fsSL https://mise.run | MISE_VERSION=v2026.10.17 sh
 
 WORKDIR /app
 COPY mise.toml /app/mise.toml
@@ -121,6 +124,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # build-essential, curl, jq, etc. stay in the builder stage only.
 RUN apt-get update && apt-get -y --no-install-recommends install \
   ca-certificates ffmpeg && \
+  dpkg --compare-versions \
+    "$(dpkg-query -W -f='${Version}' ca-certificates)" ge 20250419+deb13u1 && \
   rm -rf /var/lib/apt/lists/*
 
 ENV MISE_DATA_DIR="/mise"
