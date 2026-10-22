@@ -2,7 +2,7 @@
 experimental = true
 
 [tools]
-node = "24"
+node = "26.12.1"
 pnpm = "10.12.4"
 "aqua:nushell/nushell" = "0.99.1"
 "npm:@sentry/mcp-server" = { version = "latest", trust_policy_excludes = [

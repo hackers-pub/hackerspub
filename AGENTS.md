@@ -147,7 +147,7 @@ Code Style Guidelines
 
  -  Use explicit typing for complex return types
  -  Use interfaces for component props (e.g., ButtonProps)
- -  Source and tests must run under Node.js 24 using native type stripping:
+ -  Source and tests must run under Node.js 26 using native type stripping:
     include `.ts` extensions in relative imports and avoid TypeScript syntax
     that requires code generation, such as enums and parameter properties
 
