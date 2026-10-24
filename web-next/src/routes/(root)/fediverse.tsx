@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
+import { SiteDefaultOpenGraph } from "~/components/SiteDefaultOpenGraph.tsx";
 import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
@@ -87,6 +88,7 @@ export default function FediverseTimeline() {
   return (
     <>
       <Title>{t`Hackers' Pub: Fediverse timeline`}</Title>
+      <SiteDefaultOpenGraph title={t`Hackers' Pub: Fediverse timeline`} />
       <Show keyed when={data()}>
         {(data) => (
           <NarrowContainer>
