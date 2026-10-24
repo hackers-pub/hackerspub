@@ -8,6 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
+import { SiteDefaultOpenGraph } from "~/components/SiteDefaultOpenGraph.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import {
@@ -67,6 +68,7 @@ export default function TagPage() {
   return (
     <NarrowContainer class="px-4 py-4 sm:py-6">
       <Title>{t`Hackers' Pub: #${tag()}`}</Title>
+      <SiteDefaultOpenGraph title={t`Hackers' Pub: #${tag()}`} />
       <div class="relative mb-6">
         <SearchForm value={searchQuery()} />
       </div>

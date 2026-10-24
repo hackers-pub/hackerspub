@@ -4,6 +4,7 @@ import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NewsList } from "~/components/NewsList.tsx";
+import { SiteDefaultOpenGraph } from "~/components/SiteDefaultOpenGraph.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
@@ -43,6 +44,7 @@ export default function NewsPage() {
   return (
     <NarrowContainer>
       <Title>{t`Hackers' Pub: News`}</Title>
+      <SiteDefaultOpenGraph title={t`Hackers' Pub: News`} />
       <div class="px-4 pt-6 pb-2">
         <h1 class="text-2xl font-semibold tracking-tight">{t`News`}</h1>
         <p class="mt-1 text-sm text-muted-foreground">

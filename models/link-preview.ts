@@ -377,6 +377,7 @@ export async function scrapePostLink(
   try {
     const scraped = await ogs({
       html,
+      onlyGetOpenGraphInfo: ["image"],
       customMetaTags: [
         {
           multiple: false,
