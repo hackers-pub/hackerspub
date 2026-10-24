@@ -137,6 +137,35 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() does not use page images as preview images", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/timeline", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
+        <head>
+          <title>Example timeline</title>
+        </head>
+        <body>
+          <img src="https://example.internal/someone-elses-attachment.jpg"
+            width="1920" height="937">
+        </body>
+      </html>`,
+  });
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/timeline",
+    () => Promise.resolve(undefined),
+  );
+  assert.equal(link?.title, "Example timeline");
+  assert.equal(link?.imageUrl, undefined);
+  assert.equal(link?.imageWidth, undefined);
+  assert.equal(link?.imageHeight, undefined);
+  resetFetch();
+  resetGlobalFetch();
+});
+
 test("scrapePostLink() cancels unsuccessful image metadata responses", async () => {
   const originalFetch = globalThis.fetch;
   let imageResponseCancelled = false;
