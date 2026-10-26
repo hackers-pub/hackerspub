@@ -1,4 +1,5 @@
 import { and, eq } from "drizzle-orm";
+import type { GraphQLResolveInfo } from "graphql";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import { getViewableArticleAnalyticsPostIds } from "@hackerspub/models/article-analytics";
 import {
@@ -31,12 +32,37 @@ import { Account } from "../account.ts";
 import { builder, type UserContext } from "../builder.ts";
 import { putArticleOgImage } from "../og.ts";
 import { Reactable } from "../reactable.ts";
+import { createRequestCache } from "../request-cache.ts";
 import {
   articleContentOgImageComplexity,
   isCensoredForViewer,
   Post,
   sanctionActorSelection,
 } from "./core.ts";
+
+const articleSourceMediaCache = createRequestCache(
+  () => new Map<Uuid, Promise<Record<string, string>>>(),
+);
+
+function loadArticleSourceMediumUrls(
+  sourceId: Uuid,
+  ctx: UserContext,
+  info: GraphQLResolveInfo,
+): Promise<Record<string, string>> {
+  // Query-side writes do not change article media mappings. Mutations can,
+  // so their later payloads must read again rather than reuse earlier values.
+  if (info.operation.operation !== "query") {
+    return getArticleSourceMediumUrls(ctx.db, ctx.disk, sourceId);
+  }
+  const cache = articleSourceMediaCache(ctx, info);
+  let pending = cache.get(sourceId);
+  if (pending == null) {
+    pending = getArticleSourceMediumUrls(ctx.db, ctx.disk, sourceId);
+    // Share in-flight work (including failures) only within this snapshot.
+    cache.set(sourceId, pending);
+  }
+  return pending;
+}
 
 export const ArticleContentProvenance = builder.enumType(
   "ArticleContentProvenance",
@@ -977,14 +1003,14 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           },
         },
       },
-      async resolve(content, _, ctx) {
+      async resolve(content, _, ctx, info) {
         if (isArticleContentCensoredForViewer(content, ctx)) return "";
         const html = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
-          mediumUrls: await getArticleSourceMediumUrls(
-            ctx.db,
-            ctx.disk,
+          mediumUrls: await loadArticleSourceMediumUrls(
             content.sourceId,
+            ctx,
+            info,
           ),
           missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
@@ -1042,14 +1068,14 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           },
         },
       },
-      async resolve(content, _, ctx) {
+      async resolve(content, _, ctx, info) {
         if (isArticleContentCensoredForViewer(content, ctx)) return [];
         const rendered = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
-          mediumUrls: await getArticleSourceMediumUrls(
-            ctx.db,
-            ctx.disk,
+          mediumUrls: await loadArticleSourceMediumUrls(
             content.sourceId,
+            ctx,
+            info,
           ),
           missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
@@ -1229,15 +1255,15 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           },
         },
       },
-      async resolve(content, _, ctx) {
+      async resolve(content, _, ctx, info) {
         if (isArticleContentCensoredForViewer(content, ctx)) return null;
         const account = content.source.account;
         const rendered = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
-          mediumUrls: await getArticleSourceMediumUrls(
-            ctx.db,
-            ctx.disk,
+          mediumUrls: await loadArticleSourceMediumUrls(
             content.sourceId,
+            ctx,
+            info,
           ),
           missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
