@@ -645,7 +645,7 @@ test("Post.replies.totalCount counts only visible replies", async () => {
   });
 });
 
-test("descendants hydrate note sources so own replies stay editable", async () => {
+test("descendants keep own replies editable without eager note Markdown", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "editauthor",
@@ -689,9 +689,8 @@ test("descendants hydrate note sources so own replies stay editable", async () =
     assert.deepEqual(result.errors, undefined);
     const edges = (result.data as unknown as Data).node.descendants.edges;
     assert.equal(edges.length, 1);
-    // The author owns the reply, so its Markdown source must resolve; before
-    // the loader hydrated `noteSource` this came back `null` and the client
-    // hid the edit action.
+    // Ownership is hydrated on this manual loading path; the author then
+    // receives the Markdown through the batched source loader.
     assert.equal(edges[0].node.rawContent, "editable reply body");
   });
 });

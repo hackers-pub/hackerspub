@@ -1,8 +1,47 @@
+import type { Uuid } from "@hackerspub/models/uuid";
+import DataLoader from "dataloader";
+import type { GraphQLResolveInfo } from "graphql";
 import { resolveActingAccountForGlobalIdArg } from "../acting-account.ts";
-import { builder } from "../builder.ts";
+import { builder, type UserContext } from "../builder.ts";
 import { Reactable } from "../reactable.ts";
+import { createRequestCache } from "../request-cache.ts";
 import { actingAccountIdArgDescription } from "../viewer-actor.ts";
 import { Post } from "./core.ts";
+
+const noteSourceContentLoaders = createRequestCache((ctx, operation) => ({
+  db: ctx.db,
+  // Query-side writes do not change note Markdown. Each mutation payload must
+  // read again, including two updates of the same note in a single operation.
+  cache: operation.operation === "query",
+  byAccount: new Map<Uuid, DataLoader<Uuid, string | null>>(),
+}));
+
+function loadNoteSourceContent(
+  sourceId: Uuid,
+  accountId: Uuid,
+  ctx: UserContext,
+  info: GraphQLResolveInfo,
+): Promise<string | null> {
+  const { db, cache, byAccount } = noteSourceContentLoaders(ctx, info);
+  let loader = byAccount.get(accountId);
+  if (loader == null) {
+    loader = new DataLoader<Uuid, string | null>(
+      async (ids) => {
+        const rows = await db.query.noteSourceTable.findMany({
+          where: { id: { in: [...new Set(ids)] }, accountId },
+          columns: { id: true, content: true },
+        });
+        const contents = new Map(rows.map((row) => [row.id, row.content]));
+        return ids.map((id) => contents.get(id) ?? null);
+      },
+      { cache },
+    );
+    // Account-scoped loaders map exact (source, owner) pairs, never a cross
+    // product of source IDs and selected account IDs.
+    byAccount.set(accountId, loader);
+  }
+  return loader.load(sourceId);
+}
 
 export const Note = builder.drizzleNode("postTable", {
   select: { columns: { id: true, type: true, reactionsCounts: true } },
@@ -44,17 +83,23 @@ export const Note = builder.drizzleNode("postTable", {
         }),
       },
       select: {
-        with: { noteSource: { columns: { content: true, accountId: true } } },
+        columns: { noteSourceId: true },
+        with: { noteSource: { columns: { accountId: true } } },
       },
-      async resolve(post, args, ctx) {
-        if (post.noteSource == null) return null;
+      async resolve(post, args, ctx, info) {
+        if (post.noteSource == null || post.noteSourceId == null) return null;
         if (ctx.account == null) return null;
         const actingAccount = await resolveActingAccountForGlobalIdArg(
           ctx,
           args,
         );
         if (actingAccount.id !== post.noteSource.accountId) return null;
-        return post.noteSource.content;
+        return await loadNoteSourceContent(
+          post.noteSourceId,
+          actingAccount.id,
+          ctx,
+          info,
+        );
       },
     }),
   }),

@@ -130,11 +130,10 @@ export function actorProfilePostRelations(viewerActorId: Uuid | null) {
   } as const;
   return {
     ...nestedPostRelations,
-    // `Note.rawContent` reads `post.noteSource`, and these rows are returned
-    // straight to Pothos (bypassing its per-field `select` merge), so the
-    // source has to be hydrated eagerly or the edit action is hidden for the
-    // viewer's own notes in profile lists and thread/interaction connections.
-    noteSource: { columns: { content: true, accountId: true } },
+    // These rows bypass Pothos's per-field select merge. Hydrate ownership so
+    // Note.rawContent keeps own notes editable on profile/thread pages, while
+    // Markdown is loaded in batches only after the ownership check.
+    noteSource: { columns: { accountId: true } },
     shares: { where: viewerOnlyFilter },
     reactions: { where: viewerOnlyFilter },
     organizationAuthor: true,
