@@ -2,17 +2,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Transaction } from "@hackerspub/models/db";
 import { getMissingArticleMediumLabel } from "@hackerspub/models/markup";
+import { getTranslationReviewStates } from "@hackerspub/models/article-translation-review";
 import {
   accountTable,
   articleContentTable,
   articleSourceMediumTable,
+  articleSourceRevisionTable,
   articleSourceTable,
   mediumTable,
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
@@ -286,5 +288,236 @@ test("article media reads stay fresh across root mutation payloads", async () =>
         row.content.includes("attached.png"),
       ),
     );
+  });
+});
+
+async function insertReviewRevisions(
+  tx: Transaction,
+  article: Awaited<ReturnType<typeof insertArticle>>,
+) {
+  const current = generateUuidV7();
+  const previous = generateUuidV7();
+  await tx.insert(articleSourceRevisionTable).values(
+    [current, previous].map((id) => ({
+      id,
+      sourceId: article.sourceId,
+      language: "en",
+      title: "Original",
+      content: "Private revision Markdown",
+    })),
+  );
+  await tx
+    .update(articleContentTable)
+    .set({ sourceRevisionId: current })
+    .where(eq(articleContentTable.sourceId, article.sourceId));
+  await tx.insert(articleContentTable).values(
+    [
+      { language: "ja", sourceRevisionId: previous },
+      { language: "zh", sourceRevisionId: null },
+    ].map((row) => ({
+      ...row,
+      sourceId: article.sourceId,
+      title: "Translation",
+      content: "Translated Markdown",
+      originalLanguage: "en",
+      provenance: "unknown" as const,
+    })),
+  );
+  return { current, previous };
+}
+
+const reviewStatesQuery = parse(`query($ids: [ID!]!) {
+  nodes(ids: $ids) { ... on Article {
+    contents { language reviewState }
+    again: contents { language reviewState }
+  } }
+}`);
+
+interface ReviewContent {
+  language: string;
+  reviewState: "CURRENT" | "NEEDS_REVIEW" | "UNKNOWN_BASELINE" | null;
+}
+
+async function readReviewStates(ctx: UserContext, ids: string[]) {
+  const result = await execute({
+    schema,
+    document: reviewStatesQuery,
+    variableValues: { ids },
+    contextValue: ctx,
+    onError: "NO_PROPAGATE",
+  });
+  assert.equal(result.errors, undefined);
+  return toPlainJson(result.data) as {
+    nodes: { contents: ReviewContent[]; again: ReviewContent[] }[];
+  };
+}
+
+test("public review states share only the current revision pointer across translations and aliases", async () => {
+  await withRollback(async (tx) => {
+    const first = await insertArticle(tx, "review");
+    const second = await insertArticle(tx, "legacy");
+    const revisions = await insertReviewRevisions(tx, first);
+    const expected = await getTranslationReviewStates(tx, {
+      sourceId: first.sourceId,
+    });
+    const enumValues = {
+      current: "CURRENT",
+      needsReview: "NEEDS_REVIEW",
+      unknownBaseline: "UNKNOWN_BASELINE",
+    };
+    const queries: string[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query) => queries.push(query);
+    const pointerReads = () =>
+      queries.filter(
+        (query) =>
+          query.startsWith('select "d0"."source_revision_id"') &&
+          query.includes('from "article_content"'),
+      );
+    try {
+      const ctx = makeGuestContext(tx);
+      const data = await readReviewStates(ctx, [first.id, second.id]);
+      assert.equal(pointerReads().length, 2, "one pointer query per source");
+      assert.ok(pointerReads().every((query) => !query.includes('"content"')));
+      assert.ok(
+        queries.every(
+          (query) => !query.includes('from "article_source_revision"'),
+        ),
+      );
+      assert.deepEqual(data.nodes[0].again, data.nodes[0].contents);
+      assert.deepEqual(
+        Object.fromEntries(
+          data.nodes[0].contents.map((row) => [row.language, row.reviewState]),
+        ),
+        {
+          en: null,
+          ko: "CURRENT",
+          ja: "NEEDS_REVIEW",
+          zh: "UNKNOWN_BASELINE",
+        },
+      );
+      for (const row of data.nodes[0].contents) {
+        if (row.language === "en") continue;
+        assert.equal(
+          row.reviewState,
+          enumValues[expected.contents.get(row.language)!],
+        );
+      }
+      assert.equal(
+        data.nodes[1].contents.find((row) => row.language === "ko")
+          ?.reviewState,
+        "UNKNOWN_BASELINE",
+      );
+
+      queries.length = 0;
+      const originalOnly = await execute({
+        schema,
+        document: parse(
+          `query($id: ID!) { node(id: $id) { ... on Article { contents(language: "en") { reviewState } } } }`,
+        ),
+        variableValues: { id: first.id },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(originalOnly.errors, undefined);
+      assert.equal(
+        pointerReads().length,
+        0,
+        "original-language content needs no pointer lookup",
+      );
+
+      await tx
+        .update(articleContentTable)
+        .set({ sourceRevisionId: revisions.previous })
+        .where(
+          and(
+            eq(articleContentTable.sourceId, first.sourceId),
+            eq(articleContentTable.language, "en"),
+          ),
+        );
+      queries.length = 0;
+      const fresh = await readReviewStates(makeGuestContext(tx), [first.id]);
+      assert.equal(pointerReads().length, 1);
+      assert.equal(
+        fresh.nodes[0].contents.find((row) => row.language === "ko")
+          ?.reviewState,
+        "NEEDS_REVIEW",
+      );
+      await tx.transaction(async (savepoint) => {
+        ctx.db = savepoint;
+        queries.length = 0;
+        const retried = await readReviewStates(ctx, [first.id]);
+        assert.equal(pointerReads().length, 1);
+        assert.equal(
+          retried.nodes[0].contents.find((row) => row.language === "ko")
+            ?.reviewState,
+          "NEEDS_REVIEW",
+        );
+      });
+
+      await tx
+        .update(articleContentTable)
+        .set({ sourceRevisionId: null })
+        .where(
+          and(
+            eq(articleContentTable.sourceId, first.sourceId),
+            eq(articleContentTable.language, "en"),
+          ),
+        );
+      const legacy = await readReviewStates(makeGuestContext(tx), [first.id]);
+      assert.ok(
+        legacy.nodes[0].contents
+          .filter((row) => row.language !== "en")
+          .every((row) => row.reviewState === "UNKNOWN_BASELINE"),
+      );
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});
+
+test("public review states stay fresh after an original edit in the same mutation", async () => {
+  await withRollback(async (tx) => {
+    const article = await insertArticle(tx, "reviewmutation");
+    const { current } = await insertReviewRevisions(tx, article);
+    const result = await execute({
+      schema,
+      document: parse(`mutation($id: ID!, $source: UUID!, $revision: UUID!) {
+        before: acknowledgeArticleTranslationSource(input: {sourceId: $source, language: "ko", sourceRevisionId: $revision}) {
+          __typename
+          ... on AcknowledgeArticleTranslationSourcePayload { content { reviewState } }
+        }
+        after: updateArticle(input: {articleId: $id, content: "Edited original body"}) {
+          __typename
+          ... on UpdateArticlePayload { article { contents(language: "ko") { reviewState } } }
+        }
+      }`),
+      variableValues: {
+        id: article.id,
+        source: article.sourceId,
+        revision: current,
+      },
+      contextValue: makeUserContext(tx, article.account, {
+        fedCtx: {
+          ...createFedCtx(tx),
+          request: new Request("http://localhost/graphql"),
+        } as UserContext["fedCtx"],
+      }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      before: { __typename: string; content: ReviewContent };
+      after: { __typename: string; article: { contents: ReviewContent[] } };
+    };
+    assert.equal(
+      data.before.__typename,
+      "AcknowledgeArticleTranslationSourcePayload",
+    );
+    assert.equal(data.after.__typename, "UpdateArticlePayload");
+    assert.equal(data.before.content.reviewState, "CURRENT");
+    assert.deepEqual(data.after.article.contents, [
+      { reviewState: "NEEDS_REVIEW" },
+    ]);
   });
 });

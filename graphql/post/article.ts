@@ -10,6 +10,7 @@ import { getArticleTranslationDraftMediumUrls } from "@hackerspub/models/article
 import {
   getCurrentDraftRevision,
   getCurrentSourceRevision,
+  getCurrentSourceRevisionId,
 } from "@hackerspub/models/article-revision";
 import {
   getReviewState,
@@ -59,6 +60,29 @@ function loadArticleSourceMediumUrls(
   if (pending == null) {
     pending = getArticleSourceMediumUrls(ctx.db, ctx.disk, sourceId);
     // Share in-flight work (including failures) only within this snapshot.
+    cache.set(sourceId, pending);
+  }
+  return pending;
+}
+
+const articleSourceRevisionIdCache = createRequestCache(
+  () => new Map<Uuid, Promise<Uuid | undefined>>(),
+);
+
+function loadCurrentSourceRevisionId(
+  sourceId: Uuid,
+  ctx: UserContext,
+  info: GraphQLResolveInfo,
+): Promise<Uuid | undefined> {
+  // Query-side writes do not move the original's revision pointer. Mutation
+  // payloads may follow edits or acknowledgements, so they must read it afresh.
+  if (info.operation.operation !== "query") {
+    return getCurrentSourceRevisionId(ctx.db, sourceId);
+  }
+  const cache = articleSourceRevisionIdCache(ctx, info);
+  let pending = cache.get(sourceId);
+  if (pending == null) {
+    pending = getCurrentSourceRevisionId(ctx.db, sourceId);
     cache.set(sourceId, pending);
   }
   return pending;
@@ -1139,15 +1163,16 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           sourceRevisionId: true,
         },
       },
-      resolve: async (content, _, ctx) => {
+      resolve: async (content, _, ctx, info) => {
         if (content.originalLanguage == null) return null;
-        const current = await getCurrentSourceRevision(
-          ctx.db,
+        const currentId = await loadCurrentSourceRevisionId(
           content.sourceId,
+          ctx,
+          info,
         );
         return getReviewState(
           content.sourceRevisionId,
-          current?.id,
+          currentId,
         ) satisfies TranslationReviewState;
       },
     }),

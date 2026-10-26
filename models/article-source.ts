@@ -1,8 +1,15 @@
 import { minBy } from "es-toolkit";
 import type { StorageService } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, RelationsFilter } from "./db.ts";
 import type { ArticleContent, ArticleSource } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+
+// Keep the in-memory original-content filter below in sync with this predicate.
+export const originalArticleContentFilter = {
+  originalLanguage: { isNull: true },
+  translatorId: { isNull: true },
+  translationRequesterId: { isNull: true },
+} as const satisfies RelationsFilter<"articleContentTable">;
 
 export async function getArticleDraftMediumUrls(
   db: Database,
@@ -66,9 +73,7 @@ export function getOriginalArticleContent(
   return dbOrSrc.query.articleContentTable.findFirst({
     where: {
       sourceId: source.id,
-      originalLanguage: { isNull: true },
-      translatorId: { isNull: true },
-      translationRequesterId: { isNull: true },
+      ...originalArticleContentFilter,
     },
     orderBy: { published: "asc" },
   });

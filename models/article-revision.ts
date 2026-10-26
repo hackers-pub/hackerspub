@@ -1,5 +1,8 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
-import { getOriginalArticleContent } from "./article-source.ts";
+import {
+  getOriginalArticleContent,
+  originalArticleContentFilter,
+} from "./article-source.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
   type ArticleContent,
@@ -69,6 +72,21 @@ export async function getCurrentSourceRevision(
   return await db.query.articleSourceRevisionTable.findFirst({
     where: { id: original.sourceRevisionId },
   });
+}
+
+/** Read the authoritative published revision pointer without loading Markdown. */
+export async function getCurrentSourceRevisionId(
+  db: Database | Transaction,
+  sourceId: Uuid,
+): Promise<Uuid | undefined> {
+  const original = await db.query.articleContentTable.findFirst({
+    where: { sourceId, ...originalArticleContentFilter },
+    columns: { sourceRevisionId: true },
+    orderBy: { published: "asc" },
+  });
+  // The non-deferrable FK uses ON DELETE SET NULL: a non-null pointer already
+  // guarantees revision existence, so an additional revision lookup is redundant.
+  return original?.sourceRevisionId ?? undefined;
 }
 
 /**
