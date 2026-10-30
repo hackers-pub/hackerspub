@@ -78,7 +78,7 @@ export function ArticleComposerPublishStep() {
           <TextField>
             <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
             <div class="flex h-10 w-full items-center rounded-md border border-input text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-              <span class="pointer-events-none min-w-0 shrink select-none truncate pl-3 text-muted-foreground">
+              <span class="pointer-events-none min-w-0 shrink select-none truncate pl-3 text-foreground">
                 {urlPrefix()}
               </span>
               <TextFieldInput
