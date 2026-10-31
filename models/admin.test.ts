@@ -1,13 +1,20 @@
 import assert from "node:assert";
 import test from "node:test";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
+import { db } from "../test/database.ts";
 import {
   createTestDisk,
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
+  withExclusiveTestDatabase,
   withRollback,
 } from "../test/postgres.ts";
+import { registerPushNotificationTarget } from "./push.ts";
+import {
+  setWebPushConfigForTesting,
+  setWebPushSenderForTesting,
+} from "./webpush.ts";
 import {
   deleteOrphanMedia,
   getInvitationAutoDistributionEnabled,
@@ -24,6 +31,7 @@ import {
 } from "./admin.ts";
 import {
   accountTable,
+  actorTable,
   adminStateTable,
   articleContentTable,
   articleDraftMediumTable,
@@ -36,6 +44,10 @@ import {
   noteSourceTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+
+const validWebPushP256dh =
+  "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE";
+const validWebPushAuth = "AgICAgICAgICAgICAgICAg";
 
 function createTrackingDisk(failingKeys = new Set<string>()) {
   const deleteKeys: string[] = [];
@@ -797,6 +809,23 @@ test("grantInvitations updates the balance, records the grant, and notifies only
       where: { accountId: target.account.id, type: "invitation_granted" },
     });
     assert.equal(afterSecond.length, 1);
+
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: MAX_INVITATION_BALANCE - 1 })
+      .where(eq(accountTable.id, target.account.id));
+    await assert.rejects(
+      grantInvitations(tx, {
+        accountId: target.account.id,
+        actorId: actor.account.id,
+        amount: 2,
+      }),
+      /INVITATION_BALANCE_OVERFLOW/,
+    );
+    const afterOverflow = await tx.query.accountTable.findFirst({
+      where: { id: target.account.id },
+    });
+    assert.equal(afterOverflow?.leftInvitations, MAX_INVITATION_BALANCE - 1);
   });
 });
 
@@ -954,5 +983,132 @@ test("regenerateInvitations notifies accounts that crossed from zero to one", as
     assert.equal(notifications.length, 1);
     assert.equal(notifications[0].invitationAmount, 1);
     assert.deepEqual(notifications[0].actorIds, []);
+  });
+});
+
+test("grantInvitations sends the invitation push after commit", async () => {
+  const sent: Array<{ endpoint: string; payload: string }> = [];
+  setWebPushConfigForTesting({
+    publicKey: "test-public-key",
+    privateKey: "test-private-key",
+    subject: "mailto:test@example.com",
+  });
+  setWebPushSenderForTesting(async (subscription, payload) => {
+    sent.push({ endpoint: subscription.endpoint, payload });
+  });
+  try {
+    await withExclusiveTestDatabase(async () => {
+      const suffix = generateUuidV7().replaceAll("-", "").slice(0, 8);
+      const fixtures = await db.transaction(async (tx) => {
+        const actor = await insertAccountWithActor(tx, {
+          username: `pushactor${suffix}`,
+          name: "Push Actor",
+          email: `pushactor${suffix}@example.com`,
+        });
+        const target = await insertAccountWithActor(tx, {
+          username: `pushtarget${suffix}`,
+          name: "Push Target",
+          email: `pushtarget${suffix}@example.com`,
+        });
+        return { actor, target };
+      });
+      try {
+        await registerPushNotificationTarget(db, fixtures.target.account.id, {
+          service: "web_push",
+          subscription: {
+            endpoint: `https://push.example/grant-${suffix}`,
+            p256dh: validWebPushP256dh,
+            auth: validWebPushAuth,
+          },
+        });
+        const result = await grantInvitations(db, {
+          accountId: fixtures.target.account.id,
+          actorId: fixtures.actor.account.id,
+          amount: 1,
+        });
+        assert.ok(result != null);
+        const [notification] = await db.query.notificationTable.findMany({
+          where: {
+            accountId: fixtures.target.account.id,
+            type: "invitation_granted",
+          },
+        });
+        assert.ok(notification != null);
+        assert.equal(sent.length, 1);
+        assert.equal(
+          JSON.parse(sent[0].payload).data.notificationId,
+          notification.id,
+        );
+        assert.equal(
+          JSON.parse(sent[0].payload).data.type,
+          "invitation_granted",
+        );
+        await db
+          .delete(invitationDistributionTable)
+          .where(eq(invitationDistributionTable.id, result.distribution.id));
+      } finally {
+        await db
+          .delete(accountTable)
+          .where(
+            inArray(accountTable.id, [
+              fixtures.actor.account.id,
+              fixtures.target.account.id,
+            ]),
+          );
+      }
+    });
+  } finally {
+    setWebPushConfigForTesting(undefined);
+    setWebPushSenderForTesting(undefined);
+  }
+});
+
+test("getInvitationDistributions ignores cursors with invalid calendar fields", async () => {
+  await withRollback(async (tx) => {
+    const id = generateUuidV7();
+    await tx.insert(invitationDistributionTable).values({
+      id,
+      kind: "manual",
+      amount: 0,
+      accountsAffected: 0,
+      eligibleAccountsCount: 0,
+      topThirdCount: 0,
+      cutoffDate: new Date("2026-04-01T00:00:00.000Z"),
+      periodEnd: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const after = btoa(`2026-99-99 00:00:00.000000+00|${id}`);
+    const page = await getInvitationDistributions(tx, { first: 1, after });
+    assert.equal(page.edges.length, 1);
+    assert.equal(page.edges[0]?.distribution.id, id);
+  });
+});
+
+test("grantInvitations rejects a zero-balance grant whose moderator has no actor", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertAccountWithActor(tx, {
+      username: "noactorgrantactor",
+      name: "No Actor Grant Actor",
+      email: "noactorgrantactor@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "noactorgranttarget",
+      name: "No Actor Grant Target",
+      email: "noactorgranttarget@example.com",
+    });
+    await tx
+      .delete(actorTable)
+      .where(eq(actorTable.accountId, actor.account.id));
+    await assert.rejects(
+      grantInvitations(tx, {
+        accountId: target.account.id,
+        actorId: actor.account.id,
+        amount: 1,
+      }),
+      /has no actor row/,
+    );
+    const targetRow = await tx.query.accountTable.findFirst({
+      where: { id: target.account.id },
+    });
+    assert.equal(targetRow?.leftInvitations, 0);
   });
 });

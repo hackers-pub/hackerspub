@@ -406,6 +406,11 @@ export async function createOrganizationConversionRequestNotification(
  * no push sender to name. The unique index on
  * `(accountId, type, invitationDistributionId)` makes repeated calls for the
  * same distribution harmless.
+ *
+ * This function only persists the row. Callers that own the surrounding
+ * transaction must send the push after commit with `sendNotificationPush`;
+ * doing it here would hold row locks across network calls and could deliver a
+ * push for a transaction that later rolls back.
  */
 export async function createInvitationGrantedNotification(
   db: NotificationDatabase,
@@ -431,11 +436,7 @@ export async function createInvitationGrantedNotification(
     })
     .onConflictDoNothing()
     .returning();
-  const inserted = rows[0];
-  if (inserted != null && actorId != null) {
-    await sendInsertedNotificationPush(db, inserted, actorId);
-  }
-  return inserted;
+  return rows[0];
 }
 
 /**

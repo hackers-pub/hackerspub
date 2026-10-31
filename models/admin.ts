@@ -18,7 +18,10 @@ import type Keyv from "keyv";
 
 const logger = getLogger(["hackerspub", "models", "admin"]);
 import type { Database, Transaction } from "./db.ts";
-import { createInvitationGrantedNotification } from "./notification.ts";
+import {
+  createInvitationGrantedNotification,
+  sendNotificationPush,
+} from "./notification.ts";
 import {
   accountTable,
   actorTable,
@@ -381,6 +384,7 @@ export async function regenerateInvitations(
         cutoffDate,
         periodEnd: now,
         runKey: options.runKey ?? null,
+        created: sql`clock_timestamp()`,
       })
       .returning();
     if (distribution == null) {
@@ -439,6 +443,11 @@ export async function grantInvitations(
     throw new RangeError("INVALID_NOTE");
   }
 
+  const committedPushes: Array<{
+    accountId: Uuid;
+    notificationId: Uuid;
+    actorId: Uuid;
+  }> = [];
   const runDbWork = async (
     tx: Transaction,
   ): Promise<GrantInvitationsResult | null> => {
@@ -451,6 +460,18 @@ export async function grantInvitations(
     const previousBalance = target.leftInvitations;
     if (previousBalance + options.amount > MAX_INVITATION_BALANCE) {
       throw new RangeError("INVITATION_BALANCE_OVERFLOW");
+    }
+    const actorActor =
+      previousBalance === 0
+        ? await tx.query.actorTable.findFirst({
+            where: { accountId: options.actorId },
+            columns: { id: true },
+          })
+        : null;
+    if (previousBalance === 0 && actorActor == null) {
+      throw new Error(
+        `Moderator account ${options.actorId} has no actor row for the grant notification.`,
+      );
     }
 
     const [updated] = await tx
@@ -480,25 +501,28 @@ export async function grantInvitations(
         amount: options.amount,
         accountsAffected: 1,
         note: note === "" ? null : note,
-        ...(options.now == null ? {} : { created: options.now }),
+        created: options.now ?? sql`clock_timestamp()`,
       })
       .returning();
     if (distribution == null) {
       throw new Error("Failed to record the invitation grant.");
     }
 
-    if (previousBalance === 0) {
-      const actorActor = await tx.query.actorTable.findFirst({
-        where: { accountId: options.actorId },
-        columns: { id: true },
-      });
-      await createInvitationGrantedNotification(
+    if (previousBalance === 0 && actorActor != null) {
+      const notification = await createInvitationGrantedNotification(
         tx,
         target.id,
         distribution.id,
-        actorActor?.id ?? null,
+        actorActor.id,
         options.amount,
       );
+      if (notification != null) {
+        committedPushes.push({
+          accountId: target.id,
+          notificationId: notification.id,
+          actorId: actorActor.id,
+        });
+      }
     }
 
     return {
@@ -509,9 +533,20 @@ export async function grantInvitations(
       distribution,
     };
   };
-  return isTransaction(db)
+  const result = isTransaction(db)
     ? await runDbWork(db)
     : await db.transaction(runDbWork);
+  if (result != null && !isTransaction(db)) {
+    for (const push of committedPushes) {
+      await sendNotificationPush(db, {
+        accountId: push.accountId,
+        notificationId: push.notificationId,
+        type: "invitation_granted",
+        actorId: push.actorId,
+      });
+    }
+  }
+  return result;
 }
 
 interface InvitationDistributionCursor {
@@ -535,9 +570,16 @@ function decodeInvitationDistributionCursor(
     const created = decoded.slice(0, separator);
     const id = decoded.slice(separator + 1);
     if (!validateUuid(id as Uuid)) return null;
-    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{1,6}\+00$/.test(created)) {
-      return null;
-    }
+    const match =
+      /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.\d{1,6}\+00$/.exec(
+        created,
+      );
+    if (match == null) return null;
+    const [, year, month, day, hour, minute, second] = match.map(Number);
+    const maxDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    if (year < 1 || month < 1 || month > 12) return null;
+    if (day < 1 || day > maxDay) return null;
+    if (hour > 23 || minute > 59 || second > 59) return null;
     return { created, id: id as Uuid };
   } catch {
     return null;
