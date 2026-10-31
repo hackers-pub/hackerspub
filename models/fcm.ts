@@ -31,7 +31,7 @@ export interface FcmNotificationOptions {
   accountId: Uuid;
   notificationId: Uuid;
   type: NotificationType;
-  actorId: Uuid;
+  actorId: Uuid | null;
   postId?: Uuid | null;
   emoji?: string | CustomEmoji | null;
 }
@@ -252,6 +252,8 @@ function getFcmAlert(
       return "You have an organization conversion request.";
     case "article_translation_source_changed":
       return "The original of an article you translated has changed.";
+    case "invitation_granted":
+      return "You received invitation slots.";
     case "react": {
       const emojiText = typeof emoji === "string" ? emoji : emoji?.name;
       return emojiText == null

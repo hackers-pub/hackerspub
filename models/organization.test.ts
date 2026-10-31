@@ -9,6 +9,7 @@ import {
   createOrganization,
   ensureOrganizationInvitationNotifications,
   getOrganizationNotificationBadge,
+  getOrganizationNotificationBadges,
   inviteOrganizationMember,
   LastOrganizationAdminError,
   leaveOrganization,
@@ -21,6 +22,7 @@ import {
   actorTable,
   articleDraftTable,
   bookmarkTable,
+  invitationDistributionTable,
   invitationLinkTable,
   notificationTable,
   organizationMembershipTable,
@@ -32,7 +34,7 @@ import {
   insertNotePost,
   withRollback,
 } from "../test/postgres.ts";
-import type { Uuid } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 import {
   setWebPushConfigForTesting,
   setWebPushSenderForTesting,
@@ -1404,5 +1406,61 @@ test("acceptOrganizationConversion() clears delegated conversion requests", asyn
     );
     assert.notEqual(replacementRequest.id, delegatedRequest.id);
     assert.equal(replacementRequest.adminAccountId, finalAdmin.account.id);
+  });
+});
+
+test("getOrganizationNotificationBadges counts system-authored invitation notifications", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "systembadgeadmin",
+      name: "System Badge Admin",
+      email: "systembadgeadmin@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "systembadgeorg",
+        name: "System Badge Org",
+        bio: "",
+      },
+    );
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    const [distribution] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: "scheduled",
+        amount: 1,
+        accountsAffected: 1,
+        eligibleAccountsCount: 1,
+        topThirdCount: 1,
+        cutoffDate: now,
+        periodEnd: now,
+        runKey: `scheduled:${now.toISOString()}`,
+        created: now,
+      })
+      .returning();
+    assert.ok(distribution != null);
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: organization.id,
+      type: "invitation_granted",
+      actorIds: [],
+      invitationDistributionId: distribution.id,
+      invitationAmount: 1,
+      created: now,
+    });
+
+    const badges = await getOrganizationNotificationBadges(
+      tx,
+      [organization.id],
+      admin.account.id,
+    );
+    assert.equal(badges.get(organization.id)?.count, 1);
   });
 });

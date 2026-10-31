@@ -25,7 +25,7 @@ msgstr "{0, plural, one {# disk object could not be deleted.} other {# disk obje
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:182
+#: src/routes/(root)/admin/invitations.tsx:459
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:98
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 
@@ -152,6 +152,11 @@ msgstr "{0, plural, one {You have invited total # person so far.} other {You hav
 msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 msgstr "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 
+#. placeholder {0}: note().length
+#: src/components/admin/GrantInvitationsDialog.tsx:172
+msgid "{0} / 500 characters"
+msgstr "{0} / 500 characters"
+
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/OrganizationConversionRequestNotificationCard.tsx:41
@@ -163,6 +168,13 @@ msgstr "{0} and {1} others asked you to accept organization conversions"
 #: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} and {1} others followed you"
 msgstr "{0} and {1} others followed you"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:41
+msgid "{0} and {1} others granted you {2, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} and {1} others granted you {2, plural, one {# invitation} other {# invitations}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -265,6 +277,12 @@ msgstr "{0} from Hackers' Pub"
 #: src/components/NewsStoryHeader.tsx:167
 msgid "{0} from the fediverse"
 msgstr "{0} from the fediverse"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:34
+msgid "{0} granted you {1, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} granted you {1, plural, one {# invitation} other {# invitations}}"
 
 #. placeholder {0}: Math.round( stats.averageProcessingHours!, )
 #: src/routes/(root)/admin/moderation/statistics.tsx:162
@@ -490,6 +508,10 @@ msgstr "90 days"
 msgid "A content (post) report."
 msgstr "A content (post) report."
 
+#: src/routes/(root)/admin/invitations.tsx:318
+msgid "A later run already advanced the cutoff, so this regeneration changed nothing."
+msgstr "A later run already advanced the cutoff, so this regeneration changed nothing."
+
 #: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
 msgstr "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
@@ -576,7 +598,7 @@ msgstr "Accepted"
 msgid "Accepting…"
 msgstr "Accepting…"
 
-#: src/components/admin/AdminAccountsTable.tsx:293
+#: src/components/admin/AdminAccountsTable.tsx:303
 #: src/components/AppSidebar.tsx:835
 #: src/components/SettingsTabs.tsx:106
 msgid "Account"
@@ -594,7 +616,7 @@ msgstr "Account deletion is unavailable"
 msgid "Account handle"
 msgstr "Account handle"
 
-#: src/components/admin/AdminAccountsTable.tsx:261
+#: src/components/admin/AdminAccountsTable.tsx:271
 msgid "Account kind"
 msgstr "Account kind"
 
@@ -621,7 +643,7 @@ msgid "Account suspended"
 msgstr "Account suspended"
 
 #: src/components/AdminTabs.tsx:26
-#: src/routes/(root)/admin/index.tsx:108
+#: src/routes/(root)/admin/index.tsx:109
 msgid "Accounts"
 msgstr "Accounts"
 
@@ -638,6 +660,7 @@ msgstr "Action distribution"
 msgid "Action recorded"
 msgstr "Action recorded"
 
+#: src/components/admin/AdminAccountsTable.tsx:370
 #: src/components/LanguageList.tsx:64
 #: src/components/LanguageList.tsx:195
 msgid "Actions"
@@ -646,6 +669,10 @@ msgstr "Actions"
 #: src/routes/(root)/admin/relay.tsx:313
 msgid "Active since"
 msgstr "Active since"
+
+#: src/routes/(root)/admin/invitations.tsx:194
+msgid "Actor / target"
+msgstr "Actor / target"
 
 #: src/routes/(root)/admin/moderation/sanctioned.tsx:78
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
@@ -753,7 +780,7 @@ msgstr "AI-assisted translation, reviewed by the author"
 msgid "All"
 msgstr "All"
 
-#: src/components/admin/AdminAccountsTable.tsx:143
+#: src/components/admin/AdminAccountsTable.tsx:144
 msgid "All accounts"
 msgstr "All accounts"
 
@@ -807,6 +834,10 @@ msgstr "Alt text for image {0}"
 #: src/components/note-composer/MediaEditor.tsx:50
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:159
+msgid "Amount"
+msgstr "Amount"
 
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:51
 msgid "an article"
@@ -1029,6 +1060,22 @@ msgstr "Auto-fill"
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
+#: src/routes/(root)/admin/invitations.tsx:171
+msgid "Automatic"
+msgstr "Automatic"
+
+#: src/routes/(root)/admin/invitations.tsx:410
+msgid "Automatic distribution"
+msgstr "Automatic distribution"
+
+#: src/routes/(root)/admin/invitations.tsx:366
+msgid "Automatic invitation distribution enabled."
+msgstr "Automatic invitation distribution enabled."
+
+#: src/routes/(root)/admin/invitations.tsx:367
+msgid "Automatic invitation distribution paused."
+msgstr "Automatic invitation distribution paused."
+
 #: src/components/article-translations/ArticleTranslationManager.tsx:1155
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
@@ -1038,6 +1085,10 @@ msgstr "Automatic translation"
 #: src/components/ArticleCard.tsx:370
 msgid "Automatic translation from {0}"
 msgstr "Automatic translation from {0}"
+
+#: src/routes/(root)/admin/invitations.tsx:422
+msgid "Automatically distribute invitations"
+msgstr "Automatically distribute invitations"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:377
 msgid "Avatar"
@@ -1299,7 +1350,7 @@ msgstr "Choose whether push notifications may include post excerpts. Generic not
 msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
 
-#: src/components/admin/AdminAccountsTable.tsx:281
+#: src/components/admin/AdminAccountsTable.tsx:291
 #: src/routes/(root)/admin/news.tsx:862
 msgid "Clear"
 msgstr "Clear"
@@ -1348,6 +1399,10 @@ msgstr "Collapse invited members"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
+
+#: src/routes/(root)/admin/invitations.tsx:479
+msgid "Committed automatic runs, manual regenerations, and direct grants."
+msgstr "Committed automatic runs, manual regenerations, and direct grants."
 
 #: src/components/AppSidebar.tsx:1051
 #: src/components/FloatingComposeButton.tsx:60
@@ -1556,7 +1611,7 @@ msgstr "Create poll"
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 
-#: src/components/admin/AdminAccountsTable.tsx:356
+#: src/components/admin/AdminAccountsTable.tsx:366
 msgid "Created"
 msgstr "Created"
 
@@ -1583,11 +1638,19 @@ msgstr "Crop"
 msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
+#: src/routes/(root)/admin/invitations.tsx:437
+msgid "Current cutoff:"
+msgstr "Current cutoff:"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1178
 msgid "Current username"
 msgstr "Current username"
 
-#: src/routes/(root)/admin/invitations.tsx:175
+#: src/routes/(root)/admin/invitations.tsx:193
+msgid "Cutoff"
+msgstr "Cutoff"
+
+#: src/routes/(root)/admin/invitations.tsx:452
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "Cutoff:"
@@ -1723,6 +1786,10 @@ msgstr "Description"
 msgid "Direct delivery"
 msgstr "Direct delivery"
 
+#: src/routes/(root)/admin/invitations.tsx:175
+msgid "Direct grant"
+msgstr "Direct grant"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:354
 msgid "Direct or unknown"
 msgstr "Direct or unknown"
@@ -1787,6 +1854,10 @@ msgstr "Display name"
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:119
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
+
+#: src/routes/(root)/admin/invitations.tsx:477
+msgid "Distribution history"
+msgstr "Distribution history"
 
 #: src/routes/(root)/sign/index.tsx:469
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
@@ -1940,6 +2011,11 @@ msgstr "Enter a valid email address."
 #: src/routes/(root)/[handle]/settings/account.tsx:284
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "Enter a valid previous account handle or actor URL."
+
+#: src/components/admin/GrantInvitationsDialog.tsx:94
+#: src/components/admin/GrantInvitationsDialog.tsx:125
+msgid "Enter a whole number between 1 and 10,000."
+msgstr "Enter a whole number between 1 and 10,000."
 
 #: src/components/ArticleComposer.tsx:540
 #~ msgid "Enter article title..."
@@ -2110,6 +2186,10 @@ msgstr "Failed to block this user"
 msgid "Failed to bookmark"
 msgstr "Failed to bookmark"
 
+#: src/routes/(root)/admin/invitations.tsx:382
+msgid "Failed to change automatic distribution."
+msgstr "Failed to change automatic distribution."
+
 #: src/routes/(root)/admin/news.tsx:417
 msgid "Failed to clear penalty."
 msgstr "Failed to clear penalty."
@@ -2173,7 +2253,11 @@ msgstr "Failed to follow"
 msgid "Failed to generate alt text"
 msgstr "Failed to generate alt text"
 
-#: src/components/admin/AdminAccountsTable.tsx:469
+#: src/components/admin/GrantInvitationsDialog.tsx:135
+msgid "Failed to grant invitations."
+msgstr "Failed to grant invitations."
+
+#: src/components/admin/AdminAccountsTable.tsx:488
 msgid "Failed to load more accounts; click to retry"
 msgstr "Failed to load more accounts; click to retry"
 
@@ -2246,6 +2330,7 @@ msgstr "Failed to load more shares; click to retry"
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
+#: src/routes/(root)/admin/invitations.tsx:273
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
@@ -2317,7 +2402,7 @@ msgstr "Failed to record the review."
 msgid "Failed to refresh from origin."
 msgstr "Failed to refresh from origin."
 
-#: src/routes/(root)/admin/invitations.tsx:124
+#: src/routes/(root)/admin/invitations.tsx:350
 msgid "Failed to regenerate invitations."
 msgstr "Failed to regenerate invitations."
 
@@ -2531,7 +2616,7 @@ msgstr "Follow from your account"
 msgid "Follower removed"
 msgstr "Follower removed"
 
-#: src/components/admin/AdminAccountsTable.tsx:308
+#: src/components/admin/AdminAccountsTable.tsx:318
 msgid "Followers"
 msgstr "Followers"
 
@@ -2546,7 +2631,7 @@ msgstr "Followers can quote"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/admin/AdminAccountsTable.tsx:299
+#: src/components/admin/AdminAccountsTable.tsx:309
 msgid "Following"
 msgstr "Following"
 
@@ -2585,6 +2670,12 @@ msgstr "Get browser notifications"
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
+#. placeholder {0}: props.username
+#. placeholder {1}: props.invitationsLeft
+#: src/components/admin/GrantInvitationsDialog.tsx:154
+msgid "Give @{0} invitation slots directly. Their current balance is {1}."
+msgstr "Give @{0} invitation slots directly. Their current balance is {1}."
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:282
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
@@ -2614,7 +2705,31 @@ msgstr "Go to my drafts"
 msgid "Go to new profile"
 msgstr "Go to new profile"
 
-#: src/routes/(root)/admin/invitations.tsx:154
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Grant"
+msgstr "Grant"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:146
+#: src/components/admin/GrantInvitationsDialog.tsx:152
+msgid "Grant invitations"
+msgstr "Grant invitations"
+
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Grant note"
+msgstr "Grant note"
+
+#. placeholder {0}: result.granted!
+#. placeholder {1}: props.username
+#. placeholder {2}: result.newBalance
+#: src/components/admin/GrantInvitationsDialog.tsx:110
+msgid "Granted {0, plural, one {# invitation} other {# invitations}} to @{1}. New balance: {2}."
+msgstr "Granted {0, plural, one {# invitation} other {# invitations}} to @{1}. New balance: {2}."
+
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Granting…"
+msgstr "Granting…"
+
+#: src/routes/(root)/admin/invitations.tsx:431
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
@@ -2659,11 +2774,12 @@ msgstr "Hackers' Pub now publishes the old account as another account that belon
 #~ msgstr "Hackers' Pub now publishes the old account as belonging to you."
 
 #. placeholder {0}: tag()
-#: src/routes/(root)/tags/[tag].tsx:69
+#: src/routes/(root)/tags/[tag].tsx:70
+#: src/routes/(root)/tags/[tag].tsx:71
 msgid "Hackers' Pub: #{0}"
 msgstr "Hackers' Pub: #{0}"
 
-#: src/routes/(root)/admin/index.tsx:99
+#: src/routes/(root)/admin/index.tsx:100
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub: Admin · Accounts"
 
@@ -2671,7 +2787,7 @@ msgstr "Hackers' Pub: Admin · Accounts"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: Admin · Appeals"
 
-#: src/routes/(root)/admin/invitations.tsx:134
+#: src/routes/(root)/admin/invitations.tsx:392
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub: Admin · Invitations"
 
@@ -2715,7 +2831,8 @@ msgstr "Hackers' Pub: Admin · Sanctioned actors"
 msgid "Hackers' Pub: Articles feed"
 msgstr "Hackers' Pub: Articles feed"
 
-#: src/routes/(root)/fediverse.tsx:89
+#: src/routes/(root)/fediverse.tsx:90
+#: src/routes/(root)/fediverse.tsx:91
 msgid "Hackers' Pub: Fediverse timeline"
 msgstr "Hackers' Pub: Fediverse timeline"
 
@@ -2735,12 +2852,14 @@ msgstr "Hackers' Pub: Invitation graph"
 msgid "Hackers' Pub: Invitation tree"
 msgstr "Hackers' Pub: Invitation tree"
 
-#: src/routes/(root)/local.tsx:89
+#: src/routes/(root)/local.tsx:90
+#: src/routes/(root)/local.tsx:91
 msgid "Hackers' Pub: Local timeline"
 msgstr "Hackers' Pub: Local timeline"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:58
-#: src/routes/(root)/news/index.tsx:45
+#: src/routes/(root)/news/index.tsx:46
+#: src/routes/(root)/news/index.tsx:47
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub: News"
 
@@ -2941,11 +3060,12 @@ msgid "Invitation tree"
 msgstr "Invitation tree"
 
 #: src/components/AdminTabs.tsx:42
-#: src/routes/(root)/admin/invitations.tsx:148
+#: src/routes/(root)/admin/invitations.tsx:192
+#: src/routes/(root)/admin/invitations.tsx:406
 msgid "Invitations"
 msgstr "Invitations"
 
-#: src/components/admin/AdminAccountsTable.tsx:326
+#: src/components/admin/AdminAccountsTable.tsx:336
 msgid "Invitations left"
 msgstr "Invitations left"
 
@@ -2971,11 +3091,11 @@ msgstr "Invite member"
 msgid "Invite members and choose who can manage this organization."
 msgstr "Invite members and choose who can manage this organization."
 
-#: src/components/admin/AdminAccountsTable.tsx:338
+#: src/components/admin/AdminAccountsTable.tsx:348
 msgid "Invited"
 msgstr "Invited"
 
-#: src/components/admin/AdminAccountsTable.tsx:331
+#: src/components/admin/AdminAccountsTable.tsx:341
 msgid "Invited by"
 msgstr "Invited by"
 
@@ -3065,7 +3185,7 @@ msgstr "Languages"
 msgid "Last active"
 msgstr "Last active"
 
-#: src/components/admin/AdminAccountsTable.tsx:347
+#: src/components/admin/AdminAccountsTable.tsx:357
 msgid "Last activity"
 msgstr "Last activity"
 
@@ -3079,8 +3199,8 @@ msgid "Last refreshed:"
 msgstr "Last refreshed:"
 
 #: src/routes/(root)/admin/invitations.tsx:160
-msgid "Last regenerated:"
-msgstr "Last regenerated:"
+#~ msgid "Last regenerated:"
+#~ msgstr "Last regenerated:"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:382
 msgid "Last updated"
@@ -3138,7 +3258,7 @@ msgstr "Link name"
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 
-#: src/routes/(root)/news/index.tsx:49
+#: src/routes/(root)/news/index.tsx:51
 msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 msgstr "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 
@@ -3163,10 +3283,11 @@ msgstr "LLM matching divergence"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
+#: src/routes/(root)/admin/invitations.tsx:277
 msgid "Load more"
 msgstr "Load more"
 
-#: src/components/admin/AdminAccountsTable.tsx:472
+#: src/components/admin/AdminAccountsTable.tsx:491
 msgid "Load more accounts"
 msgstr "Load more accounts"
 
@@ -3246,7 +3367,7 @@ msgstr "Loading draft…"
 msgid "Loading members…"
 msgstr "Loading members…"
 
-#: src/components/admin/AdminAccountsTable.tsx:466
+#: src/components/admin/AdminAccountsTable.tsx:485
 msgid "Loading more accounts…"
 msgstr "Loading more accounts…"
 
@@ -3324,6 +3445,7 @@ msgstr "Loading more stories…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
+#: src/routes/(root)/admin/invitations.tsx:276
 msgid "Loading more…"
 msgstr "Loading more…"
 
@@ -3391,6 +3513,10 @@ msgstr "Make the instance actor follow an ActivityPub relay. Once accepted, the 
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
 msgstr "Manage translations"
+
+#: src/routes/(root)/admin/invitations.tsx:173
+msgid "Manual"
+msgstr "Manual"
 
 #: src/routes/(root)/markdown.tsx:39
 msgid "Markdown guide"
@@ -3559,7 +3685,7 @@ msgstr "Needs review"
 msgid "never"
 msgstr "never"
 
-#: src/routes/(root)/admin/invitations.tsx:167
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Never"
 msgstr "Never"
 
@@ -3609,7 +3735,7 @@ msgstr "Newest signups"
 #: src/components/AdminTabs.tsx:53
 #: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/admin/news.tsx:558
-#: src/routes/(root)/news/index.tsx:47
+#: src/routes/(root)/news/index.tsx:49
 msgid "News"
 msgstr "News"
 
@@ -3685,6 +3811,10 @@ msgstr "No following found"
 #: src/components/ActorInteractionList.tsx:126
 msgid "No interactions found"
 msgstr "No interactions found"
+
+#: src/routes/(root)/admin/invitations.tsx:261
+msgid "No invitation distributions recorded yet."
+msgstr "No invitation distributions recorded yet."
 
 #: src/routes/(root)/tree/index.tsx:337
 msgid "No invitation tree data yet."
@@ -3802,6 +3932,10 @@ msgstr "No views have been counted for this range yet."
 msgid "Normal"
 msgstr "Normal"
 
+#: src/routes/(root)/admin/invitations.tsx:374
+msgid "Not authorized to change automatic distribution."
+msgstr "Not authorized to change automatic distribution."
+
 #: src/routes/(root)/admin/news.tsx:410
 msgid "Not authorized to clear penalties."
 msgstr "Not authorized to clear penalties."
@@ -3829,7 +3963,7 @@ msgstr "Not authorized to manage relays."
 msgid "Not authorized to recompute news scores."
 msgstr "Not authorized to recompute news scores."
 
-#: src/routes/(root)/admin/invitations.tsx:115
+#: src/routes/(root)/admin/invitations.tsx:341
 msgid "Not authorized to regenerate invitations."
 msgstr "Not authorized to regenerate invitations."
 
@@ -3854,10 +3988,11 @@ msgstr "Not published"
 msgid "Not subscribed to any relays yet."
 msgstr "Not subscribed to any relays yet."
 
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/admin/invitations.tsx:195
 #~ msgid "Note"
 #~ msgstr "Note"
 
+#: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
 #: src/routes/(root)/admin/news.tsx:737
 msgid "Note (optional)"
@@ -3896,8 +4031,8 @@ msgstr "Notification preview privacy"
 
 #: src/components/AppSidebar.tsx:787
 #: src/components/AppSidebar.tsx:789
-#: src/routes/(root).tsx:311
-#: src/routes/(root).tsx:312
+#: src/routes/(root).tsx:314
+#: src/routes/(root).tsx:315
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3987,7 +4122,7 @@ msgstr "Or"
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
-#: src/components/admin/AdminAccountsTable.tsx:141
+#: src/components/admin/AdminAccountsTable.tsx:142
 msgid "Organization accounts"
 msgstr "Organization accounts"
 
@@ -4147,7 +4282,7 @@ msgstr "Personal"
 #~ msgid "Personal account"
 #~ msgstr "Personal account"
 
-#: src/components/admin/AdminAccountsTable.tsx:139
+#: src/components/admin/AdminAccountsTable.tsx:140
 msgid "Personal accounts"
 msgstr "Personal accounts"
 
@@ -4276,7 +4411,7 @@ msgstr "Post pinned"
 msgid "Post unpinned"
 msgstr "Post unpinned"
 
-#: src/components/admin/AdminAccountsTable.tsx:317
+#: src/components/admin/AdminAccountsTable.tsx:327
 #: src/components/ProfileTabs.tsx:57
 msgid "Posts"
 msgstr "Posts"
@@ -4571,6 +4706,10 @@ msgstr "Recent activity may take a few minutes to appear."
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
+#: src/routes/(root)/admin/invitations.tsx:191
+msgid "Recipients"
+msgstr "Recipients"
+
 #: src/routes/(root)/admin/news.tsx:563
 #: src/routes/(root)/admin/news.tsx:594
 msgid "Recompute news scores"
@@ -4639,11 +4778,11 @@ msgstr "Refreshed from origin."
 msgid "Refreshing…"
 msgstr "Refreshing…"
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerate"
 msgstr "Regenerate"
 
-#: src/routes/(root)/admin/invitations.tsx:152
+#: src/routes/(root)/admin/invitations.tsx:429
 msgid "Regenerate invitations"
 msgstr "Regenerate invitations"
 
@@ -4659,7 +4798,7 @@ msgstr "Regenerate recovery codes"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "Regenerating recovery codes invalidates every previous code."
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerating…"
 msgstr "Regenerating…"
 
@@ -4970,6 +5109,10 @@ msgstr "Role"
 msgid "Role updated"
 msgstr "Role updated"
 
+#: src/routes/(root)/admin/invitations.tsx:412
+msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
+msgstr "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
+
 #: src/components/admin/ModerationSubTabs.tsx:44
 msgid "Sanctioned"
 msgstr "Sanctioned"
@@ -5047,7 +5190,7 @@ msgstr "Saved locally"
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/admin/AdminAccountsTable.tsx:270
+#: src/components/admin/AdminAccountsTable.tsx:280
 #: src/components/AppSidebar.tsx:449
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
@@ -5059,7 +5202,7 @@ msgstr "Search"
 msgid "Search a language…"
 msgstr "Search a language…"
 
-#: src/components/admin/AdminAccountsTable.tsx:237
+#: src/components/admin/AdminAccountsTable.tsx:247
 msgid "Search accounts"
 msgstr "Search accounts"
 
@@ -5067,7 +5210,7 @@ msgstr "Search accounts"
 msgid "Search by handle or display name"
 msgstr "Search by handle or display name"
 
-#: src/components/admin/AdminAccountsTable.tsx:245
+#: src/components/admin/AdminAccountsTable.tsx:255
 msgid "Search by name or username…"
 msgstr "Search by name or username…"
 
@@ -5559,6 +5702,10 @@ msgstr "Tell us about yourself…"
 msgid "Thank you. The moderation team will review your report."
 msgstr "Thank you. The moderation team will review your report."
 
+#: src/components/admin/GrantInvitationsDialog.tsx:126
+msgid "That account could not be found."
+msgstr "That account could not be found."
+
 #: src/routes/(root)/admin/news.tsx:481
 msgid "That actor could not be added."
 msgstr "That actor could not be added."
@@ -5713,6 +5860,10 @@ msgstr "The member role could not be updated. Please try again."
 #: src/components/AppealDialog.tsx:100
 msgid "The moderation team will review your appeal and notify you."
 msgstr "The moderation team will review your appeal and notify you."
+
+#: src/components/admin/GrantInvitationsDialog.tsx:123
+msgid "The note must be 500 characters or fewer."
+msgstr "The note must be 500 characters or fewer."
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1921
 msgid "The organization account was deleted."
@@ -6044,6 +6195,10 @@ msgstr "This quote is waiting for approval from the original author."
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
 
+#: src/routes/(root)/admin/invitations.tsx:317
+msgid "This regeneration was already recorded; the balance did not change."
+msgstr "This regeneration was already recorded; the balance did not change."
+
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24
 msgid "This reply is hidden because you muted {0}."
@@ -6114,7 +6269,7 @@ msgid "Total reports"
 msgstr "Total reports"
 
 #. placeholder {0}: formatNumber(conn.totalCount)
-#: src/components/admin/AdminAccountsTable.tsx:287
+#: src/components/admin/AdminAccountsTable.tsx:297
 msgid "Total: {0}"
 msgstr "Total: {0}"
 
@@ -6209,6 +6364,10 @@ msgstr "Try again"
 #: src/routes/(root)/[handle]/settings/account.tsx:702
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "Turn this personal account into an organization account. This cannot be undone."
+
+#: src/routes/(root)/admin/invitations.tsx:190
+msgid "Type"
+msgstr "Type"
 
 #. placeholder {0}: props.username
 #: src/routes/(root)/[handle]/settings/account.tsx:2019
@@ -6598,6 +6757,10 @@ msgstr "What should people decide?"
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
+#: src/routes/(root)/admin/invitations.tsx:189
+msgid "When"
+msgstr "When"
+
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:175
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "When enabled, AI may automatically translate this article into other languages."
@@ -6686,6 +6849,10 @@ msgstr "You are blocked by this user. You can't follow them or see their posts."
 #: src/components/ProfileCard.tsx:315
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
+
+#: src/components/admin/GrantInvitationsDialog.tsx:131
+msgid "You are not authorized to grant invitations."
+msgstr "You are not authorized to grant invitations."
 
 #. placeholder {0}: result.organization.username
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:171
@@ -6909,6 +7076,11 @@ msgstr "You no longer have posting permission for that organization."
 msgid "You no longer have posting permission for this draft's workspace."
 msgstr "You no longer have posting permission for this draft's workspace."
 
+#. placeholder {0}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:54
+msgid "You received {0, plural, one {# invitation} other {# invitations}} from Hackers' Pub."
+msgstr "You received {0, plural, one {# invitation} other {# invitations}} from Hackers' Pub."
+
 #: src/routes/(root)/admin/moderation/appeals.tsx:275
 msgid "You took the original action. Consider letting another moderator review this appeal."
 msgstr "You took the original action. Consider letting another moderator review this appeal."
@@ -7008,6 +7180,10 @@ msgstr "Your profile settings have been updated successfully."
 #: src/routes/(root)/[handle]/settings/account.tsx:2004
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
+
+#: src/components/admin/GrantInvitationsDialog.tsx:129
+msgid "Your session expired. Sign in again to continue."
+msgstr "Your session expired. Sign in again to continue."
 
 #: src/components/ModerationNotificationList.tsx:132
 msgid "Your suspension ends soon."

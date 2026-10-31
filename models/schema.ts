@@ -105,7 +105,7 @@ export const accountTable = pgTable(
     locales: varchar().array().$type<Locale>(),
     moderator: boolean().notNull().default(false),
     notificationRead: timestamp("notification_read", { withTimezone: true }),
-    leftInvitations: smallint("left_invitations").notNull(),
+    leftInvitations: integer("left_invitations").notNull(),
     inviterId: uuid("inviter_id")
       .$type<Uuid | null>()
       .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
@@ -2881,6 +2881,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "organization_invitation",
   "organization_conversion_request",
   "article_translation_source_changed",
+  "invitation_granted",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
@@ -2943,6 +2944,11 @@ export const notificationTable = pgTable(
       .array()
       .notNull()
       .default(sql`(ARRAY[]::text[])`),
+    invitationDistributionId: uuid("invitation_distribution_id").references(
+      (): AnyPgColumn => invitationDistributionTable.id,
+      { onDelete: "cascade" },
+    ),
+    invitationAmount: integer("invitation_amount"),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -2966,6 +2972,7 @@ export const notificationTable = pgTable(
           WHEN 'organization_invitation' THEN ${table.postId} IS NULL
           WHEN 'organization_conversion_request'
           THEN ${table.postId} IS NULL
+          WHEN 'invitation_granted' THEN ${table.postId} IS NULL
           ELSE ${table.postId} IS NOT NULL
         END
       `,
@@ -3003,6 +3010,19 @@ export const notificationTable = pgTable(
         END
       `,
     ),
+    check(
+      "notification_invitation_granted_check",
+      sql`
+        CASE ${table.type}::text
+          WHEN 'invitation_granted'
+          THEN ${table.invitationDistributionId} IS NOT NULL
+            AND ${table.invitationAmount} IS NOT NULL
+            AND ${table.invitationAmount} > 0
+          ELSE ${table.invitationDistributionId} IS NULL
+            AND ${table.invitationAmount} IS NULL
+        END
+      `,
+    ),
     uniqueIndex()
       .on(table.accountId, table.actorIds)
       .where(sql`${table.type} = 'follow'`),
@@ -3014,6 +3034,9 @@ export const notificationTable = pgTable(
       table.type,
       table.organizationConversionRequestId,
     ),
+    uniqueIndex("notification_invitation_distribution_idx")
+      .on(table.accountId, table.type, table.invitationDistributionId)
+      .where(sql`${table.type} = 'invitation_granted'`),
     uniqueIndex()
       .on(table.accountId, table.postId, table.emoji)
       .where(sql`${table.type} = 'react' AND ${table.customEmojiId} IS NULL`),
@@ -3061,13 +3084,86 @@ export type OrganizationNotificationRead =
 export type NewOrganizationNotificationRead =
   typeof organizationNotificationReadTable.$inferInsert;
 
+export const invitationDistributionKindEnum = pgEnum(
+  "invitation_distribution_kind",
+  ["scheduled", "manual", "grant"],
+);
+
+export const invitationDistributionTable = pgTable(
+  "invitation_distribution",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    kind: invitationDistributionKindEnum().notNull(),
+    actorId: uuid("actor_id")
+      .$type<Uuid | null>()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
+    actorUsername: varchar("actor_username", { length: 50 }),
+    targetId: uuid("target_id")
+      .$type<Uuid | null>()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
+    targetUsername: varchar("target_username", { length: 50 }),
+    amount: integer().notNull(),
+    accountsAffected: integer("accounts_affected").notNull(),
+    eligibleAccountsCount: integer("eligible_accounts_count"),
+    topThirdCount: integer("top_third_count"),
+    cutoffDate: timestamp("cutoff_date", { withTimezone: true }),
+    periodEnd: timestamp("period_end", { withTimezone: true }),
+    runKey: text("run_key").unique(),
+    note: text(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("invitation_distribution_created_idx").on(table.created, table.id),
+    index("invitation_distribution_target_idx").on(
+      table.targetId,
+      table.created,
+    ),
+    check("invitation_distribution_amount_check", sql`${table.amount} >= 0`),
+    check(
+      "invitation_distribution_accounts_affected_check",
+      sql`${table.accountsAffected} >= 0`,
+    ),
+    check(
+      "invitation_distribution_grant_check",
+      sql`
+        ${table.kind} <> 'grant' OR
+        (${table.amount} > 0 AND ${table.accountsAffected} = 1)
+      `,
+    ),
+    check(
+      "invitation_distribution_bulk_check",
+      sql`
+        ${table.kind} = 'grant' OR
+        (${table.periodEnd} IS NOT NULL AND ${table.amount} = ${table.accountsAffected})
+      `,
+    ),
+    check(
+      "invitation_distribution_target_check",
+      sql`${table.kind} = 'grant' OR ${table.targetId} IS NULL`,
+    ),
+    check(
+      "invitation_distribution_target_username_check",
+      sql`${table.kind} <> 'grant' OR ${table.targetUsername} IS NOT NULL`,
+    ),
+  ],
+);
+
+export type InvitationDistributionKind =
+  (typeof invitationDistributionKindEnum.enumValues)[number];
+export type InvitationDistribution =
+  typeof invitationDistributionTable.$inferSelect;
+export type NewInvitationDistribution =
+  typeof invitationDistributionTable.$inferInsert;
+
 export const invitationLinkTable = pgTable("invitation_link", {
   id: uuid().$type<Uuid>().primaryKey(),
   inviterId: uuid("inviter_id")
     .$type<Uuid>()
     .notNull()
     .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
-  invitationsLeft: smallint("invitations_left").notNull(),
+  invitationsLeft: integer("invitations_left").notNull(),
   message: text("message"),
   created: timestamp({ withTimezone: true })
     .notNull()

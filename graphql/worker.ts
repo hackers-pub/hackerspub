@@ -101,6 +101,7 @@ export async function main(): Promise<void> {
     const disk = drive.use();
     const executionJobs = createWorkerJobs({
       db,
+      kv,
       email: digestEmail,
       emailFrom: resources.config.email.from,
       origin: resources.config.origin.href,

@@ -819,10 +819,16 @@ async function countPersonalUnreadNotifications(
         ),
         '-infinity'::timestamptz
       )
-      AND EXISTS (
-        SELECT 1
-        FROM ${actorTable}
-        WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM ${actorTable}
+          WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+        )
+        OR (
+          ${notificationTable.type} = 'invitation_granted'
+          AND cardinality(${notificationTable.actorIds}) = 0
+        )
       )
     `);
   return Number(rows[0]?.count ?? 0);
@@ -872,10 +878,16 @@ async function countOrganizationUnreadNotifications(
         ),
         '-infinity'::timestamptz
       )
-      AND EXISTS (
-        SELECT 1
-        FROM ${actorTable}
-        WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM ${actorTable}
+          WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+        )
+        OR (
+          ${notificationTable.type} = 'invitation_granted'
+          AND cardinality(${notificationTable.actorIds}) = 0
+        )
       )
   `);
   return Number(rows[0]?.count ?? 0);
@@ -904,10 +916,16 @@ async function getPersonalDigestItems(
         ),
         '-infinity'::timestamptz
       )
-      AND EXISTS (
-        SELECT 1
-        FROM ${actorTable}
-        WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM ${actorTable}
+          WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+        )
+        OR (
+          ${notificationTable.type} = 'invitation_granted'
+          AND cardinality(${notificationTable.actorIds}) = 0
+        )
       )
     `)
     .orderBy(desc(notificationTable.created))
@@ -984,10 +1002,16 @@ async function getOrganizationDigestItems(
         ),
         '-infinity'::timestamptz
       )
-      AND EXISTS (
-        SELECT 1
-        FROM ${actorTable}
-        WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+      AND (
+        EXISTS (
+          SELECT 1
+          FROM ${actorTable}
+          WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+        )
+        OR (
+          ${notificationTable.type} = 'invitation_granted'
+          AND cardinality(${notificationTable.actorIds}) = 0
+        )
       )
     ORDER BY ${notificationTable.created} DESC
     LIMIT ${limit}

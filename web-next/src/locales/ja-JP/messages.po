@@ -25,7 +25,7 @@ msgstr "{0, plural, other {#個のディスクオブジェクトを削除でき�
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:182
+#: src/routes/(root)/admin/invitations.tsx:459
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, other {対象アカウント#件}}中、{1, plural, other {現在再付与した場合は#件}}に招待状が付与されます。"
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {#件のリンクのスコアを再計算しました。} other {#件のリンクのスコアを再計算しました。}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:98
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, other {#件のアカウントに招待状を再付与しました。}}"
 
@@ -152,6 +152,11 @@ msgstr "{0, plural, other {これまでに合計#人を招待しました。}}"
 msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 msgstr "{0, plural, other {まだ#件の組織に所属しています。}}"
 
+#. placeholder {0}: note().length
+#: src/components/admin/GrantInvitationsDialog.tsx:172
+msgid "{0} / 500 characters"
+msgstr "{0} / 500文字"
+
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/OrganizationConversionRequestNotificationCard.tsx:41
@@ -163,6 +168,13 @@ msgstr "{0}さんと他{1}人が組織への変換の承認を依頼しました
 #: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} and {1} others followed you"
 msgstr "{0}さん他{1}人があなたをフォローしました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:41
+msgid "{0} and {1} others granted you {2, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} さんと他 {1} 人があなたに {2, plural, one {#枚の招待} other {#枚の招待}}を付与しました"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -265,6 +277,12 @@ msgstr "Hackers' Pubから{0}件"
 #: src/components/NewsStoryHeader.tsx:167
 msgid "{0} from the fediverse"
 msgstr "フェディバースから{0}件"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:34
+msgid "{0} granted you {1, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} さんがあなたに {1, plural, one {#枚の招待} other {#枚の招待}}を付与しました"
 
 #. placeholder {0}: Math.round( stats.averageProcessingHours!, )
 #: src/routes/(root)/admin/moderation/statistics.tsx:162
@@ -490,6 +508,10 @@ msgstr "90日間"
 msgid "A content (post) report."
 msgstr "コンテンツの通報です。"
 
+#: src/routes/(root)/admin/invitations.tsx:318
+msgid "A later run already advanced the cutoff, so this regeneration changed nothing."
+msgstr "後続の実行がすでに基準時刻を進めているため、今回の再付与では何も変更されませんでした。"
+
 #: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
 msgstr "ローカルの制裁はモデレーションチーム名義で通報されたユーザーに通知され、ユーザーは14日以内に異議を申し立てることができます。却下はメッセージを追加した場合のみ通知されます。"
@@ -576,7 +598,7 @@ msgstr "受理"
 msgid "Accepting…"
 msgstr "承諾中…"
 
-#: src/components/admin/AdminAccountsTable.tsx:293
+#: src/components/admin/AdminAccountsTable.tsx:303
 #: src/components/AppSidebar.tsx:835
 #: src/components/SettingsTabs.tsx:106
 msgid "Account"
@@ -594,7 +616,7 @@ msgstr "アカウント削除は利用できません"
 msgid "Account handle"
 msgstr "アカウントのハンドル"
 
-#: src/components/admin/AdminAccountsTable.tsx:261
+#: src/components/admin/AdminAccountsTable.tsx:271
 msgid "Account kind"
 msgstr "アカウント種別"
 
@@ -621,7 +643,7 @@ msgid "Account suspended"
 msgstr "アカウント停止"
 
 #: src/components/AdminTabs.tsx:26
-#: src/routes/(root)/admin/index.tsx:108
+#: src/routes/(root)/admin/index.tsx:109
 msgid "Accounts"
 msgstr "アカウント"
 
@@ -638,6 +660,7 @@ msgstr "対応の分布"
 msgid "Action recorded"
 msgstr "対応を記録しました"
 
+#: src/components/admin/AdminAccountsTable.tsx:370
 #: src/components/LanguageList.tsx:64
 #: src/components/LanguageList.tsx:195
 msgid "Actions"
@@ -646,6 +669,10 @@ msgstr "操作"
 #: src/routes/(root)/admin/relay.tsx:313
 msgid "Active since"
 msgstr "有効化日時:"
+
+#: src/routes/(root)/admin/invitations.tsx:194
+msgid "Actor / target"
+msgstr "実行者 / 対象"
 
 #: src/routes/(root)/admin/moderation/sanctioned.tsx:78
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
@@ -753,7 +780,7 @@ msgstr "AI補助翻訳、投稿者が確認"
 msgid "All"
 msgstr "すべて"
 
-#: src/components/admin/AdminAccountsTable.tsx:143
+#: src/components/admin/AdminAccountsTable.tsx:144
 msgid "All accounts"
 msgstr "すべてのアカウント"
 
@@ -807,6 +834,10 @@ msgstr "画像 {0} の代替テキスト"
 #: src/components/note-composer/MediaEditor.tsx:50
 msgid "Alt text for visually impaired people (required)"
 msgstr "視覚障碍者向けの代替テキスト（必須）"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:159
+msgid "Amount"
+msgstr "数量"
 
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:51
 msgid "an article"
@@ -1029,6 +1060,22 @@ msgstr "自動入力"
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
+#: src/routes/(root)/admin/invitations.tsx:171
+msgid "Automatic"
+msgstr "自動"
+
+#: src/routes/(root)/admin/invitations.tsx:410
+msgid "Automatic distribution"
+msgstr "自動配布"
+
+#: src/routes/(root)/admin/invitations.tsx:366
+msgid "Automatic invitation distribution enabled."
+msgstr "招待の自動配布を有効にしました。"
+
+#: src/routes/(root)/admin/invitations.tsx:367
+msgid "Automatic invitation distribution paused."
+msgstr "招待の自動配布を一時停止しました。"
+
 #: src/components/article-translations/ArticleTranslationManager.tsx:1155
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
@@ -1038,6 +1085,10 @@ msgstr "自動翻訳"
 #: src/components/ArticleCard.tsx:370
 msgid "Automatic translation from {0}"
 msgstr "{0}から自動翻訳"
+
+#: src/routes/(root)/admin/invitations.tsx:422
+msgid "Automatically distribute invitations"
+msgstr "招待を自動配布する"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:377
 msgid "Avatar"
@@ -1299,7 +1350,7 @@ msgstr "プッシュ通知にコンテンツの抜粋を含めるかを選択し
 msgid "Choose your preferred language for the verification email."
 msgstr "確認メールの言語を選択してください。"
 
-#: src/components/admin/AdminAccountsTable.tsx:281
+#: src/components/admin/AdminAccountsTable.tsx:291
 #: src/routes/(root)/admin/news.tsx:862
 msgid "Clear"
 msgstr "クリア"
@@ -1348,6 +1399,10 @@ msgstr "招待したメンバーを折りたたむ"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
+
+#: src/routes/(root)/admin/invitations.tsx:479
+msgid "Committed automatic runs, manual regenerations, and direct grants."
+msgstr "自動実行、手動再生成、直接付与の履歴です。"
 
 #: src/components/AppSidebar.tsx:1051
 #: src/components/FloatingComposeButton.tsx:60
@@ -1556,7 +1611,7 @@ msgstr "アンケートを作成"
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "共有可能な招待リンクを作成できます。各リンクは、招待数がなくなるかリンクの有効期限が切れるまで複数回使用できます。"
 
-#: src/components/admin/AdminAccountsTable.tsx:356
+#: src/components/admin/AdminAccountsTable.tsx:366
 msgid "Created"
 msgstr "作成日"
 
@@ -1583,11 +1638,19 @@ msgstr "切り抜き"
 msgid "Crop your new avatar"
 msgstr "新しいアイコンを切り抜く"
 
+#: src/routes/(root)/admin/invitations.tsx:437
+msgid "Current cutoff:"
+msgstr "現在の基準時刻:"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1178
 msgid "Current username"
 msgstr "現在のユーザー名"
 
-#: src/routes/(root)/admin/invitations.tsx:175
+#: src/routes/(root)/admin/invitations.tsx:193
+msgid "Cutoff"
+msgstr "基準時刻"
+
+#: src/routes/(root)/admin/invitations.tsx:452
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "カットオフ："
@@ -1723,6 +1786,10 @@ msgstr "説明"
 msgid "Direct delivery"
 msgstr "直接配信"
 
+#: src/routes/(root)/admin/invitations.tsx:175
+msgid "Direct grant"
+msgstr "直接付与"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:354
 msgid "Direct or unknown"
 msgstr "直接または不明"
@@ -1787,6 +1854,10 @@ msgstr "名前"
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:119
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "この記事の共同著者として記録されたメンバーを組織の隣に表示します。既定では、公開した人ではなく下書きの作成者が共同著者として記録されます。"
+
+#: src/routes/(root)/admin/invitations.tsx:477
+msgid "Distribution history"
+msgstr "配布履歴"
 
 #: src/routes/(root)/sign/index.tsx:469
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
@@ -1940,6 +2011,11 @@ msgstr "有効なメールアドレスを入力してください。"
 #: src/routes/(root)/[handle]/settings/account.tsx:284
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "有効な以前のアカウントのハンドルまたはアクターURLを入力してください。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:94
+#: src/components/admin/GrantInvitationsDialog.tsx:125
+msgid "Enter a whole number between 1 and 10,000."
+msgstr "1〜10,000 の整数を入力してください。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1825
 msgid "Enter the account you are moving from, for example @old@example.com."
@@ -2106,6 +2182,10 @@ msgstr "このユーザーをブロックできませんでした"
 msgid "Failed to bookmark"
 msgstr "ブックマークに失敗しました"
 
+#: src/routes/(root)/admin/invitations.tsx:382
+msgid "Failed to change automatic distribution."
+msgstr "自動配布の設定を変更できませんでした。"
+
 #: src/routes/(root)/admin/news.tsx:417
 msgid "Failed to clear penalty."
 msgstr "ペナルティの解除に失敗しました。"
@@ -2169,7 +2249,11 @@ msgstr "フォローに失敗しました"
 msgid "Failed to generate alt text"
 msgstr "代替テキストの生成に失敗しました"
 
-#: src/components/admin/AdminAccountsTable.tsx:469
+#: src/components/admin/GrantInvitationsDialog.tsx:135
+msgid "Failed to grant invitations."
+msgstr "招待を付与できませんでした。"
+
+#: src/components/admin/AdminAccountsTable.tsx:488
 msgid "Failed to load more accounts; click to retry"
 msgstr "アカウントの追加読み込みに失敗しました。クリックで再試行"
 
@@ -2242,6 +2326,7 @@ msgstr "共有の追加読み込みに失敗しました。再試行するには
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
+#: src/routes/(root)/admin/invitations.tsx:273
 msgid "Failed to load more; click to retry"
 msgstr "読み込みに失敗しました。クリックして再試行してください"
 
@@ -2313,7 +2398,7 @@ msgstr "確認内容を記録できませんでした。"
 msgid "Failed to refresh from origin."
 msgstr "配信元からの再取得に失敗しました。"
 
-#: src/routes/(root)/admin/invitations.tsx:124
+#: src/routes/(root)/admin/invitations.tsx:350
 msgid "Failed to regenerate invitations."
 msgstr "招待状の再付与に失敗しました。"
 
@@ -2527,7 +2612,7 @@ msgstr "あなたのアカウントからフォロー"
 msgid "Follower removed"
 msgstr "フォロワーから削除しました"
 
-#: src/components/admin/AdminAccountsTable.tsx:308
+#: src/components/admin/AdminAccountsTable.tsx:318
 msgid "Followers"
 msgstr "フォロワー"
 
@@ -2542,7 +2627,7 @@ msgstr "フォロワーが引用できます"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/admin/AdminAccountsTable.tsx:299
+#: src/components/admin/AdminAccountsTable.tsx:309
 msgid "Following"
 msgstr "フォロー中"
 
@@ -2581,6 +2666,12 @@ msgstr "ブラウザー通知を受け取る"
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
+#. placeholder {0}: props.username
+#. placeholder {1}: props.invitationsLeft
+#: src/components/admin/GrantInvitationsDialog.tsx:154
+msgid "Give @{0} invitation slots directly. Their current balance is {1}."
+msgstr "@{0} さんに招待枠を直接付与します。現在の残数は {1} 枚です。"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:282
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
@@ -2610,7 +2701,31 @@ msgstr "マイ下書きへ"
 msgid "Go to new profile"
 msgstr "新しいプロフィールへ"
 
-#: src/routes/(root)/admin/invitations.tsx:154
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Grant"
+msgstr "付与"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:146
+#: src/components/admin/GrantInvitationsDialog.tsx:152
+msgid "Grant invitations"
+msgstr "招待を付与"
+
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Grant note"
+msgstr "付与メモ"
+
+#. placeholder {0}: result.granted!
+#. placeholder {1}: props.username
+#. placeholder {2}: result.newBalance
+#: src/components/admin/GrantInvitationsDialog.tsx:110
+msgid "Granted {0, plural, one {# invitation} other {# invitations}} to @{1}. New balance: {2}."
+msgstr "@{1} さんに {0, plural, one {#枚の招待} other {#枚の招待}}を付与しました。新しい残数: {2}。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Granting…"
+msgstr "付与中…"
+
+#: src/routes/(root)/admin/invitations.tsx:431
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "前回の再付与カットオフ以降、最も活発なアカウント（投稿数上位3分の1）に招待状を1通追加で付与します。"
 
@@ -2655,11 +2770,12 @@ msgstr "Hackers' Pubは、古いアカウントをあなたの別アカウント
 #~ msgstr "Hackers' Pubは、古いアカウントをあなたのものとして公開するようになりました。"
 
 #. placeholder {0}: tag()
-#: src/routes/(root)/tags/[tag].tsx:69
+#: src/routes/(root)/tags/[tag].tsx:70
+#: src/routes/(root)/tags/[tag].tsx:71
 msgid "Hackers' Pub: #{0}"
 msgstr "Hackers' Pub: #{0}"
 
-#: src/routes/(root)/admin/index.tsx:99
+#: src/routes/(root)/admin/index.tsx:100
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub：管理 · アカウント"
 
@@ -2667,7 +2783,7 @@ msgstr "Hackers' Pub：管理 · アカウント"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: 管理 · 異議申し立て"
 
-#: src/routes/(root)/admin/invitations.tsx:134
+#: src/routes/(root)/admin/invitations.tsx:392
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 招待"
 
@@ -2711,7 +2827,8 @@ msgstr "Hackers' Pub: 管理 · 制裁されたアクター"
 msgid "Hackers' Pub: Articles feed"
 msgstr "Hackers' Pub: 記事フィード"
 
-#: src/routes/(root)/fediverse.tsx:89
+#: src/routes/(root)/fediverse.tsx:90
+#: src/routes/(root)/fediverse.tsx:91
 msgid "Hackers' Pub: Fediverse timeline"
 msgstr "Hackers' Pub: フェディバースタイムライン"
 
@@ -2731,12 +2848,14 @@ msgstr "Hackers' Pub: 招待グラフ"
 msgid "Hackers' Pub: Invitation tree"
 msgstr "Hackers' Pub: 招待ツリー"
 
-#: src/routes/(root)/local.tsx:89
+#: src/routes/(root)/local.tsx:90
+#: src/routes/(root)/local.tsx:91
 msgid "Hackers' Pub: Local timeline"
 msgstr "Hackers' Pub: ローカルタイムライン"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:58
-#: src/routes/(root)/news/index.tsx:45
+#: src/routes/(root)/news/index.tsx:46
+#: src/routes/(root)/news/index.tsx:47
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub：ニュース"
 
@@ -2937,11 +3056,12 @@ msgid "Invitation tree"
 msgstr "招待ツリー"
 
 #: src/components/AdminTabs.tsx:42
-#: src/routes/(root)/admin/invitations.tsx:148
+#: src/routes/(root)/admin/invitations.tsx:192
+#: src/routes/(root)/admin/invitations.tsx:406
 msgid "Invitations"
 msgstr "招待"
 
-#: src/components/admin/AdminAccountsTable.tsx:326
+#: src/components/admin/AdminAccountsTable.tsx:336
 msgid "Invitations left"
 msgstr "残り招待数"
 
@@ -2967,11 +3087,11 @@ msgstr "メンバーを招待"
 msgid "Invite members and choose who can manage this organization."
 msgstr "メンバーを招待し、この組織を管理できる人を選びます。"
 
-#: src/components/admin/AdminAccountsTable.tsx:338
+#: src/components/admin/AdminAccountsTable.tsx:348
 msgid "Invited"
 msgstr "招待数"
 
-#: src/components/admin/AdminAccountsTable.tsx:331
+#: src/components/admin/AdminAccountsTable.tsx:341
 msgid "Invited by"
 msgstr "招待者"
 
@@ -3061,7 +3181,7 @@ msgstr "言語"
 msgid "Last active"
 msgstr "最後の活動"
 
-#: src/components/admin/AdminAccountsTable.tsx:347
+#: src/components/admin/AdminAccountsTable.tsx:357
 msgid "Last activity"
 msgstr "最終アクティビティ"
 
@@ -3075,8 +3195,8 @@ msgid "Last refreshed:"
 msgstr "最後に再取得："
 
 #: src/routes/(root)/admin/invitations.tsx:160
-msgid "Last regenerated:"
-msgstr "最終再付与："
+#~ msgid "Last regenerated:"
+#~ msgstr "最終再付与："
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:382
 msgid "Last updated"
@@ -3134,7 +3254,7 @@ msgstr "リンク名"
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "モデレーターが人気フィードで降格させたリンクです。ペナルティを解除すると、リンクの順位が元に戻ります。"
 
-#: src/routes/(root)/news/index.tsx:49
+#: src/routes/(root)/news/index.tsx:51
 msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 msgstr "フェディバース全体で広がっているリンクと記事を、共有や議論の多さに応じてランキング表示します。"
 
@@ -3159,10 +3279,11 @@ msgstr "LLMマッチングの乖離"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
+#: src/routes/(root)/admin/invitations.tsx:277
 msgid "Load more"
 msgstr "さらに読み込む"
 
-#: src/components/admin/AdminAccountsTable.tsx:472
+#: src/components/admin/AdminAccountsTable.tsx:491
 msgid "Load more accounts"
 msgstr "さらにアカウントを読み込む"
 
@@ -3242,7 +3363,7 @@ msgstr "下書きを読み込み中…"
 msgid "Loading members…"
 msgstr "メンバーを読み込み中…"
 
-#: src/components/admin/AdminAccountsTable.tsx:466
+#: src/components/admin/AdminAccountsTable.tsx:485
 msgid "Loading more accounts…"
 msgstr "アカウントを追加で読み込み中…"
 
@@ -3320,6 +3441,7 @@ msgstr "ニュースを読み込み中…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
+#: src/routes/(root)/admin/invitations.tsx:276
 msgid "Loading more…"
 msgstr "さらに読み込んでいます…"
 
@@ -3387,6 +3509,10 @@ msgstr "インスタンスアクターでActivityPubリレーをフォローし�
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
 msgstr "翻訳を管理"
+
+#: src/routes/(root)/admin/invitations.tsx:173
+msgid "Manual"
+msgstr "手動"
 
 #: src/routes/(root)/markdown.tsx:39
 msgid "Markdown guide"
@@ -3555,7 +3681,7 @@ msgstr "要確認"
 msgid "never"
 msgstr "なし"
 
-#: src/routes/(root)/admin/invitations.tsx:167
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Never"
 msgstr "なし"
 
@@ -3605,7 +3731,7 @@ msgstr "新しい登録順"
 #: src/components/AdminTabs.tsx:53
 #: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/admin/news.tsx:558
-#: src/routes/(root)/news/index.tsx:47
+#: src/routes/(root)/news/index.tsx:49
 msgid "News"
 msgstr "ニュース"
 
@@ -3681,6 +3807,10 @@ msgstr "フォロー中のユーザーはいません"
 #: src/components/ActorInteractionList.tsx:126
 msgid "No interactions found"
 msgstr "やり取りはありません"
+
+#: src/routes/(root)/admin/invitations.tsx:261
+msgid "No invitation distributions recorded yet."
+msgstr "記録された招待配布はまだありません。"
 
 #: src/routes/(root)/tree/index.tsx:337
 msgid "No invitation tree data yet."
@@ -3798,6 +3928,10 @@ msgstr "この期間に集計された閲覧はまだありません。"
 msgid "Normal"
 msgstr "通常"
 
+#: src/routes/(root)/admin/invitations.tsx:374
+msgid "Not authorized to change automatic distribution."
+msgstr "自動配布を変更する権限がありません。"
+
 #: src/routes/(root)/admin/news.tsx:410
 msgid "Not authorized to clear penalties."
 msgstr "ペナルティを解除する権限がありません。"
@@ -3825,7 +3959,7 @@ msgstr "リレーを管理する権限がありません。"
 msgid "Not authorized to recompute news scores."
 msgstr "ニュースのスコアを再計算する権限がありません。"
 
-#: src/routes/(root)/admin/invitations.tsx:115
+#: src/routes/(root)/admin/invitations.tsx:341
 msgid "Not authorized to regenerate invitations."
 msgstr "招待状を再付与する権限がありません。"
 
@@ -3850,10 +3984,11 @@ msgstr "未公開"
 msgid "Not subscribed to any relays yet."
 msgstr "まだどのリレーも購読していません。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/admin/invitations.tsx:195
 #~ msgid "Note"
 #~ msgstr "投稿"
 
+#: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
 #: src/routes/(root)/admin/news.tsx:737
 msgid "Note (optional)"
@@ -3892,8 +4027,8 @@ msgstr "通知プレビューのプライバシー"
 
 #: src/components/AppSidebar.tsx:787
 #: src/components/AppSidebar.tsx:789
-#: src/routes/(root).tsx:311
-#: src/routes/(root).tsx:312
+#: src/routes/(root).tsx:314
+#: src/routes/(root).tsx:315
 msgid "Notifications"
 msgstr "通知"
 
@@ -3983,7 +4118,7 @@ msgstr "または"
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
-#: src/components/admin/AdminAccountsTable.tsx:141
+#: src/components/admin/AdminAccountsTable.tsx:142
 msgid "Organization accounts"
 msgstr "組織アカウント"
 
@@ -4143,7 +4278,7 @@ msgstr "個人"
 #~ msgid "Personal account"
 #~ msgstr "個人アカウント"
 
-#: src/components/admin/AdminAccountsTable.tsx:139
+#: src/components/admin/AdminAccountsTable.tsx:140
 msgid "Personal accounts"
 msgstr "個人アカウント"
 
@@ -4272,7 +4407,7 @@ msgstr "コンテンツを固定しました"
 msgid "Post unpinned"
 msgstr "コンテンツの固定を解除しました"
 
-#: src/components/admin/AdminAccountsTable.tsx:317
+#: src/components/admin/AdminAccountsTable.tsx:327
 #: src/components/ProfileTabs.tsx:57
 msgid "Posts"
 msgstr "コンテンツ"
@@ -4567,6 +4702,10 @@ msgstr "最近のアクティビティが表示されるまで数分かかる場
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
+#: src/routes/(root)/admin/invitations.tsx:191
+msgid "Recipients"
+msgstr "受取人"
+
 #: src/routes/(root)/admin/news.tsx:563
 #: src/routes/(root)/admin/news.tsx:594
 msgid "Recompute news scores"
@@ -4635,11 +4774,11 @@ msgstr "配信元から再取得しました。"
 msgid "Refreshing…"
 msgstr "再取得中…"
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerate"
 msgstr "再付与"
 
-#: src/routes/(root)/admin/invitations.tsx:152
+#: src/routes/(root)/admin/invitations.tsx:429
 msgid "Regenerate invitations"
 msgstr "招待状を再付与"
 
@@ -4655,7 +4794,7 @@ msgstr "復旧コードを再発行する"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "復旧コードを再発行すると、以前のコードはすべて無効になります。"
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerating…"
 msgstr "再付与中…"
 
@@ -4966,6 +5105,10 @@ msgstr "役割"
 msgid "Role updated"
 msgstr "役割を更新しました"
 
+#: src/routes/(root)/admin/invitations.tsx:412
+msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
+msgstr "毎週月曜日と木曜日の 00:15 UTC に実行され、前回の実行以降に活動したアカウントの上位 1/3 に招待を 1 枚付与します。"
+
 #: src/components/admin/ModerationSubTabs.tsx:44
 msgid "Sanctioned"
 msgstr "制裁済み"
@@ -5043,7 +5186,7 @@ msgstr "ローカルに保存しました"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/admin/AdminAccountsTable.tsx:270
+#: src/components/admin/AdminAccountsTable.tsx:280
 #: src/components/AppSidebar.tsx:449
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
@@ -5055,7 +5198,7 @@ msgstr "検索"
 msgid "Search a language…"
 msgstr "言語を検索…"
 
-#: src/components/admin/AdminAccountsTable.tsx:237
+#: src/components/admin/AdminAccountsTable.tsx:247
 msgid "Search accounts"
 msgstr "アカウントを検索"
 
@@ -5063,7 +5206,7 @@ msgstr "アカウントを検索"
 msgid "Search by handle or display name"
 msgstr "ハンドルまたは表示名で検索"
 
-#: src/components/admin/AdminAccountsTable.tsx:245
+#: src/components/admin/AdminAccountsTable.tsx:255
 msgid "Search by name or username…"
 msgstr "名前またはユーザー名で検索…"
 
@@ -5555,6 +5698,10 @@ msgstr "自己紹介をお聞かせください…"
 msgid "Thank you. The moderation team will review your report."
 msgstr "ありがとうございます。モデレーションチームが通報を審査します。"
 
+#: src/components/admin/GrantInvitationsDialog.tsx:126
+msgid "That account could not be found."
+msgstr "そのアカウントは見つかりませんでした。"
+
 #: src/routes/(root)/admin/news.tsx:481
 msgid "That actor could not be added."
 msgstr "そのアカウントを追加できませんでした。"
@@ -5709,6 +5856,10 @@ msgstr "メンバーの役割を更新できませんでした。もう一度お
 #: src/components/AppealDialog.tsx:100
 msgid "The moderation team will review your appeal and notify you."
 msgstr "モデレーションチームが異議を審査し、あなたに通知します。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:123
+msgid "The note must be 500 characters or fewer."
+msgstr "メモは 500 文字以内で入力してください。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1921
 msgid "The organization account was deleted."
@@ -6040,6 +6191,10 @@ msgstr "この引用は元の作成者からの承認を待っています。"
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "{0}をミュートしているため、この引用は非表示になっています。"
 
+#: src/routes/(root)/admin/invitations.tsx:317
+msgid "This regeneration was already recorded; the balance did not change."
+msgstr "この再付与はすでに記録されているため、残数は変更されませんでした。"
+
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24
 msgid "This reply is hidden because you muted {0}."
@@ -6110,7 +6265,7 @@ msgid "Total reports"
 msgstr "通報総数"
 
 #. placeholder {0}: formatNumber(conn.totalCount)
-#: src/components/admin/AdminAccountsTable.tsx:287
+#: src/components/admin/AdminAccountsTable.tsx:297
 msgid "Total: {0}"
 msgstr "合計：{0}"
 
@@ -6205,6 +6360,10 @@ msgstr "再試行"
 #: src/routes/(root)/[handle]/settings/account.tsx:702
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "この個人アカウントを組織アカウントに変換します。これは元に戻せません。"
+
+#: src/routes/(root)/admin/invitations.tsx:190
+msgid "Type"
+msgstr "種類"
 
 #. placeholder {0}: props.username
 #: src/routes/(root)/[handle]/settings/account.tsx:2019
@@ -6594,6 +6753,10 @@ msgstr "何を決めてもらいますか？"
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
+#: src/routes/(root)/admin/invitations.tsx:189
+msgid "When"
+msgstr "日時"
+
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:175
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "When enabled, AI may automatically translate this article into other languages."
@@ -6682,6 +6845,10 @@ msgstr "このユーザーからブロックされています。このユーザ
 #: src/components/ProfileCard.tsx:315
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "このユーザーをブロックしています。このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできません。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:131
+msgid "You are not authorized to grant invitations."
+msgstr "招待を付与する権限がありません。"
 
 #. placeholder {0}: result.organization.username
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:171
@@ -6905,6 +7072,11 @@ msgstr "その組織に対する投稿権限がなくなりました。"
 msgid "You no longer have posting permission for this draft's workspace."
 msgstr "この下書きのワークスペースに対する投稿権限がなくなりました。"
 
+#. placeholder {0}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:54
+msgid "You received {0, plural, one {# invitation} other {# invitations}} from Hackers' Pub."
+msgstr "Hackers' Pub から {0, plural, one {#枚の招待} other {#枚の招待}}を受け取りました。"
+
 #: src/routes/(root)/admin/moderation/appeals.tsx:275
 msgid "You took the original action. Consider letting another moderator review this appeal."
 msgstr "あなたが元の対応を行いました。別のモデレーターにこの異議を審査してもらうことを検討してください。"
@@ -7004,6 +7176,10 @@ msgstr "プロフィール設定が正常に更新されました。"
 #: src/routes/(root)/[handle]/settings/account.tsx:2004
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "プロフィール、コンテンツ、下書き、フォロー、設定、ログイン認証情報が削除されます。現在のユーザー名は引き続き予約されます。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:129
+msgid "Your session expired. Sign in again to continue."
+msgstr "セッションの有効期限が切れました。続けるには再度サインインしてください。"
 
 #: src/components/ModerationNotificationList.tsx:132
 msgid "Your suspension ends soon."
