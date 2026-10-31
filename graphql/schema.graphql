@@ -3297,6 +3297,42 @@ A purpose-bound challenge or an authentication or account-security failure.
 """
 union GetAccountSecurityAuthenticationOptionsResult = AccountSecurityAuthenticationOptions | AccountSecurityError | NotAuthenticatedError
 
+"""Input for granting invitation slots directly to one account."""
+input GrantInvitationsInput {
+  """The `Account` global id that should receive the slots."""
+  accountId: ID!
+
+  """
+  Number of slots to add, from 1 to 10000. This is a safety cap, not a product limit.
+  """
+  amount: Int!
+
+  """
+  Optional moderator note retained in the distribution history (maximum 500 characters).
+  """
+  note: String
+}
+
+"""The result of a successful direct invitation grant."""
+type GrantInvitationsPayload {
+  """The account whose balance changed."""
+  account: Account!
+
+  """The committed ledger row for this grant."""
+  distribution: InvitationDistribution!
+
+  """Number of slots granted by this call."""
+  granted: Int!
+
+  """The account's balance after this grant."""
+  newBalance: Int!
+
+  """The account's balance before this grant."""
+  previousBalance: Int!
+}
+
+union GrantInvitationsResult = GrantInvitationsPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """An HTML string."""
 scalar HTML
 
@@ -3329,6 +3365,108 @@ type Invitation {
   inviter: Account!
   locale: Locale!
   message: Markdown
+}
+
+"""
+An append-only record of one committed invitation distribution. Each row is written in the same transaction as the balance change it describes. Failed attempts and duplicate task retries do not create new rows.
+"""
+type InvitationDistribution implements Node {
+  """
+  Number of accounts whose balance actually changed. Accounts at the balance ceiling are skipped and excluded.
+  """
+  accountsAffected: Int!
+
+  """
+  The moderator who triggered a manual or direct-grant distribution. Null for scheduled runs and deleted actors.
+  """
+  actor: Account
+
+  """
+  The actor's username at distribution time, retained if the actor is later deleted.
+  """
+  actorUsername: String
+
+  """
+  Number of invitation slots added. This counts slots, not invitation links.
+  """
+  amount: Int!
+
+  """
+  When the transaction actually executed. For a delayed automatic run this is later than `periodEnd`.
+  """
+  created: DateTime!
+
+  """
+  Bulk distributions only: the previous cutoff used to select active accounts.
+  """
+  cutoffDate: DateTime
+
+  """
+  Bulk distributions only: accounts with at least one post in the eligibility window.
+  """
+  eligibleAccountsCount: Int
+  id: ID!
+
+  """What triggered this distribution."""
+  kind: InvitationDistributionKind!
+
+  """Optional moderator note attached to a direct grant."""
+  note: String
+
+  """
+  Bulk distributions only: the new logical cutoff written by this run. It is the scheduled tick for `SCHEDULED` and the execution time for `MANUAL`.
+  """
+  periodEnd: DateTime
+
+  """
+  The account that received a direct grant. Null for bulk runs and deleted accounts.
+  """
+  target: Account
+
+  """
+  The target's username at grant time, retained if the account is later deleted.
+  """
+  targetUsername: String
+
+  """Bulk distributions only: the policy target before capacity skips."""
+  topThirdCount: Int
+
+  """The distribution's UUID, stable across lookups."""
+  uuid: UUID!
+}
+
+"""A paginated page of committed invitation distributions."""
+type InvitationDistributionConnection {
+  edges: [InvitationDistributionEdge!]!
+  pageInfo: InvitationDistributionPageInfo!
+}
+
+"""One row in the invitation distribution history."""
+type InvitationDistributionEdge {
+  cursor: String!
+  node: InvitationDistribution!
+}
+
+"""
+Why an invitation distribution happened. `SCHEDULED` is the worker's automatic run, `MANUAL` is a moderator pressing the bulk regenerate button, and `GRANT` is a moderator granting slots to one specific account.
+"""
+enum InvitationDistributionKind {
+  """Direct grant to one account."""
+  GRANT
+
+  """Bulk regeneration triggered by a moderator."""
+  MANUAL
+
+  """Automatic worker distribution."""
+  SCHEDULED
+}
+
+"""Pagination state for the invitation distribution history."""
+type InvitationDistributionPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
 """
@@ -3399,6 +3537,11 @@ A snapshot of the invitation-regeneration state used by the admin UI to preview 
 """
 type InvitationRegenerationStatus {
   """
+  Whether the worker is allowed to distribute invitations automatically. A moderator can flip this kill switch without a deployment.
+  """
+  autoDistributionEnabled: Boolean!
+
+  """
   The earliest `published` timestamp a post must have to count an account as eligible.  Equals `lastRegenerated` once a regeneration has been recorded; otherwise defaults to one week before now.
   """
   cutoffDate: DateTime!
@@ -3407,7 +3550,7 @@ type InvitationRegenerationStatus {
   eligibleAccountsCount: Int!
 
   """
-  When the regeneration was last triggered, or null if it has never been run.
+  The logical end of the last completed eligibility window, or null if no regeneration or automatic distribution has run. For a delayed automatic tick this is the tick, not the wall-clock execution time; use `InvitationDistribution.created` for that.
   """
   lastRegenerated: DateTime
 
@@ -4101,6 +4244,11 @@ type Mutation {
   Generate WebAuthn registration options for adding a new passkey. Options are bound to the authenticated session for five minutes. Send the authenticator's response to `verifyPasskeyRegistration`. Requires authentication.
   """
   getPasskeyRegistrationOptions(accountId: ID!): JSON!
+
+  """
+  Grant a moderator-specified number of invitation slots to one account. The account row is locked for the duration of the transaction, the balance is checked against the integer ceiling, and the grant is recorded in the invitation distribution ledger.
+  """
+  grantInvitations(input: GrantInvitationsInput!): GrantInvitationsResult!
   invite(
     email: Email!
     locale: Locale!
@@ -4309,7 +4457,7 @@ type Mutation {
   ): RegenerateAccountRecoveryCodesResult!
 
   """
-  Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp.
+  Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp. The automated worker uses the same operation with a scheduled-tick idempotency key.
   """
   regenerateInvitations: RegenerateInvitationsResult!
 
@@ -4513,6 +4661,11 @@ type Mutation {
     """
     input: SaveArticleTranslationDraftInput!
   ): SaveArticleTranslationDraftResult!
+
+  """
+  Enable or disable the worker's automatic invitation distribution without a deployment. The setting is stored in `admin_state` and is checked before each scheduled tick.
+  """
+  setInvitationAutoDistributionEnabled(enabled: Boolean!): SetInvitationAutoDistributionEnabledResult!
 
   """
   Set (or clear with `NONE`) a moderator score penalty on a news link, demoting it in the `POPULAR` feed.  Requires a moderator account.  Returns the updated link, or `null` if no link has that id.
@@ -6702,6 +6855,17 @@ type Query {
   instanceByHost(host: String!): Instance
 
   """
+  Moderator-only, newest-first history of committed invitation distributions. Returns null when the viewer is not a moderator. The cursor is opaque and encodes the exact PostgreSQL timestamp, so rows committed within the same millisecond paginate correctly.
+  """
+  invitationDistributions(
+    """Opaque cursor from a previous `endCursor`."""
+    after: String
+
+    """Maximum rows to return, between 1 and 100."""
+    first: Int = 20
+  ): InvitationDistributionConnection
+
+  """
   Look up a specific invitation link by its UUID and the inviter's username. Returns `null` if the link does not exist or the `username` does not match the link's owner (prevents link enumeration).
   """
   invitationLink(id: UUID!, username: String!): InvitationLink
@@ -7687,8 +7851,25 @@ type RegenerateInvitationsPayload {
   """Number of accounts whose `leftInvitations` was incremented."""
   accountsAffected: Int!
 
-  """When the regeneration ran."""
+  """
+  The committed ledger row. Present for a new distribution and for a duplicate retry; null for a superseded tick.
+  """
+  distribution: InvitationDistribution
+
+  """
+  The logical end of the eligibility window covered by this run. For a delayed scheduled run this is the tick, not the wall-clock execution time.
+  """
   regenerated: DateTime!
+
+  """
+  `duplicate` for an idempotent retry of an already committed tick, `superseded` when a later run already advanced the cutoff, or null for a new distribution.
+  """
+  skipReason: String
+
+  """
+  True when this call did not create a new distribution because the tick was a duplicate retry or was superseded by a later run.
+  """
+  skipped: Boolean!
 
   """The updated regeneration status reflecting the just-recorded run."""
   status: InvitationRegenerationStatus!
@@ -8369,6 +8550,8 @@ type Session {
   """The user agent of the session."""
   userAgent: String
 }
+
+union SetInvitationAutoDistributionEnabledResult = InvitationRegenerationStatus | NotAuthenticatedError | NotAuthorizedError
 
 union SetNewsScorePenaltyResult = NotAuthenticatedError | NotAuthorizedError | PostLink
 

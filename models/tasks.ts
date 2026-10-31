@@ -192,6 +192,7 @@ export const SCHEDULED_WORKER_JOB_NAMES = [
   "send-daily-notification-digests.v2",
   "prune-transactional-outbox",
   "prune-article-view-deduplications",
+  "distribute-invitations",
 ] as const;
 
 export type ScheduledWorkerJobName =

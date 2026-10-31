@@ -1,4 +1,4 @@
-import { A, useLocation, useNavigate } from "@solidjs/router";
+import { A, revalidate, useLocation, useNavigate } from "@solidjs/router";
 import IconChevronDown from "~icons/lucide/chevron-down";
 import IconChevronUp from "~icons/lucide/chevron-up";
 import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
@@ -16,6 +16,7 @@ import {
   Switch,
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { GrantInvitationsDialog } from "~/components/admin/GrantInvitationsDialog.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
@@ -222,6 +223,15 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     });
   }
 
+  function onGranted() {
+    // Relay normalizes `invitationsLeft` in place, but a balance-sorted
+    // connection keeps stale order and cursors.  Only that sort needs a
+    // network refresh; every other sort preserves the loaded pages.
+    if (currentSort() === "INVITATIONS_LEFT") {
+      void revalidate("loadAdminAccountsPageQuery");
+    }
+  }
+
   const formatNumber = (n: number) => n.toLocaleString(i18n.locale);
 
   return (
@@ -357,6 +367,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                       <SortIcon field="CREATED" />
                     </A>
                   </TableHead>
+                  <TableHead class="text-right">{t`Actions`}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -447,6 +458,14 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                         <Timestamp
                           value={edge.node.created}
                           relativeStyle="narrow"
+                        />
+                      </TableCell>
+                      <TableCell class="text-right">
+                        <GrantInvitationsDialog
+                          accountId={edge.node.id}
+                          username={edge.node.username}
+                          invitationsLeft={edge.node.invitationsLeft}
+                          onGranted={onGranted}
                         />
                       </TableCell>
                     </TableRow>

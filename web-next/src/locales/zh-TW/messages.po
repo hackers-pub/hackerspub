@@ -25,7 +25,7 @@ msgstr "{0, plural, other {# 個磁碟物件無法刪除。}}"
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:182
+#: src/routes/(root)/admin/invitations.tsx:432
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, other {符合條件的帳號 # 個}}；若現在重新發放，將向其中 {1, plural, other {# 個帳號}}發放邀請。"
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {已重新計算 # 個連結的評分。} other {已重新計算 # 個連結的評分。}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:98
+#: src/routes/(root)/admin/invitations.tsx:297
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, other {已為 # 個帳號重新發放邀請。}}"
 
@@ -152,6 +152,11 @@ msgstr "{0, plural, other {您已經邀請了總共 # 人。}}"
 msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
 msgstr "{0, plural, other {你仍屬於 # 個組織。}}"
 
+#. placeholder {0}: note().length
+#: src/components/admin/GrantInvitationsDialog.tsx:172
+msgid "{0} / 500 characters"
+msgstr "{0} / 500 個字元"
+
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/OrganizationConversionRequestNotificationCard.tsx:41
@@ -163,6 +168,13 @@ msgstr "{0} 和其他 {1} 人請求你接受組織轉換"
 #: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} and {1} others followed you"
 msgstr "{0} 和其他 {1} 人關注了你"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:41
+msgid "{0} and {1} others granted you {2, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} 和其他 {1} 人向你發放了 {2, plural, one {#個邀請名額} other {#個邀請名額}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -265,6 +277,12 @@ msgstr "來自 Hackers' Pub 的 {0} 次"
 #: src/components/NewsStoryHeader.tsx:167
 msgid "{0} from the fediverse"
 msgstr "來自聯邦宇宙的 {0} 次"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:34
+msgid "{0} granted you {1, plural, one {# invitation} other {# invitations}}"
+msgstr "{0} 向你發放了 {1, plural, one {#個邀請名額} other {#個邀請名額}}"
 
 #. placeholder {0}: Math.round( stats.averageProcessingHours!, )
 #: src/routes/(root)/admin/moderation/statistics.tsx:162
@@ -576,7 +594,7 @@ msgstr "已接受"
 msgid "Accepting…"
 msgstr "正在接受…"
 
-#: src/components/admin/AdminAccountsTable.tsx:293
+#: src/components/admin/AdminAccountsTable.tsx:303
 #: src/components/AppSidebar.tsx:835
 #: src/components/SettingsTabs.tsx:106
 msgid "Account"
@@ -594,7 +612,7 @@ msgstr "帳戶刪除功能無法使用"
 msgid "Account handle"
 msgstr "帳號使用者名稱"
 
-#: src/components/admin/AdminAccountsTable.tsx:261
+#: src/components/admin/AdminAccountsTable.tsx:271
 msgid "Account kind"
 msgstr "帳戶類型"
 
@@ -621,7 +639,7 @@ msgid "Account suspended"
 msgstr "帳戶已停權"
 
 #: src/components/AdminTabs.tsx:26
-#: src/routes/(root)/admin/index.tsx:108
+#: src/routes/(root)/admin/index.tsx:109
 msgid "Accounts"
 msgstr "帳號"
 
@@ -638,6 +656,7 @@ msgstr "處理分布"
 msgid "Action recorded"
 msgstr "已記錄處置"
 
+#: src/components/admin/AdminAccountsTable.tsx:370
 #: src/components/LanguageList.tsx:64
 #: src/components/LanguageList.tsx:195
 msgid "Actions"
@@ -646,6 +665,10 @@ msgstr "操作"
 #: src/routes/(root)/admin/relay.tsx:313
 msgid "Active since"
 msgstr "啟用於"
+
+#: src/routes/(root)/admin/invitations.tsx:194
+msgid "Actor / target"
+msgstr "執行者 / 對象"
 
 #: src/routes/(root)/admin/moderation/sanctioned.tsx:78
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
@@ -753,7 +776,7 @@ msgstr "AI 輔助翻譯，由作者審核"
 msgid "All"
 msgstr "全部"
 
-#: src/components/admin/AdminAccountsTable.tsx:143
+#: src/components/admin/AdminAccountsTable.tsx:144
 msgid "All accounts"
 msgstr "全部帳戶"
 
@@ -807,6 +830,10 @@ msgstr "圖片 {0} 的替代文字"
 #: src/components/note-composer/MediaEditor.tsx:50
 msgid "Alt text for visually impaired people (required)"
 msgstr "供視力障礙人士使用的替代文字（必填）"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:159
+msgid "Amount"
+msgstr "數量"
 
 #: src/components/notification/ArticleTranslationSourceChangedNotificationCard.tsx:51
 msgid "an article"
@@ -1029,6 +1056,22 @@ msgstr "自動填寫"
 msgid "Auto-fill alt text"
 msgstr "自動填寫替代文字"
 
+#: src/routes/(root)/admin/invitations.tsx:171
+msgid "Automatic"
+msgstr "自動"
+
+#: src/routes/(root)/admin/invitations.tsx:383
+msgid "Automatic distribution"
+msgstr "自動分發"
+
+#: src/routes/(root)/admin/invitations.tsx:339
+msgid "Automatic invitation distribution enabled."
+msgstr "已啟用自動邀請分發。"
+
+#: src/routes/(root)/admin/invitations.tsx:340
+msgid "Automatic invitation distribution paused."
+msgstr "已暫停自動邀請分發。"
+
 #: src/components/article-translations/ArticleTranslationManager.tsx:1155
 #: src/components/ArticleTranslationCredit.tsx:32
 msgid "Automatic translation"
@@ -1038,6 +1081,10 @@ msgstr "自動翻譯"
 #: src/components/ArticleCard.tsx:370
 msgid "Automatic translation from {0}"
 msgstr "自動翻譯自{0}"
+
+#: src/routes/(root)/admin/invitations.tsx:395
+msgid "Automatically distribute invitations"
+msgstr "自動分發邀請"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:377
 msgid "Avatar"
@@ -1299,7 +1346,7 @@ msgstr "選擇推播通知是否可以包含內容摘要。隱藏預覽時會使
 msgid "Choose your preferred language for the verification email."
 msgstr "請選擇驗證信件的語言。"
 
-#: src/components/admin/AdminAccountsTable.tsx:281
+#: src/components/admin/AdminAccountsTable.tsx:291
 #: src/routes/(root)/admin/news.tsx:862
 msgid "Clear"
 msgstr "清除"
@@ -1348,6 +1395,10 @@ msgstr "收合受邀成員"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
 #~ msgstr "評論（{0}）"
+
+#: src/routes/(root)/admin/invitations.tsx:452
+msgid "Committed automatic runs, manual regenerations, and direct grants."
+msgstr "已提交的自動執行、手動重新產生和直接發放記錄。"
 
 #: src/components/AppSidebar.tsx:1051
 #: src/components/FloatingComposeButton.tsx:60
@@ -1556,7 +1607,7 @@ msgstr "建立投票調查"
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "建立可共享的邀請連結。每個連結可多次使用，直到邀請次數用完或連結過期。"
 
-#: src/components/admin/AdminAccountsTable.tsx:356
+#: src/components/admin/AdminAccountsTable.tsx:366
 msgid "Created"
 msgstr "建立時間"
 
@@ -1583,11 +1634,19 @@ msgstr "裁剪"
 msgid "Crop your new avatar"
 msgstr "裁剪你的新頭像"
 
+#: src/routes/(root)/admin/invitations.tsx:410
+msgid "Current cutoff:"
+msgstr "目前截止時間："
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1178
 msgid "Current username"
 msgstr "目前使用者名稱"
 
-#: src/routes/(root)/admin/invitations.tsx:175
+#: src/routes/(root)/admin/invitations.tsx:193
+msgid "Cutoff"
+msgstr "截止時間"
+
+#: src/routes/(root)/admin/invitations.tsx:425
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "截止時間："
@@ -1723,6 +1782,10 @@ msgstr "描述"
 msgid "Direct delivery"
 msgstr "直接投遞"
 
+#: src/routes/(root)/admin/invitations.tsx:175
+msgid "Direct grant"
+msgstr "直接發放"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:354
 msgid "Direct or unknown"
 msgstr "直接瀏覽或未知"
@@ -1787,6 +1850,10 @@ msgstr "暱稱"
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:119
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "將此文章的共同作者顯示在組織旁邊。根據預設，記錄的是草稿的建立者，而不是發佈者。"
+
+#: src/routes/(root)/admin/invitations.tsx:450
+msgid "Distribution history"
+msgstr "分發歷史"
 
 #: src/routes/(root)/sign/index.tsx:469
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
@@ -1940,6 +2007,11 @@ msgstr "請輸入有效的電子郵件地址。"
 #: src/routes/(root)/[handle]/settings/account.tsx:284
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "請輸入有效的以前帳戶識別碼或 actor URL。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:94
+#: src/components/admin/GrantInvitationsDialog.tsx:125
+msgid "Enter a whole number between 1 and 10,000."
+msgstr "請輸入 1 到 10,000 之間的整數。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1825
 msgid "Enter the account you are moving from, for example @old@example.com."
@@ -2106,6 +2178,10 @@ msgstr "無法封鎖此使用者"
 msgid "Failed to bookmark"
 msgstr "收藏失敗"
 
+#: src/routes/(root)/admin/invitations.tsx:355
+msgid "Failed to change automatic distribution."
+msgstr "無法變更自動分發設定。"
+
 #: src/routes/(root)/admin/news.tsx:417
 msgid "Failed to clear penalty."
 msgstr "清除處罰失敗。"
@@ -2169,7 +2245,11 @@ msgstr "關注失敗"
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失敗"
 
-#: src/components/admin/AdminAccountsTable.tsx:469
+#: src/components/admin/GrantInvitationsDialog.tsx:135
+msgid "Failed to grant invitations."
+msgstr "無法發放邀請。"
+
+#: src/components/admin/AdminAccountsTable.tsx:488
 msgid "Failed to load more accounts; click to retry"
 msgstr "無法載入更多帳號；點擊以重試"
 
@@ -2242,6 +2322,7 @@ msgstr "載入更多轉貼失敗，點擊重試"
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
+#: src/routes/(root)/admin/invitations.tsx:255
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
 
@@ -2313,7 +2394,7 @@ msgstr "未能記錄審核結果。"
 msgid "Failed to refresh from origin."
 msgstr "從來源重新整理失敗。"
 
-#: src/routes/(root)/admin/invitations.tsx:124
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "Failed to regenerate invitations."
 msgstr "重新發放邀請失敗。"
 
@@ -2527,7 +2608,7 @@ msgstr "從你的帳戶關注"
 msgid "Follower removed"
 msgstr "已移除粉絲"
 
-#: src/components/admin/AdminAccountsTable.tsx:308
+#: src/components/admin/AdminAccountsTable.tsx:318
 msgid "Followers"
 msgstr "粉絲"
 
@@ -2542,7 +2623,7 @@ msgstr "粉絲可以引用"
 msgid "Followers only"
 msgstr "只粉絲可見"
 
-#: src/components/admin/AdminAccountsTable.tsx:299
+#: src/components/admin/AdminAccountsTable.tsx:309
 msgid "Following"
 msgstr "關注"
 
@@ -2581,6 +2662,12 @@ msgstr "接收瀏覽器通知"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
+#. placeholder {0}: props.username
+#. placeholder {1}: props.invitationsLeft
+#: src/components/admin/GrantInvitationsDialog.tsx:154
+msgid "Give @{0} invitation slots directly. Their current balance is {1}."
+msgstr "直接向 @{0} 發放邀請名額。其目前餘額為 {1}。"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/translations.tsx:282
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id]/index.tsx:119
@@ -2610,7 +2697,27 @@ msgstr "前往我的草稿"
 msgid "Go to new profile"
 msgstr "前往新個人資料"
 
-#: src/routes/(root)/admin/invitations.tsx:154
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Grant"
+msgstr "發放"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:146
+#: src/components/admin/GrantInvitationsDialog.tsx:152
+msgid "Grant invitations"
+msgstr "發放邀請"
+
+#. placeholder {0}: result.granted!
+#. placeholder {1}: props.username
+#. placeholder {2}: result.newBalance
+#: src/components/admin/GrantInvitationsDialog.tsx:110
+msgid "Granted {0, plural, one {# invitation} other {# invitations}} to @{1}. New balance: {2}."
+msgstr "已向 @{1} 發放 {0, plural, one {#個邀請名額} other {#個邀請名額}}。新餘額：{2}。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:184
+msgid "Granting…"
+msgstr "正在發放…"
+
+#: src/routes/(root)/admin/invitations.tsx:404
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容數排名前三分之一）額外發放一份邀請。"
 
@@ -2655,11 +2762,12 @@ msgstr "Hackers' Pub 現在會將舊帳戶公開為屬於你的另一個帳戶�
 #~ msgstr "Hackers' Pub 現在會公開舊帳戶屬於你。"
 
 #. placeholder {0}: tag()
-#: src/routes/(root)/tags/[tag].tsx:69
+#: src/routes/(root)/tags/[tag].tsx:70
+#: src/routes/(root)/tags/[tag].tsx:71
 msgid "Hackers' Pub: #{0}"
 msgstr "Hackers' Pub：#{0}"
 
-#: src/routes/(root)/admin/index.tsx:99
+#: src/routes/(root)/admin/index.tsx:100
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub：管理 · 帳號"
 
@@ -2667,7 +2775,7 @@ msgstr "Hackers' Pub：管理 · 帳號"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: 管理 · 申訴"
 
-#: src/routes/(root)/admin/invitations.tsx:134
+#: src/routes/(root)/admin/invitations.tsx:365
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 邀請"
 
@@ -2711,7 +2819,8 @@ msgstr "Hackers' Pub: 管理 · 受處置的行為者"
 msgid "Hackers' Pub: Articles feed"
 msgstr "Hackers' Pub：文章動態"
 
-#: src/routes/(root)/fediverse.tsx:89
+#: src/routes/(root)/fediverse.tsx:90
+#: src/routes/(root)/fediverse.tsx:91
 msgid "Hackers' Pub: Fediverse timeline"
 msgstr "Hackers' Pub：聯邦宇宙時間軸"
 
@@ -2731,12 +2840,14 @@ msgstr "Hackers' Pub：邀請圖譜"
 msgid "Hackers' Pub: Invitation tree"
 msgstr "Hackers' Pub：邀請樹"
 
-#: src/routes/(root)/local.tsx:89
+#: src/routes/(root)/local.tsx:90
+#: src/routes/(root)/local.tsx:91
 msgid "Hackers' Pub: Local timeline"
 msgstr "Hackers' Pub：本地時間軸"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:58
-#: src/routes/(root)/news/index.tsx:45
+#: src/routes/(root)/news/index.tsx:46
+#: src/routes/(root)/news/index.tsx:47
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub：新聞"
 
@@ -2937,11 +3048,12 @@ msgid "Invitation tree"
 msgstr "邀請樹"
 
 #: src/components/AdminTabs.tsx:42
-#: src/routes/(root)/admin/invitations.tsx:148
+#: src/routes/(root)/admin/invitations.tsx:192
+#: src/routes/(root)/admin/invitations.tsx:379
 msgid "Invitations"
 msgstr "邀請"
 
-#: src/components/admin/AdminAccountsTable.tsx:326
+#: src/components/admin/AdminAccountsTable.tsx:336
 msgid "Invitations left"
 msgstr "剩餘邀請"
 
@@ -2967,11 +3079,11 @@ msgstr "邀請成員"
 msgid "Invite members and choose who can manage this organization."
 msgstr "邀請成員並選擇誰可以管理此組織。"
 
-#: src/components/admin/AdminAccountsTable.tsx:338
+#: src/components/admin/AdminAccountsTable.tsx:348
 msgid "Invited"
 msgstr "已邀請"
 
-#: src/components/admin/AdminAccountsTable.tsx:331
+#: src/components/admin/AdminAccountsTable.tsx:341
 msgid "Invited by"
 msgstr "邀請人"
 
@@ -3061,7 +3173,7 @@ msgstr "語言"
 msgid "Last active"
 msgstr "最近活動"
 
-#: src/components/admin/AdminAccountsTable.tsx:347
+#: src/components/admin/AdminAccountsTable.tsx:357
 msgid "Last activity"
 msgstr "最近活動"
 
@@ -3075,8 +3187,8 @@ msgid "Last refreshed:"
 msgstr "上次重新整理："
 
 #: src/routes/(root)/admin/invitations.tsx:160
-msgid "Last regenerated:"
-msgstr "上次重新發放："
+#~ msgid "Last regenerated:"
+#~ msgstr "上次重新發放："
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/analytics.tsx:382
 msgid "Last updated"
@@ -3134,7 +3246,7 @@ msgstr "連結名"
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "版主在熱門資訊流中降級的連結。清除處罰可恢復連結的正常排名。"
 
-#: src/routes/(root)/news/index.tsx:49
+#: src/routes/(root)/news/index.tsx:51
 msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 msgstr "聯邦宇宙中流傳的連結和文章，依照被轉貼與討論的熱度排名。"
 
@@ -3159,10 +3271,11 @@ msgstr "LLM 比對乖離"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
+#: src/routes/(root)/admin/invitations.tsx:259
 msgid "Load more"
 msgstr "載入更多"
 
-#: src/components/admin/AdminAccountsTable.tsx:472
+#: src/components/admin/AdminAccountsTable.tsx:491
 msgid "Load more accounts"
 msgstr "載入更多帳號"
 
@@ -3242,7 +3355,7 @@ msgstr "載入草稿中…"
 msgid "Loading members…"
 msgstr "正在載入成員…"
 
-#: src/components/admin/AdminAccountsTable.tsx:466
+#: src/components/admin/AdminAccountsTable.tsx:485
 msgid "Loading more accounts…"
 msgstr "正在載入更多帳號…"
 
@@ -3320,6 +3433,7 @@ msgstr "正在載入更多新聞…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
+#: src/routes/(root)/admin/invitations.tsx:258
 msgid "Loading more…"
 msgstr "正在載入更多…"
 
@@ -3387,6 +3501,10 @@ msgstr "讓此站台 actor 關注一個 ActivityPub 中繼。接受後，中繼�
 #: src/routes/(root)/[handle]/drafts/[id]/translations.tsx:151
 msgid "Manage translations"
 msgstr "管理翻譯"
+
+#: src/routes/(root)/admin/invitations.tsx:173
+msgid "Manual"
+msgstr "手動"
 
 #: src/routes/(root)/markdown.tsx:39
 msgid "Markdown guide"
@@ -3555,7 +3673,7 @@ msgstr "需要審核"
 msgid "never"
 msgstr "從未"
 
-#: src/routes/(root)/admin/invitations.tsx:167
+#: src/routes/(root)/admin/invitations.tsx:417
 msgid "Never"
 msgstr "從未"
 
@@ -3605,7 +3723,7 @@ msgstr "最新註冊優先"
 #: src/components/AdminTabs.tsx:53
 #: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/admin/news.tsx:558
-#: src/routes/(root)/news/index.tsx:47
+#: src/routes/(root)/news/index.tsx:49
 msgid "News"
 msgstr "新聞"
 
@@ -3681,6 +3799,10 @@ msgstr "沒有找到關注的使用者"
 #: src/components/ActorInteractionList.tsx:126
 msgid "No interactions found"
 msgstr "沒有找到互動"
+
+#: src/routes/(root)/admin/invitations.tsx:243
+msgid "No invitation distributions recorded yet."
+msgstr "尚未記錄任何邀請分發。"
 
 #: src/routes/(root)/tree/index.tsx:337
 msgid "No invitation tree data yet."
@@ -3798,6 +3920,10 @@ msgstr "此期間內尚未統計到瀏覽次數。"
 msgid "Normal"
 msgstr "普通"
 
+#: src/routes/(root)/admin/invitations.tsx:347
+msgid "Not authorized to change automatic distribution."
+msgstr "無權變更自動分發。"
+
 #: src/routes/(root)/admin/news.tsx:410
 msgid "Not authorized to clear penalties."
 msgstr "無權清除處罰。"
@@ -3825,7 +3951,7 @@ msgstr "無權管理中繼。"
 msgid "Not authorized to recompute news scores."
 msgstr "無權重新計算新聞評分。"
 
-#: src/routes/(root)/admin/invitations.tsx:115
+#: src/routes/(root)/admin/invitations.tsx:314
 msgid "Not authorized to regenerate invitations."
 msgstr "無權重新發放邀請。"
 
@@ -3850,10 +3976,11 @@ msgstr "未發布"
 msgid "Not subscribed to any relays yet."
 msgstr "尚未訂閱任何中繼。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:247
-#~ msgid "Note"
-#~ msgstr "貼文"
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Note"
+msgstr "貼文"
 
+#: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
 #: src/routes/(root)/admin/news.tsx:737
 msgid "Note (optional)"
@@ -3892,8 +4019,8 @@ msgstr "通知預覽隱私"
 
 #: src/components/AppSidebar.tsx:787
 #: src/components/AppSidebar.tsx:789
-#: src/routes/(root).tsx:311
-#: src/routes/(root).tsx:312
+#: src/routes/(root).tsx:314
+#: src/routes/(root).tsx:315
 msgid "Notifications"
 msgstr "通知"
 
@@ -3983,7 +4110,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或輸入郵件中的驗證碼"
 
-#: src/components/admin/AdminAccountsTable.tsx:141
+#: src/components/admin/AdminAccountsTable.tsx:142
 msgid "Organization accounts"
 msgstr "組織帳號"
 
@@ -4143,7 +4270,7 @@ msgstr "個人"
 #~ msgid "Personal account"
 #~ msgstr "個人帳戶"
 
-#: src/components/admin/AdminAccountsTable.tsx:139
+#: src/components/admin/AdminAccountsTable.tsx:140
 msgid "Personal accounts"
 msgstr "個人帳戶"
 
@@ -4272,7 +4399,7 @@ msgstr "內容已釘選"
 msgid "Post unpinned"
 msgstr "已取消釘選內容"
 
-#: src/components/admin/AdminAccountsTable.tsx:317
+#: src/components/admin/AdminAccountsTable.tsx:327
 #: src/components/ProfileTabs.tsx:57
 msgid "Posts"
 msgstr "內容"
@@ -4567,6 +4694,10 @@ msgstr "近期活動可能需要幾分鐘才會顯示。"
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
+#: src/routes/(root)/admin/invitations.tsx:191
+msgid "Recipients"
+msgstr "接收者"
+
 #: src/routes/(root)/admin/news.tsx:563
 #: src/routes/(root)/admin/news.tsx:594
 msgid "Recompute news scores"
@@ -4635,11 +4766,11 @@ msgstr "已從來源重新整理。"
 msgid "Refreshing…"
 msgstr "重新整理中…"
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Regenerate"
 msgstr "重新發放"
 
-#: src/routes/(root)/admin/invitations.tsx:152
+#: src/routes/(root)/admin/invitations.tsx:402
 msgid "Regenerate invitations"
 msgstr "重新發放邀請"
 
@@ -4655,7 +4786,7 @@ msgstr "重新產生復原碼"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "重新產生復原碼會使所有舊碼失效。"
 
-#: src/routes/(root)/admin/invitations.tsx:194
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Regenerating…"
 msgstr "正在重新發放…"
 
@@ -4966,6 +5097,10 @@ msgstr "角色"
 msgid "Role updated"
 msgstr "角色已更新"
 
+#: src/routes/(root)/admin/invitations.tsx:385
+msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
+msgstr "每週一和週四 00:15 UTC 執行，向自上次執行以來活躍的帳號中排名前三分之一的帳號發放一個邀請名額。"
+
 #: src/components/admin/ModerationSubTabs.tsx:44
 msgid "Sanctioned"
 msgstr "已處置"
@@ -5043,7 +5178,7 @@ msgstr "已儲存在本機"
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: src/components/admin/AdminAccountsTable.tsx:270
+#: src/components/admin/AdminAccountsTable.tsx:280
 #: src/components/AppSidebar.tsx:449
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
@@ -5055,7 +5190,7 @@ msgstr "搜尋"
 msgid "Search a language…"
 msgstr "搜尋語言…"
 
-#: src/components/admin/AdminAccountsTable.tsx:237
+#: src/components/admin/AdminAccountsTable.tsx:247
 msgid "Search accounts"
 msgstr "搜尋帳戶"
 
@@ -5063,7 +5198,7 @@ msgstr "搜尋帳戶"
 msgid "Search by handle or display name"
 msgstr "以帳號或顯示名稱搜尋"
 
-#: src/components/admin/AdminAccountsTable.tsx:245
+#: src/components/admin/AdminAccountsTable.tsx:255
 msgid "Search by name or username…"
 msgstr "按名稱或使用者名稱搜尋…"
 
@@ -5555,6 +5690,10 @@ msgstr "介紹您自己…"
 msgid "Thank you. The moderation team will review your report."
 msgstr "感謝您。管理團隊將審查您的檢舉。"
 
+#: src/components/admin/GrantInvitationsDialog.tsx:126
+msgid "That account could not be found."
+msgstr "找不到該帳號。"
+
 #: src/routes/(root)/admin/news.tsx:481
 msgid "That actor could not be added."
 msgstr "無法新增該帳號。"
@@ -5709,6 +5848,10 @@ msgstr "無法更新成員角色。請重試。"
 #: src/components/AppealDialog.tsx:100
 msgid "The moderation team will review your appeal and notify you."
 msgstr "管理團隊將審核你的申訴並通知你。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:123
+msgid "The note must be 500 characters or fewer."
+msgstr "備註必須不超過 500 個字元。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1921
 msgid "The organization account was deleted."
@@ -6110,7 +6253,7 @@ msgid "Total reports"
 msgstr "檢舉總數"
 
 #. placeholder {0}: formatNumber(conn.totalCount)
-#: src/components/admin/AdminAccountsTable.tsx:287
+#: src/components/admin/AdminAccountsTable.tsx:297
 msgid "Total: {0}"
 msgstr "共 {0} 個"
 
@@ -6205,6 +6348,10 @@ msgstr "重試"
 #: src/routes/(root)/[handle]/settings/account.tsx:702
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "將此個人帳戶轉換為組織帳號。此操作無法復原。"
+
+#: src/routes/(root)/admin/invitations.tsx:190
+msgid "Type"
+msgstr "類型"
 
 #. placeholder {0}: props.username
 #: src/routes/(root)/[handle]/settings/account.tsx:2019
@@ -6594,6 +6741,10 @@ msgstr "你想讓大家決定什麼？"
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
+#: src/routes/(root)/admin/invitations.tsx:189
+msgid "When"
+msgstr "時間"
+
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:175
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "When enabled, AI may automatically translate this article into other languages."
@@ -6682,6 +6833,10 @@ msgstr "你已被此使用者封鎖。你無法關注該使用者或查看該使
 #: src/components/ProfileCard.tsx:315
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在封鎖此使用者。該使用者無法關注你或查看你的內容。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:131
+msgid "You are not authorized to grant invitations."
+msgstr "無權發放邀請。"
 
 #. placeholder {0}: result.organization.username
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:171
@@ -6905,6 +7060,11 @@ msgstr "你已沒有該組織的發文權限。"
 msgid "You no longer have posting permission for this draft's workspace."
 msgstr "你已沒有此草稿工作區的發文權限。"
 
+#. placeholder {0}: notification.amount
+#: src/components/notification/InvitationGrantedNotificationCard.tsx:54
+msgid "You received {0, plural, one {# invitation} other {# invitations}} from Hackers' Pub."
+msgstr "你從 Hackers' Pub 收到了 {0, plural, one {#個邀請名額} other {#個邀請名額}}。"
+
 #: src/routes/(root)/admin/moderation/appeals.tsx:275
 msgid "You took the original action. Consider letting another moderator review this appeal."
 msgstr "原處理是你做出的。建議讓另一位版主審核此申訴。"
@@ -7004,6 +7164,10 @@ msgstr "個人資料設定已成功更新。"
 #: src/routes/(root)/[handle]/settings/account.tsx:2004
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "你的個人檔案、內容、草稿、關注關係、設定和登入憑證將被移除。目前的使用者名稱將繼續保留。"
+
+#: src/components/admin/GrantInvitationsDialog.tsx:129
+msgid "Your session expired. Sign in again to continue."
+msgstr "工作階段已過期。請重新登入後繼續。"
 
 #: src/components/ModerationNotificationList.tsx:132
 msgid "Your suspension ends soon."

@@ -4,7 +4,8 @@ import { INVITATIONS_LAST_REGEN_KEY } from "@hackerspub/models/admin";
 import { accountTable, mediumTable } from "@hackerspub/models/schema";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { eq, inArray, sql } from "drizzle-orm";
-import { execute, parse } from "graphql";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import { execute, isObjectType, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
 import {
@@ -1019,16 +1020,84 @@ const regenerateMutation = parse(`
       ... on RegenerateInvitationsPayload {
         accountsAffected
         regenerated
+        skipped
+        skipReason
+        distribution {
+          uuid
+          kind
+          amount
+          accountsAffected
+        }
         status {
           lastRegenerated
           cutoffDate
           eligibleAccountsCount
           topThirdCount
+          autoDistributionEnabled
         }
       }
       ... on NotAuthenticatedError { notAuthenticated }
       ... on NotAuthorizedError { notAuthorized }
     }
+  }
+`);
+
+const grantMutation = parse(`
+  mutation Grant($input: GrantInvitationsInput!) {
+    grantInvitations(input: $input) {
+      __typename
+      ... on GrantInvitationsPayload {
+        granted
+        previousBalance
+        newBalance
+        account { uuid invitationsLeft }
+        distribution { uuid kind amount targetUsername note }
+      }
+      ... on InvalidInputError { inputPath }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+const invitationDistributionsQuery = parse(`
+  query InvitationDistributions($first: Int, $after: String) {
+    invitationDistributions(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          uuid
+          kind
+          amount
+          accountsAffected
+          cutoffDate
+          periodEnd
+          actorUsername
+          targetUsername
+          note
+        }
+      }
+      pageInfo { hasNextPage endCursor }
+    }
+  }
+`);
+
+const setAutoDistributionMutation = parse(`
+  mutation SetAutoDistribution($enabled: Boolean!) {
+    setInvitationAutoDistributionEnabled(enabled: $enabled) {
+      __typename
+      ... on InvitationRegenerationStatus {
+        autoDistributionEnabled
+      }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+const distributionNodeQuery = parse(`
+  query DistributionNode($id: ID!) {
+    node(id: $id) { __typename }
   }
 `);
 
@@ -1456,4 +1525,298 @@ test("regenerateInvitations called twice in immediate succession returns 0 affec
       0,
     );
   });
+});
+
+test("invitationDistributions is moderator-only", async () => {
+  await withRollback(async (tx) => {
+    const guest = await execute({
+      schema,
+      document: invitationDistributionsQuery,
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(guest.errors, undefined);
+    assert.equal(
+      (guest.data as { invitationDistributions: unknown })
+        .invitationDistributions,
+      null,
+    );
+
+    const user = await insertAccountWithActor(tx, {
+      username: "distributionnonmod",
+      name: "Distribution Non Mod",
+      email: "distributionnonmod@example.com",
+    });
+    const nonMod = await execute({
+      schema,
+      document: invitationDistributionsQuery,
+      contextValue: makeUserContext(tx, user.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(nonMod.errors, undefined);
+    assert.equal(
+      (nonMod.data as { invitationDistributions: unknown })
+        .invitationDistributions,
+      null,
+    );
+  });
+});
+
+test("regenerateInvitations records a distribution visible in the moderator history", async () => {
+  await withRollback(async (tx) => {
+    const mod = await makeModerator(tx, "distributionmod");
+    const { kv, store } = createTestKv();
+    store.set(
+      INVITATIONS_LAST_REGEN_KEY,
+      new Date("2026-04-01T00:00:00.000Z").toISOString(),
+    );
+    const account = await insertAccountWithActor(tx, {
+      username: "distributionrecipient",
+      name: "Distribution Recipient",
+      email: "distributionrecipient@example.com",
+    });
+    await insertNotePost(tx, {
+      account: account.account,
+      published: new Date("2026-04-10T00:00:00.000Z"),
+    });
+
+    const regen = await execute({
+      schema,
+      document: regenerateMutation,
+      contextValue: makeUserContext(tx, mod.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(regen.errors, undefined);
+    const payload = (
+      regen.data as {
+        regenerateInvitations: {
+          skipped: boolean;
+          skipReason: string | null;
+          distribution: { kind: string; amount: number } | null;
+        };
+      }
+    ).regenerateInvitations;
+    assert.equal(payload.skipped, false);
+    assert.equal(payload.skipReason, null);
+    assert.equal(payload.distribution?.kind, "MANUAL");
+    assert.equal(payload.distribution?.amount, 1);
+
+    const history = await execute({
+      schema,
+      document: invitationDistributionsQuery,
+      variableValues: { first: 10 },
+      contextValue: makeUserContext(tx, mod.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(history.errors, undefined);
+    const connection = (
+      history.data as {
+        invitationDistributions: {
+          edges: { node: { kind: string; amount: number } }[];
+          pageInfo: { hasNextPage: boolean; endCursor: string | null };
+        };
+      }
+    ).invitationDistributions;
+    assert.equal(connection.edges.length, 1);
+    assert.equal(connection.edges[0].node.kind, "MANUAL");
+    assert.equal(connection.edges[0].node.amount, 1);
+    assert.equal(connection.pageInfo.hasNextPage, false);
+    assert.ok(connection.pageInfo.endCursor != null);
+  });
+});
+
+test("InvitationDistribution Node access is moderator-only", async () => {
+  await withRollback(async (tx) => {
+    const mod = await makeModerator(tx, "distributionnodemod");
+    const { kv } = createTestKv();
+    const regen = await execute({
+      schema,
+      document: regenerateMutation,
+      contextValue: makeUserContext(tx, mod.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(regen.errors, undefined);
+    const distribution = (
+      regen.data as {
+        regenerateInvitations: { distribution: { uuid: string } | null };
+      }
+    ).regenerateInvitations.distribution;
+    assert.ok(distribution != null);
+
+    for (const contextValue of [
+      makeGuestContext(tx),
+      makeUserContext(
+        tx,
+        (
+          await insertAccountWithActor(tx, {
+            username: "distributionnodeuser",
+            name: "Distribution Node User",
+            email: "distributionnodeuser@example.com",
+          })
+        ).account,
+      ),
+    ]) {
+      const result = await execute({
+        schema,
+        document: distributionNodeQuery,
+        variableValues: {
+          id: encodeGlobalID("InvitationDistribution", distribution.uuid),
+        },
+        contextValue,
+        onError: "NO_PROPAGATE",
+      });
+      const node = (result.data as { node: { __typename: string } | null })
+        .node;
+      assert.notEqual(node?.__typename, "InvitationDistribution");
+    }
+  });
+});
+
+test("grantInvitations is moderator-only and validates input", async () => {
+  await withRollback(async (tx) => {
+    const target = await insertAccountWithActor(tx, {
+      username: "grantgraphqltarget",
+      name: "Grant GraphQL Target",
+      email: "grantgraphqltarget@example.com",
+    });
+    const targetId = encodeGlobalID("Account", target.account.id);
+
+    const guest = await execute({
+      schema,
+      document: grantMutation,
+      variableValues: { input: { accountId: targetId, amount: 1 } },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      (guest.data as { grantInvitations: { __typename: string } })
+        .grantInvitations.__typename,
+      "NotAuthenticatedError",
+    );
+
+    const nonMod = await insertAccountWithActor(tx, {
+      username: "grantgraphqlnonmod",
+      name: "Grant GraphQL Non Mod",
+      email: "grantgraphqlnonmod@example.com",
+    });
+    const unauthorized = await execute({
+      schema,
+      document: grantMutation,
+      variableValues: { input: { accountId: targetId, amount: 1 } },
+      contextValue: makeUserContext(tx, nonMod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      (unauthorized.data as { grantInvitations: { __typename: string } })
+        .grantInvitations.__typename,
+      "NotAuthorizedError",
+    );
+
+    const mod = await makeModerator(tx, "grantgraphqlmod");
+    for (const input of [
+      { accountId: targetId, amount: 0 },
+      { accountId: targetId, amount: 10001 },
+      { accountId: encodeGlobalID("Account", "not-a-uuid"), amount: 1 },
+      { accountId: targetId, amount: 1, note: "x".repeat(501) },
+    ]) {
+      const result = await execute({
+        schema,
+        document: grantMutation,
+        variableValues: { input },
+        contextValue: makeUserContext(tx, mod.account),
+        onError: "NO_PROPAGATE",
+      });
+      assert.equal(
+        (result.data as { grantInvitations: { __typename: string } })
+          .grantInvitations.__typename,
+        "InvalidInputError",
+      );
+    }
+
+    const success = await execute({
+      schema,
+      document: grantMutation,
+      variableValues: {
+        input: { accountId: targetId, amount: 4, note: "GraphQL grant" },
+      },
+      contextValue: makeUserContext(tx, mod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(success.errors, undefined);
+    const payload = (
+      success.data as {
+        grantInvitations: {
+          __typename: string;
+          granted: number;
+          previousBalance: number;
+          newBalance: number;
+          account: { invitationsLeft: number };
+          distribution: { kind: string; targetUsername: string };
+        };
+      }
+    ).grantInvitations;
+    assert.equal(payload.__typename, "GrantInvitationsPayload");
+    assert.equal(payload.granted, 4);
+    assert.equal(payload.previousBalance, 0);
+    assert.equal(payload.newBalance, 4);
+    assert.equal(payload.account.invitationsLeft, 4);
+    assert.equal(payload.distribution.kind, "GRANT");
+    assert.equal(payload.distribution.targetUsername, "grantgraphqltarget");
+  });
+});
+
+test("setInvitationAutoDistributionEnabled toggles the worker kill switch", async () => {
+  await withRollback(async (tx) => {
+    const mod = await makeModerator(tx, "killswitchmod");
+    const off = await execute({
+      schema,
+      document: setAutoDistributionMutation,
+      variableValues: { enabled: false },
+      contextValue: makeUserContext(tx, mod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(off.errors, undefined);
+    assert.equal(
+      (
+        off.data as {
+          setInvitationAutoDistributionEnabled: {
+            autoDistributionEnabled: boolean;
+          };
+        }
+      ).setInvitationAutoDistributionEnabled.autoDistributionEnabled,
+      false,
+    );
+
+    const status = await execute({
+      schema,
+      document: parse(`
+        query Status {
+          invitationRegenerationStatus { autoDistributionEnabled }
+        }
+      `),
+      contextValue: makeUserContext(tx, mod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(status.errors, undefined);
+    assert.equal(
+      (
+        status.data as {
+          invitationRegenerationStatus: { autoDistributionEnabled: boolean };
+        }
+      ).invitationRegenerationStatus.autoDistributionEnabled,
+      false,
+    );
+  });
+});
+
+test("InvitationDistribution fields all carry descriptions", () => {
+  const type = schema.getType("InvitationDistribution");
+  assert.ok(isObjectType(type));
+  for (const [name, field] of Object.entries(type.getFields())) {
+    if (name === "id") continue;
+    assert.ok(
+      typeof field.description === "string" && field.description.length > 0,
+      `${name} is missing a description`,
+    );
+  }
 });
