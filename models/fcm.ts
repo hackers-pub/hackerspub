@@ -31,7 +31,7 @@ export interface FcmNotificationOptions {
   accountId: Uuid;
   notificationId: Uuid;
   type: NotificationType;
-  actorId: Uuid;
+  actorId: Uuid | null;
   postId?: Uuid | null;
   emoji?: string | CustomEmoji | null;
 }

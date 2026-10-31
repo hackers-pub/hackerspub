@@ -15,7 +15,7 @@ export interface PushNotificationPayloadOptions {
   accountId: Uuid;
   notificationId: Uuid;
   type: NotificationType;
-  actorId: Uuid;
+  actorId: Uuid | null;
   postId?: Uuid | null;
   emoji?: string | CustomEmoji | null;
 }
@@ -27,7 +27,7 @@ export interface PushNotificationPayload {
   data: {
     notificationId: Uuid;
     type: NotificationType;
-    actorId: Uuid;
+    actorId?: Uuid;
     postId?: Uuid;
   };
 }
@@ -51,6 +51,7 @@ type PushNotificationLocale = keyof typeof PUSH_NOTIFICATION_MESSAGES;
 const PUSH_NOTIFICATION_MESSAGES = {
   "en-US": {
     someone: "Someone",
+    system: "Hackers' Pub",
     title: {
       follow: "New follower",
       mention: "New mention",
@@ -93,6 +94,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
   },
   "ja-JP": {
     someone: "誰か",
+    system: "Hackers' Pub",
     title: {
       follow: "新しいフォロワー",
       mention: "新しいメンション",
@@ -135,6 +137,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
   },
   "ko-KR": {
     someone: "누군가",
+    system: "Hackers' Pub",
     title: {
       follow: "새 팔로워",
       mention: "새 멘션",
@@ -178,6 +181,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
   },
   "zh-CN": {
     someone: "有人",
+    system: "Hackers' Pub",
     title: {
       follow: "新的关注者",
       mention: "新的提及",
@@ -216,6 +220,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
   },
   "zh-TW": {
     someone: "有人",
+    system: "Hackers' Pub",
     title: {
       follow: "新的關注者",
       mention: "新的提及",
@@ -256,6 +261,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
   string,
   {
     someone: string;
+    system: string;
     title: Record<NotificationType, string>;
     body: Record<NotificationType, (name: string, emoji: string) => string>;
   }
@@ -343,15 +349,17 @@ export async function buildPushNotificationPayload(
       .from(accountTable)
       .where(eq(accountTable.id, options.accountId))
       .limit(1),
-    db
-      .select({
-        name: actorTable.name,
-        handle: actorTable.handle,
-        username: actorTable.username,
-      })
-      .from(actorTable)
-      .where(eq(actorTable.id, options.actorId))
-      .limit(1),
+    options.actorId == null
+      ? Promise.resolve([])
+      : db
+          .select({
+            name: actorTable.name,
+            handle: actorTable.handle,
+            username: actorTable.username,
+          })
+          .from(actorTable)
+          .where(eq(actorTable.id, options.actorId))
+          .limit(1),
     options.postId == null
       ? Promise.resolve([])
       : db
@@ -372,9 +380,11 @@ export async function buildPushNotificationPayload(
   };
   const locale = selectPushNotificationLocale(account.locales);
   const name =
-    actorRows[0] == null
-      ? PUSH_NOTIFICATION_MESSAGES[locale].someone
-      : actorName(actorRows[0]);
+    options.actorId == null
+      ? PUSH_NOTIFICATION_MESSAGES[locale].system
+      : actorRows[0] == null
+        ? PUSH_NOTIFICATION_MESSAGES[locale].someone
+        : actorName(actorRows[0]);
   const preview = postPreview(account, postRows[0] ?? null);
   const body = genericBody(locale, options.type, name, options.emoji);
 
@@ -385,7 +395,7 @@ export async function buildPushNotificationPayload(
     data: {
       notificationId: options.notificationId,
       type: options.type,
-      actorId: options.actorId,
+      ...(options.actorId == null ? {} : { actorId: options.actorId }),
       ...(options.postId == null ? {} : { postId: options.postId }),
     },
   };

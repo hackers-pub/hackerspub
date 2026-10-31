@@ -1112,3 +1112,70 @@ test("grantInvitations rejects a zero-balance grant whose moderator has no actor
     assert.equal(targetRow?.leftInvitations, 0);
   });
 });
+
+test("regenerateInvitations sends system invitation pushes after commit", async () => {
+  const sent: Array<{ endpoint: string; payload: string }> = [];
+  setWebPushConfigForTesting({
+    publicKey: "test-public-key",
+    privateKey: "test-private-key",
+    subject: "mailto:test@example.com",
+  });
+  setWebPushSenderForTesting(async (subscription, payload) => {
+    sent.push({ endpoint: subscription.endpoint, payload });
+  });
+  try {
+    await withExclusiveTestDatabase(async () => {
+      const suffix = generateUuidV7().replaceAll("-", "").slice(0, 8);
+      const now = new Date();
+      const fixtures = await db.transaction(async (tx) => {
+        const account = await insertAccountWithActor(tx, {
+          username: `bulkpush${suffix}`,
+          name: "Bulk Push",
+          email: `bulkpush${suffix}@example.com`,
+        });
+        await insertNotePost(tx, {
+          account: account.account,
+          published: new Date(now.getTime() - 60 * 60 * 1000),
+        });
+        return { account };
+      });
+      try {
+        await db
+          .delete(adminStateTable)
+          .where(eq(adminStateTable.key, INVITATIONS_LAST_REGEN_KEY));
+        await registerPushNotificationTarget(db, fixtures.account.account.id, {
+          service: "web_push",
+          subscription: {
+            endpoint: `https://push.example/bulk-${suffix}`,
+            p256dh: validWebPushP256dh,
+            auth: validWebPushAuth,
+          },
+        });
+        const { kv } = createTestKv();
+        const result = await regenerateInvitations(db, kv, {
+          now,
+          source: "scheduled",
+          runKey: `scheduled:${now.toISOString()}`,
+        });
+        assert.equal(result.accountsAffected, 1);
+        assert.equal(sent.length, 1);
+        const payload = JSON.parse(sent[0].payload);
+        assert.equal(payload.data.type, "invitation_granted");
+        assert.equal("actorId" in payload.data, false);
+        await db
+          .delete(invitationDistributionTable)
+          .where(eq(invitationDistributionTable.id, result.distribution!.id));
+      } finally {
+        await db
+          .delete(adminStateTable)
+          .where(eq(adminStateTable.key, INVITATIONS_LAST_REGEN_KEY));
+        await db
+          .delete(accountTable)
+          .where(eq(accountTable.id, fixtures.account.account.id));
+      }
+    });
+  } finally {
+    setWebPushConfigForTesting(undefined);
+    setWebPushSenderForTesting(undefined);
+  }
+});

@@ -274,6 +274,10 @@ export async function regenerateInvitations(
   // updates, so commit either persists everything (rows + cutoff) or
   // nothing at all.  No race window exists between commit and a
   // separate cutoff write because there is no separate write.
+  const committedPushes: Array<{
+    accountId: Uuid;
+    notificationId: Uuid;
+  }> = [];
   const runDbWork = async (
     tx: Transaction,
   ): Promise<RegenerateInvitationsResult> => {
@@ -392,13 +396,19 @@ export async function regenerateInvitations(
     }
 
     for (const accountId of notifyAccountIds) {
-      await createInvitationGrantedNotification(
+      const notification = await createInvitationGrantedNotification(
         tx,
         accountId,
         distribution.id,
         null,
         1,
       );
+      if (notification != null) {
+        committedPushes.push({
+          accountId,
+          notificationId: notification.id,
+        });
+      }
     }
 
     await tx
@@ -422,9 +432,20 @@ export async function regenerateInvitations(
       skipReason: null,
     };
   };
-  return isTransaction(db)
+  const result = isTransaction(db)
     ? await runDbWork(db)
     : await db.transaction(runDbWork);
+  if (!isTransaction(db)) {
+    for (const push of committedPushes) {
+      await sendNotificationPush(db, {
+        accountId: push.accountId,
+        notificationId: push.notificationId,
+        type: "invitation_granted",
+        actorId: null,
+      });
+    }
+  }
+  return result;
 }
 
 export async function grantInvitations(

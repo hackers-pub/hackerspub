@@ -293,7 +293,7 @@ export async function sendNotificationPush(
     accountId: Uuid;
     notificationId: Uuid;
     type: NotificationType;
-    actorId: Uuid;
+    actorId: Uuid | null;
     postId?: Uuid | null;
   },
 ): Promise<void> {
