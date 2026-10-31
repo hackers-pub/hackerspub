@@ -183,7 +183,7 @@ function InvitationDistributionHistory(props: {
       {(connection) => (
         <>
           <div class="rounded-lg border bg-card shadow-sm">
-            <Table>
+            <Table class="min-w-[44rem]">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t`When`}</TableHead>
