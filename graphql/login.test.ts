@@ -428,3 +428,88 @@ test("revokeSession only revokes sessions for the current account", async () => 
     assert.deepEqual(await getSession(kv, extraSession.id), undefined);
   });
 });
+
+const loginWithDeliveryErrorsMutation = parse(`
+  mutation LoginWithDeliveryErrors($username: String!) {
+    loginByUsername(
+      username: $username
+      locale: "en-US"
+      verifyUrl: "http://localhost/sign/in/{token}?code={code}"
+    ) {
+      __typename
+      ... on LoginChallenge { token }
+      ... on LoginRateLimitedError { retryAfter }
+      ... on LoginEmailDeliveryFailedError { emailDeliveryFailed }
+    }
+  }
+`);
+
+test("repeated sign-in requests are throttled and drop the unused token", async () => {
+  await withRollback(async (tx) => {
+    const { kv, store } = createTestKv();
+    const email = createTestEmailTransport();
+    await insertAccountWithActor(tx, {
+      username: "loginthrottle",
+      name: "Login Throttle",
+      email: "loginthrottle@example.com",
+    });
+    const contextValue = makeGuestContext(tx, { kv, email: email.transport });
+    const run = () =>
+      execute({
+        schema,
+        document: loginWithDeliveryErrorsMutation,
+        variableValues: { username: "loginthrottle" },
+        contextValue,
+        onError: "NO_PROPAGATE",
+      });
+
+    const first = await run();
+    assert.equal(
+      (first.data as { loginByUsername: { __typename: string } })
+        .loginByUsername.__typename,
+      "LoginChallenge",
+    );
+    const second = await run();
+    assert.equal(
+      (second.data as { loginByUsername: { __typename: string } })
+        .loginByUsername.__typename,
+      "LoginRateLimitedError",
+    );
+    assert.equal(
+      [...store.keys()].filter((key) => key.startsWith("signin/")).length,
+      1,
+    );
+  });
+});
+
+test("sign-in returns a typed delivery failure when no message is accepted", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    await insertAccountWithActor(tx, {
+      username: "logindelivery",
+      name: "Login Delivery",
+      email: "logindelivery@example.com",
+    });
+    const failing = {
+      id: "failing",
+      async send() {
+        return { successful: false, errorMessages: ["down"] };
+      },
+      async *sendMany() {
+        yield { successful: false, errorMessages: ["down"] };
+      },
+    } as never;
+    const result = await execute({
+      schema,
+      document: loginWithDeliveryErrorsMutation,
+      variableValues: { username: "logindelivery" },
+      contextValue: makeGuestContext(tx, { kv, email: failing }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      (result.data as { loginByUsername: { __typename: string } })
+        .loginByUsername.__typename,
+      "LoginEmailDeliveryFailedError",
+    );
+  });
+});

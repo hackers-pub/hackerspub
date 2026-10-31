@@ -10,6 +10,7 @@
     "./admin": "./admin.ts",
     "./apns": "./apns.ts",
     "./article": "./article.ts",
+    "./auth-throttle": "./auth-throttle.ts",
     "./article-analytics": "./article-analytics.ts",
     "./article-publication": "./article-publication.ts",
     "./article-revision": "./article-revision.ts",

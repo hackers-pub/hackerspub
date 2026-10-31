@@ -3557,7 +3557,23 @@ type LoginChallenge {
   token: UUID!
 }
 
-union LoginResult = AccountNotFoundError | EmailLoginUnavailableError | LoginChallenge
+"""
+Returned when no sign-in message was accepted by the email provider. The challenge may still be retried with a new request.
+"""
+type LoginEmailDeliveryFailedError {
+  """Always `true`: the provider did not accept any sign-in message."""
+  emailDeliveryFailed: Boolean!
+}
+
+"""
+Returned when the sign-in email throttle rejects this request. Wait `retryAfter` seconds before trying again.
+"""
+type LoginRateLimitedError {
+  """Seconds until the throttle window resets."""
+  retryAfter: Int!
+}
+
+union LoginResult = AccountNotFoundError | EmailLoginUnavailableError | LoginChallenge | LoginEmailDeliveryFailedError | LoginRateLimitedError
 
 """
 Advance this member's read marker for one organization and return the resulting badge state.

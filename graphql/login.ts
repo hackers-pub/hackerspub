@@ -19,6 +19,7 @@ import {
   deleteSession,
   getSession,
 } from "@hackerspub/models/session";
+import { consumeAuthThrottle } from "@hackerspub/models/auth-throttle";
 import {
   createEmailSigninToken,
   EmailLoginUnavailableError,
@@ -102,10 +103,98 @@ builder.objectType(AccountBannedError, {
   }),
 });
 
+class LoginRateLimitedError extends Error {
+  readonly retryAfter: number;
+
+  constructor(retryAfter: number) {
+    super("Too many sign-in email requests.");
+    this.name = "LoginRateLimitedError";
+    this.retryAfter = retryAfter;
+  }
+}
+
+builder.objectType(LoginRateLimitedError, {
+  name: "LoginRateLimitedError",
+  description:
+    "Returned when the sign-in email throttle rejects this request. Wait `retryAfter` seconds before trying again.",
+  fields: (t) => ({
+    retryAfter: t.exposeInt("retryAfter", {
+      description: "Seconds until the throttle window resets.",
+    }),
+  }),
+});
+
+class LoginEmailDeliveryFailedError extends Error {
+  constructor() {
+    super("The sign-in email could not be delivered.");
+    this.name = "LoginEmailDeliveryFailedError";
+  }
+}
+
+builder.objectType(LoginEmailDeliveryFailedError, {
+  name: "LoginEmailDeliveryFailedError",
+  description:
+    "Returned when no sign-in message was accepted by the email provider. The challenge may still be retried with a new request.",
+  fields: (t) => ({
+    emailDeliveryFailed: t.boolean({
+      description:
+        "Always `true`: the provider did not accept any sign-in message.",
+      resolve: () => true,
+    }),
+  }),
+});
+
 interface LoginChallenge {
   accountId: Uuid;
   token: Uuid;
   created: Date;
+}
+
+function getLoginIpAddress(
+  connectionInfo:
+    | { remoteAddr?: { transport: string; hostname?: string } }
+    | undefined,
+): string {
+  const remoteAddr = connectionInfo?.remoteAddr;
+  return remoteAddr?.transport === "tcp" && remoteAddr.hostname != null
+    ? remoteAddr.hostname
+    : "unknown";
+}
+
+async function enforceLoginThrottle(
+  db: import("@hackerspub/models/db").Database,
+  accountId: Uuid,
+  ipAddress: string,
+): Promise<void> {
+  const ipHash = createHash("sha256").update(ipAddress).digest("hex");
+  const throttles = [
+    {
+      key: `login:account:${accountId}:minute`,
+      limit: 1,
+      windowMilliseconds: 60_000,
+    },
+    {
+      key: `login:account:${accountId}:hour`,
+      limit: 3,
+      windowMilliseconds: 3_600_000,
+    },
+    {
+      key: `login:ip:${ipHash}:hour`,
+      limit: 10,
+      windowMilliseconds: 3_600_000,
+    },
+  ];
+  for (const throttle of throttles) {
+    const result = await consumeAuthThrottle(
+      db,
+      throttle.key,
+      throttle.limit,
+      throttle.windowMilliseconds,
+    );
+    if (!result.allowed) {
+      throw new LoginRateLimitedError(result.retryAfterSeconds);
+    }
+  }
 }
 
 const LoginChallengeRef = builder.objectRef<LoginChallenge>("LoginChallenge");
@@ -246,7 +335,12 @@ builder.mutationFields((t) => ({
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
       "flow by calling `completeLoginChallenge` with those values. An existing account without verified email addresses returns `EmailLoginUnavailableError`.",
     errors: {
-      types: [AccountNotFoundError, EmailLoginUnavailableError],
+      types: [
+        AccountNotFoundError,
+        EmailLoginUnavailableError,
+        LoginRateLimitedError,
+        LoginEmailDeliveryFailedError,
+      ],
       union: {
         name: "LoginResult",
       },
@@ -285,6 +379,16 @@ builder.mutationFields((t) => ({
       }
       const token = await createEmailSigninToken(ctx.db, ctx.kv, account.id);
       if (token == null) throw new AccountNotFoundError(args.username);
+      try {
+        await enforceLoginThrottle(
+          ctx.db,
+          account.id,
+          getLoginIpAddress(ctx.connectionInfo),
+        );
+      } catch (error) {
+        await deleteSigninToken(ctx.kv, token.token);
+        throw error;
+      }
       const messages: Message[] = [];
       for (const email of token.emails) {
         const message = token.emailLoginEnabled
@@ -304,13 +408,17 @@ builder.mutationFields((t) => ({
             });
         messages.push(message);
       }
+      let accepted = 0;
       for await (const receipt of ctx.emailAuth.sendMany(messages)) {
-        if (!receipt.successful) {
+        if (receipt.successful) {
+          accepted++;
+        } else {
           logger.error("Failed to send a login email: {errors}", {
             errors: receipt.errorMessages,
           });
         }
       }
+      if (accepted < 1) throw new LoginEmailDeliveryFailedError();
       return {
         accountId: token.accountId,
         token: token.token,
@@ -327,7 +435,12 @@ builder.mutationFields((t) => ({
       "`{code}` as URI Template variables in `verifyUrl`. Complete the " +
       "flow by calling `completeLoginChallenge` with those values.",
     errors: {
-      types: [AccountNotFoundError, EmailLoginUnavailableError],
+      types: [
+        AccountNotFoundError,
+        EmailLoginUnavailableError,
+        LoginRateLimitedError,
+        LoginEmailDeliveryFailedError,
+      ],
       union: {
         name: "LoginResult",
       },
@@ -388,6 +501,16 @@ builder.mutationFields((t) => ({
         args.email,
       );
       if (token == null) throw new AccountNotFoundError(args.email);
+      try {
+        await enforceLoginThrottle(
+          ctx.db,
+          account.id,
+          getLoginIpAddress(ctx.connectionInfo),
+        );
+      } catch (error) {
+        await deleteSigninToken(ctx.kv, token.token);
+        throw error;
+      }
       const messages: Message[] = [];
       for (const email of token.emails) {
         const message = token.emailLoginEnabled
@@ -407,13 +530,17 @@ builder.mutationFields((t) => ({
             });
         messages.push(message);
       }
+      let accepted = 0;
       for await (const receipt of ctx.emailAuth.sendMany(messages)) {
-        if (!receipt.successful) {
+        if (receipt.successful) {
+          accepted++;
+        } else {
           logger.error("Failed to send a login email: {errors}", {
             errors: receipt.errorMessages,
           });
         }
       }
+      if (accepted < 1) throw new LoginEmailDeliveryFailedError();
       return {
         accountId: token.accountId,
         token: token.token,

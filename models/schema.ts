@@ -225,6 +225,21 @@ export type NotificationDigestDelivery =
 export type NewNotificationDigestDelivery =
   typeof notificationDigestDeliveryTable.$inferInsert;
 
+export const authThrottleTable = pgTable(
+  "auth_throttle",
+  {
+    key: text().primaryKey(),
+    windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+    count: integer().notNull().default(0),
+  },
+  (table) => [
+    check("auth_throttle_count_check", sql`${table.count} >= 0`),
+    index("auth_throttle_window_start_idx").on(table.windowStart),
+  ],
+);
+
+export type AuthThrottle = typeof authThrottleTable.$inferSelect;
+
 export const EMAIL_PRIORITIES = ["auth", "transactional", "digest"] as const;
 
 export type EmailPriority = (typeof EMAIL_PRIORITIES)[number];

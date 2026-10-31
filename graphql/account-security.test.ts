@@ -17,6 +17,7 @@ import {
   accountTable,
   actorTable,
   passkeyTable,
+  authThrottleTable,
 } from "@hackerspub/models/schema";
 import {
   createSession,
@@ -179,6 +180,7 @@ test("strict mode hashes ten codes, blocks pending email tokens, preserves respo
         null,
       );
     for (const field of ["loginByEmail", "loginByUsername"]) {
+      await tx.delete(authThrottleTable);
       const args =
         field === "loginByEmail"
           ? 'email:"strict@example.com"'
