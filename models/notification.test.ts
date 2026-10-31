@@ -4,13 +4,19 @@ import { sql } from "drizzle-orm";
 import { db } from "../test/database.ts";
 import {
   createFollowNotification,
+  createInvitationGrantedNotification,
   createOrganizationInvitationNotification,
   createShareNotification,
   deleteFollowNotification,
   deleteShareNotification,
   getNotifications,
 } from "./notification.ts";
-import { accountTable, notificationTable } from "./schema.ts";
+import {
+  accountTable,
+  invitationDistributionTable,
+  notificationTable,
+} from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
@@ -401,5 +407,91 @@ test("createFollowNotification() returns the existing row for duplicate follows"
       notifications.map((notification) => notification.actorIds),
       [[firstFollower.actor.id], [secondFollower.actor.id]],
     );
+  });
+});
+
+test("createInvitationGrantedNotification() deduplicates per distribution and supports system rows", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "invitationnotifyrecipient",
+      name: "Invitation Notify Recipient",
+      email: "invitationnotifyrecipient@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "invitationnotifyactor",
+      name: "Invitation Notify Actor",
+      email: "invitationnotifyactor@example.com",
+    });
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    const [grant] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: "grant",
+        actorId: actor.account.id,
+        actorUsername: actor.account.username,
+        targetId: recipient.account.id,
+        targetUsername: recipient.account.username,
+        amount: 3,
+        accountsAffected: 1,
+        created: now,
+      })
+      .returning();
+    assert.ok(grant != null);
+
+    const first = await createInvitationGrantedNotification(
+      tx,
+      recipient.account.id,
+      grant.id,
+      actor.actor.id,
+      3,
+    );
+    assert.ok(first != null);
+    assert.equal(first.type, "invitation_granted");
+    assert.equal(first.invitationAmount, 3);
+    assert.deepEqual(first.actorIds, [actor.actor.id]);
+    const duplicate = await createInvitationGrantedNotification(
+      tx,
+      recipient.account.id,
+      grant.id,
+      actor.actor.id,
+      3,
+    );
+    assert.equal(duplicate, undefined);
+
+    const [bulk] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: "scheduled",
+        amount: 1,
+        accountsAffected: 1,
+        eligibleAccountsCount: 1,
+        topThirdCount: 1,
+        cutoffDate: now,
+        periodEnd: now,
+        runKey: `scheduled:${now.toISOString()}`,
+        created: now,
+      })
+      .returning();
+    assert.ok(bulk != null);
+    const system = await createInvitationGrantedNotification(
+      tx,
+      recipient.account.id,
+      bulk.id,
+      null,
+      1,
+    );
+    assert.ok(system != null);
+    assert.deepEqual(system.actorIds, []);
+    assert.equal(system.invitationAmount, 1);
+
+    await tx
+      .delete(invitationDistributionTable)
+      .where(sql`${invitationDistributionTable.id} = ${bulk.id}`);
+    const remaining = await tx.query.notificationTable.findMany({
+      where: { invitationDistributionId: bulk.id },
+    });
+    assert.equal(remaining.length, 0);
   });
 });

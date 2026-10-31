@@ -67,6 +67,11 @@ export const NotificationType = builder.enumType("NotificationType", {
         "The original of an article this account is credited with " +
         "translating was changed, so the translation needs review.",
     },
+    INVITATION_GRANTED: {
+      description:
+        "This account received invitation slots from a moderator or from " +
+        "the automatic distribution.",
+    },
   } as const,
 });
 
@@ -104,6 +109,8 @@ export const Notification = builder.drizzleInterface("notificationTable", {
         return OrganizationConversionRequestNotification.name;
       case "article_translation_source_changed":
         return ArticleTranslationSourceChangedNotification.name;
+      case "invitation_granted":
+        return InvitationGrantedNotification.name;
     }
   },
   fields: (t) => ({
@@ -419,6 +426,42 @@ export const ArticleTranslationSourceChangedNotification = builder.drizzleNode(
             (language) => new Intl.Locale(language),
           );
         },
+      }),
+    }),
+  },
+);
+
+export const InvitationGrantedNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "InvitationGrantedNotification",
+    description:
+      "Notification that this account received invitation slots. A direct " +
+      "grant names the moderator in `actors`; an automatic or bulk " +
+      "distribution has no actor and is system-authored.",
+    interfaces: [Notification],
+    authScopes: async (notification, ctx) => {
+      const viewer = ctx.account;
+      if (viewer == null) return false;
+      return await canAccountActAs(ctx.db, viewer, notification.accountId);
+    },
+    runScopesOnType: true,
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      amount: t.field({
+        type: "Int",
+        description:
+          "Number of invitation slots this account received in this " +
+          "distribution.",
+        resolve: (notification) => notification.invitationAmount ?? 1,
+      }),
+      automatic: t.boolean({
+        description:
+          "True when the distribution was automatic or a bulk regeneration, " +
+          "so no moderator actor is named.",
+        resolve: (notification) => notification.actorIds.length === 0,
       }),
     }),
   },

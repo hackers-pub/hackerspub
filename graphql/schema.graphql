@@ -194,7 +194,7 @@ type Account implements Node {
   notificationEmailDigestWeekly: Boolean!
 
   """
-  This account's notifications, newest first. Only visible to the account holder, or to accepted members when this is an organization account. Notifications whose actor list is empty (e.g., the actor was deleted) are automatically excluded.
+  This account's notifications, newest first. Only visible to the account holder, or to accepted members when this is an organization account. Notifications whose actor list is empty are automatically excluded, except system-authored invitation notifications.
   """
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
 
@@ -3332,6 +3332,25 @@ type Invitation {
 }
 
 """
+Notification that this account received invitation slots. A direct grant names the moderator in `actors`; an automatic or bulk distribution has no actor and is system-authored.
+"""
+type InvitationGrantedNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+
+  """Number of invitation slots this account received in this distribution."""
+  amount: Int!
+
+  """
+  True when the distribution was automatic or a bulk regeneration, so no moderator actor is named.
+  """
+  automatic: Boolean!
+  created: DateTime!
+  id: ID!
+  uuid: UUID!
+}
+
+"""
 A shareable link that allows recipients to create an account without a direct email invitation. Each link has a limited number of uses and an optional expiry date.
 """
 type InvitationLink implements Node {
@@ -5279,6 +5298,11 @@ enum NotificationType {
 
   """Someone followed this account."""
   FOLLOW
+
+  """
+  This account received invitation slots from a moderator or from the automatic distribution.
+  """
+  INVITATION_GRANTED
 
   """Someone @-mentioned this account in a post."""
   MENTION

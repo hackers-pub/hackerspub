@@ -705,6 +705,25 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.articleSourceRevisionTable.id,
       optional: true,
     }),
+    invitationDistribution: r.one.invitationDistributionTable({
+      from: r.notificationTable.invitationDistributionId,
+      to: r.invitationDistributionTable.id,
+      optional: true,
+    }),
+  },
+  invitationDistributionTable: {
+    actor: r.one.accountTable({
+      alias: "actor",
+      from: r.invitationDistributionTable.actorId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
+    target: r.one.accountTable({
+      alias: "target",
+      from: r.invitationDistributionTable.targetId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
   },
   organizationNotificationReadTable: {
     organization: r.one.accountTable({

@@ -8,6 +8,7 @@ import {
   gt,
   inArray,
   isNotNull,
+  lt,
   lte,
   type SQL,
   sql,
@@ -17,6 +18,7 @@ import type Keyv from "keyv";
 
 const logger = getLogger(["hackerspub", "models", "admin"]);
 import type { Database, Transaction } from "./db.ts";
+import { createInvitationGrantedNotification } from "./notification.ts";
 import {
   accountTable,
   actorTable,
@@ -27,11 +29,13 @@ import {
   articleSourceMediumTable,
   articleTranslationDraftMediumTable,
   articleTranslationDraftTable,
+  type InvitationDistribution,
+  invitationDistributionTable,
   mediumTable,
   noteSourceMediumTable,
   postTable,
 } from "./schema.ts";
-import { type Uuid, validateUuid } from "./uuid.ts";
+import { generateUuidV7, type Uuid, validateUuid } from "./uuid.ts";
 
 // Key under which the last-regen timestamp is stored, both in the
 // `admin_state` DB table (current) and historically in KV (still
@@ -46,6 +50,13 @@ const INVITATIONS_REGEN_LOCK_KEY = 0x69_6e_76_72;
 export const DEFAULT_REGEN_CUTOFF_DURATION: Temporal.Duration =
   Temporal.Duration.from({ days: 7 });
 
+export const INVITATIONS_AUTO_DISTRIBUTION_KEY =
+  "invitations_auto_distribution_enabled";
+
+export const MAX_INVITATION_GRANT = 10_000;
+export const MAX_INVITATION_BALANCE = 2_147_483_647;
+export const MAX_INVITATION_NOTE_LENGTH = 500;
+
 export const DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 const ORPHAN_MEDIA_DELETE_BATCH_SIZE = 1000;
 const ORPHAN_MEDIA_STORAGE_DELETE_CONCURRENCY = 8;
@@ -58,6 +69,10 @@ export interface RegenerateInvitationsResult {
   regenerated: Date;
   accountsAffected: number;
   cutoffDate: Date;
+  periodEnd: Date;
+  distribution: InvitationDistribution | null;
+  skipped: boolean;
+  skipReason: "duplicate" | "superseded" | null;
 }
 
 export interface InvitationRegenerationStatus {
@@ -65,11 +80,47 @@ export interface InvitationRegenerationStatus {
   cutoffDate: Date;
   eligibleAccountsCount: number;
   topThirdCount: number;
+  autoDistributionEnabled: boolean;
 }
 
 export interface RegenerateOptions {
   now?: Date;
   defaultCutoffDuration?: Temporal.Duration;
+}
+
+export interface RegenerateInvitationsOptions extends RegenerateOptions {
+  source?: "scheduled" | "manual";
+  actorId?: Uuid;
+  runKey?: string;
+}
+
+export interface GrantInvitationsOptions {
+  accountId: Uuid;
+  actorId: Uuid;
+  amount: number;
+  note?: string;
+  now?: Date;
+}
+
+export interface GrantInvitationsResult {
+  account: typeof accountTable.$inferSelect;
+  granted: number;
+  previousBalance: number;
+  newBalance: number;
+  distribution: InvitationDistribution;
+}
+
+export interface InvitationDistributionEdge {
+  cursor: string;
+  distribution: InvitationDistribution;
+}
+
+export interface InvitationDistributionPage {
+  edges: InvitationDistributionEdge[];
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string | null;
+  endCursor: string | null;
 }
 
 export interface OrphanMediaStatus {
@@ -111,6 +162,34 @@ export async function getInvitationsLastRegen(
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return null;
   return parsed;
+}
+
+export async function getInvitationAutoDistributionEnabled(
+  db: Database | Transaction,
+): Promise<boolean> {
+  const row = await db.query.adminStateTable.findFirst({
+    where: { key: INVITATIONS_AUTO_DISTRIBUTION_KEY },
+  });
+  return row == null || row.value !== "false";
+}
+
+export async function setInvitationAutoDistributionEnabled(
+  db: Database | Transaction,
+  enabled: boolean,
+  now = new Date(),
+): Promise<boolean> {
+  await db
+    .insert(adminStateTable)
+    .values({
+      key: INVITATIONS_AUTO_DISTRIBUTION_KEY,
+      value: enabled ? "true" : "false",
+      updated: now,
+    })
+    .onConflictDoUpdate({
+      target: adminStateTable.key,
+      set: { value: enabled ? "true" : "false", updated: now },
+    });
+  return enabled;
 }
 
 function resolveCutoff(
@@ -176,13 +255,14 @@ export async function getInvitationRegenerationStatus(
     cutoffDate,
     eligibleAccountsCount: active.length,
     topThirdCount: Math.ceil(active.length / 3),
+    autoDistributionEnabled: await getInvitationAutoDistributionEnabled(db),
   };
 }
 
 export async function regenerateInvitations(
   db: Database,
   kv?: Keyv,
-  options: RegenerateOptions = {},
+  options: RegenerateInvitationsOptions = {},
 ): Promise<RegenerateInvitationsResult> {
   // Serialise regeneration across concurrent calls and keep all
   // mutations atomic with the cutoff write.  The advisory lock holds
@@ -198,23 +278,125 @@ export async function regenerateInvitations(
       sql`SELECT pg_advisory_xact_lock(${INVITATIONS_REGEN_LOCK_KEY})`,
     );
     const lastRegen = await getInvitationsLastRegen(tx, kv);
-    const { now, cutoffDate } = resolveCutoff(lastRegen, options);
+
+    // A durable task can be retried after it has already committed.  The
+    // ledger row is the idempotency record for that tick, so return it
+    // instead of awarding a second time.
+    if (options.runKey != null) {
+      const existing = await tx.query.invitationDistributionTable.findFirst({
+        where: { runKey: options.runKey },
+      });
+      if (existing != null) {
+        if (
+          existing.kind === "grant" ||
+          existing.periodEnd == null ||
+          existing.cutoffDate == null
+        ) {
+          throw new Error(
+            `Invalid invitation distribution row for run key ${options.runKey}.`,
+          );
+        }
+        return {
+          regenerated: existing.periodEnd,
+          accountsAffected: existing.accountsAffected,
+          cutoffDate: existing.cutoffDate,
+          periodEnd: existing.periodEnd,
+          distribution: existing,
+          skipped: true,
+          skipReason: "duplicate",
+        };
+      }
+    }
+
+    const now = options.now ?? new Date();
+    // A delayed tick must never move the cutoff backward.  This can happen
+    // when a manual run (or a later tick) already covered the window while
+    // this durable task was queued.
+    if (lastRegen != null && now.getTime() <= lastRegen.getTime()) {
+      return {
+        regenerated: lastRegen,
+        accountsAffected: 0,
+        cutoffDate: lastRegen,
+        periodEnd: lastRegen,
+        distribution: null,
+        skipped: true,
+        skipReason: "superseded",
+      };
+    }
+
+    const { cutoffDate } = resolveCutoff(lastRegen, { ...options, now });
     const active = await selectActiveAccounts(tx, cutoffDate, now);
     const topThirdCount = Math.ceil(active.length / 3);
     const topAccountIds = active
       .slice(0, topThirdCount)
       .map((a) => a.accountId);
+
     let accountsAffected = 0;
+    const notifyAccountIds: Uuid[] = [];
     if (topAccountIds.length > 0) {
       const updated = await tx
         .update(accountTable)
         .set({
           leftInvitations: sql`${accountTable.leftInvitations} + 1`,
         })
-        .where(inArray(accountTable.id, topAccountIds))
-        .returning({ id: accountTable.id });
+        .where(
+          and(
+            inArray(accountTable.id, topAccountIds),
+            lt(accountTable.leftInvitations, MAX_INVITATION_BALANCE),
+          ),
+        )
+        .returning({
+          id: accountTable.id,
+          leftInvitations: accountTable.leftInvitations,
+        });
       accountsAffected = updated.length;
+      // Use the post-update balance rather than a separate pre-read: a
+      // concurrent spend between the read and this update must not suppress
+      // the notification for a row that transitions from 0 to 1.
+      for (const row of updated) {
+        if (row.leftInvitations === 1) notifyAccountIds.push(row.id);
+      }
     }
+
+    const actorUsername =
+      options.actorId == null
+        ? null
+        : ((
+            await tx.query.accountTable.findFirst({
+              where: { id: options.actorId },
+              columns: { username: true },
+            })
+          )?.username ?? null);
+    const [distribution] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: options.source ?? "manual",
+        actorId: options.actorId ?? null,
+        actorUsername,
+        amount: accountsAffected,
+        accountsAffected,
+        eligibleAccountsCount: active.length,
+        topThirdCount,
+        cutoffDate,
+        periodEnd: now,
+        runKey: options.runKey ?? null,
+      })
+      .returning();
+    if (distribution == null) {
+      throw new Error("Failed to record the invitation distribution.");
+    }
+
+    for (const accountId of notifyAccountIds) {
+      await createInvitationGrantedNotification(
+        tx,
+        accountId,
+        distribution.id,
+        null,
+        1,
+      );
+    }
+
     await tx
       .insert(adminStateTable)
       .values({
@@ -226,11 +408,190 @@ export async function regenerateInvitations(
         target: adminStateTable.key,
         set: { value: now.toISOString(), updated: now },
       });
-    return { regenerated: now, accountsAffected, cutoffDate };
+    return {
+      regenerated: now,
+      accountsAffected,
+      cutoffDate,
+      periodEnd: now,
+      distribution,
+      skipped: false,
+      skipReason: null,
+    };
   };
   return isTransaction(db)
     ? await runDbWork(db)
     : await db.transaction(runDbWork);
+}
+
+export async function grantInvitations(
+  db: Database,
+  options: GrantInvitationsOptions,
+): Promise<GrantInvitationsResult | null> {
+  if (
+    !Number.isSafeInteger(options.amount) ||
+    options.amount < 1 ||
+    options.amount > MAX_INVITATION_GRANT
+  ) {
+    throw new RangeError("INVALID_AMOUNT");
+  }
+  const note = options.note?.trim() ?? "";
+  if (note.length > MAX_INVITATION_NOTE_LENGTH) {
+    throw new RangeError("INVALID_NOTE");
+  }
+
+  const runDbWork = async (
+    tx: Transaction,
+  ): Promise<GrantInvitationsResult | null> => {
+    const [target] = await tx
+      .select()
+      .from(accountTable)
+      .where(eq(accountTable.id, options.accountId))
+      .for("update");
+    if (target == null) return null;
+    const previousBalance = target.leftInvitations;
+    if (previousBalance + options.amount > MAX_INVITATION_BALANCE) {
+      throw new RangeError("INVITATION_BALANCE_OVERFLOW");
+    }
+
+    const [updated] = await tx
+      .update(accountTable)
+      .set({
+        leftInvitations: sql`${accountTable.leftInvitations} + ${options.amount}`,
+      })
+      .where(eq(accountTable.id, target.id))
+      .returning();
+    if (updated == null) {
+      throw new Error(`Failed to grant invitations to account ${target.id}.`);
+    }
+
+    const actor = await tx.query.accountTable.findFirst({
+      where: { id: options.actorId },
+      columns: { username: true },
+    });
+    const [distribution] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: "grant",
+        actorId: options.actorId,
+        actorUsername: actor?.username ?? null,
+        targetId: target.id,
+        targetUsername: target.username,
+        amount: options.amount,
+        accountsAffected: 1,
+        note: note === "" ? null : note,
+        ...(options.now == null ? {} : { created: options.now }),
+      })
+      .returning();
+    if (distribution == null) {
+      throw new Error("Failed to record the invitation grant.");
+    }
+
+    if (previousBalance === 0) {
+      const actorActor = await tx.query.actorTable.findFirst({
+        where: { accountId: options.actorId },
+        columns: { id: true },
+      });
+      await createInvitationGrantedNotification(
+        tx,
+        target.id,
+        distribution.id,
+        actorActor?.id ?? null,
+        options.amount,
+      );
+    }
+
+    return {
+      account: updated,
+      granted: options.amount,
+      previousBalance,
+      newBalance: updated.leftInvitations,
+      distribution,
+    };
+  };
+  return isTransaction(db)
+    ? await runDbWork(db)
+    : await db.transaction(runDbWork);
+}
+
+interface InvitationDistributionCursor {
+  created: string;
+  id: Uuid;
+}
+
+function encodeInvitationDistributionCursor(
+  cursor: InvitationDistributionCursor,
+): string {
+  return btoa(`${cursor.created}|${cursor.id}`);
+}
+
+function decodeInvitationDistributionCursor(
+  encoded: string,
+): InvitationDistributionCursor | null {
+  try {
+    const decoded = atob(encoded);
+    const separator = decoded.lastIndexOf("|");
+    if (separator < 0) return null;
+    const created = decoded.slice(0, separator);
+    const id = decoded.slice(separator + 1);
+    if (!validateUuid(id as Uuid)) return null;
+    if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{1,6}\+00$/.test(created)) {
+      return null;
+    }
+    return { created, id: id as Uuid };
+  } catch {
+    return null;
+  }
+}
+
+export async function getInvitationDistributions(
+  db: Database,
+  options: { first?: number; after?: string } = {},
+): Promise<InvitationDistributionPage> {
+  const first = Math.min(Math.max(options.first ?? 20, 1), 100);
+  const after =
+    options.after == null
+      ? null
+      : decodeInvitationDistributionCursor(options.after);
+  const createdRaw = sql<string>`to_char(${invitationDistributionTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`;
+  const rows = await db
+    .select({
+      distribution: invitationDistributionTable,
+      createdRaw,
+    })
+    .from(invitationDistributionTable)
+    .where(
+      after == null
+        ? undefined
+        : sql`
+          ${invitationDistributionTable.created} < ${after.created}::timestamptz
+          OR (
+            ${invitationDistributionTable.created} = ${after.created}::timestamptz
+            AND ${invitationDistributionTable.id} < ${after.id}
+          )
+        `,
+    )
+    .orderBy(
+      desc(invitationDistributionTable.created),
+      desc(invitationDistributionTable.id),
+    )
+    .limit(first + 1);
+  const hasNextPage = rows.length > first;
+  const page = rows.slice(0, first);
+  const edges = page.map((row) => ({
+    cursor: encodeInvitationDistributionCursor({
+      created: String(row.createdRaw),
+      id: row.distribution.id,
+    }),
+    distribution: row.distribution,
+  }));
+  return {
+    edges,
+    hasNextPage,
+    hasPreviousPage: after != null,
+    startCursor: edges[0]?.cursor ?? null,
+    endCursor: edges.at(-1)?.cursor ?? null,
+  };
 }
 
 function resolveOrphanMediaCutoff(options: OrphanMediaOptions): Date {

@@ -400,6 +400,45 @@ export async function createOrganizationConversionRequestNotification(
 }
 
 /**
+ * Creates the single notification for one account's share of a committed
+ * invitation distribution. A null actor means the distribution was automatic
+ * or a bulk regeneration, so the notification is system-authored and there is
+ * no push sender to name. The unique index on
+ * `(accountId, type, invitationDistributionId)` makes repeated calls for the
+ * same distribution harmless.
+ */
+export async function createInvitationGrantedNotification(
+  db: NotificationDatabase,
+  accountId: Uuid,
+  distributionId: Uuid,
+  actorId: Uuid | null,
+  amount: number,
+  created?: Date | null,
+): Promise<Notification | undefined> {
+  if (!Number.isSafeInteger(amount) || amount < 1) {
+    throw new RangeError("INVALID_AMOUNT");
+  }
+  const rows = await db
+    .insert(notificationTable)
+    .values({
+      id: generateUuidV7(),
+      accountId,
+      type: "invitation_granted",
+      actorIds: actorId == null ? [] : [actorId],
+      invitationDistributionId: distributionId,
+      invitationAmount: amount,
+      ...(created == null ? {} : { created }),
+    })
+    .onConflictDoNothing()
+    .returning();
+  const inserted = rows[0];
+  if (inserted != null && actorId != null) {
+    await sendInsertedNotificationPush(db, inserted, actorId);
+  }
+  return inserted;
+}
+
+/**
  * Creates a follow notification when a user follows another user.
  * @param db Database instance
  * @param followeeAccountId The ID of the user being followed

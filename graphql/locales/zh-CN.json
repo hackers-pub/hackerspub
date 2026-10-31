@@ -26,6 +26,7 @@
       "organization_invitation": "组织邀请",
       "organization_conversion_request": "组织转换请求",
       "article_translation_source_changed": "已翻译文章的原文变更",
+      "invitation_granted": "已发放邀请名额",
       "notification": "通知"
     },
     "moderationNotificationLabels": {
