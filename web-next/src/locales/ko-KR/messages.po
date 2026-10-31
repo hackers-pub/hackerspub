@@ -25,7 +25,7 @@ msgstr "{0, plural, other {디스크 객체 #개를 삭제하지 못했습니다
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:432
+#: src/routes/(root)/admin/invitations.tsx:459
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, other {대상 계정 #명}} 중, 지금 재발급하면 {1, plural, other {#명}}에게 초대장이 부여됩니다."
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {링크 #개의 점수를 다시 계산했습니다.} other {링크 #개의 점수를 다시 계산했습니다.}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:297
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, other {#개의 계정에 초대장을 재발급했습니다.}}"
 
@@ -507,6 +507,10 @@ msgstr "90일"
 #: src/routes/(root)/admin/moderation/[id].tsx:269
 msgid "A content (post) report."
 msgstr "콘텐츠 신고입니다."
+
+#: src/routes/(root)/admin/invitations.tsx:318
+msgid "A later run already advanced the cutoff, so this regeneration changed nothing."
+msgstr "이후 실행이 이미 기준 시각을 앞당겼기 때문에 이번 재발급은 아무것도 변경하지 않았습니다."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
@@ -1060,15 +1064,15 @@ msgstr "대체 텍스트 자동 입력"
 msgid "Automatic"
 msgstr "자동"
 
-#: src/routes/(root)/admin/invitations.tsx:383
+#: src/routes/(root)/admin/invitations.tsx:410
 msgid "Automatic distribution"
 msgstr "자동 배포"
 
-#: src/routes/(root)/admin/invitations.tsx:339
+#: src/routes/(root)/admin/invitations.tsx:366
 msgid "Automatic invitation distribution enabled."
 msgstr "자동 초대 배포가 활성화되었습니다."
 
-#: src/routes/(root)/admin/invitations.tsx:340
+#: src/routes/(root)/admin/invitations.tsx:367
 msgid "Automatic invitation distribution paused."
 msgstr "자동 초대 배포가 일시 중지되었습니다."
 
@@ -1082,7 +1086,7 @@ msgstr "자동 번역"
 msgid "Automatic translation from {0}"
 msgstr "{0}에서 자동 번역됨"
 
-#: src/routes/(root)/admin/invitations.tsx:395
+#: src/routes/(root)/admin/invitations.tsx:422
 msgid "Automatically distribute invitations"
 msgstr "초대 자동 배포"
 
@@ -1396,7 +1400,7 @@ msgstr "초대한 회원 접기"
 #~ msgid "Comments ({0})"
 #~ msgstr "댓글 ({0})"
 
-#: src/routes/(root)/admin/invitations.tsx:452
+#: src/routes/(root)/admin/invitations.tsx:479
 msgid "Committed automatic runs, manual regenerations, and direct grants."
 msgstr "자동 실행, 수동 재생성, 직접 지급된 내역입니다."
 
@@ -1634,7 +1638,7 @@ msgstr "자르기"
 msgid "Crop your new avatar"
 msgstr "새 프로필 사진 자르기"
 
-#: src/routes/(root)/admin/invitations.tsx:410
+#: src/routes/(root)/admin/invitations.tsx:437
 msgid "Current cutoff:"
 msgstr "현재 기준 시각:"
 
@@ -1646,7 +1650,7 @@ msgstr "현재 아이디"
 msgid "Cutoff"
 msgstr "기준 시각"
 
-#: src/routes/(root)/admin/invitations.tsx:425
+#: src/routes/(root)/admin/invitations.tsx:452
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "기준 시각:"
@@ -1851,7 +1855,7 @@ msgstr "이름"
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "이 게시글의 공동 저자로 기록된 멤버를 조직 옆에 표시합니다. 기본적으로 발행한 사람이 아니라 초고를 만든 사람이 공동 저자로 기록됩니다."
 
-#: src/routes/(root)/admin/invitations.tsx:450
+#: src/routes/(root)/admin/invitations.tsx:477
 msgid "Distribution history"
 msgstr "배포 기록"
 
@@ -2178,7 +2182,7 @@ msgstr "사용자를 차단하지 못했습니다"
 msgid "Failed to bookmark"
 msgstr "북마크 실패"
 
-#: src/routes/(root)/admin/invitations.tsx:355
+#: src/routes/(root)/admin/invitations.tsx:382
 msgid "Failed to change automatic distribution."
 msgstr "자동 배포 설정을 변경하지 못했습니다."
 
@@ -2322,7 +2326,7 @@ msgstr "공유를 더 불러오지 못했습니다. 다시 시도하려면 클�
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
-#: src/routes/(root)/admin/invitations.tsx:255
+#: src/routes/(root)/admin/invitations.tsx:273
 msgid "Failed to load more; click to retry"
 msgstr "더 불러오지 못했습니다. 클릭하여 다시 시도하세요"
 
@@ -2394,7 +2398,7 @@ msgstr "검토 내용을 기록하지 못했습니다."
 msgid "Failed to refresh from origin."
 msgstr "원본에서 새로 고침에 실패했습니다."
 
-#: src/routes/(root)/admin/invitations.tsx:323
+#: src/routes/(root)/admin/invitations.tsx:350
 msgid "Failed to regenerate invitations."
 msgstr "초대장을 재발급하지 못했습니다."
 
@@ -2706,6 +2710,10 @@ msgstr "지급"
 msgid "Grant invitations"
 msgstr "초대장 지급"
 
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Grant note"
+msgstr "지급 메모"
+
 #. placeholder {0}: result.granted!
 #. placeholder {1}: props.username
 #. placeholder {2}: result.newBalance
@@ -2717,7 +2725,7 @@ msgstr "@{1} 님에게 {0, plural, one {#개의 초대장} other {#개의 초대
 msgid "Granting…"
 msgstr "지급 중…"
 
-#: src/routes/(root)/admin/invitations.tsx:404
+#: src/routes/(root)/admin/invitations.tsx:431
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "마지막 재발급 시점 이후 가장 활발한 계정(콘텐츠 수 상위 3분의 1)에게 초대장 1장을 추가로 부여합니다."
 
@@ -2775,7 +2783,7 @@ msgstr "Hackers' Pub: 관리 · 계정"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: 관리 · 이의 제기"
 
-#: src/routes/(root)/admin/invitations.tsx:365
+#: src/routes/(root)/admin/invitations.tsx:392
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub: 관리 · 초대"
 
@@ -3049,7 +3057,7 @@ msgstr "초대 족보"
 
 #: src/components/AdminTabs.tsx:42
 #: src/routes/(root)/admin/invitations.tsx:192
-#: src/routes/(root)/admin/invitations.tsx:379
+#: src/routes/(root)/admin/invitations.tsx:406
 msgid "Invitations"
 msgstr "초대"
 
@@ -3271,7 +3279,7 @@ msgstr "LLM 매칭 괴리율"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
-#: src/routes/(root)/admin/invitations.tsx:259
+#: src/routes/(root)/admin/invitations.tsx:277
 msgid "Load more"
 msgstr "더 보기"
 
@@ -3433,7 +3441,7 @@ msgstr "뉴스를 더 불러오는 중…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
-#: src/routes/(root)/admin/invitations.tsx:258
+#: src/routes/(root)/admin/invitations.tsx:276
 msgid "Loading more…"
 msgstr "더 불러오는 중…"
 
@@ -3673,7 +3681,7 @@ msgstr "검토 필요"
 msgid "never"
 msgstr "없음"
 
-#: src/routes/(root)/admin/invitations.tsx:417
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Never"
 msgstr "없음"
 
@@ -3800,7 +3808,7 @@ msgstr "팔로잉하는 사용자가 없습니다"
 msgid "No interactions found"
 msgstr "상호작용이 없습니다"
 
-#: src/routes/(root)/admin/invitations.tsx:243
+#: src/routes/(root)/admin/invitations.tsx:261
 msgid "No invitation distributions recorded yet."
 msgstr "아직 기록된 초대 배포가 없습니다."
 
@@ -3920,7 +3928,7 @@ msgstr "이 기간에는 아직 집계된 조회가 없습니다."
 msgid "Normal"
 msgstr "보통"
 
-#: src/routes/(root)/admin/invitations.tsx:347
+#: src/routes/(root)/admin/invitations.tsx:374
 msgid "Not authorized to change automatic distribution."
 msgstr "자동 배포를 변경할 권한이 없습니다."
 
@@ -3951,7 +3959,7 @@ msgstr "릴레이를 관리할 권한이 없습니다."
 msgid "Not authorized to recompute news scores."
 msgstr "뉴스 점수를 다시 계산할 권한이 없습니다."
 
-#: src/routes/(root)/admin/invitations.tsx:314
+#: src/routes/(root)/admin/invitations.tsx:341
 msgid "Not authorized to regenerate invitations."
 msgstr "초대장을 재발급할 권한이 없습니다."
 
@@ -3977,8 +3985,8 @@ msgid "Not subscribed to any relays yet."
 msgstr "아직 구독한 릴레이가 없습니다."
 
 #: src/routes/(root)/admin/invitations.tsx:195
-msgid "Note"
-msgstr "단문"
+#~ msgid "Note"
+#~ msgstr "단문"
 
 #: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
@@ -4766,11 +4774,11 @@ msgstr "원본에서 새로 고쳤습니다."
 msgid "Refreshing…"
 msgstr "새로 고치는 중…"
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerate"
 msgstr "재발급"
 
-#: src/routes/(root)/admin/invitations.tsx:402
+#: src/routes/(root)/admin/invitations.tsx:429
 msgid "Regenerate invitations"
 msgstr "초대장 재발급"
 
@@ -4786,7 +4794,7 @@ msgstr "복구 코드 재발급"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "복구 코드를 재발급하면 이전 코드는 모두 무효화됩니다."
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerating…"
 msgstr "재발급 중…"
 
@@ -5097,7 +5105,7 @@ msgstr "역할"
 msgid "Role updated"
 msgstr "역할을 변경했습니다"
 
-#: src/routes/(root)/admin/invitations.tsx:385
+#: src/routes/(root)/admin/invitations.tsx:412
 msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
 msgstr "매주 월요일과 목요일 00:15 UTC에 실행되며, 지난 실행 이후 활동한 계정 중 상위 1/3에 초대장 1장을 지급합니다."
 
@@ -6182,6 +6190,10 @@ msgstr "원문 작성자의 승인을 기다리고 있습니다."
 #: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "{0}을(를) 뮤트하여 이 인용을 숨겼습니다."
+
+#: src/routes/(root)/admin/invitations.tsx:317
+msgid "This regeneration was already recorded; the balance did not change."
+msgstr "이미 기록된 재발급이라 잔액이 변경되지 않았습니다."
 
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24

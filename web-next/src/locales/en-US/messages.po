@@ -25,7 +25,7 @@ msgstr "{0, plural, one {# disk object could not be deleted.} other {# disk obje
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:432
+#: src/routes/(root)/admin/invitations.tsx:459
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:297
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 
@@ -507,6 +507,10 @@ msgstr "90 days"
 #: src/routes/(root)/admin/moderation/[id].tsx:269
 msgid "A content (post) report."
 msgstr "A content (post) report."
+
+#: src/routes/(root)/admin/invitations.tsx:318
+msgid "A later run already advanced the cutoff, so this regeneration changed nothing."
+msgstr "A later run already advanced the cutoff, so this regeneration changed nothing."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
@@ -1060,15 +1064,15 @@ msgstr "Auto-fill alt text"
 msgid "Automatic"
 msgstr "Automatic"
 
-#: src/routes/(root)/admin/invitations.tsx:383
+#: src/routes/(root)/admin/invitations.tsx:410
 msgid "Automatic distribution"
 msgstr "Automatic distribution"
 
-#: src/routes/(root)/admin/invitations.tsx:339
+#: src/routes/(root)/admin/invitations.tsx:366
 msgid "Automatic invitation distribution enabled."
 msgstr "Automatic invitation distribution enabled."
 
-#: src/routes/(root)/admin/invitations.tsx:340
+#: src/routes/(root)/admin/invitations.tsx:367
 msgid "Automatic invitation distribution paused."
 msgstr "Automatic invitation distribution paused."
 
@@ -1082,7 +1086,7 @@ msgstr "Automatic translation"
 msgid "Automatic translation from {0}"
 msgstr "Automatic translation from {0}"
 
-#: src/routes/(root)/admin/invitations.tsx:395
+#: src/routes/(root)/admin/invitations.tsx:422
 msgid "Automatically distribute invitations"
 msgstr "Automatically distribute invitations"
 
@@ -1396,7 +1400,7 @@ msgstr "Collapse invited members"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/routes/(root)/admin/invitations.tsx:452
+#: src/routes/(root)/admin/invitations.tsx:479
 msgid "Committed automatic runs, manual regenerations, and direct grants."
 msgstr "Committed automatic runs, manual regenerations, and direct grants."
 
@@ -1634,7 +1638,7 @@ msgstr "Crop"
 msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
-#: src/routes/(root)/admin/invitations.tsx:410
+#: src/routes/(root)/admin/invitations.tsx:437
 msgid "Current cutoff:"
 msgstr "Current cutoff:"
 
@@ -1646,7 +1650,7 @@ msgstr "Current username"
 msgid "Cutoff"
 msgstr "Cutoff"
 
-#: src/routes/(root)/admin/invitations.tsx:425
+#: src/routes/(root)/admin/invitations.tsx:452
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "Cutoff:"
@@ -1851,7 +1855,7 @@ msgstr "Display name"
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 
-#: src/routes/(root)/admin/invitations.tsx:450
+#: src/routes/(root)/admin/invitations.tsx:477
 msgid "Distribution history"
 msgstr "Distribution history"
 
@@ -2182,7 +2186,7 @@ msgstr "Failed to block this user"
 msgid "Failed to bookmark"
 msgstr "Failed to bookmark"
 
-#: src/routes/(root)/admin/invitations.tsx:355
+#: src/routes/(root)/admin/invitations.tsx:382
 msgid "Failed to change automatic distribution."
 msgstr "Failed to change automatic distribution."
 
@@ -2326,7 +2330,7 @@ msgstr "Failed to load more shares; click to retry"
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
-#: src/routes/(root)/admin/invitations.tsx:255
+#: src/routes/(root)/admin/invitations.tsx:273
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
@@ -2398,7 +2402,7 @@ msgstr "Failed to record the review."
 msgid "Failed to refresh from origin."
 msgstr "Failed to refresh from origin."
 
-#: src/routes/(root)/admin/invitations.tsx:323
+#: src/routes/(root)/admin/invitations.tsx:350
 msgid "Failed to regenerate invitations."
 msgstr "Failed to regenerate invitations."
 
@@ -2710,6 +2714,10 @@ msgstr "Grant"
 msgid "Grant invitations"
 msgstr "Grant invitations"
 
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Grant note"
+msgstr "Grant note"
+
 #. placeholder {0}: result.granted!
 #. placeholder {1}: props.username
 #. placeholder {2}: result.newBalance
@@ -2721,7 +2729,7 @@ msgstr "Granted {0, plural, one {# invitation} other {# invitations}} to @{1}. N
 msgid "Granting…"
 msgstr "Granting…"
 
-#: src/routes/(root)/admin/invitations.tsx:404
+#: src/routes/(root)/admin/invitations.tsx:431
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
@@ -2779,7 +2787,7 @@ msgstr "Hackers' Pub: Admin · Accounts"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: Admin · Appeals"
 
-#: src/routes/(root)/admin/invitations.tsx:365
+#: src/routes/(root)/admin/invitations.tsx:392
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub: Admin · Invitations"
 
@@ -3053,7 +3061,7 @@ msgstr "Invitation tree"
 
 #: src/components/AdminTabs.tsx:42
 #: src/routes/(root)/admin/invitations.tsx:192
-#: src/routes/(root)/admin/invitations.tsx:379
+#: src/routes/(root)/admin/invitations.tsx:406
 msgid "Invitations"
 msgstr "Invitations"
 
@@ -3275,7 +3283,7 @@ msgstr "LLM matching divergence"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
-#: src/routes/(root)/admin/invitations.tsx:259
+#: src/routes/(root)/admin/invitations.tsx:277
 msgid "Load more"
 msgstr "Load more"
 
@@ -3437,7 +3445,7 @@ msgstr "Loading more stories…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
-#: src/routes/(root)/admin/invitations.tsx:258
+#: src/routes/(root)/admin/invitations.tsx:276
 msgid "Loading more…"
 msgstr "Loading more…"
 
@@ -3677,7 +3685,7 @@ msgstr "Needs review"
 msgid "never"
 msgstr "never"
 
-#: src/routes/(root)/admin/invitations.tsx:417
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Never"
 msgstr "Never"
 
@@ -3804,7 +3812,7 @@ msgstr "No following found"
 msgid "No interactions found"
 msgstr "No interactions found"
 
-#: src/routes/(root)/admin/invitations.tsx:243
+#: src/routes/(root)/admin/invitations.tsx:261
 msgid "No invitation distributions recorded yet."
 msgstr "No invitation distributions recorded yet."
 
@@ -3924,7 +3932,7 @@ msgstr "No views have been counted for this range yet."
 msgid "Normal"
 msgstr "Normal"
 
-#: src/routes/(root)/admin/invitations.tsx:347
+#: src/routes/(root)/admin/invitations.tsx:374
 msgid "Not authorized to change automatic distribution."
 msgstr "Not authorized to change automatic distribution."
 
@@ -3955,7 +3963,7 @@ msgstr "Not authorized to manage relays."
 msgid "Not authorized to recompute news scores."
 msgstr "Not authorized to recompute news scores."
 
-#: src/routes/(root)/admin/invitations.tsx:314
+#: src/routes/(root)/admin/invitations.tsx:341
 msgid "Not authorized to regenerate invitations."
 msgstr "Not authorized to regenerate invitations."
 
@@ -3981,8 +3989,8 @@ msgid "Not subscribed to any relays yet."
 msgstr "Not subscribed to any relays yet."
 
 #: src/routes/(root)/admin/invitations.tsx:195
-msgid "Note"
-msgstr "Note"
+#~ msgid "Note"
+#~ msgstr "Note"
 
 #: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
@@ -4770,11 +4778,11 @@ msgstr "Refreshed from origin."
 msgid "Refreshing…"
 msgstr "Refreshing…"
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerate"
 msgstr "Regenerate"
 
-#: src/routes/(root)/admin/invitations.tsx:402
+#: src/routes/(root)/admin/invitations.tsx:429
 msgid "Regenerate invitations"
 msgstr "Regenerate invitations"
 
@@ -4790,7 +4798,7 @@ msgstr "Regenerate recovery codes"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "Regenerating recovery codes invalidates every previous code."
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerating…"
 msgstr "Regenerating…"
 
@@ -5101,7 +5109,7 @@ msgstr "Role"
 msgid "Role updated"
 msgstr "Role updated"
 
-#: src/routes/(root)/admin/invitations.tsx:385
+#: src/routes/(root)/admin/invitations.tsx:412
 msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
 msgstr "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
 
@@ -6186,6 +6194,10 @@ msgstr "This quote is waiting for approval from the original author."
 #: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
+
+#: src/routes/(root)/admin/invitations.tsx:317
+msgid "This regeneration was already recorded; the balance did not change."
+msgstr "This regeneration was already recorded; the balance did not change."
 
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24

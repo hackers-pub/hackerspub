@@ -192,7 +192,7 @@ function InvitationDistributionHistory(props: {
                   <TableHead class="text-right">{t`Invitations`}</TableHead>
                   <TableHead>{t`Cutoff`}</TableHead>
                   <TableHead>{t`Actor / target`}</TableHead>
-                  <TableHead>{t`Note`}</TableHead>
+                  <TableHead>{t`Grant note`}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -235,7 +235,14 @@ function InvitationDistributionHistory(props: {
                             <span class="text-muted-foreground">System</span>
                           }
                         >
-                          {(username) => <span>@{username}</span>}
+                          {(username) => (
+                            <span>
+                              {edge.node.kind === "GRANT" &&
+                              edge.node.actorUsername != null
+                                ? `@${edge.node.actorUsername} → @${username}`
+                                : `@${username}`}
+                            </span>
+                          )}
                         </Show>
                       </TableCell>
                       <TableCell
@@ -303,14 +310,23 @@ export default function AdminInvitationsPage() {
         setSubmitting(false);
         const result = response.regenerateInvitations;
         if (result.__typename === "RegenerateInvitationsPayload") {
-          showToast({
-            title: i18n._(
-              msg`${plural(result.accountsAffected!, {
-                one: "Regenerated invitations for # account.",
-                other: "Regenerated invitations for # accounts.",
-              })}`,
-            ),
-          });
+          if (result.skipped) {
+            showToast({
+              title:
+                result.skipReason === "duplicate"
+                  ? t`This regeneration was already recorded; the balance did not change.`
+                  : t`A later run already advanced the cutoff, so this regeneration changed nothing.`,
+            });
+          } else {
+            showToast({
+              title: i18n._(
+                msg`${plural(result.accountsAffected!, {
+                  one: "Regenerated invitations for # account.",
+                  other: "Regenerated invitations for # accounts.",
+                })}`,
+              ),
+            });
+          }
           // Relay does not normalise the mutation's nested `status`
           // back into the root `Query.invitationRegenerationStatus`
           // field, so refetch the page query to pick up the new

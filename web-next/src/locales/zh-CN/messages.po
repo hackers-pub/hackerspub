@@ -25,7 +25,7 @@ msgstr "{0, plural, other {# 个磁盘对象无法删除。}}"
 
 #. placeholder {0}: status()?.eligibleAccountsCount ?? 0
 #. placeholder {1}: status()?.topThirdCount ?? 0
-#: src/routes/(root)/admin/invitations.tsx:432
+#: src/routes/(root)/admin/invitations.tsx:459
 msgid "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, plural, one {# would receive an invitation} other {# would receive invitations}} if regenerated now."
 msgstr "{0, plural, other {符合条件的账号 # 个}}；若现在重新发放，将向其中 {1, plural, other {# 个账号}}发放邀请。"
 
@@ -123,7 +123,7 @@ msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {已重新计算 # 个链接的评分。} other {已重新计算 # 个链接的评分。}}"
 
 #. placeholder {0}: result.accountsAffected!
-#: src/routes/(root)/admin/invitations.tsx:297
+#: src/routes/(root)/admin/invitations.tsx:323
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, other {已为 # 个账号重新发放邀请。}}"
 
@@ -507,6 +507,10 @@ msgstr "90 天"
 #: src/routes/(root)/admin/moderation/[id].tsx:269
 msgid "A content (post) report."
 msgstr "内容举报。"
+
+#: src/routes/(root)/admin/invitations.tsx:318
+msgid "A later run already advanced the cutoff, so this regeneration changed nothing."
+msgstr "后续运行已经推进了截止时间，因此本次重新生成没有更改任何内容。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
@@ -1060,15 +1064,15 @@ msgstr "自动填写替代文字"
 msgid "Automatic"
 msgstr "自动"
 
-#: src/routes/(root)/admin/invitations.tsx:383
+#: src/routes/(root)/admin/invitations.tsx:410
 msgid "Automatic distribution"
 msgstr "自动分发"
 
-#: src/routes/(root)/admin/invitations.tsx:339
+#: src/routes/(root)/admin/invitations.tsx:366
 msgid "Automatic invitation distribution enabled."
 msgstr "已启用自动邀请分发。"
 
-#: src/routes/(root)/admin/invitations.tsx:340
+#: src/routes/(root)/admin/invitations.tsx:367
 msgid "Automatic invitation distribution paused."
 msgstr "已暂停自动邀请分发。"
 
@@ -1082,7 +1086,7 @@ msgstr "自动翻译"
 msgid "Automatic translation from {0}"
 msgstr "自动翻译自{0}"
 
-#: src/routes/(root)/admin/invitations.tsx:395
+#: src/routes/(root)/admin/invitations.tsx:422
 msgid "Automatically distribute invitations"
 msgstr "自动分发邀请"
 
@@ -1396,7 +1400,7 @@ msgstr "收起受邀成员"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/routes/(root)/admin/invitations.tsx:452
+#: src/routes/(root)/admin/invitations.tsx:479
 msgid "Committed automatic runs, manual regenerations, and direct grants."
 msgstr "已提交的自动运行、手动重新生成和直接发放记录。"
 
@@ -1634,7 +1638,7 @@ msgstr "裁剪"
 msgid "Crop your new avatar"
 msgstr "裁剪你的新头像"
 
-#: src/routes/(root)/admin/invitations.tsx:410
+#: src/routes/(root)/admin/invitations.tsx:437
 msgid "Current cutoff:"
 msgstr "当前截止时间："
 
@@ -1646,7 +1650,7 @@ msgstr "当前用户名"
 msgid "Cutoff"
 msgstr "截止时间"
 
-#: src/routes/(root)/admin/invitations.tsx:425
+#: src/routes/(root)/admin/invitations.tsx:452
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
 msgstr "截止时间："
@@ -1851,7 +1855,7 @@ msgstr "昵称"
 msgid "Display the member credited with this article next to the organization. The draft's creator is credited by default, not whoever publishes it."
 msgstr "将此文章的共同作者显示在组织旁边。默认情况下，记录的是草稿的创建者，而不是发布者。"
 
-#: src/routes/(root)/admin/invitations.tsx:450
+#: src/routes/(root)/admin/invitations.tsx:477
 msgid "Distribution history"
 msgstr "分发历史"
 
@@ -2178,7 +2182,7 @@ msgstr "未能屏蔽此用户"
 msgid "Failed to bookmark"
 msgstr "收藏失败"
 
-#: src/routes/(root)/admin/invitations.tsx:355
+#: src/routes/(root)/admin/invitations.tsx:382
 msgid "Failed to change automatic distribution."
 msgstr "无法更改自动分发设置。"
 
@@ -2322,7 +2326,7 @@ msgstr "加载更多转帖失败，点击重试"
 #: src/components/AccountListBase.tsx:113
 #: src/components/admin/ModerationCaseList.tsx:234
 #: src/components/ReportHistoryList.tsx:202
-#: src/routes/(root)/admin/invitations.tsx:255
+#: src/routes/(root)/admin/invitations.tsx:273
 msgid "Failed to load more; click to retry"
 msgstr "加载更多失败；点击重试"
 
@@ -2394,7 +2398,7 @@ msgstr "未能记录审核结果。"
 msgid "Failed to refresh from origin."
 msgstr "从来源刷新失败。"
 
-#: src/routes/(root)/admin/invitations.tsx:323
+#: src/routes/(root)/admin/invitations.tsx:350
 msgid "Failed to regenerate invitations."
 msgstr "重新发放邀请失败。"
 
@@ -2706,6 +2710,10 @@ msgstr "发放"
 msgid "Grant invitations"
 msgstr "发放邀请"
 
+#: src/routes/(root)/admin/invitations.tsx:195
+msgid "Grant note"
+msgstr "发放备注"
+
 #. placeholder {0}: result.granted!
 #. placeholder {1}: props.username
 #. placeholder {2}: result.newBalance
@@ -2717,7 +2725,7 @@ msgstr "已向 @{1} 发放 {0, plural, one {#个邀请名额} other {#个邀请�
 msgid "Granting…"
 msgstr "正在发放…"
 
-#: src/routes/(root)/admin/invitations.tsx:404
+#: src/routes/(root)/admin/invitations.tsx:431
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新发放截止时间以来最活跃的账号（按内容数排名前三分之一）额外发放一份邀请。"
 
@@ -2775,7 +2783,7 @@ msgstr "Hackers' Pub：管理 · 账号"
 msgid "Hackers' Pub: Admin · Appeals"
 msgstr "Hackers' Pub: 管理 · 申诉"
 
-#: src/routes/(root)/admin/invitations.tsx:365
+#: src/routes/(root)/admin/invitations.tsx:392
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 邀请"
 
@@ -3049,7 +3057,7 @@ msgstr "邀请树"
 
 #: src/components/AdminTabs.tsx:42
 #: src/routes/(root)/admin/invitations.tsx:192
-#: src/routes/(root)/admin/invitations.tsx:379
+#: src/routes/(root)/admin/invitations.tsx:406
 msgid "Invitations"
 msgstr "邀请"
 
@@ -3271,7 +3279,7 @@ msgstr "LLM 匹配乖离"
 #: src/components/ModerationNotificationList.tsx:206
 #: src/components/ReportHistoryList.tsx:204
 #: src/routes/(root)/[handle]/drafts/index.tsx:464
-#: src/routes/(root)/admin/invitations.tsx:259
+#: src/routes/(root)/admin/invitations.tsx:277
 msgid "Load more"
 msgstr "加载更多"
 
@@ -3433,7 +3441,7 @@ msgstr "正在加载更多新闻…"
 #: src/components/AccountListBase.tsx:110
 #: src/components/admin/ModerationCaseList.tsx:231
 #: src/components/ReportHistoryList.tsx:199
-#: src/routes/(root)/admin/invitations.tsx:258
+#: src/routes/(root)/admin/invitations.tsx:276
 msgid "Loading more…"
 msgstr "正在加载更多…"
 
@@ -3673,7 +3681,7 @@ msgstr "需要审核"
 msgid "never"
 msgstr "从未"
 
-#: src/routes/(root)/admin/invitations.tsx:417
+#: src/routes/(root)/admin/invitations.tsx:444
 msgid "Never"
 msgstr "从未"
 
@@ -3800,7 +3808,7 @@ msgstr "没有找到关注的用户"
 msgid "No interactions found"
 msgstr "没有找到互动"
 
-#: src/routes/(root)/admin/invitations.tsx:243
+#: src/routes/(root)/admin/invitations.tsx:261
 msgid "No invitation distributions recorded yet."
 msgstr "尚未记录任何邀请分发。"
 
@@ -3920,7 +3928,7 @@ msgstr "此时间范围内尚未统计到查看次数。"
 msgid "Normal"
 msgstr "普通"
 
-#: src/routes/(root)/admin/invitations.tsx:347
+#: src/routes/(root)/admin/invitations.tsx:374
 msgid "Not authorized to change automatic distribution."
 msgstr "无权更改自动分发。"
 
@@ -3951,7 +3959,7 @@ msgstr "无权管理中继。"
 msgid "Not authorized to recompute news scores."
 msgstr "无权重新计算新闻评分。"
 
-#: src/routes/(root)/admin/invitations.tsx:314
+#: src/routes/(root)/admin/invitations.tsx:341
 msgid "Not authorized to regenerate invitations."
 msgstr "无权重新发放邀请。"
 
@@ -3977,8 +3985,8 @@ msgid "Not subscribed to any relays yet."
 msgstr "尚未订阅任何中继。"
 
 #: src/routes/(root)/admin/invitations.tsx:195
-msgid "Note"
-msgstr "帖子"
+#~ msgid "Note"
+#~ msgstr "帖子"
 
 #: src/components/admin/GrantInvitationsDialog.tsx:169
 #: src/routes/(root)/admin/news.tsx:627
@@ -4766,11 +4774,11 @@ msgstr "已从来源刷新。"
 msgid "Refreshing…"
 msgstr "正在刷新…"
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerate"
 msgstr "重新发放"
 
-#: src/routes/(root)/admin/invitations.tsx:402
+#: src/routes/(root)/admin/invitations.tsx:429
 msgid "Regenerate invitations"
 msgstr "重新发放邀请"
 
@@ -4786,7 +4794,7 @@ msgstr "重新生成恢复代码"
 msgid "Regenerating recovery codes invalidates every previous code."
 msgstr "重新生成恢复代码会使所有旧代码失效。"
 
-#: src/routes/(root)/admin/invitations.tsx:444
+#: src/routes/(root)/admin/invitations.tsx:471
 msgid "Regenerating…"
 msgstr "正在重新发放…"
 
@@ -5097,7 +5105,7 @@ msgstr "角色"
 msgid "Role updated"
 msgstr "角色已更新"
 
-#: src/routes/(root)/admin/invitations.tsx:385
+#: src/routes/(root)/admin/invitations.tsx:412
 msgid "Runs every Monday and Thursday at 00:15 UTC. It grants one invitation to the top third of accounts active since the last run."
 msgstr "每周一和周四 00:15 UTC 运行，向自上次运行以来活跃的账户中排名前三分之一的账户发放一个邀请名额。"
 
@@ -6182,6 +6190,10 @@ msgstr "此引用正在等待原作者批准。"
 #: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "因为你隐藏了 {0}，此引用已被隐藏。"
+
+#: src/routes/(root)/admin/invitations.tsx:317
+msgid "This regeneration was already recorded; the balance did not change."
+msgstr "本次重新生成已经记录，余额未更改。"
 
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24
