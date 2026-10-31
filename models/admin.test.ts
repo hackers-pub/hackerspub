@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { eq, inArray, sql } from "drizzle-orm";
-import { db } from "../test/database.ts";
+import { db, postgres } from "../test/database.ts";
 import {
   createTestDisk,
   createTestKv,
@@ -826,6 +826,12 @@ test("grantInvitations updates the balance, records the grant, and notifies only
       where: { id: target.account.id },
     });
     assert.equal(afterOverflow?.leftInvitations, MAX_INVITATION_BALANCE - 1);
+    const atCeiling = await grantInvitations(tx, {
+      accountId: target.account.id,
+      actorId: actor.account.id,
+      amount: 1,
+    });
+    assert.equal(atCeiling?.newBalance, MAX_INVITATION_BALANCE);
   });
 });
 
@@ -988,12 +994,20 @@ test("regenerateInvitations notifies accounts that crossed from zero to one", as
 
 test("grantInvitations sends the invitation push after commit", async () => {
   const sent: Array<{ endpoint: string; payload: string }> = [];
+  let targetAccountId: Uuid | null = null;
+  let observedBalance: number | null = null;
   setWebPushConfigForTesting({
     publicKey: "test-public-key",
     privateKey: "test-private-key",
     subject: "mailto:test@example.com",
   });
   setWebPushSenderForTesting(async (subscription, payload) => {
+    if (targetAccountId != null) {
+      const rows = await postgres`
+        select left_invitations from account where id = ${targetAccountId}
+      `;
+      observedBalance = Number(rows[0]?.left_invitations);
+    }
     sent.push({ endpoint: subscription.endpoint, payload });
   });
   try {
@@ -1012,6 +1026,7 @@ test("grantInvitations sends the invitation push after commit", async () => {
         });
         return { actor, target };
       });
+      targetAccountId = fixtures.target.account.id;
       try {
         await registerPushNotificationTarget(db, fixtures.target.account.id, {
           service: "web_push",
@@ -1043,6 +1058,7 @@ test("grantInvitations sends the invitation push after commit", async () => {
           JSON.parse(sent[0].payload).data.type,
           "invitation_granted",
         );
+        assert.equal(observedBalance, 1);
         await db
           .delete(invitationDistributionTable)
           .where(eq(invitationDistributionTable.id, result.distribution.id));
@@ -1080,6 +1096,14 @@ test("getInvitationDistributions ignores cursors with invalid calendar fields", 
     const page = await getInvitationDistributions(tx, { first: 1, after });
     assert.equal(page.edges.length, 1);
     assert.equal(page.edges[0]?.distribution.id, id);
+
+    const impossibleDay = btoa(`2026-02-30 00:00:00.000000+00|${id}`);
+    const dayPage = await getInvitationDistributions(tx, {
+      first: 1,
+      after: impossibleDay,
+    });
+    assert.equal(dayPage.edges.length, 1);
+    assert.equal(dayPage.edges[0]?.distribution.id, id);
   });
 });
 
