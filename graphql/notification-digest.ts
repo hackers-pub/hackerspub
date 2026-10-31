@@ -19,6 +19,7 @@ import {
   organizationNotificationReadTable,
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
+import { EmailBudgetExhaustedError } from "@hackerspub/runtime/email";
 
 const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
@@ -60,7 +61,16 @@ interface SendNotificationDigestsOptions {
   origin: string | URL;
   frequency: NotificationDigestFrequency;
   now?: Date;
+  /** Logical content cutoff, distinct from the execution time. */
+  until?: Date;
+  /** Maximum accounts examined in this run. */
   limit?: number;
+  /** Maximum recipient submissions in this run. */
+  sendLimit?: number;
+  retryMinutes?: number;
+  maxAttempts?: number;
+  /** Stop starting new submissions after this instant. */
+  deadline?: Date;
   signal?: AbortSignal;
 }
 
@@ -229,33 +239,60 @@ async function sendGuardedNotificationDigests(
   verifyGuard: () => Promise<void>,
 ): Promise<SendNotificationDigestsResult> {
   const now = options.now;
+  const until = options.until ?? now;
   const periodStart = getNotificationDigestPeriodStart(options.frequency, now);
   const origin = new URL(options.origin);
-  const accounts = (await options.db.query.accountTable.findMany({
-    where: {
-      kind: "personal",
-      ...(options.frequency === "daily"
-        ? { notificationEmailDigestDaily: true }
-        : { notificationEmailDigestWeekly: true }),
-    },
-    with: {
-      emails: true,
-    },
-    ...(options.limit == null ? {} : { limit: options.limit }),
-  })) as DigestAccount[];
+  const scanLimit = options.limit ?? 60;
+  const sendLimit = options.sendLimit ?? 25;
+  const retryMinutes = options.retryMinutes ?? 15;
+  const maxAttempts = options.maxAttempts ?? 3;
+  const deadline = options.deadline;
 
+  const ids = await loadDigestCandidates(
+    options.db,
+    options.frequency,
+    periodStart,
+    scanLimit,
+    maxAttempts,
+  );
+  const accounts =
+    ids.length < 1
+      ? []
+      : ((await options.db.query.accountTable.findMany({
+          where: { id: { in: ids } },
+          with: { emails: true },
+        })) as DigestAccount[]);
+  const accountsById = new Map(
+    accounts.map((account) => [account.id, account]),
+  );
+
+  let accountsChecked = 0;
   let accountsClaimed = 0;
   let emailsSent = 0;
   let accountsFailed = 0;
-  for (const account of accounts) {
+  let attempted = 0;
+  outer: for (const id of ids) {
+    if (deadline != null && new Date() >= deadline) break;
+    const account = accountsById.get(id);
+    if (account == null) continue;
+    accountsChecked++;
     await verifyGuard();
+
     if (
       options.frequency === "daily" &&
       account.notificationEmailDigestWeekly &&
       isWeeklyDigestDay(now)
     ) {
+      await markDigestDeliverySkipped(
+        options.db,
+        account.id,
+        options.frequency,
+        periodStart,
+        "weekly-preference",
+      );
       continue;
     }
+
     const verifiedEmails = account.emails.filter(
       (email) => email.verified != null,
     );
@@ -263,10 +300,32 @@ async function sendGuardedNotificationDigests(
     const recipients = (
       primaryEmail == null ? verifiedEmails : [primaryEmail]
     ).map((email) => email.email);
-    if (recipients.length < 1) continue;
+    if (recipients.length < 1) {
+      await markDigestDeliverySkipped(
+        options.db,
+        account.id,
+        options.frequency,
+        periodStart,
+        "no-recipient",
+      );
+      continue;
+    }
 
-    const snapshot = await getUnreadDigestSnapshot(options.db, account.id, now);
-    if (snapshot.totalCount < 1) continue;
+    const snapshot = await getUnreadDigestSnapshot(
+      options.db,
+      account.id,
+      until,
+    );
+    if (snapshot.totalCount < 1) {
+      await markDigestDeliverySkipped(
+        options.db,
+        account.id,
+        options.frequency,
+        periodStart,
+        "no-unread",
+      );
+      continue;
+    }
 
     await verifyGuard();
     const claim = await claimDigestDelivery(
@@ -275,6 +334,7 @@ async function sendGuardedNotificationDigests(
       options.frequency,
       periodStart,
       snapshot.totalCount,
+      maxAttempts,
     );
     if (claim == null) continue;
     accountsClaimed++;
@@ -289,57 +349,137 @@ async function sendGuardedNotificationDigests(
         options.frequency,
         periodStart,
         [...sentRecipients],
+        claim.attemptToken,
       );
       continue;
     }
 
-    try {
-      const errors: string[] = [];
-      const newlySentRecipients: string[] = [];
-      for (const to of pendingRecipients) {
+    const errors: string[] = [];
+    let newlySentRecipients = 0;
+    let deferred = false;
+    for (const to of pendingRecipients) {
+      if (deadline != null && new Date() >= deadline) {
+        deferred = true;
+        break;
+      }
+      if (attempted >= sendLimit) {
+        deferred = true;
+        break;
+      }
+      attempted++;
+      try {
         options.signal?.throwIfAborted();
-        const message = await getDigestMessage({
-          account,
-          frequency: options.frequency,
-          from: options.from,
-          origin,
-          snapshot,
-          to,
-        });
-        await verifyGuard();
+      } catch (error) {
+        await releaseDigestAttempt(
+          options.db,
+          account.id,
+          options.frequency,
+          periodStart,
+          claim.attemptToken,
+        );
+        throw error;
+      }
+      const message = await getDigestMessage({
+        account,
+        frequency: options.frequency,
+        from: options.from,
+        origin,
+        snapshot,
+        to,
+      });
+      await verifyGuard();
+      try {
         // Do not cancel an in-flight send: await its receipt and save progress
         // before observing cancellation. Mid-send abort makes delivery unclear.
         const receipt = await options.email.send(message);
         if (receipt.successful) {
           emailsSent++;
+          newlySentRecipients++;
           sentRecipients.add(to);
-          newlySentRecipients.push(to);
           await saveDigestSentRecipients(
             options.db,
             account.id,
             options.frequency,
             periodStart,
             [...sentRecipients],
+            claim.attemptToken,
           );
         } else {
           errors.push(...receipt.errorMessages);
         }
+      } catch (error) {
+        if (error instanceof EmailBudgetExhaustedError) {
+          deferred = true;
+          break;
+        }
+        if (options.signal?.aborted) throw error;
+        errors.push(getErrorMessage(error));
+        break;
       }
+    }
 
-      if (
-        errors.length < 1 &&
-        newlySentRecipients.length === pendingRecipients.length
-      ) {
+    if (deferred && errors.length < 1) {
+      if (newlySentRecipients > 0) {
+        await deferDigestAttempt(
+          options.db,
+          account.id,
+          options.frequency,
+          periodStart,
+          claim.attemptToken,
+          retryMinutes,
+        );
+      } else {
+        await releaseDigestAttempt(
+          options.db,
+          account.id,
+          options.frequency,
+          periodStart,
+          claim.attemptToken,
+        );
+      }
+      break outer;
+    }
+
+    if (errors.length < 1 && newlySentRecipients === pendingRecipients.length) {
+      try {
         await markDigestDeliverySent(
           options.db,
           account.id,
           options.frequency,
           periodStart,
           [...sentRecipients],
+          claim.attemptToken,
         );
-      } else {
-        const error = errors.join("; ") || "Unknown delivery failure.";
-        logDigestDeliveryFailure(account.id, error);
+      } catch (error) {
+        if (options.signal?.aborted) throw error;
+        accountsFailed++;
+        const message = getErrorMessage(error);
+        logDigestDeliveryFailure(account.id, message);
+        try {
+          await markDigestDeliveryFailed(
+            options.db,
+            account.id,
+            options.frequency,
+            periodStart,
+            message,
+            [...sentRecipients],
+            claim.attemptToken,
+            claim.attempts,
+            maxAttempts,
+            retryMinutes,
+          );
+        } catch (failureWriteError) {
+          logDigestDeliveryFailure(
+            account.id,
+            getErrorMessage(failureWriteError),
+          );
+        }
+      }
+    } else {
+      const error = errors.join("; ") || "Unknown delivery failure.";
+      logDigestDeliveryFailure(account.id, error);
+      accountsFailed++;
+      try {
         await markDigestDeliveryFailed(
           options.db,
           account.id,
@@ -347,22 +487,10 @@ async function sendGuardedNotificationDigests(
           periodStart,
           error,
           [...sentRecipients],
-        );
-        accountsFailed++;
-      }
-    } catch (error) {
-      if (options.signal?.aborted) throw error;
-      accountsFailed++;
-      const message = getErrorMessage(error);
-      logDigestDeliveryFailure(account.id, message);
-      try {
-        await markDigestDeliveryFailed(
-          options.db,
-          account.id,
-          options.frequency,
-          periodStart,
-          message,
-          [...sentRecipients],
+          claim.attemptToken,
+          claim.attempts,
+          maxAttempts,
+          retryMinutes,
         );
       } catch (failureWriteError) {
         logDigestDeliveryFailure(
@@ -371,15 +499,66 @@ async function sendGuardedNotificationDigests(
         );
       }
     }
+    if (deferred) break outer;
     options.signal?.throwIfAborted();
   }
 
   return {
-    accountsChecked: accounts.length,
+    accountsChecked,
     accountsClaimed,
     emailsSent,
     accountsFailed,
   };
+}
+
+async function loadDigestCandidates(
+  db: Database | Transaction,
+  frequency: NotificationDigestFrequency,
+  periodStart: Date,
+  limit: number,
+  maxAttempts: number,
+): Promise<Uuid[]> {
+  const rows = (await db.execute<{ id: Uuid }>(sql`
+    select a.id
+    from account a
+    where a.kind = 'personal'
+      and ${
+        frequency === "daily"
+          ? sql`a.notification_email_digest_daily`
+          : sql`a.notification_email_digest_weekly`
+      }
+      and not (
+        ${frequency === "daily" ? sql`true` : sql`false`}
+        and extract(isodow from ${periodStart.toISOString()}::timestamptz) = 1
+        and a.notification_email_digest_weekly
+      )
+      and exists (
+        select 1 from account_email e
+        where e.account_id = a.id and e.verified is not null
+      )
+      and not exists (
+        select 1 from notification_digest_delivery d
+        where d.account_id = a.id
+          and d.frequency = ${frequency}
+          and d.period_start = ${periodStart.toISOString()}::timestamptz
+          and (
+            d.sent is not null
+            or d.skipped is not null
+            or d.abandoned is not null
+            or d.available > now()
+            or d.attempts >= ${maxAttempts}
+          )
+      )
+    order by md5(a.id::text || ${periodStart.toISOString()})
+    limit ${limit}
+  `)) as unknown as { id: Uuid }[];
+  return rows.map((row) => row.id);
+}
+
+interface DigestDeliveryClaim {
+  sentRecipients: string[];
+  attempts: number;
+  attemptToken: string;
 }
 
 async function claimDigestDelivery(
@@ -388,7 +567,9 @@ async function claimDigestDelivery(
   frequency: NotificationDigestFrequency,
   periodStart: Date,
   notificationsCount: number,
-): Promise<{ sentRecipients: string[] } | undefined> {
+  maxAttempts: number,
+): Promise<DigestDeliveryClaim | undefined> {
+  const attemptToken = crypto.randomUUID();
   const rows = await db
     .insert(notificationDigestDeliveryTable)
     .values({
@@ -396,6 +577,8 @@ async function claimDigestDelivery(
       frequency,
       periodStart,
       notificationsCount,
+      attempts: 1,
+      attemptToken,
     })
     .onConflictDoUpdate({
       target: [
@@ -405,18 +588,67 @@ async function claimDigestDelivery(
       ],
       set: {
         notificationsCount,
+        attempts: sql`${notificationDigestDeliveryTable.attempts} + 1`,
+        attemptToken,
         failed: null,
         error: null,
         created: sql`CURRENT_TIMESTAMP`,
       },
-      // Every sender holds the frequency guard. An orphaned incomplete claim
-      // can be retried immediately without waiting for a stale-claim timeout.
-      setWhere: sql`${notificationDigestDeliveryTable.sent} IS NULL`,
+      setWhere: sql`
+        ${notificationDigestDeliveryTable.sent} IS NULL
+        AND ${notificationDigestDeliveryTable.skipped} IS NULL
+        AND ${notificationDigestDeliveryTable.abandoned} IS NULL
+        AND (
+          ${notificationDigestDeliveryTable.available} IS NULL
+          OR ${notificationDigestDeliveryTable.available} <= CURRENT_TIMESTAMP
+        )
+        AND ${notificationDigestDeliveryTable.attempts} < ${maxAttempts}
+      `,
     })
     .returning({
       sentRecipients: notificationDigestDeliveryTable.sentRecipients,
+      attempts: notificationDigestDeliveryTable.attempts,
+      attemptToken: notificationDigestDeliveryTable.attemptToken,
     });
-  return rows[0];
+  return rows[0] as DigestDeliveryClaim | undefined;
+}
+
+async function markDigestDeliverySkipped(
+  db: Database | Transaction,
+  accountId: Uuid,
+  frequency: NotificationDigestFrequency,
+  periodStart: Date,
+  reason: string,
+): Promise<void> {
+  await db
+    .insert(notificationDigestDeliveryTable)
+    .values({
+      accountId,
+      frequency,
+      periodStart,
+      notificationsCount: 0,
+      skipped: sql`CURRENT_TIMESTAMP`,
+      skipReason: reason,
+    })
+    .onConflictDoUpdate({
+      target: [
+        notificationDigestDeliveryTable.accountId,
+        notificationDigestDeliveryTable.frequency,
+        notificationDigestDeliveryTable.periodStart,
+      ],
+      set: {
+        skipped: sql`CURRENT_TIMESTAMP`,
+        skipReason: reason,
+        available: null,
+        attemptToken: null,
+        failed: null,
+        error: null,
+      },
+      setWhere: sql`
+        ${notificationDigestDeliveryTable.sent} IS NULL
+        AND ${notificationDigestDeliveryTable.abandoned} IS NULL
+      `,
+    });
 }
 
 async function saveDigestSentRecipients(
@@ -425,12 +657,14 @@ async function saveDigestSentRecipients(
   frequency: NotificationDigestFrequency,
   periodStart: Date,
   sentRecipients: string[],
+  attemptToken: string,
 ): Promise<void> {
   await db.update(notificationDigestDeliveryTable).set({ sentRecipients })
     .where(sql`
     ${notificationDigestDeliveryTable.accountId} = ${accountId}
     AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
     AND ${notificationDigestDeliveryTable.periodStart} = ${periodStart.toISOString()}::timestamptz
+    AND ${notificationDigestDeliveryTable.attemptToken} = ${attemptToken}
   `);
 }
 
@@ -440,10 +674,13 @@ async function markDigestDeliverySent(
   frequency: NotificationDigestFrequency,
   periodStart: Date,
   sentRecipients: string[],
+  attemptToken: string,
 ): Promise<void> {
   await db.update(notificationDigestDeliveryTable).set({
     sent: sql`CURRENT_TIMESTAMP`,
     sentRecipients,
+    available: null,
+    attemptToken: null,
     failed: null,
     error: null,
   }).where(sql`
@@ -451,6 +688,7 @@ async function markDigestDeliverySent(
     AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
     AND ${notificationDigestDeliveryTable.periodStart} =
       ${periodStart.toISOString()}::timestamptz
+    AND ${notificationDigestDeliveryTable.attemptToken} = ${attemptToken}
   `);
 }
 
@@ -461,16 +699,70 @@ async function markDigestDeliveryFailed(
   periodStart: Date,
   error: string,
   sentRecipients: string[],
+  attemptToken: string,
+  attempts: number,
+  maxAttempts: number,
+  retryMinutes: number,
 ): Promise<void> {
+  const terminal = attempts >= maxAttempts;
   await db.update(notificationDigestDeliveryTable).set({
     sentRecipients,
     failed: sql`CURRENT_TIMESTAMP`,
     error: error.slice(0, 2000),
+    available: terminal
+      ? null
+      : sql`CURRENT_TIMESTAMP + (${retryMinutes}::int * interval '1 minute')`,
+    attemptToken: null,
+    abandoned: terminal ? sql`CURRENT_TIMESTAMP` : null,
   }).where(sql`
     ${notificationDigestDeliveryTable.accountId} = ${accountId}
     AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
     AND ${notificationDigestDeliveryTable.periodStart} =
       ${periodStart.toISOString()}::timestamptz
+    AND ${notificationDigestDeliveryTable.attemptToken} = ${attemptToken}
+  `);
+}
+
+async function deferDigestAttempt(
+  db: Database | Transaction,
+  accountId: Uuid,
+  frequency: NotificationDigestFrequency,
+  periodStart: Date,
+  attemptToken: string,
+  retryMinutes: number,
+): Promise<void> {
+  await db.update(notificationDigestDeliveryTable).set({
+    attempts: sql`greatest(${notificationDigestDeliveryTable.attempts} - 1, 0)`,
+    available: sql`CURRENT_TIMESTAMP + (${retryMinutes}::int * interval '1 minute')`,
+    attemptToken: null,
+    failed: null,
+    error: null,
+  }).where(sql`
+    ${notificationDigestDeliveryTable.accountId} = ${accountId}
+    AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
+    AND ${notificationDigestDeliveryTable.periodStart} = ${periodStart.toISOString()}::timestamptz
+    AND ${notificationDigestDeliveryTable.attemptToken} = ${attemptToken}
+  `);
+}
+
+async function releaseDigestAttempt(
+  db: Database | Transaction,
+  accountId: Uuid,
+  frequency: NotificationDigestFrequency,
+  periodStart: Date,
+  attemptToken: string,
+): Promise<void> {
+  await db.update(notificationDigestDeliveryTable).set({
+    attempts: sql`greatest(${notificationDigestDeliveryTable.attempts} - 1, 0)`,
+    available: null,
+    attemptToken: null,
+    failed: null,
+    error: null,
+  }).where(sql`
+    ${notificationDigestDeliveryTable.accountId} = ${accountId}
+    AND ${notificationDigestDeliveryTable.frequency} = ${frequency}
+    AND ${notificationDigestDeliveryTable.periodStart} = ${periodStart.toISOString()}::timestamptz
+    AND ${notificationDigestDeliveryTable.attemptToken} = ${attemptToken}
   `);
 }
 

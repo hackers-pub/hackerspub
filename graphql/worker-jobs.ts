@@ -10,8 +10,12 @@ import { notifyEndedPolls } from "@hackerspub/models/poll";
 import type { Database } from "@hackerspub/models/db";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transport } from "@upyo/core";
+import type { EmailBudgetConfig } from "@hackerspub/runtime/config";
 import { sql } from "drizzle-orm";
-import { sendNotificationDigests } from "./notification-digest.ts";
+import {
+  getNotificationDigestPeriodStart,
+  sendNotificationDigests,
+} from "./notification-digest.ts";
 
 export interface WorkerJob {
   readonly name: string;
@@ -38,12 +42,12 @@ export const WORKER_JOB_SCHEDULES = {
     schedule: "* * * * *",
   },
   sendWeeklyNotificationDigests: {
-    name: "send-weekly-notification-digests",
-    schedule: "0 0 * * 1",
+    name: "send-weekly-notification-digests.v2",
+    schedule: "2-57/5 * * * 1",
   },
   sendDailyNotificationDigests: {
-    name: "send-daily-notification-digests",
-    schedule: "5 0 * * *",
+    name: "send-daily-notification-digests.v2",
+    schedule: "2-57/5 * * * *",
   },
   pruneTransactionalOutbox: {
     name: "prune-transactional-outbox",
@@ -60,6 +64,7 @@ export interface WorkerJobResources {
   readonly email: Transport;
   readonly emailFrom: string;
   readonly origin: string;
+  readonly emailBudget: EmailBudgetConfig;
 }
 
 export interface WorkerJobOperations {
@@ -141,6 +146,35 @@ const NEWS_SWEEP_ACTIVE_WINDOW_MILLISECONDS = 60 * 60 * 1000;
 // replicas ("news" read as a 32-bit int).
 const NEWS_SWEEP_LOCK_KEY = 0x6e657773;
 const DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
+const DIGEST_STALE_TICK_MILLISECONDS = 4 * 60 * 1000;
+
+function utcMinuteOfDay(date: Date): number {
+  return date.getUTCHours() * 60 + date.getUTCMinutes();
+}
+
+function parseUtcMinute(value: string): number {
+  const [hour, minute] = value.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+function getDigestWindow(
+  date: Date,
+  config: EmailBudgetConfig,
+): "normal" | "catchup" | null {
+  const minute = utcMinuteOfDay(date);
+  const start = parseUtcMinute(config.digestWindowStart);
+  const end = parseUtcMinute(config.digestWindowEnd);
+  const catchup = parseUtcMinute(config.digestCatchupEnd);
+  if (minute >= start && minute < end) return "normal";
+  if (minute >= end && minute < catchup) return "catchup";
+  return null;
+}
+
+function isStaleDigestTick(executedAt: Date, scheduled: Date): boolean {
+  return (
+    executedAt.getTime() - scheduled.getTime() > DIGEST_STALE_TICK_MILLISECONDS
+  );
+}
 
 export function createWorkerJobs(
   resources: WorkerJobResources,
@@ -148,7 +182,48 @@ export function createWorkerJobs(
 ): readonly WorkerJob[] {
   const now = options.now ?? (() => new Date());
   const operations = { ...defaultOperations, ...options.operations };
-  const { db, email, emailFrom, origin } = resources;
+  const { db, email, emailBudget, emailFrom, origin } = resources;
+
+  async function runPacedDigest(
+    frequency: "daily" | "weekly",
+    scheduled: Date,
+    signal: AbortSignal | undefined,
+  ) {
+    if (!emailBudget.digestEnabled) return null;
+    const executedAt = now();
+    if (frequency === "weekly" && executedAt.getUTCDay() !== 1) return null;
+    const window = getDigestWindow(executedAt, emailBudget);
+    if (window == null) return null;
+    if (window === "normal" && isStaleDigestTick(executedAt, scheduled)) {
+      return null;
+    }
+    const periodStart = getNotificationDigestPeriodStart(frequency, scheduled);
+    const until = new Date(periodStart.getTime() + 5 * 60 * 1000);
+    const result = await operations.sendNotificationDigests({
+      db,
+      email,
+      from: emailFrom,
+      origin,
+      frequency,
+      now: until,
+      until,
+      limit: emailBudget.digestScanLimit,
+      sendLimit: emailBudget.digestSendLimit,
+      retryMinutes: emailBudget.digestRetryMinutes,
+      maxAttempts: emailBudget.digestMaxAttempts,
+      deadline: new Date(
+        executedAt.getTime() + emailBudget.digestBatchSeconds * 1000,
+      ),
+      signal,
+    });
+    if (result.accountsFailed > 0) {
+      digestLogger.warn(
+        "Processed {frequency} notification digests with {failed} failure(s).",
+        { frequency, failed: result.accountsFailed },
+      );
+    }
+    return result;
+  }
 
   return [
     {
@@ -219,20 +294,8 @@ export function createWorkerJobs(
     {
       ...WORKER_JOB_SCHEDULES.sendWeeklyNotificationDigests,
       async run(scheduled = now(), signal) {
-        const result = await operations.sendNotificationDigests({
-          db,
-          email,
-          from: emailFrom,
-          origin,
-          frequency: "weekly",
-          now: scheduled,
-          signal,
-        });
-        if (result.accountsFailed > 0) {
-          throw new Error(
-            `${result.accountsFailed} weekly digest account(s) failed.`,
-          );
-        }
+        const result = await runPacedDigest("weekly", scheduled, signal);
+        if (result == null) return;
         digestLogger.debug("Processed weekly notification digests: {result}", {
           result,
         });
@@ -241,20 +304,8 @@ export function createWorkerJobs(
     {
       ...WORKER_JOB_SCHEDULES.sendDailyNotificationDigests,
       async run(scheduled = now(), signal) {
-        const result = await operations.sendNotificationDigests({
-          db,
-          email,
-          from: emailFrom,
-          origin,
-          frequency: "daily",
-          now: scheduled,
-          signal,
-        });
-        if (result.accountsFailed > 0) {
-          throw new Error(
-            `${result.accountsFailed} daily digest account(s) failed.`,
-          );
-        }
+        const result = await runPacedDigest("daily", scheduled, signal);
+        if (result == null) return;
         digestLogger.debug("Processed daily notification digests: {result}", {
           result,
         });
@@ -298,6 +349,16 @@ export function createScheduledWorkerJobExecutor(
 ): NonNullable<ContextData["executeScheduledWorkerJob"]> {
   return async (data, execution) => {
     execution.signal.throwIfAborted();
+    if (
+      data.jobName === "send-daily-notification-digests" ||
+      data.jobName === "send-weekly-notification-digests"
+    ) {
+      schedulerLogger.debug(
+        "Ignoring legacy notification digest tick {jobName}; the .v2 job handles it.",
+        { jobName: data.jobName },
+      );
+      return;
+    }
     const job = jobs.find((job) => job.name === data.jobName);
     if (job == null)
       throw new TypeError(`Unknown scheduled job ${data.jobName}.`);

@@ -104,6 +104,7 @@ export async function main(): Promise<void> {
       email: digestEmail,
       emailFrom: resources.config.email.from,
       origin: resources.config.origin.href,
+      emailBudget: resources.config.emailBudget,
     });
     const contextData: ContextData = {
       db,

@@ -188,6 +188,8 @@ export const SCHEDULED_WORKER_JOB_NAMES = [
   "notify-ended-polls",
   "send-weekly-notification-digests",
   "send-daily-notification-digests",
+  "send-weekly-notification-digests.v2",
+  "send-daily-notification-digests.v2",
   "prune-transactional-outbox",
   "prune-article-view-deduplications",
 ] as const;

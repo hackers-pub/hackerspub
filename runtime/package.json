@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./config": "./config.ts",
+    "./email": "./email.ts",
     "./main": "./main.ts",
     "./resources": "./resources.ts"
   },

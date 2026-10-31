@@ -67,6 +67,7 @@ function options(email: Transport, database = db) {
     origin: "https://example.com",
     frequency: "daily" as const,
     now: tick,
+    retryMinutes: 0,
   };
 }
 

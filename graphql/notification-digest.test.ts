@@ -21,6 +21,7 @@ import {
   getNotificationDigestPeriodStart,
   sendNotificationDigests,
 } from "./notification-digest.ts";
+import { EmailBudgetExhaustedError } from "@hackerspub/runtime/email";
 import { schema } from "./mod.ts";
 import {
   createTestEmailTransport,
@@ -287,6 +288,7 @@ test("sendNotificationDigests retries failed digest deliveries", async () => {
       origin: "https://hackers.pub",
       frequency: "daily",
       now: new Date("2026-06-30T00:05:00.000Z"),
+      retryMinutes: 0,
     });
 
     assert.equal(first.accountsClaimed, 1);
@@ -375,6 +377,7 @@ test("sendNotificationDigests does not resend to successful recipients after par
       origin: "https://hackers.pub",
       frequency: "daily",
       now,
+      retryMinutes: 0,
     });
 
     assert.equal(first.accountsClaimed, 1);
@@ -560,5 +563,212 @@ test("updateNotificationEmailDigestSettings stores private settings", async () =
         },
       },
     });
+  });
+});
+
+test("sendNotificationDigests marks accounts with no unread notifications skipped", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "digestempty",
+      name: "Digest Empty",
+      email: "digestempty@example.com",
+    });
+    const email = createTestEmailTransport();
+    const result = await sendNotificationDigests({
+      db: tx,
+      email: email.transport,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:05:00.000Z"),
+    });
+    assert.equal(result.emailsSent, 0);
+    const [delivery] = await tx
+      .select()
+      .from(notificationDigestDeliveryTable)
+      .where(eq(notificationDigestDeliveryTable.accountId, account.account.id));
+    assert.ok(delivery.skipped != null);
+    assert.equal(delivery.skipReason, "no-unread");
+  });
+});
+
+test("sendNotificationDigests counts rejected submissions against sendLimit", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "digestlimit",
+      name: "Digest Limit",
+      email: "digestlimit@example.com",
+    });
+    await tx
+      .update(accountEmailTable)
+      .set({ primary: false })
+      .where(eq(accountEmailTable.accountId, account.account.id));
+    await tx.insert(accountEmailTable).values({
+      accountId: account.account.id,
+      email: "digestlimit2@example.com",
+      verified: new Date(),
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "digestlimitactor",
+      name: "Digest Limit Actor",
+      email: "digestlimitactor@example.com",
+    });
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: account.account.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-06-29T12:00:00.000Z"),
+    });
+    let sends = 0;
+    const email = {
+      async send() {
+        sends++;
+        return { successful: false, errorMessages: ["rejected"] };
+      },
+    } as never;
+    const result = await sendNotificationDigests({
+      db: tx,
+      email,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:05:00.000Z"),
+      sendLimit: 1,
+    });
+    assert.equal(sends, 1);
+    assert.equal(result.emailsSent, 0);
+    assert.equal(result.accountsFailed, 1);
+  });
+});
+
+test("sendNotificationDigests stops before claiming when the batch deadline passed", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "digestdeadline",
+      name: "Digest Deadline",
+      email: "digestdeadline@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "digestdeadlineactor",
+      name: "Digest Deadline Actor",
+      email: "digestdeadlineactor@example.com",
+    });
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: account.account.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-06-29T12:00:00.000Z"),
+    });
+    const email = createTestEmailTransport();
+    const result = await sendNotificationDigests({
+      db: tx,
+      email: email.transport,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:05:00.000Z"),
+      deadline: new Date(0),
+    });
+    assert.equal(result.emailsSent, 0);
+    assert.equal(email.messages.length, 0);
+  });
+});
+
+test("sendNotificationDigests defers without consuming an attempt when the budget is exhausted", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "digestbudget",
+      name: "Digest Budget",
+      email: "digestbudget@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "digestbudgetactor",
+      name: "Digest Budget Actor",
+      email: "digestbudgetactor@example.com",
+    });
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: account.account.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-06-29T12:00:00.000Z"),
+    });
+    const email = {
+      async send() {
+        throw new EmailBudgetExhaustedError(new Date());
+      },
+    } as never;
+    const result = await sendNotificationDigests({
+      db: tx,
+      email,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:05:00.000Z"),
+    });
+    assert.equal(result.emailsSent, 0);
+    assert.equal(result.accountsFailed, 0);
+    const [delivery] = await tx
+      .select()
+      .from(notificationDigestDeliveryTable)
+      .where(eq(notificationDigestDeliveryTable.accountId, account.account.id));
+    assert.equal(delivery.failed, null);
+    assert.equal(delivery.abandoned, null);
+    assert.equal(delivery.attempts, 0);
+  });
+});
+
+test("sendNotificationDigests abandons an account after the final allowed attempt", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "digestabandon",
+      name: "Digest Abandon",
+      email: "digestabandon@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "digestabandonactor",
+      name: "Digest Abandon Actor",
+      email: "digestabandonactor@example.com",
+    });
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: account.account.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-06-29T12:00:00.000Z"),
+    });
+    const email = {
+      async send() {
+        return { successful: false, errorMessages: ["rejected"] };
+      },
+    } as never;
+    const first = await sendNotificationDigests({
+      db: tx,
+      email,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:05:00.000Z"),
+      maxAttempts: 1,
+      retryMinutes: 0,
+    });
+    assert.equal(first.accountsFailed, 1);
+    const [delivery] = await tx
+      .select()
+      .from(notificationDigestDeliveryTable)
+      .where(eq(notificationDigestDeliveryTable.accountId, account.account.id));
+    assert.ok(delivery.abandoned != null);
+    const second = await sendNotificationDigests({
+      db: tx,
+      email,
+      from: "notifications@hackers.pub",
+      origin: "https://hackers.pub",
+      frequency: "daily",
+      now: new Date("2026-06-30T00:10:00.000Z"),
+      maxAttempts: 1,
+    });
+    assert.equal(second.emailsSent, 0);
   });
 });

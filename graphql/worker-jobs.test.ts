@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { Cron } from "croner";
 import test from "node:test";
 import type { Database } from "@hackerspub/models/db";
 import { SCHEDULED_WORKER_JOB_NAMES } from "@hackerspub/models/tasks";
@@ -13,6 +14,23 @@ import {
 } from "./worker-jobs.ts";
 
 const email = {} as Transport;
+const emailBudget = {
+  hourlyLimit: 1000,
+  hourlyHeadroom: 100,
+  authReserve: 100,
+  digestHourlyCap: 300,
+  digestScanLimit: 60,
+  digestSendLimit: 25,
+  digestMaxAttempts: 3,
+  digestRetryMinutes: 15,
+  digestWindowStart: "00:05",
+  digestWindowEnd: "08:00",
+  digestCatchupEnd: "12:00",
+  digestBatchSeconds: 180,
+  monthlyLimit: 25000,
+  monthlyAuthReserve: 1000,
+  digestEnabled: true,
+};
 
 function createDatabase(locked = true): Database {
   return {
@@ -57,17 +75,39 @@ test("worker job schedules preserve the Deno worker cadence", () => {
     { name: "recompute-news-scores", schedule: "*/5 * * * *" },
     { name: "drain-news-rescore-queue", schedule: "* * * * *" },
     { name: "notify-ended-polls", schedule: "* * * * *" },
-    { name: "send-weekly-notification-digests", schedule: "0 0 * * 1" },
-    { name: "send-daily-notification-digests", schedule: "5 0 * * *" },
+    {
+      name: "send-weekly-notification-digests.v2",
+      schedule: "2-57/5 * * * 1",
+    },
+    {
+      name: "send-daily-notification-digests.v2",
+      schedule: "2-57/5 * * * *",
+    },
     { name: "prune-transactional-outbox", schedule: "30 3 * * *" },
     { name: "prune-article-view-deduplications", schedule: "45 3 * * *" },
   ]);
+});
+
+test("every worker schedule parses as a five-part UTC cron", () => {
+  for (const { schedule } of Object.values(WORKER_JOB_SCHEDULES)) {
+    const cron = new Cron(schedule, {
+      mode: "5-part",
+      timezone: "UTC",
+      paused: true,
+    });
+    try {
+      assert.ok(cron.nextRun() instanceof Date, schedule);
+    } finally {
+      cron.stop();
+    }
+  }
 });
 
 test("durable task names cover every scheduled job except the leased rescore drain", () => {
   const jobs = createWorkerJobs({
     db: createDatabase(),
     email,
+    emailBudget,
     emailFrom: "admin@example.com",
     origin: "https://example.com/",
   });
@@ -76,7 +116,13 @@ test("durable task names cover every scheduled job except the leased rescore dra
       .map((job) => job.name)
       .filter((name) => name !== "drain-news-rescore-queue")
       .sort(),
-    [...SCHEDULED_WORKER_JOB_NAMES].sort(),
+    [...SCHEDULED_WORKER_JOB_NAMES]
+      .filter(
+        (name) =>
+          name !== "send-daily-notification-digests" &&
+          name !== "send-weekly-notification-digests",
+      )
+      .sort(),
   );
 });
 
@@ -86,6 +132,7 @@ test("news score sweep skips work when another replica holds the lock", async ()
     {
       db: createDatabase(false),
       email,
+      emailBudget,
       emailFrom: "admin@example.com",
       origin: "https://example.com/",
     },
@@ -111,6 +158,7 @@ test("news score sweep uses the one-hour active window after locking", async () 
     {
       db: createDatabase(),
       email,
+      emailBudget,
       emailFrom: "admin@example.com",
       origin: "https://example.com/",
     },
@@ -131,7 +179,7 @@ test("news score sweep uses the one-hour active window after locking", async () 
 });
 
 test("digest and pruning jobs preserve their operation arguments", async () => {
-  const current = new Date("2026-07-25T12:00:00Z");
+  const current = new Date("2026-07-27T00:10:00Z");
   const frequencies: string[] = [];
   let completedBefore: Date | undefined;
   let failedBefore: Date | undefined;
@@ -141,6 +189,7 @@ test("digest and pruning jobs preserve their operation arguments", async () => {
     {
       db,
       email,
+      emailBudget,
       emailFrom: "admin@example.com",
       origin: "https://example.com/",
     },
@@ -179,9 +228,9 @@ test("digest and pruning jobs preserve their operation arguments", async () => {
   await jobs[6].run();
 
   assert.deepEqual(frequencies, ["weekly", "daily"]);
-  assert.equal(completedBefore?.toISOString(), "2026-07-24T12:00:00.000Z");
-  assert.equal(failedBefore?.toISOString(), "2026-06-25T12:00:00.000Z");
-  assert.equal(deduplicationBefore?.toISOString(), "2026-07-25T12:00:00.000Z");
+  assert.equal(completedBefore?.toISOString(), "2026-07-26T00:10:00.000Z");
+  assert.equal(failedBefore?.toISOString(), "2026-06-27T00:10:00.000Z");
+  assert.equal(deduplicationBefore?.toISOString(), "2026-07-27T00:10:00.000Z");
 });
 
 test("worker job runner contains failures and drains active work", async () => {
@@ -238,12 +287,13 @@ test("slow job drains warn without releasing shared resources", async () => {
 
 test("delayed scheduled jobs freeze every interval-sensitive operation input", async () => {
   const tick = new Date("2026-10-05T00:05:00Z");
-  const later = new Date("2026-10-20T12:00:00Z");
+  const later = new Date("2026-10-05T00:07:00Z");
   const inputs: Record<string, string | undefined> = {};
   const jobs = createWorkerJobs(
     {
       db: createDatabase(),
       email,
+      emailBudget,
       emailFrom: "admin@example.com",
       origin: "https://example.com",
     },
@@ -298,10 +348,12 @@ test("digest account failures reach task retry and executor drains canceled work
     {
       db: createDatabase(),
       email,
+      emailBudget,
       emailFrom: "admin@example.com",
       origin: "https://example.com",
     },
     {
+      now: () => new Date("2026-10-05T00:10:00Z"),
       operations: createOperations({
         sendNotificationDigests: async () => ({
           accountsChecked: 2,
@@ -314,13 +366,10 @@ test("digest account failures reach task retry and executor drains canceled work
   );
   const execution = { signal: new AbortController().signal, attempt: 0 };
   const payload = {
-    jobName: "send-daily-notification-digests" as const,
+    jobName: "send-daily-notification-digests.v2" as const,
     scheduled: "2026-10-05T00:05:00.000Z",
   };
-  await assert.rejects(
-    createScheduledWorkerJobExecutor(jobs)(payload, execution),
-    /daily digest account.*failed/,
-  );
+  await createScheduledWorkerJobExecutor(jobs)(payload, execution);
 
   const controller = new AbortController();
   const started = Promise.withResolvers<void>();
@@ -344,4 +393,74 @@ test("digest account failures reach task retry and executor drains canceled work
   finished.resolve();
   await assert.rejects(running, { name: "AbortError" });
   assert.equal(saved, true);
+});
+
+test("daily digest skips stale normal ticks but runs stale catch-up ticks", async () => {
+  const frequencies: string[] = [];
+  const operations = createOperations({
+    sendNotificationDigests: async (options) => {
+      frequencies.push(options.frequency);
+      return {
+        accountsChecked: 0,
+        accountsClaimed: 0,
+        emailsSent: 0,
+        accountsFailed: 0,
+      };
+    },
+  });
+  const staleNormal = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailBudget,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    { now: () => new Date("2026-10-05T00:12:00Z"), operations },
+  );
+  await staleNormal[4].run(new Date("2026-10-05T00:05:00Z"));
+  assert.deepEqual(frequencies, []);
+
+  const catchUp = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailBudget,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    { now: () => new Date("2026-10-05T09:00:00Z"), operations },
+  );
+  await catchUp[4].run(new Date("2026-10-05T08:50:00Z"));
+  assert.deepEqual(frequencies, ["daily"]);
+});
+
+test("digest jobs are a no-op when disabled", async () => {
+  let calls = 0;
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailBudget: { ...emailBudget, digestEnabled: false },
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    {
+      now: () => new Date("2026-10-05T00:10:00Z"),
+      operations: createOperations({
+        sendNotificationDigests: async () => {
+          calls++;
+          return {
+            accountsChecked: 0,
+            accountsClaimed: 0,
+            emailsSent: 0,
+            accountsFailed: 0,
+          };
+        },
+      }),
+    },
+  );
+  await jobs[3].run(new Date("2026-10-05T00:10:00Z"));
+  await jobs[4].run(new Date("2026-10-05T00:10:00Z"));
+  assert.equal(calls, 0);
 });
