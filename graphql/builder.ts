@@ -75,6 +75,7 @@ export interface ServerContext {
   kv: Keyv;
   disk: Disk;
   email: Transport;
+  emailAuth: Transport;
   emailFrom: string;
   fedCtx: ApplicationContext;
   request: Request;

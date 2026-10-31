@@ -304,7 +304,7 @@ builder.mutationFields((t) => ({
             });
         messages.push(message);
       }
-      for await (const receipt of ctx.email.sendMany(messages)) {
+      for await (const receipt of ctx.emailAuth.sendMany(messages)) {
         if (!receipt.successful) {
           logger.error("Failed to send a login email: {errors}", {
             errors: receipt.errorMessages,
@@ -407,7 +407,7 @@ builder.mutationFields((t) => ({
             });
         messages.push(message);
       }
-      for await (const receipt of ctx.email.sendMany(messages)) {
+      for await (const receipt of ctx.emailAuth.sendMany(messages)) {
         if (!receipt.successful) {
           logger.error("Failed to send a login email: {errors}", {
             errors: receipt.errorMessages,

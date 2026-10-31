@@ -49,7 +49,7 @@ export function createGraphqlApiHandler(
 ): GraphqlApiHandler {
   const { appleAppSiteAssociationJson, assetlinksJson, resources, yogaServer } =
     options;
-  const { db, drive, email, federation, kv, models } = resources;
+  const { db, drive, email, emailAuth, federation, kv, models } = resources;
   const fileSystemRoot = drive.fileSystemRoot;
 
   return async (request, connectionInfo) => {
@@ -96,6 +96,7 @@ export function createGraphqlApiHandler(
         kv,
         disk,
         email,
+        emailAuth,
         emailFrom: resources.config.email.from,
         fedCtx: toApplicationContext(
           federation.createContext(request, contextData),

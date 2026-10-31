@@ -97,11 +97,11 @@ export async function main(): Promise<void> {
         },
       },
     );
-    const { db, drive, email, federation, kv, models } = resources;
+    const { db, digestEmail, drive, federation, kv, models } = resources;
     const disk = drive.use();
     const executionJobs = createWorkerJobs({
       db,
-      email,
+      email: digestEmail,
       emailFrom: resources.config.email.from,
       origin: resources.config.origin.href,
     });

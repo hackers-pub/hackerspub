@@ -35,6 +35,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
+import { createEmailTransports } from "./email.ts";
 import { ShutdownRequeueMessageQueue } from "./shutdown-requeue-message-queue.ts";
 
 export interface DatabaseResources {
@@ -362,6 +363,8 @@ export interface RuntimeResources {
   readonly kv: Keyv;
   readonly drive: ReturnType<typeof createDriveResource>;
   readonly email: Transport;
+  readonly emailAuth: Transport;
+  readonly digestEmail: Transport;
   readonly models: ReturnType<typeof createAiModels>;
   readonly federation: Awaited<
     ReturnType<typeof createFederationResource>
@@ -408,7 +411,12 @@ export async function createRuntimeResources(
       config.origin,
       options.fileSystemBaseUrl,
     );
-    const email = createEmailResource(config.email);
+    const emails = createEmailTransports(
+      createEmailResource(config.email),
+      config.email.transport,
+      config.emailBudget,
+      db,
+    );
     const models = createAiModels(config.ai);
     const federationResources = await createFederationResource(
       config,
@@ -425,7 +433,9 @@ export async function createRuntimeResources(
       db,
       kv,
       drive,
-      email,
+      email: emails.email,
+      emailAuth: emails.emailAuth,
+      digestEmail: emails.digestEmail,
       models,
       federation,
       async close() {

@@ -240,7 +240,7 @@ builder.relayMutationField(
           kind: "verification",
           code: result.code,
         });
-        const receipt = await ctx.email.send(message);
+        const receipt = await ctx.emailAuth.send(message);
         if (!receipt.successful)
           throw new Error("Verification email delivery failed.");
       } catch {

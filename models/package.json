@@ -23,6 +23,7 @@
     "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
+    "./email-budget": "./email-budget.ts",
     "./emoji": "./emoji.ts",
     "./fcm": "./fcm.ts",
     "./flag": "./flag.ts",

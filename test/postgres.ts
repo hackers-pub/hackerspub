@@ -708,6 +708,7 @@ export function makeUserContext(
 ): UserContext {
   const kv = overrides.kv ?? createTestKv().kv;
   const email = overrides.email ?? createTestEmailTransport().transport;
+  const emailAuth = overrides.emailAuth ?? email;
   const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
 
   return {
@@ -716,6 +717,7 @@ export function makeUserContext(
     kv,
     disk: createTestDisk() as UserContext["disk"],
     email,
+    emailAuth,
     emailFrom: "noreply@example.com",
     fedCtx,
     request: new Request("http://localhost/graphql"),
@@ -735,6 +737,7 @@ export function makeGuestContext(
 ): UserContext {
   const kv = overrides.kv ?? createTestKv().kv;
   const email = overrides.email ?? createTestEmailTransport().transport;
+  const emailAuth = overrides.emailAuth ?? email;
   const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
 
   return {
@@ -743,6 +746,7 @@ export function makeGuestContext(
     kv,
     disk: createTestDisk() as UserContext["disk"],
     email,
+    emailAuth,
     emailFrom: "noreply@example.com",
     fedCtx,
     request: new Request("http://localhost/graphql"),
