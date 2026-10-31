@@ -647,8 +647,15 @@ const InvitationDistributionEdge = builder.simpleObject(
   {
     description: "One row in the invitation distribution history.",
     fields: (t) => ({
-      cursor: t.string(),
-      node: t.field({ type: InvitationDistributionNode }),
+      cursor: t.string({
+        description:
+          "Opaque cursor for this row. Pass it as `after` to continue " +
+          "from this row.",
+      }),
+      node: t.field({
+        type: InvitationDistributionNode,
+        description: "The distribution record for this row.",
+      }),
     }),
   },
 );
@@ -658,10 +665,20 @@ const InvitationDistributionPageInfo = builder.simpleObject(
   {
     description: "Pagination state for the invitation distribution history.",
     fields: (t) => ({
-      hasNextPage: t.boolean(),
-      hasPreviousPage: t.boolean(),
-      startCursor: t.string({ nullable: true }),
-      endCursor: t.string({ nullable: true }),
+      hasNextPage: t.boolean({
+        description: "Whether more rows exist after this page.",
+      }),
+      hasPreviousPage: t.boolean({
+        description: "Whether more rows exist before this page.",
+      }),
+      startCursor: t.string({
+        nullable: true,
+        description: "Cursor of the first row in this page.",
+      }),
+      endCursor: t.string({
+        nullable: true,
+        description: "Cursor of the last row in this page.",
+      }),
     }),
   },
 );
@@ -671,8 +688,14 @@ const InvitationDistributionConnection = builder.simpleObject(
   {
     description: "A paginated page of committed invitation distributions.",
     fields: (t) => ({
-      edges: t.field({ type: [InvitationDistributionEdge] }),
-      pageInfo: t.field({ type: InvitationDistributionPageInfo }),
+      edges: t.field({
+        type: [InvitationDistributionEdge],
+        description: "Rows in this page, newest first.",
+      }),
+      pageInfo: t.field({
+        type: InvitationDistributionPageInfo,
+        description: "Pagination state for this page.",
+      }),
     }),
   },
 );
@@ -936,6 +959,9 @@ builder.mutationField("grantInvitations", (t) =>
       "the grant is recorded in the invitation distribution ledger.",
     args: {
       input: t.arg({
+        description:
+          "The account to grant slots to, the number of slots to add, and " +
+          "an optional moderator note.",
         type: GrantInvitationsInput,
         required: true,
       }),
@@ -994,7 +1020,12 @@ builder.mutationField("setInvitationAutoDistributionEnabled", (t) =>
       "without a deployment. The setting is stored in `admin_state` and is " +
       "checked before each scheduled tick.",
     args: {
-      enabled: t.arg.boolean({ required: true }),
+      enabled: t.arg.boolean({
+        required: true,
+        description:
+          "Whether the worker runs automatic invitation distribution. " +
+          "`true` enables it, and `false` disables it.",
+      }),
     },
     errors: {
       types: [NotAuthenticatedError, NotAuthorizedError],

@@ -460,7 +460,9 @@ export const InvitationGrantedNotification = builder.drizzleNode(
       automatic: t.boolean({
         description:
           "True when the distribution was automatic or a bulk regeneration, " +
-          "so no moderator actor is named.",
+          "so no moderator actor is named. Direct grants always carry the " +
+          "moderator actor; the model rejects a zero-balance grant whose " +
+          "moderator has no actor row.",
         resolve: (notification) => notification.actorIds.length === 0,
       }),
     }),

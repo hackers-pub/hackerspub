@@ -3437,13 +3437,21 @@ type InvitationDistribution implements Node {
 
 """A paginated page of committed invitation distributions."""
 type InvitationDistributionConnection {
+  """Rows in this page, newest first."""
   edges: [InvitationDistributionEdge!]!
+
+  """Pagination state for this page."""
   pageInfo: InvitationDistributionPageInfo!
 }
 
 """One row in the invitation distribution history."""
 type InvitationDistributionEdge {
+  """
+  Opaque cursor for this row. Pass it as `after` to continue from this row.
+  """
   cursor: String!
+
+  """The distribution record for this row."""
   node: InvitationDistribution!
 }
 
@@ -3463,9 +3471,16 @@ enum InvitationDistributionKind {
 
 """Pagination state for the invitation distribution history."""
 type InvitationDistributionPageInfo {
+  """Cursor of the last row in this page."""
   endCursor: String
+
+  """Whether more rows exist after this page."""
   hasNextPage: Boolean!
+
+  """Whether more rows exist before this page."""
   hasPreviousPage: Boolean!
+
+  """Cursor of the first row in this page."""
   startCursor: String
 }
 
@@ -3480,7 +3495,7 @@ type InvitationGrantedNotification implements Node & Notification {
   amount: Int!
 
   """
-  True when the distribution was automatic or a bulk regeneration, so no moderator actor is named.
+  True when the distribution was automatic or a bulk regeneration, so no moderator actor is named. Direct grants always carry the moderator actor; the model rejects a zero-balance grant whose moderator has no actor row.
   """
   automatic: Boolean!
   created: DateTime!
@@ -4248,7 +4263,12 @@ type Mutation {
   """
   Grant a moderator-specified number of invitation slots to one account. The account row is locked for the duration of the transaction, the balance is checked against the integer ceiling, and the grant is recorded in the invitation distribution ledger.
   """
-  grantInvitations(input: GrantInvitationsInput!): GrantInvitationsResult!
+  grantInvitations(
+    """
+    The account to grant slots to, the number of slots to add, and an optional moderator note.
+    """
+    input: GrantInvitationsInput!
+  ): GrantInvitationsResult!
   invite(
     email: Email!
     locale: Locale!
@@ -4665,7 +4685,12 @@ type Mutation {
   """
   Enable or disable the worker's automatic invitation distribution without a deployment. The setting is stored in `admin_state` and is checked before each scheduled tick.
   """
-  setInvitationAutoDistributionEnabled(enabled: Boolean!): SetInvitationAutoDistributionEnabledResult!
+  setInvitationAutoDistributionEnabled(
+    """
+    Whether the worker runs automatic invitation distribution. `true` enables it, and `false` disables it.
+    """
+    enabled: Boolean!
+  ): SetInvitationAutoDistributionEnabledResult!
 
   """
   Set (or clear with `NONE`) a moderator score penalty on a news link, demoting it in the `POPULAR` feed.  Requires a moderator account.  Returns the updated link, or `null` if no link has that id.
