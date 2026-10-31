@@ -49,6 +49,24 @@ export type EmailConfig =
       readonly apiKey: string;
     };
 
+export interface EmailBudgetConfig {
+  readonly hourlyLimit: number;
+  readonly hourlyHeadroom: number;
+  readonly authReserve: number;
+  readonly digestHourlyCap: number;
+  readonly digestScanLimit: number;
+  readonly digestSendLimit: number;
+  readonly digestMaxAttempts: number;
+  readonly digestRetryMinutes: number;
+  readonly digestWindowStart: string;
+  readonly digestWindowEnd: string;
+  readonly digestCatchupEnd: string;
+  readonly digestBatchSeconds: number;
+  readonly monthlyLimit: number;
+  readonly monthlyAuthReserve: number;
+  readonly digestEnabled: boolean;
+}
+
 export interface DatabaseConfig {
   readonly url: string;
 }
@@ -68,6 +86,7 @@ export interface ServerConfig {
   readonly kv: KeyValueConfig;
   readonly storage: StorageConfig;
   readonly email: EmailConfig;
+  readonly emailBudget: EmailBudgetConfig;
   readonly ai: {
     readonly altTextModel: string;
     readonly summarizerModel: string;
@@ -89,6 +108,255 @@ function nonEmpty(
     return undefined;
   }
   return value;
+}
+
+const DEFAULT_EMAIL_BUDGET: EmailBudgetConfig = {
+  hourlyLimit: 1000,
+  hourlyHeadroom: 100,
+  authReserve: 100,
+  digestHourlyCap: 300,
+  digestScanLimit: 60,
+  digestSendLimit: 25,
+  digestMaxAttempts: 3,
+  digestRetryMinutes: 15,
+  digestWindowStart: "00:05",
+  digestWindowEnd: "08:00",
+  digestCatchupEnd: "12:00",
+  digestBatchSeconds: 180,
+  monthlyLimit: 25000,
+  monthlyAuthReserve: 1000,
+  digestEnabled: true,
+};
+
+function parseInteger(
+  env: Environment,
+  variable: string,
+  issues: ConfigurationIssue[],
+  defaultValue: number,
+  minimum: number,
+  maximum: number,
+): number {
+  const raw = env[variable]?.trim();
+  if (raw == null || raw === "") return defaultValue;
+  if (!/^\d+$/.test(raw)) {
+    issues.push({ variable, message: "must be a non-negative integer" });
+    return defaultValue;
+  }
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+    issues.push({
+      variable,
+      message: `must be between ${minimum} and ${maximum}`,
+    });
+    return defaultValue;
+  }
+  return value;
+}
+
+function parseBoolean(
+  env: Environment,
+  variable: string,
+  issues: ConfigurationIssue[],
+  defaultValue: boolean,
+): boolean {
+  const raw = env[variable]?.trim().toLowerCase();
+  if (raw == null || raw === "") return defaultValue;
+  if (["true", "1", "yes", "on"].includes(raw)) return true;
+  if (["false", "0", "no", "off"].includes(raw)) return false;
+  issues.push({ variable, message: "must be true or false" });
+  return defaultValue;
+}
+
+function parseUtcMinute(
+  env: Environment,
+  variable: string,
+  issues: ConfigurationIssue[],
+  defaultValue: string,
+): number | undefined {
+  const raw = env[variable]?.trim() || defaultValue;
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(raw);
+  if (match == null) {
+    issues.push({ variable, message: "must be HH:MM in UTC" });
+    return undefined;
+  }
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function parseEmailBudgetConfig(
+  env: Environment,
+  issues: ConfigurationIssue[],
+): EmailBudgetConfig {
+  const hourlyLimit = parseInteger(
+    env,
+    "EMAIL_HOURLY_LIMIT",
+    issues,
+    DEFAULT_EMAIL_BUDGET.hourlyLimit,
+    1,
+    1_000_000,
+  );
+  const hourlyHeadroom = parseInteger(
+    env,
+    "EMAIL_HOURLY_HEADROOM",
+    issues,
+    DEFAULT_EMAIL_BUDGET.hourlyHeadroom,
+    0,
+    hourlyLimit - 1,
+  );
+  const authReserve = parseInteger(
+    env,
+    "EMAIL_AUTH_RESERVE",
+    issues,
+    DEFAULT_EMAIL_BUDGET.authReserve,
+    1,
+    hourlyLimit,
+  );
+  const digestHourlyCap = parseInteger(
+    env,
+    "EMAIL_DIGEST_HOURLY_CAP",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestHourlyCap,
+    1,
+    hourlyLimit,
+  );
+  const digestScanLimit = parseInteger(
+    env,
+    "EMAIL_DIGEST_SCAN_LIMIT",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestScanLimit,
+    1,
+    10_000,
+  );
+  const digestSendLimit = parseInteger(
+    env,
+    "EMAIL_DIGEST_SEND_LIMIT",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestSendLimit,
+    1,
+    10_000,
+  );
+  const digestMaxAttempts = parseInteger(
+    env,
+    "EMAIL_DIGEST_MAX_ATTEMPTS",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestMaxAttempts,
+    1,
+    100,
+  );
+  const digestRetryMinutes = parseInteger(
+    env,
+    "EMAIL_DIGEST_RETRY_MINUTES",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestRetryMinutes,
+    1,
+    24 * 60,
+  );
+  const digestWindowStart =
+    env.EMAIL_DIGEST_WINDOW_START?.trim() ||
+    DEFAULT_EMAIL_BUDGET.digestWindowStart;
+  const digestWindowEnd =
+    env.EMAIL_DIGEST_WINDOW_END?.trim() || DEFAULT_EMAIL_BUDGET.digestWindowEnd;
+  const digestCatchupEnd =
+    env.EMAIL_DIGEST_CATCHUP_END?.trim() ||
+    DEFAULT_EMAIL_BUDGET.digestCatchupEnd;
+  const digestBatchSeconds = parseInteger(
+    env,
+    "EMAIL_DIGEST_BATCH_SECONDS",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestBatchSeconds,
+    1,
+    299,
+  );
+  const monthlyLimit = parseInteger(
+    env,
+    "EMAIL_MONTHLY_LIMIT",
+    issues,
+    DEFAULT_EMAIL_BUDGET.monthlyLimit,
+    1,
+    100_000_000,
+  );
+  const monthlyAuthReserve = parseInteger(
+    env,
+    "EMAIL_MONTHLY_AUTH_RESERVE",
+    issues,
+    DEFAULT_EMAIL_BUDGET.monthlyAuthReserve,
+    0,
+    monthlyLimit,
+  );
+  const digestEnabled = parseBoolean(
+    env,
+    "EMAIL_DIGEST_ENABLED",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestEnabled,
+  );
+
+  const totalCap = hourlyLimit - hourlyHeadroom;
+  if (totalCap <= authReserve) {
+    issues.push({
+      variable: "EMAIL_AUTH_RESERVE",
+      message: "must be less than EMAIL_HOURLY_LIMIT - EMAIL_HOURLY_HEADROOM",
+    });
+  }
+  if (digestHourlyCap > totalCap - authReserve) {
+    issues.push({
+      variable: "EMAIL_DIGEST_HOURLY_CAP",
+      message:
+        "must be at most EMAIL_HOURLY_LIMIT - EMAIL_HOURLY_HEADROOM - EMAIL_AUTH_RESERVE",
+    });
+  }
+  const windowStart = parseUtcMinute(
+    env,
+    "EMAIL_DIGEST_WINDOW_START",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestWindowStart,
+  );
+  const windowEnd = parseUtcMinute(
+    env,
+    "EMAIL_DIGEST_WINDOW_END",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestWindowEnd,
+  );
+  const catchupEnd = parseUtcMinute(
+    env,
+    "EMAIL_DIGEST_CATCHUP_END",
+    issues,
+    DEFAULT_EMAIL_BUDGET.digestCatchupEnd,
+  );
+  if (windowStart != null && windowEnd != null && windowStart >= windowEnd) {
+    issues.push({
+      variable: "EMAIL_DIGEST_WINDOW_START",
+      message: "must be earlier than EMAIL_DIGEST_WINDOW_END",
+    });
+  }
+  if (catchupEnd != null && windowEnd != null && catchupEnd < windowEnd) {
+    issues.push({
+      variable: "EMAIL_DIGEST_CATCHUP_END",
+      message: "must be at or after EMAIL_DIGEST_WINDOW_END",
+    });
+  }
+  if (monthlyAuthReserve >= monthlyLimit) {
+    issues.push({
+      variable: "EMAIL_MONTHLY_AUTH_RESERVE",
+      message: "must be less than EMAIL_MONTHLY_LIMIT",
+    });
+  }
+
+  return {
+    hourlyLimit,
+    hourlyHeadroom,
+    authReserve,
+    digestHourlyCap,
+    digestScanLimit,
+    digestSendLimit,
+    digestMaxAttempts,
+    digestRetryMinutes,
+    digestWindowStart,
+    digestWindowEnd,
+    digestCatchupEnd,
+    digestBatchSeconds,
+    monthlyLimit,
+    monthlyAuthReserve,
+    digestEnabled,
+  };
 }
 
 function parseDatabaseConfig(
@@ -226,6 +494,8 @@ export function loadServerConfig(env: Environment): ServerConfig {
     }
   }
 
+  const emailBudget = parseEmailBudgetConfig(env, issues);
+
   if (
     issues.length > 0 ||
     database == null ||
@@ -242,6 +512,7 @@ export function loadServerConfig(env: Environment): ServerConfig {
     kv,
     storage,
     email,
+    emailBudget,
     ai: {
       altTextModel: env.AI_ALT_TEXT_MODEL ?? "gemini-3.1-flash-lite",
       summarizerModel: env.AI_SUMMARIZER_MODEL ?? "gemini-3.8-flash",

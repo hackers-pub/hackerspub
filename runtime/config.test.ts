@@ -193,3 +193,90 @@ test("loadServerConfig requires the complete selected storage configuration", ()
     "S3_BUCKET",
   ]);
 });
+
+test("loadServerConfig applies the email budget defaults", () => {
+  const config = loadServerConfig(required);
+
+  assertEquals(config.emailBudget, {
+    hourlyLimit: 1000,
+    hourlyHeadroom: 100,
+    authReserve: 100,
+    digestHourlyCap: 300,
+    digestScanLimit: 60,
+    digestSendLimit: 25,
+    digestMaxAttempts: 3,
+    digestRetryMinutes: 15,
+    digestWindowStart: "00:05",
+    digestWindowEnd: "08:00",
+    digestCatchupEnd: "12:00",
+    digestBatchSeconds: 180,
+    monthlyLimit: 25000,
+    monthlyAuthReserve: 1000,
+    digestEnabled: true,
+  });
+});
+
+test("loadServerConfig parses email budget overrides", () => {
+  const config = loadServerConfig({
+    ...required,
+    EMAIL_HOURLY_LIMIT: "250",
+    EMAIL_HOURLY_HEADROOM: "10",
+    EMAIL_AUTH_RESERVE: "30",
+    EMAIL_DIGEST_HOURLY_CAP: "180",
+    EMAIL_DIGEST_SEND_LIMIT: "16",
+    EMAIL_DIGEST_WINDOW_START: "01:00",
+    EMAIL_DIGEST_WINDOW_END: "09:00",
+    EMAIL_DIGEST_CATCHUP_END: "13:00",
+    EMAIL_DIGEST_ENABLED: "false",
+  });
+
+  assertEquals(config.emailBudget.hourlyLimit, 250);
+  assertEquals(config.emailBudget.hourlyHeadroom, 10);
+  assertEquals(config.emailBudget.authReserve, 30);
+  assertEquals(config.emailBudget.digestHourlyCap, 180);
+  assertEquals(config.emailBudget.digestSendLimit, 16);
+  assertEquals(config.emailBudget.digestWindowStart, "01:00");
+  assertEquals(config.emailBudget.digestWindowEnd, "09:00");
+  assertEquals(config.emailBudget.digestCatchupEnd, "13:00");
+  assertEquals(config.emailBudget.digestEnabled, false);
+});
+
+test("loadServerConfig reports an invalid window time on the right variable", () => {
+  const error = assertThrows(
+    () =>
+      loadServerConfig({
+        ...required,
+        EMAIL_DIGEST_WINDOW_END: "8:00",
+      }),
+    ConfigurationError,
+  ) as ConfigurationError;
+
+  assertEquals(
+    error.issues.map((issue) => issue.variable),
+    ["EMAIL_DIGEST_WINDOW_END"],
+  );
+});
+
+test("loadServerConfig rejects inconsistent email budget values", () => {
+  const error = assertThrows(
+    () =>
+      loadServerConfig({
+        ...required,
+        EMAIL_HOURLY_LIMIT: "100",
+        EMAIL_HOURLY_HEADROOM: "10",
+        EMAIL_AUTH_RESERVE: "90",
+        EMAIL_DIGEST_HOURLY_CAP: "20",
+        EMAIL_DIGEST_WINDOW_START: "09:00",
+        EMAIL_DIGEST_WINDOW_END: "08:00",
+        EMAIL_DIGEST_CATCHUP_END: "07:00",
+      }),
+    ConfigurationError,
+  ) as ConfigurationError;
+
+  assertEquals(error.issues.map((issue) => issue.variable).toSorted(), [
+    "EMAIL_AUTH_RESERVE",
+    "EMAIL_DIGEST_CATCHUP_END",
+    "EMAIL_DIGEST_HOURLY_CAP",
+    "EMAIL_DIGEST_WINDOW_START",
+  ]);
+});

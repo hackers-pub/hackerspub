@@ -194,6 +194,12 @@ export const notificationDigestDeliveryTable = pgTable(
       .default(sql`(ARRAY[]::text[])`),
     failed: timestamp({ withTimezone: true }),
     error: text(),
+    attempts: integer().notNull().default(0),
+    available: timestamp({ withTimezone: true }),
+    attemptToken: uuid("attempt_token").$type<Uuid>(),
+    skipped: timestamp({ withTimezone: true }),
+    abandoned: timestamp({ withTimezone: true }),
+    skipReason: text("skip_reason"),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -203,6 +209,14 @@ export const notificationDigestDeliveryTable = pgTable(
       columns: [table.accountId, table.frequency, table.periodStart],
     }),
     index("notification_digest_delivery_created_idx").on(table.created),
+    index("notification_digest_delivery_candidate_idx").on(
+      table.frequency,
+      table.periodStart,
+      table.available,
+      table.sent,
+      table.skipped,
+      table.abandoned,
+    ),
   ],
 );
 
@@ -210,6 +224,81 @@ export type NotificationDigestDelivery =
   typeof notificationDigestDeliveryTable.$inferSelect;
 export type NewNotificationDigestDelivery =
   typeof notificationDigestDeliveryTable.$inferInsert;
+
+export const EMAIL_PRIORITIES = ["auth", "transactional", "digest"] as const;
+
+export type EmailPriority = (typeof EMAIL_PRIORITIES)[number];
+
+export const emailSendTable = pgTable(
+  "email_send",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    priority: text().$type<EmailPriority>().notNull(),
+    admitted: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    submitted: timestamp({ withTimezone: true }),
+    accepted: boolean(),
+    providerRef: text("provider_ref"),
+    finished: timestamp({ withTimezone: true }),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    deliveryFrequency: notificationDigestFrequencyEnum("delivery_frequency"),
+    deliveryPeriod: timestamp("delivery_period", { withTimezone: true }),
+    recipientHash: text("recipient_hash"),
+  },
+  (table) => [
+    check(
+      "email_send_priority_check",
+      sql`${table.priority} in ('auth', 'transactional', 'digest')`,
+    ),
+    index("email_send_admitted_idx").on(table.admitted),
+    index("email_send_priority_admitted_idx").on(
+      table.priority,
+      table.admitted,
+    ),
+    index("email_send_unresolved_idx")
+      .on(table.admitted)
+      .where(sql`${table.submitted} is not null and ${table.accepted} is null`),
+    uniqueIndex("email_send_digest_recipient_idx")
+      .on(
+        table.accountId,
+        table.deliveryFrequency,
+        table.deliveryPeriod,
+        table.recipientHash,
+      )
+      .where(
+        sql`${table.priority} = 'digest' and ${table.accepted} is not false`,
+      ),
+  ],
+);
+
+export type EmailSend = typeof emailSendTable.$inferSelect;
+export type NewEmailSend = typeof emailSendTable.$inferInsert;
+
+export const emailSendMonthTable = pgTable(
+  "email_send_month",
+  {
+    month: date().notNull(),
+    priority: text().$type<EmailPriority>().notNull(),
+    sent: integer().notNull().default(0),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.month, table.priority] }),
+    check(
+      "email_send_month_priority_check",
+      sql`${table.priority} in ('auth', 'transactional', 'digest')`,
+    ),
+    check("email_send_month_sent_check", sql`${table.sent} >= 0`),
+  ],
+);
+
+export type EmailSendMonth = typeof emailSendMonthTable.$inferSelect;
+export type NewEmailSendMonth = typeof emailSendMonthTable.$inferInsert;
 
 export const organizationMemberRoleEnum = pgEnum("organization_member_role", [
   "admin",
