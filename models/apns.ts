@@ -212,7 +212,7 @@ export async function sendApnsNotification(
           data: {
             notificationId: options.notificationId,
             type: options.type,
-            actorId: options.actorId,
+            ...(options.actorId == null ? {} : { actorId: options.actorId }),
             postId: options.postId ?? null,
             emoji: emojiText,
           },

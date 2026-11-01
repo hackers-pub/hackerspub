@@ -317,7 +317,7 @@ export async function sendFcmNotification(
                   data: {
                     notificationId: options.notificationId,
                     type: options.type,
-                    actorId: options.actorId,
+                    actorId: options.actorId ?? undefined,
                     postId: options.postId ?? "",
                     emoji: emojiText ?? "",
                     alert: getFcmAlert(options.type, options.emoji),

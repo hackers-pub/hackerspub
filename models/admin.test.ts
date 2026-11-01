@@ -994,6 +994,7 @@ test("regenerateInvitations notifies accounts that crossed from zero to one", as
 
 test("grantInvitations sends the invitation push after commit", async () => {
   const sent: Array<{ endpoint: string; payload: string }> = [];
+  const visibleInSender: boolean[] = [];
   let targetAccountId: Uuid | null = null;
   let observedBalance: number | null = null;
   setWebPushConfigForTesting({
@@ -1008,6 +1009,11 @@ test("grantInvitations sends the invitation push after commit", async () => {
       `;
       observedBalance = Number(rows[0]?.left_invitations);
     }
+    const data = JSON.parse(payload).data;
+    const row = await db.query.notificationTable.findFirst({
+      where: { id: data.notificationId },
+    });
+    visibleInSender.push(row != null);
     sent.push({ endpoint: subscription.endpoint, payload });
   });
   try {
@@ -1059,6 +1065,7 @@ test("grantInvitations sends the invitation push after commit", async () => {
           "invitation_granted",
         );
         assert.equal(observedBalance, 1);
+        assert.deepEqual(visibleInSender, [true]);
         await db
           .delete(invitationDistributionTable)
           .where(eq(invitationDistributionTable.id, result.distribution.id));
@@ -1139,12 +1146,18 @@ test("grantInvitations rejects a zero-balance grant whose moderator has no actor
 
 test("regenerateInvitations sends system invitation pushes after commit", async () => {
   const sent: Array<{ endpoint: string; payload: string }> = [];
+  const visibleInSender: boolean[] = [];
   setWebPushConfigForTesting({
     publicKey: "test-public-key",
     privateKey: "test-private-key",
     subject: "mailto:test@example.com",
   });
   setWebPushSenderForTesting(async (subscription, payload) => {
+    const data = JSON.parse(payload).data;
+    const row = await db.query.notificationTable.findFirst({
+      where: { id: data.notificationId },
+    });
+    visibleInSender.push(row != null);
     sent.push({ endpoint: subscription.endpoint, payload });
   });
   try {
@@ -1183,6 +1196,7 @@ test("regenerateInvitations sends system invitation pushes after commit", async 
         });
         assert.equal(result.accountsAffected, 1);
         assert.equal(sent.length, 1);
+        assert.deepEqual(visibleInSender, [true]);
         const payload = JSON.parse(sent[0].payload);
         assert.equal(payload.data.type, "invitation_granted");
         assert.equal("actorId" in payload.data, false);
