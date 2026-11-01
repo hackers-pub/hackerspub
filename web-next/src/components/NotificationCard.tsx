@@ -9,6 +9,7 @@ import type {
 } from "~/__generated__/NotificationCard_notification.graphql.ts";
 import { ArticleTranslationSourceChangedNotificationCard } from "./notification/ArticleTranslationSourceChangedNotificationCard.tsx";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
+import { InvitationGrantedNotificationCard } from "./notification/InvitationGrantedNotificationCard.tsx";
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
 import { OrganizationConversionRequestNotificationCard } from "./notification/OrganizationConversionRequestNotificationCard.tsx";
 import { OrganizationInvitationNotificationCard } from "./notification/OrganizationInvitationNotificationCard.tsx";
@@ -34,6 +35,7 @@ const notificationCards: Readonly<
   ArticleTranslationSourceChangedNotification:
     ArticleTranslationSourceChangedNotificationCard,
   FollowNotification: FollowNotificationCard,
+  InvitationGrantedNotification: InvitationGrantedNotificationCard,
   MentionNotification: MentionNotificationCard,
   OrganizationConversionRequestNotification:
     OrganizationConversionRequestNotificationCard,
@@ -54,6 +56,7 @@ export function NotificationCard(props: NotificationCardProps) {
         __typename
         ...ArticleTranslationSourceChangedNotificationCard_notification
         ...FollowNotificationCard_notification
+        ...InvitationGrantedNotificationCard_notification
         ...MentionNotificationCard_notification
         ...OrganizationConversionRequestNotificationCard_notification
         ...OrganizationInvitationNotificationCard_notification

@@ -66,6 +66,16 @@ function createOperations(
     }),
     pruneOutboxEvents: async () => 0,
     pruneExpiredArticleViewDeduplications: async () => 0,
+    getInvitationAutoDistributionEnabled: async () => true,
+    regenerateInvitations: async () => ({
+      regenerated: new Date(0),
+      accountsAffected: 0,
+      cutoffDate: new Date(0),
+      periodEnd: new Date(0),
+      distribution: null,
+      skipped: false,
+      skipReason: null,
+    }),
     ...overrides,
   };
 }
@@ -85,6 +95,7 @@ test("worker job schedules preserve the Deno worker cadence", () => {
     },
     { name: "prune-transactional-outbox", schedule: "30 3 * * *" },
     { name: "prune-article-view-deduplications", schedule: "45 3 * * *" },
+    { name: "distribute-invitations", schedule: "15 0 * * 1,4" },
   ]);
 });
 
@@ -463,4 +474,110 @@ test("digest jobs are a no-op when disabled", async () => {
   await jobs[3].run(new Date("2026-10-05T00:10:00Z"));
   await jobs[4].run(new Date("2026-10-05T00:10:00Z"));
   assert.equal(calls, 0);
+});
+
+test("distribute-invitations respects the kill switch", async () => {
+  let called = false;
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailBudget,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    {
+      operations: createOperations({
+        getInvitationAutoDistributionEnabled: async () => false,
+        regenerateInvitations: async () => {
+          called = true;
+          throw new Error("should not run");
+        },
+      }),
+    },
+  );
+  const job = jobs.find((job) => job.name === "distribute-invitations");
+  assert.ok(job != null);
+  await job.run(new Date("2026-11-02T00:15:00.000Z"));
+  assert.equal(called, false);
+});
+
+test("distribute-invitations passes the scheduled tick, source, run key, and KV store", async () => {
+  const scheduled = new Date("2026-11-02T00:15:00.000Z");
+  const kv = {} as never;
+  let received:
+    | {
+        db: unknown;
+        kv: unknown;
+        options: {
+          now?: Date;
+          source?: string;
+          runKey?: string;
+        };
+      }
+    | undefined;
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      kv,
+      email,
+      emailBudget,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    {
+      operations: createOperations({
+        regenerateInvitations: async (db, passedKv, options) => {
+          received = { db, kv: passedKv, options: options ?? {} };
+          return {
+            regenerated: scheduled,
+            accountsAffected: 1,
+            cutoffDate: new Date("2026-10-26T00:15:00.000Z"),
+            periodEnd: scheduled,
+            distribution: null,
+            skipped: false,
+            skipReason: null,
+          };
+        },
+      }),
+    },
+  );
+  const job = jobs.find((job) => job.name === "distribute-invitations");
+  assert.ok(job != null);
+  await job.run(scheduled);
+  assert.equal(received?.kv, kv);
+  assert.deepEqual(received?.options.now, scheduled);
+  assert.equal(received?.options.source, "scheduled");
+  assert.equal(
+    received?.options.runKey,
+    `scheduled:${scheduled.toISOString()}`,
+  );
+});
+
+test("distribute-invitations tolerates a skipped tick", async () => {
+  const jobs = createWorkerJobs(
+    {
+      db: createDatabase(),
+      email,
+      emailBudget,
+      emailFrom: "admin@example.com",
+      origin: "https://example.com/",
+    },
+    {
+      operations: createOperations({
+        regenerateInvitations: async () => ({
+          regenerated: new Date(0),
+          accountsAffected: 0,
+          cutoffDate: new Date(0),
+          periodEnd: new Date(0),
+          distribution: null,
+          skipped: true,
+          skipReason: "duplicate",
+        }),
+      }),
+    },
+  );
+  const job = jobs.find((job) => job.name === "distribute-invitations");
+  assert.ok(job != null);
+  await job.run(new Date("2026-11-02T00:15:00.000Z"));
 });

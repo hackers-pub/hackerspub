@@ -1,10 +1,17 @@
 import assert from "node:assert";
 import test from "node:test";
 import {
+  grantInvitations,
+  INVITATIONS_LAST_REGEN_KEY,
+  regenerateInvitations,
+} from "@hackerspub/models/admin";
+import {
   accountTable,
   type Actor as ActorRow,
   actorTable,
+  invitationDistributionTable,
   notificationTable,
+  organizationMembershipTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
@@ -12,7 +19,10 @@ import DataLoader from "dataloader";
 import { eq, inArray, sql } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
+import { createOrganization } from "@hackerspub/models/organization";
 import {
+  createFedCtx,
+  createTestKv,
   insertAccountWithActor,
   insertNotePost,
   makeUserContext,
@@ -731,5 +741,247 @@ test("Notification.actors deduplicates repeated actor ids within a notification"
       edges[0].node.actors.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Actor", actor.actor.id)],
     );
+  });
+});
+
+const invitationGrantedNotificationQuery = parse(`
+  query InvitationGrantedNotificationQuery {
+    viewer {
+      notifications(first: 10) {
+        edges {
+          node {
+            __typename
+            ... on InvitationGrantedNotification {
+              amount
+              automatic
+              actors(first: 10) {
+                edges { node { id } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+test("InvitationGrantedNotification exposes the amount and named actor", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertAccountWithActor(tx, {
+      username: "notifinviteactor",
+      name: "Notification Invite Actor",
+      email: "notifinviteactor@example.com",
+    });
+    const recipient = await insertAccountWithActor(tx, {
+      username: "notifinviterecipient",
+      name: "Notification Invite Recipient",
+      email: "notifinviterecipient@example.com",
+    });
+    const grant = await grantInvitations(tx, {
+      accountId: recipient.account.id,
+      actorId: actor.account.id,
+      amount: 2,
+    });
+    assert.ok(grant != null);
+    const direct = await tx.query.notificationTable.findMany({
+      where: { accountId: recipient.account.id },
+    });
+    assert.ok(direct.length >= 1, JSON.stringify(direct));
+
+    const result = await execute({
+      schema,
+      document: invitationGrantedNotificationQuery,
+      contextValue: makeUserContext(tx, recipient.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const edges = (
+      result.data as {
+        viewer: {
+          notifications: {
+            edges: {
+              node: {
+                __typename: string;
+                amount?: number;
+                automatic?: boolean;
+                actors?: { edges: { node: { id: string } }[] };
+              };
+            }[];
+          };
+        };
+      }
+    ).viewer.notifications.edges;
+    const notification = edges.find(
+      (edge) => edge.node.__typename === "InvitationGrantedNotification",
+    );
+    assert.ok(notification != null, JSON.stringify(edges));
+    assert.equal(notification.node.amount, 2);
+    assert.equal(notification.node.automatic, false);
+    assert.equal(notification.node.actors?.edges.length, 1);
+  });
+});
+
+test("automatic invitation notifications are visible without an actor", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "autoinvitenotify",
+      name: "Automatic Invite Notify",
+      email: "autoinvitenotify@example.com",
+    });
+    await insertNotePost(tx, {
+      account: recipient.account,
+      published: new Date("2026-04-10T00:00:00.000Z"),
+    });
+    const { kv, store } = createTestKv();
+    store.set(
+      INVITATIONS_LAST_REGEN_KEY,
+      new Date("2026-04-01T00:00:00.000Z").toISOString(),
+    );
+    await regenerateInvitations(tx, kv, {
+      now: new Date("2026-04-15T00:00:00.000Z"),
+      source: "scheduled",
+      runKey: "scheduled:2026-04-15T00:00:00.000Z",
+    });
+
+    const result = await execute({
+      schema,
+      document: invitationGrantedNotificationQuery,
+      contextValue: makeUserContext(tx, recipient.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const edges = (
+      result.data as {
+        viewer: {
+          notifications: {
+            edges: {
+              node: {
+                __typename: string;
+                amount?: number;
+                automatic?: boolean;
+                actors?: { edges: unknown[] };
+              };
+            }[];
+          };
+        };
+      }
+    ).viewer.notifications.edges;
+    const notification = edges.find(
+      (edge) => edge.node.__typename === "InvitationGrantedNotification",
+    );
+    assert.ok(notification != null);
+    assert.equal(notification.node.amount, 1);
+    assert.equal(notification.node.automatic, true);
+    assert.equal(notification.node.actors?.edges.length, 0);
+  });
+});
+
+const organizationInvitationNotificationQuery = parse(`
+  query OrganizationInvitationNotification($id: ID!) {
+    node(id: $id) {
+      ... on Account {
+        notifications(first: 10) {
+          edges {
+            node {
+              __typename
+              ... on InvitationGrantedNotification {
+                amount
+                automatic
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+test("organization members can read a system invitation notification", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "orgnotifadmin",
+      name: "Org Notif Admin",
+      email: "orgnotifadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgnotifmember",
+      name: "Org Notif Member",
+      email: "orgnotifmember@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "orgnotiforg",
+        name: "Org Notif Org",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    const [distribution] = await tx
+      .insert(invitationDistributionTable)
+      .values({
+        id: generateUuidV7(),
+        kind: "scheduled",
+        amount: 1,
+        accountsAffected: 1,
+        eligibleAccountsCount: 1,
+        topThirdCount: 1,
+        cutoffDate: now,
+        periodEnd: now,
+        runKey: `scheduled:${now.toISOString()}`,
+        created: now,
+      })
+      .returning();
+    assert.ok(distribution != null);
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: organization.id,
+      type: "invitation_granted",
+      actorIds: [],
+      invitationDistributionId: distribution.id,
+      invitationAmount: 1,
+      created: now,
+    });
+
+    const result = await execute({
+      schema,
+      document: organizationInvitationNotificationQuery,
+      variableValues: { id: encodeGlobalID("Account", organization.id) },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const edges = (
+      result.data as {
+        node: {
+          notifications: {
+            edges: {
+              node: {
+                __typename: string;
+                amount?: number;
+                automatic?: boolean;
+              };
+            }[];
+          };
+        };
+      }
+    ).node.notifications.edges;
+    const notification = edges.find(
+      (edge) => edge.node.__typename === "InvitationGrantedNotification",
+    );
+    assert.ok(notification != null);
+    assert.equal(notification.node.amount, 1);
+    assert.equal(notification.node.automatic, true);
   });
 });

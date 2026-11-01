@@ -1,9 +1,14 @@
 import {
   deleteOrphanMedia,
+  getInvitationDistributions,
   getInvitationRegenerationStatus,
   getOrphanMediaStatus,
+  grantInvitations,
   type InvitationRegenerationStatus as ModelInvitationRegenerationStatus,
+  MAX_INVITATION_GRANT,
+  MAX_INVITATION_NOTE_LENGTH,
   regenerateInvitations,
+  setInvitationAutoDistributionEnabled,
 } from "@hackerspub/models/admin";
 import {
   accountTable,
@@ -19,7 +24,7 @@ import {
 import { and, asc, desc, eq, isNotNull, or, type SQL, sql } from "drizzle-orm";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
-import { NotAuthorizedError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { AccountKind } from "./organization.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -519,6 +524,223 @@ builder.queryField("adminAccounts", (t) =>
   }),
 );
 
+const InvitationDistributionKind = builder.enumType(
+  "InvitationDistributionKind",
+  {
+    description:
+      "Why an invitation distribution happened. `SCHEDULED` is the " +
+      "worker's automatic run, `MANUAL` is a moderator pressing the bulk " +
+      "regenerate button, and `GRANT` is a moderator granting slots to one " +
+      "specific account.",
+    values: {
+      SCHEDULED: { description: "Automatic worker distribution." },
+      MANUAL: { description: "Bulk regeneration triggered by a moderator." },
+      GRANT: { description: "Direct grant to one account." },
+    },
+  },
+);
+
+const InvitationDistributionNode = builder.drizzleNode(
+  "invitationDistributionTable",
+  {
+    name: "InvitationDistribution",
+    description:
+      "An append-only record of one committed invitation distribution. Each " +
+      "row is written in the same transaction as the balance change it " +
+      "describes. Failed attempts and duplicate task retries do not create " +
+      "new rows.",
+    authScopes: { moderator: true },
+    runScopesOnType: true,
+    id: {
+      column: (distribution) => distribution.id,
+    },
+    fields: (t) => ({
+      uuid: t.expose("id", {
+        type: "UUID",
+        description: "The distribution's UUID, stable across lookups.",
+      }),
+      kind: t.field({
+        type: InvitationDistributionKind,
+        description: "What triggered this distribution.",
+        resolve: (distribution) =>
+          distribution.kind.toUpperCase() as "SCHEDULED" | "MANUAL" | "GRANT",
+      }),
+      created: t.expose("created", {
+        type: "DateTime",
+        description:
+          "When the transaction actually executed. For a delayed automatic " +
+          "run this is later than `periodEnd`.",
+      }),
+      amount: t.exposeInt("amount", {
+        description:
+          "Number of invitation slots added. This counts slots, not " +
+          "invitation links.",
+      }),
+      accountsAffected: t.exposeInt("accountsAffected", {
+        description:
+          "Number of accounts whose balance actually changed. Accounts at " +
+          "the balance ceiling are skipped and excluded.",
+      }),
+      eligibleAccountsCount: t.exposeInt("eligibleAccountsCount", {
+        nullable: true,
+        description:
+          "Bulk distributions only: accounts with at least one post in the " +
+          "eligibility window.",
+      }),
+      topThirdCount: t.exposeInt("topThirdCount", {
+        nullable: true,
+        description:
+          "Bulk distributions only: the policy target before capacity " +
+          "skips.",
+      }),
+      cutoffDate: t.expose("cutoffDate", {
+        type: "DateTime",
+        nullable: true,
+        description:
+          "Bulk distributions only: the previous cutoff used to select " +
+          "active accounts.",
+      }),
+      periodEnd: t.expose("periodEnd", {
+        type: "DateTime",
+        nullable: true,
+        description:
+          "Bulk distributions only: the new logical cutoff written by this " +
+          "run. It is the scheduled tick for `SCHEDULED` and the execution " +
+          "time for `MANUAL`.",
+      }),
+      actor: t.relation("actor", {
+        type: Account,
+        nullable: true,
+        description:
+          "The moderator who triggered a manual or direct-grant " +
+          "distribution. Null for scheduled runs and deleted actors.",
+      }),
+      actorUsername: t.exposeString("actorUsername", {
+        nullable: true,
+        description:
+          "The actor's username at distribution time, retained if the actor " +
+          "is later deleted.",
+      }),
+      target: t.relation("target", {
+        type: Account,
+        nullable: true,
+        description:
+          "The account that received a direct grant. Null for bulk runs and " +
+          "deleted accounts.",
+      }),
+      targetUsername: t.exposeString("targetUsername", {
+        nullable: true,
+        description:
+          "The target's username at grant time, retained if the account is " +
+          "later deleted.",
+      }),
+      note: t.exposeString("note", {
+        nullable: true,
+        description: "Optional moderator note attached to a direct grant.",
+      }),
+    }),
+  },
+);
+
+const InvitationDistributionEdge = builder.simpleObject(
+  "InvitationDistributionEdge",
+  {
+    description: "One row in the invitation distribution history.",
+    fields: (t) => ({
+      cursor: t.string({
+        description:
+          "Opaque cursor for this row. Pass it as `after` to continue " +
+          "from this row.",
+      }),
+      node: t.field({
+        type: InvitationDistributionNode,
+        description: "The distribution record for this row.",
+      }),
+    }),
+  },
+);
+
+const InvitationDistributionPageInfo = builder.simpleObject(
+  "InvitationDistributionPageInfo",
+  {
+    description: "Pagination state for the invitation distribution history.",
+    fields: (t) => ({
+      hasNextPage: t.boolean({
+        description: "Whether more rows exist after this page.",
+      }),
+      hasPreviousPage: t.boolean({
+        description: "Whether more rows exist before this page.",
+      }),
+      startCursor: t.string({
+        nullable: true,
+        description: "Cursor of the first row in this page.",
+      }),
+      endCursor: t.string({
+        nullable: true,
+        description: "Cursor of the last row in this page.",
+      }),
+    }),
+  },
+);
+
+const InvitationDistributionConnection = builder.simpleObject(
+  "InvitationDistributionConnection",
+  {
+    description: "A paginated page of committed invitation distributions.",
+    fields: (t) => ({
+      edges: t.field({
+        type: [InvitationDistributionEdge],
+        description: "Rows in this page, newest first.",
+      }),
+      pageInfo: t.field({
+        type: InvitationDistributionPageInfo,
+        description: "Pagination state for this page.",
+      }),
+    }),
+  },
+);
+
+builder.queryField("invitationDistributions", (t) =>
+  t.field({
+    type: InvitationDistributionConnection,
+    nullable: true,
+    description:
+      "Moderator-only, newest-first history of committed invitation " +
+      "distributions. Returns null when the viewer is not a moderator. The " +
+      "cursor is opaque and encodes the exact PostgreSQL timestamp, so " +
+      "rows committed within the same millisecond paginate correctly.",
+    args: {
+      first: t.arg.int({
+        defaultValue: 20,
+        description: "Maximum rows to return, between 1 and 100.",
+      }),
+      after: t.arg.string({
+        description: "Opaque cursor from a previous `endCursor`.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      const page = await getInvitationDistributions(ctx.db, {
+        first: args.first ?? undefined,
+        after: args.after ?? undefined,
+      });
+      return {
+        edges: page.edges.map((edge) => ({
+          cursor: edge.cursor,
+          node: edge.distribution,
+        })),
+        pageInfo: {
+          hasNextPage: page.hasNextPage,
+          hasPreviousPage: page.hasPreviousPage,
+          startCursor: page.startCursor,
+          endCursor: page.endCursor,
+        },
+      };
+    },
+  }),
+);
+
 const InvitationRegenerationStatus = builder.simpleObject(
   "InvitationRegenerationStatus",
   {
@@ -530,8 +752,10 @@ const InvitationRegenerationStatus = builder.simpleObject(
         type: "DateTime",
         nullable: true,
         description:
-          "When the regeneration was last triggered, or null if it has " +
-          "never been run.",
+          "The logical end of the last completed eligibility window, or " +
+          "null if no regeneration or automatic distribution has run. For a " +
+          "delayed automatic tick this is the tick, not the wall-clock " +
+          "execution time; use `InvitationDistribution.created` for that.",
       }),
       cutoffDate: t.field({
         type: "DateTime",
@@ -549,6 +773,12 @@ const InvitationRegenerationStatus = builder.simpleObject(
           "Number of accounts that would receive an invitation if a " +
           "regeneration were triggered now (ceil(eligible / 3)).",
       }),
+      autoDistributionEnabled: t.boolean({
+        description:
+          "Whether the worker is allowed to distribute invitations " +
+          "automatically. A moderator can flip this kill switch without a " +
+          "deployment.",
+      }),
     }),
   },
 );
@@ -558,6 +788,7 @@ interface InvitationRegenerationStatusShape {
   cutoffDate: Date;
   eligibleAccountsCount: number;
   topThirdCount: number;
+  autoDistributionEnabled: boolean;
 }
 
 function toInvitationRegenerationStatusShape(
@@ -568,6 +799,7 @@ function toInvitationRegenerationStatusShape(
     cutoffDate: status.cutoffDate,
     eligibleAccountsCount: status.eligibleAccountsCount,
     topThirdCount: status.topThirdCount,
+    autoDistributionEnabled: status.autoDistributionEnabled,
   };
 }
 
@@ -596,11 +828,33 @@ const RegenerateInvitationsPayload = builder.simpleObject(
     fields: (t) => ({
       regenerated: t.field({
         type: "DateTime",
-        description: "When the regeneration ran.",
+        description:
+          "The logical end of the eligibility window covered by this run. " +
+          "For a delayed scheduled run this is the tick, not the wall-clock " +
+          "execution time.",
       }),
       accountsAffected: t.int({
         description:
           "Number of accounts whose `leftInvitations` was incremented.",
+      }),
+      skipped: t.boolean({
+        description:
+          "True when this call did not create a new distribution because the " +
+          "tick was a duplicate retry or was superseded by a later run.",
+      }),
+      skipReason: t.string({
+        nullable: true,
+        description:
+          "`duplicate` for an idempotent retry of an already committed tick, " +
+          "`superseded` when a later run already advanced the cutoff, or null " +
+          "for a new distribution.",
+      }),
+      distribution: t.field({
+        type: InvitationDistributionNode,
+        nullable: true,
+        description:
+          "The committed ledger row. Present for a new distribution and for " +
+          "a duplicate retry; null for a superseded tick.",
       }),
       status: t.field({
         type: InvitationRegenerationStatus,
@@ -617,14 +871,18 @@ builder.mutationField("regenerateInvitations", (t) =>
     description:
       "Grant +1 invitation to the top third of accounts with at least " +
       "one post since the last regeneration cutoff, and persist the new " +
-      "last-regen timestamp.",
+      "last-regen timestamp. The automated worker uses the same operation " +
+      "with a scheduled-tick idempotency key.",
     errors: {
       types: [NotAuthenticatedError, NotAuthorizedError],
     },
     async resolve(_root, _args, ctx) {
       if (ctx.session == null) throw new NotAuthenticatedError();
       if (!ctx.account?.moderator) throw new NotAuthorizedError();
-      const result = await regenerateInvitations(ctx.db, ctx.kv);
+      const result = await regenerateInvitations(ctx.db, ctx.kv, {
+        source: "manual",
+        actorId: ctx.account.id,
+      });
       // Recompute the status against the fresh cutoff: in the common
       // case both eligibility counts are 0 because the cutoff moved
       // to "now", but federation can deliver posts whose `published`
@@ -636,8 +894,149 @@ builder.mutationField("regenerateInvitations", (t) =>
       return {
         regenerated: result.regenerated,
         accountsAffected: result.accountsAffected,
+        skipped: result.skipped,
+        skipReason: result.skipReason,
+        distribution: result.distribution,
         status: toInvitationRegenerationStatusShape(status),
       };
+    },
+  }),
+);
+
+const GrantInvitationsInput = builder.inputType("GrantInvitationsInput", {
+  description: "Input for granting invitation slots directly to one account.",
+  fields: (t) => ({
+    accountId: t.globalID({
+      for: Account,
+      required: true,
+      description: "The `Account` global id that should receive the slots.",
+    }),
+    amount: t.int({
+      required: true,
+      description:
+        "Number of slots to add, from 1 to 10000. This is a safety cap, not " +
+        "a product limit.",
+    }),
+    note: t.string({
+      description:
+        "Optional moderator note retained in the distribution history " +
+        "(maximum 500 characters).",
+    }),
+  }),
+});
+
+const GrantInvitationsPayload = builder.simpleObject(
+  "GrantInvitationsPayload",
+  {
+    description: "The result of a successful direct invitation grant.",
+    fields: (t) => ({
+      account: t.field({
+        type: Account,
+        description: "The account whose balance changed.",
+      }),
+      granted: t.int({ description: "Number of slots granted by this call." }),
+      previousBalance: t.int({
+        description: "The account's balance before this grant.",
+      }),
+      newBalance: t.int({
+        description: "The account's balance after this grant.",
+      }),
+      distribution: t.field({
+        type: InvitationDistributionNode,
+        description: "The committed ledger row for this grant.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("grantInvitations", (t) =>
+  t.field({
+    type: GrantInvitationsPayload,
+    description:
+      "Grant a moderator-specified number of invitation slots to one " +
+      "account. The account row is locked for the duration of the " +
+      "transaction, the balance is checked against the integer ceiling, and " +
+      "the grant is recorded in the invitation distribution ledger.",
+    args: {
+      input: t.arg({
+        description:
+          "The account to grant slots to, the number of slots to add, and " +
+          "an optional moderator note.",
+        type: GrantInvitationsInput,
+        required: true,
+      }),
+    },
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const accountId = args.input.accountId.id;
+      if (!validateUuid(accountId)) throw new InvalidInputError("accountId");
+      if (
+        !Number.isSafeInteger(args.input.amount) ||
+        args.input.amount < 1 ||
+        args.input.amount > MAX_INVITATION_GRANT
+      ) {
+        throw new InvalidInputError("amount");
+      }
+      if ((args.input.note?.length ?? 0) > MAX_INVITATION_NOTE_LENGTH) {
+        throw new InvalidInputError("note");
+      }
+      let result;
+      try {
+        result = await grantInvitations(ctx.db, {
+          accountId,
+          actorId: ctx.account.id,
+          amount: args.input.amount,
+          note: args.input.note ?? undefined,
+        });
+      } catch (error) {
+        if (error instanceof RangeError) {
+          if (
+            error.message === "INVALID_AMOUNT" ||
+            error.message === "INVITATION_BALANCE_OVERFLOW"
+          ) {
+            throw new InvalidInputError("amount");
+          }
+          if (error.message === "INVALID_NOTE") {
+            throw new InvalidInputError("note");
+          }
+        }
+        throw error;
+      }
+      if (result == null) throw new InvalidInputError("accountId");
+      return result;
+    },
+  }),
+);
+
+builder.mutationField("setInvitationAutoDistributionEnabled", (t) =>
+  t.field({
+    type: InvitationRegenerationStatus,
+    description:
+      "Enable or disable the worker's automatic invitation distribution " +
+      "without a deployment. The setting is stored in `admin_state` and is " +
+      "checked before each scheduled tick.",
+    args: {
+      enabled: t.arg.boolean({
+        required: true,
+        description:
+          "Whether the worker runs automatic invitation distribution. " +
+          "`true` enables it, and `false` disables it.",
+      }),
+    },
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      await setInvitationAutoDistributionEnabled(ctx.db, args.enabled);
+      return toInvitationRegenerationStatusShape(
+        await getInvitationRegenerationStatus(ctx.db, ctx.kv),
+      );
     },
   }),
 );

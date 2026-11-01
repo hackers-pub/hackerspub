@@ -79,6 +79,7 @@ const loadAdminAccountsPageQuery = routePreloadedQuery(
       useRelayEnvironment()(),
       adminAccountsPageQuery,
       { count: 100, orderBy, orderDirection, kind, search },
+      { fetchPolicy: "network-only" },
     ),
   "loadAdminAccountsPageQuery",
 );

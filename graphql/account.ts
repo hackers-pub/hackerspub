@@ -8,7 +8,17 @@ import {
 } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
-import { and, desc, eq, gt, inArray, isNotNull, lt, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  lt,
+  or,
+  sql,
+} from "drizzle-orm";
 import {
   AccountDeletionUnavailableError,
   createAvatarMediumFromMedium,
@@ -706,8 +716,9 @@ export const Account = builder.drizzleNode("accountTable", {
       description:
         "This account's notifications, newest first. Only visible to " +
         "the account holder, or to accepted members when this is an " +
-        "organization account. Notifications whose actor list is empty " +
-        "(e.g., the actor was deleted) are automatically excluded.",
+        "organization account. Notifications whose actor list is empty are " +
+        "automatically excluded, except system-authored invitation " +
+        "notifications.",
       authScopes: async (parent, _args, ctx) =>
         await viewerCanReadAccountNotifications(ctx, parent.id, parent.kind),
       select: {
@@ -750,12 +761,18 @@ export const Account = builder.drizzleNode("accountTable", {
                       ? gt(notificationTable.created, afterDate)
                       : lt(notificationTable.created, afterDate)
                     : undefined,
-                  gt(
-                    ctx.db.$count(
-                      actorTable,
-                      sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+                  or(
+                    gt(
+                      ctx.db.$count(
+                        actorTable,
+                        sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+                      ),
+                      0,
                     ),
-                    0,
+                    and(
+                      eq(notificationTable.type, "invitation_granted"),
+                      sql`cardinality(${notificationTable.actorIds}) = 0`,
+                    ),
                   ),
                 ),
               )
@@ -795,12 +812,18 @@ export const Account = builder.drizzleNode("accountTable", {
               ),
               '-infinity'::timestamptz
             )`,
-            gt(
-              ctx.db.$count(
-                actorTable,
-                sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+            or(
+              gt(
+                ctx.db.$count(
+                  actorTable,
+                  sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+                ),
+                0,
               ),
-              0,
+              and(
+                eq(notificationTable.type, "invitation_granted"),
+                sql`cardinality(${notificationTable.actorIds}) = 0`,
+              ),
             ),
           ),
         );

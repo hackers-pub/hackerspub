@@ -6,6 +6,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  or,
   sql,
 } from "drizzle-orm";
 import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
@@ -1293,7 +1294,13 @@ async function queryOrganizationNotificationBadges(
     .where(
       and(
         inArray(notificationTable.accountId, [...organizationAccountIds]),
-        sql`EXISTS (SELECT 1 FROM ${actorTable} WHERE ${actorTable.id} = ANY(${notificationTable.actorIds}))`,
+        or(
+          sql`EXISTS (SELECT 1 FROM ${actorTable} WHERE ${actorTable.id} = ANY(${notificationTable.actorIds}))`,
+          and(
+            eq(notificationTable.type, "invitation_granted"),
+            sql`cardinality(${notificationTable.actorIds}) = 0`,
+          ),
+        ),
       ),
     )
     .groupBy(notificationTable.accountId);

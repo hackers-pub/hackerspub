@@ -15,7 +15,7 @@ export interface PushNotificationPayloadOptions {
   accountId: Uuid;
   notificationId: Uuid;
   type: NotificationType;
-  actorId: Uuid;
+  actorId: Uuid | null;
   postId?: Uuid | null;
   emoji?: string | CustomEmoji | null;
 }
@@ -27,7 +27,7 @@ export interface PushNotificationPayload {
   data: {
     notificationId: Uuid;
     type: NotificationType;
-    actorId: Uuid;
+    actorId?: Uuid;
     postId?: Uuid;
   };
 }
@@ -51,6 +51,7 @@ type PushNotificationLocale = keyof typeof PUSH_NOTIFICATION_MESSAGES;
 const PUSH_NOTIFICATION_MESSAGES = {
   "en-US": {
     someone: "Someone",
+    system: "Hackers' Pub",
     title: {
       follow: "New follower",
       mention: "New mention",
@@ -64,6 +65,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: "Organization invitation",
       organization_conversion_request: "Organization conversion request",
       article_translation_source_changed: "Original changed",
+      invitation_granted: "Invitation granted",
     },
     body: {
       follow: (name: string) => `${name} followed you.`,
@@ -86,10 +88,13 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} asked you to accept an organization conversion.`,
       article_translation_source_changed: (name: string) =>
         `${name} changed the original of an article you translated.`,
+      invitation_granted: (name: string) =>
+        `${name} granted you invitation slots.`,
     },
   },
   "ja-JP": {
     someone: "誰か",
+    system: "Hackers' Pub",
     title: {
       follow: "新しいフォロワー",
       mention: "新しいメンション",
@@ -103,6 +108,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: "組織への招待",
       organization_conversion_request: "組織への変換リクエスト",
       article_translation_source_changed: "原文が変更されました",
+      invitation_granted: "招待枠が付与されました",
     },
     body: {
       follow: (name: string) => `${name}さんがあなたをフォローしました`,
@@ -125,10 +131,13 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name}さんが組織への変換の承認を依頼しました`,
       article_translation_source_changed: (name: string) =>
         `${name}さんが、あなたが翻訳した記事の原文を変更しました`,
+      invitation_granted: (name: string) =>
+        `${name}さんがあなたに招待枠を付与しました`,
     },
   },
   "ko-KR": {
     someone: "누군가",
+    system: "Hackers' Pub",
     title: {
       follow: "새 팔로워",
       mention: "새 멘션",
@@ -142,6 +151,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: "조직 초대",
       organization_conversion_request: "조직 전환 요청",
       article_translation_source_changed: "원문이 변경됨",
+      invitation_granted: "초대장이 지급됨",
     },
     body: {
       follow: (name: string) => `${name} 님이 팔로했습니다`,
@@ -165,10 +175,13 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} 님이 조직 전환 수락을 요청했습니다`,
       article_translation_source_changed: (name: string) =>
         `${name} 님이 회원님이 번역한 게시글의 원문을 변경했습니다`,
+      invitation_granted: (name: string) =>
+        `${name} 님이 회원님에게 초대장을 지급했습니다`,
     },
   },
   "zh-CN": {
     someone: "有人",
+    system: "Hackers' Pub",
     title: {
       follow: "新的关注者",
       mention: "新的提及",
@@ -182,6 +195,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: "组织邀请",
       organization_conversion_request: "组织转换请求",
       article_translation_source_changed: "原文已变更",
+      invitation_granted: "已发放邀请名额",
     },
     body: {
       follow: (name: string) => `${name} 关注了你`,
@@ -201,10 +215,12 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} 请求你接受组织转换`,
       article_translation_source_changed: (name: string) =>
         `${name} 变更了你翻译过的文章的原文`,
+      invitation_granted: (name: string) => `${name} 向你发放了邀请名额`,
     },
   },
   "zh-TW": {
     someone: "有人",
+    system: "Hackers' Pub",
     title: {
       follow: "新的關注者",
       mention: "新的提及",
@@ -218,6 +234,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       organization_invitation: "組織邀請",
       organization_conversion_request: "組織轉換請求",
       article_translation_source_changed: "原文已變更",
+      invitation_granted: "已發放邀請名額",
     },
     body: {
       follow: (name: string) => `${name} 關注了你`,
@@ -237,12 +254,14 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} 請求你接受組織轉換`,
       article_translation_source_changed: (name: string) =>
         `${name} 變更了你翻譯過的文章的原文`,
+      invitation_granted: (name: string) => `${name} 向你發放了邀請名額`,
     },
   },
 } satisfies Record<
   string,
   {
     someone: string;
+    system: string;
     title: Record<NotificationType, string>;
     body: Record<NotificationType, (name: string, emoji: string) => string>;
   }
@@ -330,15 +349,17 @@ export async function buildPushNotificationPayload(
       .from(accountTable)
       .where(eq(accountTable.id, options.accountId))
       .limit(1),
-    db
-      .select({
-        name: actorTable.name,
-        handle: actorTable.handle,
-        username: actorTable.username,
-      })
-      .from(actorTable)
-      .where(eq(actorTable.id, options.actorId))
-      .limit(1),
+    options.actorId == null
+      ? Promise.resolve([])
+      : db
+          .select({
+            name: actorTable.name,
+            handle: actorTable.handle,
+            username: actorTable.username,
+          })
+          .from(actorTable)
+          .where(eq(actorTable.id, options.actorId))
+          .limit(1),
     options.postId == null
       ? Promise.resolve([])
       : db
@@ -359,9 +380,11 @@ export async function buildPushNotificationPayload(
   };
   const locale = selectPushNotificationLocale(account.locales);
   const name =
-    actorRows[0] == null
-      ? PUSH_NOTIFICATION_MESSAGES[locale].someone
-      : actorName(actorRows[0]);
+    options.actorId == null
+      ? PUSH_NOTIFICATION_MESSAGES[locale].system
+      : actorRows[0] == null
+        ? PUSH_NOTIFICATION_MESSAGES[locale].someone
+        : actorName(actorRows[0]);
   const preview = postPreview(account, postRows[0] ?? null);
   const body = genericBody(locale, options.type, name, options.emoji);
 
@@ -372,7 +395,7 @@ export async function buildPushNotificationPayload(
     data: {
       notificationId: options.notificationId,
       type: options.type,
-      actorId: options.actorId,
+      ...(options.actorId == null ? {} : { actorId: options.actorId }),
       ...(options.postId == null ? {} : { postId: options.postId }),
     },
   };

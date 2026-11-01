@@ -34,7 +34,7 @@ export interface ApnsNotificationOptions {
   accountId: Uuid;
   notificationId: Uuid;
   type: NotificationType;
-  actorId: Uuid;
+  actorId: Uuid | null;
   postId?: Uuid | null;
   emoji?: string | CustomEmoji | null;
 }
@@ -161,6 +161,8 @@ function getApnsAlert(
       return "You have an organization conversion request.";
     case "article_translation_source_changed":
       return "The original of an article you translated has changed.";
+    case "invitation_granted":
+      return "You received invitation slots.";
     case "react": {
       const emojiText = typeof emoji === "string" ? emoji : emoji?.name;
       return emojiText == null
@@ -210,7 +212,7 @@ export async function sendApnsNotification(
           data: {
             notificationId: options.notificationId,
             type: options.type,
-            actorId: options.actorId,
+            ...(options.actorId == null ? {} : { actorId: options.actorId }),
             postId: options.postId ?? null,
             emoji: emojiText,
           },

@@ -293,7 +293,7 @@ export async function sendNotificationPush(
     accountId: Uuid;
     notificationId: Uuid;
     type: NotificationType;
-    actorId: Uuid;
+    actorId: Uuid | null;
     postId?: Uuid | null;
   },
 ): Promise<void> {
@@ -397,6 +397,46 @@ export async function createOrganizationConversionRequestNotification(
       organizationConversionRequestId: requestId,
     },
   });
+}
+
+/**
+ * Creates the single notification for one account's share of a committed
+ * invitation distribution. A null actor means the distribution was automatic
+ * or a bulk regeneration, so the notification is system-authored and there is
+ * no push sender to name. The unique index on
+ * `(accountId, type, invitationDistributionId)` makes repeated calls for the
+ * same distribution harmless.
+ *
+ * This function only persists the row. Callers that own the surrounding
+ * transaction must send the push after commit with `sendNotificationPush`;
+ * doing it here would hold row locks across network calls and could deliver a
+ * push for a transaction that later rolls back.
+ */
+export async function createInvitationGrantedNotification(
+  db: NotificationDatabase,
+  accountId: Uuid,
+  distributionId: Uuid,
+  actorId: Uuid | null,
+  amount: number,
+  created?: Date | null,
+): Promise<Notification | undefined> {
+  if (!Number.isSafeInteger(amount) || amount < 1) {
+    throw new RangeError("INVALID_AMOUNT");
+  }
+  const rows = await db
+    .insert(notificationTable)
+    .values({
+      id: generateUuidV7(),
+      accountId,
+      type: "invitation_granted",
+      actorIds: actorId == null ? [] : [actorId],
+      invitationDistributionId: distributionId,
+      invitationAmount: amount,
+      ...(created == null ? {} : { created }),
+    })
+    .onConflictDoNothing()
+    .returning();
+  return rows[0];
 }
 
 /**

@@ -1,4 +1,8 @@
 import { getLogger } from "@logtape/logtape";
+import {
+  getInvitationAutoDistributionEnabled,
+  regenerateInvitations,
+} from "@hackerspub/models/admin";
 import { pruneExpiredArticleViewDeduplications } from "@hackerspub/models/article-analytics";
 import { sweepExpiredSuspensionRescores } from "@hackerspub/models/moderation";
 import {
@@ -12,6 +16,7 @@ import type { ContextData } from "@hackerspub/models/context";
 import type { Transport } from "@upyo/core";
 import type { EmailBudgetConfig } from "@hackerspub/runtime/config";
 import { sql } from "drizzle-orm";
+import type Keyv from "keyv";
 import {
   getNotificationDigestPeriodStart,
   sendNotificationDigests,
@@ -57,10 +62,15 @@ export const WORKER_JOB_SCHEDULES = {
     name: "prune-article-view-deduplications",
     schedule: "45 3 * * *",
   },
+  distributeInvitations: {
+    name: "distribute-invitations",
+    schedule: "15 0 * * 1,4",
+  },
 } as const satisfies Record<string, WorkerJobSchedule>;
 
 export interface WorkerJobResources {
   readonly db: Database;
+  readonly kv?: Keyv;
   readonly email: Transport;
   readonly emailFrom: string;
   readonly origin: string;
@@ -75,6 +85,8 @@ export interface WorkerJobOperations {
   readonly sendNotificationDigests: typeof sendNotificationDigests;
   readonly pruneOutboxEvents: typeof pruneOutboxEvents;
   readonly pruneExpiredArticleViewDeduplications: typeof pruneExpiredArticleViewDeduplications;
+  readonly regenerateInvitations: typeof regenerateInvitations;
+  readonly getInvitationAutoDistributionEnabled: typeof getInvitationAutoDistributionEnabled;
 }
 
 export interface WorkerJobOptions {
@@ -94,6 +106,8 @@ const defaultOperations: WorkerJobOperations = {
   sendNotificationDigests,
   pruneOutboxEvents,
   pruneExpiredArticleViewDeduplications,
+  regenerateInvitations,
+  getInvitationAutoDistributionEnabled,
 };
 
 const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
@@ -112,6 +126,11 @@ const articleAnalyticsLogger = getLogger([
   "hackerspub",
   "graphql",
   "article-analytics",
+]);
+const invitationLogger = getLogger([
+  "hackerspub",
+  "graphql",
+  "invitation-distribution",
 ]);
 const schedulerLogger = getLogger([
   "hackerspub",
@@ -182,7 +201,7 @@ export function createWorkerJobs(
 ): readonly WorkerJob[] {
   const now = options.now ?? (() => new Date());
   const operations = { ...defaultOperations, ...options.operations };
-  const { db, email, emailBudget, emailFrom, origin } = resources;
+  const { db, email, emailBudget, emailFrom, kv, origin } = resources;
 
   async function runPacedDigest(
     frequency: "daily" | "weekly",
@@ -339,6 +358,37 @@ export function createWorkerJobs(
             { deleted },
           );
         }
+      },
+    },
+    {
+      ...WORKER_JOB_SCHEDULES.distributeInvitations,
+      async run(scheduled = now()) {
+        if (!(await operations.getInvitationAutoDistributionEnabled(db))) {
+          invitationLogger.debug(
+            "Automatic invitation distribution is disabled; skipping tick {scheduled}.",
+            { scheduled },
+          );
+          return;
+        }
+        const result = await operations.regenerateInvitations(db, kv, {
+          now: scheduled,
+          source: "scheduled",
+          runKey: `scheduled:${scheduled.toISOString()}`,
+        });
+        if (result.skipped) {
+          invitationLogger.debug(
+            "Invitation distribution for tick {scheduled} skipped: {reason}.",
+            { scheduled, reason: result.skipReason },
+          );
+          return;
+        }
+        invitationLogger.info(
+          "Distributed {amount} invitation slot(s) to {accountsAffected} account(s).",
+          {
+            amount: result.accountsAffected,
+            accountsAffected: result.accountsAffected,
+          },
+        );
       },
     },
   ];

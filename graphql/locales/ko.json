@@ -26,6 +26,7 @@
       "organization_invitation": "조직 초대",
       "organization_conversion_request": "조직 전환 요청",
       "article_translation_source_changed": "번역한 게시글의 원문 변경",
+      "invitation_granted": "초대장 지급",
       "notification": "알림"
     },
     "moderationNotificationLabels": {
