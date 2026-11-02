@@ -7,6 +7,7 @@ import {
   removeQuoteInlineFallback,
   stripHtml,
   transformMentions,
+  transformMisskeyInlineQuote,
   truncateHtml,
 } from "./html.ts";
 import type { Actor } from "./schema.ts";
@@ -498,5 +499,44 @@ describe("removeQuoteInlineFallback()", () => {
       ),
       "",
     );
+  });
+});
+
+describe("transformMisskeyInlineQuote()", () => {
+  // A Misskey-style inline quote fallback: <br><br>RE: followed by a link
+  // whose text is the quoted post's URL.
+  const misskeyInlineQuote =
+    "<p>Some quoted text<span><br><br>RE: </span>" +
+    '<a href="https://example.com/notes/abc123">https://example.com/notes/abc123</a></p>';
+
+  it("marks the fallback span and its anchor as quote-inline", () => {
+    const html = transformMisskeyInlineQuote(misskeyInlineQuote);
+    assert.match(
+      html,
+      /<span><span class="quote-inline"><br><br>RE: <\/span><\/span>/,
+    );
+    assert.match(
+      html,
+      /<a [^>]*class="quote-inline"[^>]*>https:\/\/example\.com\/notes\/abc123<\/a>/,
+    );
+    assert.match(html, /^<p>Some quoted text/);
+  });
+
+  it("does not write the transformed anchor to the console", (t) => {
+    const debug = t.mock.method(console, "debug", () => {});
+    const html = transformMisskeyInlineQuote(misskeyInlineQuote);
+    // Asserting the class proves the callback actually ran, so the zero-call
+    // check below is not vacuous.
+    assert.match(html, /class="quote-inline"/);
+    assert.equal(debug.mock.callCount(), 0);
+  });
+
+  it("leaves unrelated HTML unchanged without logging", (t) => {
+    const debug = t.mock.method(console, "debug", () => {});
+    assert.equal(
+      transformMisskeyInlineQuote("<p>Normal post without quotes</p>"),
+      "<p>Normal post without quotes</p>",
+    );
+    assert.equal(debug.mock.callCount(), 0);
   });
 });

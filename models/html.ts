@@ -548,7 +548,6 @@ export function transformMisskeyInlineQuote(html: string): string {
       ),
     );
     $a.addClass("quote-inline");
-    console.debug($a.html());
   });
   return $.html();
 }
