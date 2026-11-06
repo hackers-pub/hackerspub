@@ -90,7 +90,9 @@ function parseUtility(token: string): {
       segmentStart = index + 1;
     }
   }
-  return { base: token.slice(segmentStart), variants };
+  // Tailwind v4 uses a trailing `!`; the leading form remains supported.
+  const base = token.slice(segmentStart).replace(/^!|!$/g, "");
+  return { base, variants };
 }
 
 /** `duration-*` and `ease-*` both set a `transition-*` timing longhand. */

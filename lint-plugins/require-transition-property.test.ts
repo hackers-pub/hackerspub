@@ -255,3 +255,49 @@ test("does NOT offer an autofix", () => {
   assert.deepEqual(diagnostics.length, 1);
   assert.deepEqual(diagnostics[0].fix, []);
 });
+
+for (const timing of [
+  "!duration-300",
+  "duration-300!",
+  "!ease-out",
+  "ease-out!",
+]) {
+  test(`flags important timing ${timing}`, () => {
+    assert.equal(
+      lint(`export const Badge = () => <span class="${timing}" />;`).length,
+      1,
+    );
+  });
+}
+
+for (const transition of [
+  "!transition-none",
+  "transition-none!",
+  "!transition",
+  "transition!",
+]) {
+  test(`accepts important property ${transition} with variants`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="hover:${transition} hover:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+for (const behavior of [
+  "!transition-discrete",
+  "transition-discrete!",
+  "!transition-normal",
+  "transition-normal!",
+]) {
+  test(`does not accept important behavior ${behavior} as a property`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${behavior} duration-300" />;`,
+      ).length,
+      1,
+    );
+  });
+}
