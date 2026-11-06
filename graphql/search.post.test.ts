@@ -4,12 +4,27 @@ import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
-import { accountTable, postTable } from "@hackerspub/models/schema";
+import type { RelationsFilter } from "@hackerspub/models/db";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post/visibility";
+import {
+  accountTable,
+  actorTable,
+  blockingTable,
+  followingTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { parseQuery } from "@hackerspub/models/search";
+import { compileQuery } from "@hackerspub/models/search-query";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 import { postgres } from "../test/database.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
+  insertMention,
   insertRemoteActor,
   insertRemotePost,
   makeGuestContext,
@@ -107,6 +122,194 @@ test("TagPageQuery loads quoted note content in mixed post results", async () =>
     assert.ok(note?.node.quotedPost);
     assert.equal(note.node.quotedPost.id, encodeGlobalID("Note", quoted.id));
     assert.equal(note.node.quotedPost.content, "<p>Quoted post body</p>");
+  });
+});
+
+test("hashtag pagination refills after moderation and visibility filters and retains language preferences", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "hashtagpageviewer",
+      name: "Hashtag Page Viewer",
+      email: "hashtagpageviewer@example.com",
+    });
+    const author = await insertRemoteActor(tx, {
+      username: "hashtagpageauthor",
+      name: "Author",
+      host: "hashtagpage.example",
+    });
+    const pending = await insertRemoteActor(tx, {
+      username: "hashtagpending",
+      name: "Pending",
+      host: "hashtagpage.example",
+    });
+    const blocked = await insertRemoteActor(tx, {
+      username: "hashtagblocked",
+      name: "Blocked",
+      host: "hashtagpage.example",
+    });
+    const sanctioned = await insertRemoteActor(tx, {
+      username: "hashtagsanctioned",
+      name: "Sanctioned",
+      host: "hashtagpage.example",
+    });
+    await tx.insert(followingTable).values([
+      {
+        iri: "http://localhost/follows/hashtagaccepted",
+        followerId: viewer.actor.id,
+        followeeId: author.id,
+        accepted: new Date("2026-01-01Z"),
+      },
+      {
+        iri: "http://localhost/follows/hashtagpending",
+        followerId: viewer.actor.id,
+        followeeId: pending.id,
+      },
+    ]);
+    await tx.insert(blockingTable).values({
+      id: generateUuidV7(),
+      iri: "http://localhost/blocks/hashtagpage",
+      blockerId: viewer.actor.id,
+      blockeeId: blocked.id,
+    });
+    await tx
+      .update(actorTable)
+      .set({ suspended: new Date("2026-01-01Z"), suspendedUntil: null })
+      .where(eq(actorTable.id, sanctioned.id));
+    const ids: Array<typeof viewer.actor.id> = [];
+    async function add(
+      values: Parameters<typeof insertRemotePost>[1],
+      censored = false,
+    ) {
+      const post = await insertRemotePost(tx, {
+        language: "ko",
+        ...values,
+        published: new Date(Date.UTC(2026, 3, 1, 0, ids.length)),
+      });
+      ids.push(post.id);
+      await tx
+        .update(postTable)
+        .set({
+          tags: { hashtagpage452: "url" },
+          ...(censored ? { censored: new Date("2026-04-01Z") } : {}),
+        })
+        .where(eq(postTable.id, post.id));
+      return post;
+    }
+    await add({ actorId: author.id });
+    await add({ actorId: author.id });
+    await add({ actorId: author.id });
+    await add({ actorId: author.id, visibility: "followers" });
+    await add({ actorId: author.id, visibility: "unlisted" });
+    const direct = await add({ actorId: author.id, visibility: "direct" });
+    await insertMention(tx, { postId: direct.id, actorId: viewer.actor.id });
+    await add({ actorId: viewer.actor.id, visibility: "direct" }, true);
+    // Every rejection class has more rows than a two-item page. LIMIT must
+    // follow the complete filter, including for the signed-in viewer.
+    for (let index = 0; index < 3; index++) {
+      await add({ actorId: author.id }, true);
+      await add({ actorId: author.id, language: "en" });
+      await add({ actorId: blocked.id });
+      await add({ actorId: sanctioned.id });
+      await add({ actorId: pending.id, visibility: "followers" });
+      await add({ actorId: author.id, visibility: "direct" });
+      await add({ actorId: author.id, sharedPostId: ids[index] });
+    }
+    const document =
+      parse(`query HashtagPage($query: String!, $languages: [Locale!], $first: Int!, $after: String) {
+      searchPost(query: $query, languages: $languages, first: $first, after: $after) {
+        edges { cursor node { id } }
+        pageInfo { hasNextPage hasPreviousPage }
+      }
+    }`);
+    const expression = parseQuery("#HASHTAGPAGE452");
+    assert.ok(expression);
+    const contexts = [
+      {
+        context: makeGuestContext(tx),
+        languages: ["ko"],
+        allowedLanguages: ["ko"],
+      },
+      {
+        context: makeUserContext(tx, {
+          ...viewer.account,
+          hideForeignLanguages: true,
+          locales: ["ko"],
+        }),
+        languages: [],
+        allowedLanguages: ["ko"],
+      },
+      {
+        context: makeUserContext(tx, {
+          ...viewer.account,
+          hideForeignLanguages: true,
+          locales: ["ko"],
+        }),
+        languages: ["en"],
+        allowedLanguages: ["en"],
+      },
+    ];
+    for (const { context, languages, allowedLanguages } of contexts) {
+      let after: string | undefined;
+      const seen: string[] = [];
+      for (let page = 0; page < ids.length; page++) {
+        const common: RelationsFilter<"postTable"> = {
+          AND: [
+            { id: { in: ids } },
+            getPostVisibilityFilter(context.account?.actor ?? null),
+            getCensoredPostExclusionFilter(context.account?.actor.id),
+            { sharedPostId: { isNull: true } },
+            { language: { in: allowedLanguages } },
+            ...(context.account == null
+              ? [{ visibility: "public" } as const]
+              : []),
+            ...(after == null ? [] : [{ published: { lte: new Date(after) } }]),
+          ],
+        };
+        const baseline = await tx.query.postTable.findMany({
+          columns: { id: true },
+          where: { AND: [common, compileQuery(expression)] },
+          orderBy: { published: "desc" },
+          limit: 3,
+        });
+        const result = await execute({
+          schema,
+          document,
+          variableValues: {
+            query: "#HASHTAGPAGE452",
+            languages,
+            first: 2,
+            after,
+          },
+          contextValue: context,
+          onError: "NO_PROPAGATE",
+        });
+        assert.equal(result.errors, undefined);
+        const data = toPlainJson(result.data) as {
+          searchPost: {
+            edges: Array<{ cursor: string; node: { id: string } }>;
+            pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          };
+        };
+        const edges = data.searchPost.edges;
+        assert.deepEqual(
+          edges.map(({ node }) => node.id),
+          baseline.slice(0, 2).map(({ id }) => encodeGlobalID("Note", id)),
+        );
+        assert.equal(data.searchPost.pageInfo.hasNextPage, baseline.length > 2);
+        assert.equal(data.searchPost.pageInfo.hasPreviousPage, false);
+        seen.push(...edges.map(({ node }) => node.id));
+        if (!data.searchPost.pageInfo.hasNextPage) break;
+        assert.equal(edges.length, 2);
+        assert.ok(edges[1].cursor);
+        after = edges[1].cursor;
+      }
+      assert.equal(
+        new Set(seen).size,
+        seen.length,
+        "forward pages must not repeat posts",
+      );
+      assert.ok(seen.length >= 3, "each case must traverse more than one page");
+    }
   });
 });
 

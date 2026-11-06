@@ -686,3 +686,49 @@ Every application role serving authenticated requests must enforce the new
 session-generation check. Do not roll back to a version that lacks it while
 passkey-only accounts exist: that version would accept their old email sessions
 and links. The feature does not change Fedify delivery or worker ownership.
+
+
+Ordered hashtag search
+----------------------
+
+Apply `20261106104307_ordered_hashtag_search` before starting application code
+that uses `post_hashtag`. The migration takes a `SHARE ROW EXCLUSIVE` lock on
+`post` through the backfill, index construction, trigger installation, and
+`ANALYZE`. Ordinary reads can continue, but existing write transactions can
+delay the lock and new writers queue behind it. Rehearse on a representative
+staging copy and schedule a quiet window based on the lock duration measured
+there.
+
+Apply the migration-only timeout override after mise loads `.env`, which can
+replace an externally supplied `DATABASE_URL`. Run this from the repository
+directory with the target database configured:
+
+~~~~ sh
+mise exec -- node --input-type=module <<'JS'
+import { spawnSync } from "node:child_process";
+const url = new URL(process.env.DATABASE_URL);
+url.searchParams.set("statement_timeout", "0");
+const result = spawnSync("pnpm", ["exec", "drizzle-kit", "migrate"], {
+  env: { ...process.env, DATABASE_URL: url.href },
+  stdio: "inherit",
+});
+if (result.error) throw result.error;
+process.exit(result.status ?? 1);
+JS
+~~~~
+
+The URL startup parameter was verified on the actual Drizzle Kit/Postgres.js
+connection; the tested runner did not consume the libpq `PGOPTIONS` override
+used by the `psql` examples above. The command preserves other URL parameters
+and the normal application connection's timeout settings.
+
+The single `DO` statement keeps the lock, backfill, and synchronization atomic
+regardless of the migration runner's transaction boundaries. A timeout rolls
+back the relation, functions, triggers, and migration receipt, allowing a retry.
+Old application writers are covered by the triggers after commit. The additive
+relation and triggers can remain when rolling the application back.
+
+See [the benchmark and migration rehearsal](benchmarks/hashtag-search.md) for
+local write/storage costs, query-plan evidence, and the remaining
+high-rejection search cost. Local synthetic timings are not production lock
+estimates.
