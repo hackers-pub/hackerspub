@@ -120,7 +120,11 @@ try {
         { type: "and", left: hashtag("sparse"), right: hashtag("popular") },
       ],
     ];
-    // Direct JSONB is a comparison candidate, including recursive expression semantics.
+    /**
+     * Compile the unfenced JSONB alternative for benchmark comparisons.
+     * Keep conjunctions recursive so tag intersections have the same semantics
+     * as the production compiler without its materialized membership lookup.
+     */
     function direct(expr: Expr): RelationsFilter<"postTable"> {
       if (expr.type === "hashtag")
         return { RAW: (t) => sql`${t.tags} ? ${expr.hashtag.toLowerCase()}` };

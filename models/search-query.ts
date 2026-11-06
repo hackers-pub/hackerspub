@@ -4,6 +4,13 @@ import { postHashtagTable, postTable } from "./schema.ts";
 import type { Expr } from "./search.ts";
 import type { Uuid } from "./uuid.ts";
 
+/**
+ * Compile the parsed expression without adding viewer or pagination filters.
+ * The default materializes hashtag membership to protect sparse-tag searches
+ * from long publication-index scans. Enable `hashtagRecheck` only after an
+ * indexed candidate relation narrows membership: the equivalent function
+ * predicate avoids a second GIN path that can be rescanned for each actor.
+ */
 export function compileQuery(
   expr: Expr,
   hashtagRecheck = false,
@@ -67,7 +74,11 @@ export function compileQuery(
   }
 }
 
-/** Tags that every matching post must have, without expanding OR branches. */
+/**
+ * Return normalized, distinct tags required by the entire expression.
+ * Only descend through conjunctions: an OR branch or negated term alone cannot
+ * safely restrict every result to posts with that tag.
+ */
 export function getRequiredHashtags(expr: Expr): string[] {
   switch (expr.type) {
     case "hashtag":
@@ -84,7 +95,12 @@ export function getRequiredHashtags(expr: Expr): string[] {
   }
 }
 
-/** Select IDs before hydrating search results, preserving the generic fallback. */
+/**
+ * Select IDs before hydrating search results, applying all filters before the
+ * page limit. Expressions with required tags use the ordered relation; other
+ * expressions retain the fenced generic query. Pass a limit including any
+ * connection lookahead; `until` bounds both the source and candidate dates.
+ */
 export async function getSearchPostPage(
   db: Database | Transaction,
   expr: Expr,
