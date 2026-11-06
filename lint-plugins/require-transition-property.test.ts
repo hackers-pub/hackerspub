@@ -1,0 +1,449 @@
+import assert from "node:assert";
+import test from "node:test";
+import { lintWithOxlint } from "./test-helper.ts";
+
+const RULE = "hackerspub-tailwind/require-transition-property";
+
+function lint(source: string) {
+  return lintWithOxlint(RULE, source);
+}
+
+test("flags a duration utility with no transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="rounded-full duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
+});
+
+test("flags an ease utility with no transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="rounded-full ease-out">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+// The regression this rule exists for: entrance-animation timing on a button
+// that also has a hover background.
+test("flags variant-prefixed timing beside an arbitrary bezier", () => {
+  const diagnostics = lint(`
+    export const React = () => (
+      <button
+        type="button"
+        class="rounded-full hover:bg-accent motion-safe:animate-in motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+      >
+        x
+      </button>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("flags each offending element separately", () => {
+  const diagnostics = lint(`
+    export const Row = () => (
+      <div>
+        <span class="duration-200">a</span>
+        <span class="ease-in">b</span>
+      </div>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 2);
+});
+
+test("flags timing declared through classList", () => {
+  const diagnostics = lint(`
+    export const Badge = (props: { active: boolean }) => (
+      <span class="rounded-full" classList={{ "duration-300": props.active }}>
+        1
+      </span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("does NOT flag timing paired with transition-none", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="rounded-full transition-none duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag timing paired with a property list", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition-colors duration-150 ease-out">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag the bare transition utility", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition duration-150">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag an arbitrary transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition-[width,height] duration-150">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+// The property declaration may live in either class source, so both are read
+// before deciding.
+test("does NOT flag when classList supplies the transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = (props: { active: boolean }) => (
+      <span
+        class="rounded-full duration-300"
+        classList={{ "transition-transform": props.active }}
+      >
+        1
+      </span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag a variant-prefixed transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="motion-safe:transition-none motion-safe:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("flags a transition property in an unrelated variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="motion-safe:duration-300 motion-reduce:transition-none">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("flags a transition property in a narrower variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="motion-safe:duration-300 motion-safe:hover:transition-none">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("does NOT flag a broader unprefixed transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition-none motion-safe:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag a transition property in a broader variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="dark:transition-none dark:motion-safe:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+// `transition-behavior`, not `transition-property`: it leaves the initial
+// `all` in place, so it must not satisfy the rule.
+test("flags transition-discrete standing in for a property list", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition-discrete duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("does NOT flag an element without timing utilities", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="rounded-full bg-accent hover:bg-muted">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+// A colon inside brackets belongs to the value, not to a variant prefix.
+test("does NOT mistake a bracketed colon for a variant separator", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="[&:hover]:transition-none [&:hover]:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag utilities that merely start like a timing one", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="durations easement">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+// Everything below is unreadable statically, so the rule stays quiet rather
+// than guessing: the class it asks for could be in the part it cannot see.
+test("does NOT flag a class expression it cannot read", () => {
+  const diagnostics = lint(`
+    declare const classes: string;
+    export const Badge = () => <span class={classes}>1</span>;
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag an interpolated class template", () => {
+  const diagnostics = lint(`
+    declare const extra: string;
+    export const Badge = () => (
+      <span class={\`duration-300 \${extra}\`}>1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag an element with a spread attribute", () => {
+  const diagnostics = lint(`
+    declare const rest: Record<string, unknown>;
+    export const Badge = () => <span class="duration-300" {...rest}>1</span>;
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag a spread inside classList", () => {
+  const diagnostics = lint(`
+    declare const extra: Record<string, boolean>;
+    export const Badge = () => (
+      <span class="duration-300" classList={{ ...extra }}>1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+// A static template literal is fully readable, so it is still checked.
+test("flags a template class with no interpolation", () => {
+  const diagnostics = lint(`
+    export const Badge = () => <span class={\`duration-300\`}>1</span>;
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("does NOT offer an autofix", () => {
+  const diagnostics = lint(`
+    export const Badge = () => <span class="duration-300">1</span>;
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].fix, []);
+});
+
+for (const timing of [
+  "!duration-300",
+  "duration-300!",
+  "!ease-out",
+  "ease-out!",
+]) {
+  test(`flags important timing ${timing}`, () => {
+    assert.equal(
+      lint(`export const Badge = () => <span class="${timing}" />;`).length,
+      1,
+    );
+  });
+}
+
+for (const transition of [
+  "!transition-none",
+  "transition-none!",
+  "!transition",
+  "transition!",
+]) {
+  test(`accepts important property ${transition} with variants`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="hover:${transition} hover:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+for (const behavior of [
+  "!transition-discrete",
+  "transition-discrete!",
+  "!transition-normal",
+  "transition-normal!",
+]) {
+  test(`does not accept important behavior ${behavior} as a property`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${behavior} duration-300" />;`,
+      ).length,
+      1,
+    );
+  });
+}
+
+for (const target of [
+  "*",
+  "**",
+  "before",
+  "after",
+  "placeholder",
+  "[&>span]",
+]) {
+  test(`requires a property on the same target as ${target} timing`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="transition-none ${target}:duration-300" />;`,
+      ).length,
+      1,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${target}:transition-none ${target}:hover:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+test("does not interchange conditions around target changes", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="before:hover:transition-none hover:before:duration-300" />;`,
+    ).length,
+    1,
+  );
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="hover:before:transition-none before:hover:duration-300" />;`,
+    ).length,
+    1,
+  );
+});
+
+test("allows a base property for arbitrary self conditions", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="transition-none [&:hover]:duration-300" />;`,
+    ).length,
+    0,
+  );
+});
+
+test("does not pair different pseudo-element targets", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="before:transition-none after:duration-300" />;`,
+    ).length,
+    1,
+  );
+});
+
+for (const value of [
+  "false",
+  "null",
+  "0",
+  '""',
+  "void 0",
+  "!true",
+  "0n",
+  "``",
+]) {
+  test(`ignores classList timing with falsy value ${value}`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span classList={{ "duration-300": ${value} }} />;`,
+      ).length,
+      0,
+    );
+  });
+  test(`does not accept classList property with falsy value ${value}`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="duration-300" classList={{ "transition-none": ${value} }} />;`,
+      ).length,
+      1,
+    );
+  });
+}
+
+test("accepts a statically truthy classList transition property", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="duration-300" classList={{ "transition-none": true }} />;`,
+    ).length,
+    0,
+  );
+});
+
+test("unknown classList transition values keep the scan inconclusive", () => {
+  assert.equal(
+    lint(
+      `export const Badge = (props: { active: boolean }) => <span class="duration-300" classList={{ "hover:transition-none": props.active }} />;`,
+    ).length,
+    0,
+  );
+});
+
+for (const target of ["before", "*", "[&>span]"]) {
+  test(`allows broader conditions before the ${target} target`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${target}:transition-none hover:${target}:duration-300" />;`,
+      ).length,
+      0,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="hover:${target}:transition-none ${target}:duration-300" />;`,
+      ).length,
+      1,
+    );
+  });
+}
+
+for (const pseudo of ["before", "after", "first-letter", "first-line"]) {
+  test(`treats single-colon ${pseudo} as a pseudo-element target`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="transition-none [&:${pseudo}]:duration-300" />;`,
+      ).length,
+      1,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="[&:${pseudo}]:transition-none [&:${pseudo}]:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+test("does not treat pseudo-element names in attribute values as targets", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="transition-none [&[data-state=':before']]:duration-300" />;`,
+    ).length,
+    0,
+  );
+});
