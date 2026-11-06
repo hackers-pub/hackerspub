@@ -421,3 +421,29 @@ for (const target of ["before", "*", "[&>span]"]) {
     );
   });
 }
+
+for (const pseudo of ["before", "after", "first-letter", "first-line"]) {
+  test(`treats single-colon ${pseudo} as a pseudo-element target`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="transition-none [&:${pseudo}]:duration-300" />;`,
+      ).length,
+      1,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="[&:${pseudo}]:transition-none [&:${pseudo}]:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+test("does not treat pseudo-element names in attribute values as targets", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="transition-none [&[data-state=':before']]:duration-300" />;`,
+    ).length,
+    0,
+  );
+});

@@ -150,6 +150,11 @@ const TARGET_VARIANTS = new Set([
 function changesTarget(variant: string): boolean {
   if (TARGET_VARIANTS.has(variant)) return true;
   if (!variant.startsWith("[") || variant.startsWith("[@")) return false;
+  // Ignore attribute contents when recognizing legacy single-colon
+  // pseudo-elements: a value containing `:before` does not change the target.
+  const selector = variant.slice(1, -1).replace(/\[[^\]]*\]/g, "");
+  if (/:(?:before|after|first-letter|first-line)(?=[^\w-]|$)/i.test(selector))
+    return true;
   // Simple self selectors only add conditions. For other arbitrary selectors,
   // require matching selectors rather than guessing at their target.
   return !/^\[&(?::[\w-]+|\[[^\]]*\])*\]$/.test(variant);
