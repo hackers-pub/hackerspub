@@ -435,6 +435,13 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
   },
+  postHashtagTable: {
+    post: r.one.postTable({
+      from: r.postHashtagTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+  },
   postTable: {
     contentVariants: r.many.postContentVariantTable(),
     actor: r.one.actorTable({

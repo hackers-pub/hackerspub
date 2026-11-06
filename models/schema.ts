@@ -1933,6 +1933,32 @@ export const postTable = pgTable(
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
 
+// A candidate index for recent hashtag pages. Database triggers keep these
+// rows in sync with post.tags and post.published, including old-code writes.
+// Hashes bound index entry size; queries still recheck the exact JSONB key.
+export const postHashtagTable = pgTable(
+  "post_hashtag",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    tagHash: uuid("tag_hash").notNull(),
+    published: timestamp({ withTimezone: true }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.tagHash] }),
+    index("idx_post_hashtag_tag_published").on(
+      table.tagHash,
+      desc(table.published),
+      table.postId,
+    ),
+  ],
+);
+
 /**
  * How a translated post content variant was produced, as far as it is known.
  *

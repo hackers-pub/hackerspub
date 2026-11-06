@@ -8,7 +8,7 @@ import {
 import { isPostObject } from "@hackerspub/models/post/core";
 import { persistPost } from "@hackerspub/models/post/remote";
 import { parseQuery } from "@hackerspub/models/search";
-import { compileQuery } from "@hackerspub/models/search-query";
+import { getSearchPostPage } from "@hackerspub/models/search-query";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
@@ -264,14 +264,12 @@ builder.queryFields((t) => ({
         throw createGraphQLError("Invalid search query format");
       }
 
-      const searchFilter = compileQuery(parsedQuery);
       const signedAccount = ctx.account;
 
       const languages = args.languages ?? [];
 
       const postFilter: RelationsFilter<"postTable"> = {
         AND: [
-          searchFilter,
           getPostVisibilityFilter(signedAccount?.actor ?? null),
           // Guests only search public posts (not unlisted):
           ...(signedAccount == null
@@ -295,16 +293,18 @@ builder.queryFields((t) => ({
                   ),
                 },
               },
-          until == null ? {} : { published: { lte: until } },
         ],
       };
 
-      const postPage = await ctx.db.query.postTable.findMany({
-        columns: { id: true },
-        where: postFilter,
-        orderBy: { published: "desc" },
-        limit: window + 1,
-      });
+      const postPage = await getSearchPostPage(
+        ctx.db,
+        parsedQuery,
+        postFilter,
+        {
+          limit: window + 1,
+          until,
+        },
+      );
 
       const postIds = postPage.map(({ id }) => id);
       const loadedPosts =
