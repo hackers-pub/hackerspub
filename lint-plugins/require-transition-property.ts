@@ -207,6 +207,36 @@ function scanClassAttribute(attribute: Node, scan: Scan): void {
   if ((expression.expressions?.length ?? 0) > 0) scan.opaque = true;
 }
 
+/** Returns null when a classList value's truthiness is not statically known. */
+function staticTruthiness(node: Node): boolean | null {
+  if (node == null) return null;
+  if (node.type === "NullLiteral") return false;
+  if (
+    [
+      "Literal",
+      "StringLiteral",
+      "NumericLiteral",
+      "BooleanLiteral",
+      "BigIntLiteral",
+    ].includes(node.type)
+  ) {
+    // ESTree bigint literals expose a bigint value; Babel exposes a string.
+    if (node.type === "BigIntLiteral") return BigInt(node.value) !== 0n;
+    return Boolean(node.value);
+  }
+  if (node.type === "UnaryExpression") {
+    if (node.operator === "void") return false;
+    if (node.operator === "!") {
+      const argument = staticTruthiness(node.argument);
+      return argument == null ? null : !argument;
+    }
+  }
+  if (node.type === "TemplateLiteral" && node.expressions.length === 0) {
+    return Boolean(node.quasis[0]?.value?.cooked);
+  }
+  return null;
+}
+
 function scanClassListAttribute(attribute: Node, scan: Scan): void {
   if (attribute.value?.type !== "JSXExpressionContainer") {
     scan.opaque = true;
@@ -222,15 +252,32 @@ function scanClassListAttribute(attribute: Node, scan: Scan): void {
       scan.opaque = true;
       continue;
     }
-    if (property.computed) {
+    const truthiness = staticTruthiness(property.value);
+    if (truthiness === false) continue;
+    if (
+      property.computed ||
+      property.method ||
+      (property.kind != null && property.kind !== "init")
+    ) {
       scan.opaque = true;
       continue;
     }
     const key =
       stringValue(property.key) ??
       (property.key?.type === "Identifier" ? property.key.name : null);
-    if (key == null) scan.opaque = true;
-    else scanTokens(key, attribute, scan);
+    if (key == null) {
+      scan.opaque = true;
+      continue;
+    }
+    const entry: Scan = { timings: [], transitions: [], opaque: false };
+    scanTokens(key, attribute, entry);
+    scan.timings.push(...entry.timings);
+    if (truthiness == null && entry.transitions.length > 0) {
+      // A dynamic property may cover timing, but is not known to be applied.
+      scan.opaque = true;
+    } else {
+      scan.transitions.push(...entry.transitions);
+    }
   }
 }
 

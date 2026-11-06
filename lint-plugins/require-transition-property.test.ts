@@ -358,3 +358,49 @@ test("does not pair different pseudo-element targets", () => {
     1,
   );
 });
+
+for (const value of [
+  "false",
+  "null",
+  "0",
+  '""',
+  "void 0",
+  "!true",
+  "0n",
+  "``",
+]) {
+  test(`ignores classList timing with falsy value ${value}`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span classList={{ "duration-300": ${value} }} />;`,
+      ).length,
+      0,
+    );
+  });
+  test(`does not accept classList property with falsy value ${value}`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="duration-300" classList={{ "transition-none": ${value} }} />;`,
+      ).length,
+      1,
+    );
+  });
+}
+
+test("accepts a statically truthy classList transition property", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="duration-300" classList={{ "transition-none": true }} />;`,
+    ).length,
+    0,
+  );
+});
+
+test("unknown classList transition values keep the scan inconclusive", () => {
+  assert.equal(
+    lint(
+      `export const Badge = (props: { active: boolean }) => <span class="duration-300" classList={{ "hover:transition-none": props.active }} />;`,
+    ).length,
+    0,
+  );
+});
