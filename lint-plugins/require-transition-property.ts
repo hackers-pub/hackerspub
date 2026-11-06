@@ -36,7 +36,7 @@
 //     the same or a broader variant scope: `transition-none` covers
 //     `motion-safe:duration-300`, but `motion-reduce:transition-none` does not.
 //     Target-changing variants (children, pseudo-elements, arbitrary selectors)
-//     must have matching ordered prefixes on both utilities.
+//     must appear in the same order, with conditions on the same targets.
 //   - An element whose classes cannot be read statically (a variable, a call,
 //     a template literal with interpolation, a spread attribute) is skipped
 //     entirely rather than guessed at: the missing piece could be the very
@@ -151,31 +151,47 @@ function changesTarget(variant: string): boolean {
   if (TARGET_VARIANTS.has(variant)) return true;
   if (!variant.startsWith("[") || variant.startsWith("[@")) return false;
   // Simple self selectors only add conditions. For other arbitrary selectors,
-  // require an exact prefix match rather than guessing at their target.
+  // require matching selectors rather than guessing at their target.
   return !/^\[&(?::[\w-]+|\[[^\]]*\])*\]$/.test(variant);
 }
 
 /**
- * Match the ordered prefix through the last target change exactly. Conditions
- * after that prefix may be broader on the transition utility. This prevents a
- * property on the parent from covering timing on a child or pseudo-element,
- * and keeps `hover:before` distinct from `before:hover`.
+ * Conditions may be broader on the transition utility, but must constrain the
+ * same target. Compare each condition segment before advancing to the next
+ * target change, keeping `hover:before` distinct from `before:hover`.
  */
 function transitionCoversTiming(
   transitionVariants: readonly string[],
   timingVariants: readonly string[],
 ): boolean {
-  const transitionTarget = transitionVariants.findLastIndex(changesTarget);
-  const timingTarget = timingVariants.findLastIndex(changesTarget);
-  if (transitionTarget !== timingTarget) return false;
-  for (let index = 0; index <= transitionTarget; index++) {
-    if (transitionVariants[index] !== timingVariants[index]) return false;
+  let transitionStart = 0;
+  let timingStart = 0;
+  while (true) {
+    let transitionEnd = transitionStart;
+    let timingEnd = timingStart;
+    while (
+      transitionEnd < transitionVariants.length &&
+      !changesTarget(transitionVariants[transitionEnd])
+    )
+      transitionEnd++;
+    while (
+      timingEnd < timingVariants.length &&
+      !changesTarget(timingVariants[timingEnd])
+    )
+      timingEnd++;
+    const timingConditions = timingVariants.slice(timingStart, timingEnd);
+    if (
+      !transitionVariants
+        .slice(transitionStart, transitionEnd)
+        .every((variant) => timingConditions.includes(variant))
+    )
+      return false;
+    if (transitionVariants[transitionEnd] !== timingVariants[timingEnd])
+      return false;
+    if (transitionEnd === transitionVariants.length) return true;
+    transitionStart = transitionEnd + 1;
+    timingStart = timingEnd + 1;
   }
-  return transitionVariants
-    .slice(transitionTarget + 1)
-    .every((variant) =>
-      timingVariants.slice(timingTarget + 1).includes(variant),
-    );
 }
 
 function scanClassAttribute(attribute: Node, scan: Scan): void {

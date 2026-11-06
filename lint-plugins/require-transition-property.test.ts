@@ -404,3 +404,20 @@ test("unknown classList transition values keep the scan inconclusive", () => {
     0,
   );
 });
+
+for (const target of ["before", "*", "[&>span]"]) {
+  test(`allows broader conditions before the ${target} target`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${target}:transition-none hover:${target}:duration-300" />;`,
+      ).length,
+      0,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="hover:${target}:transition-none ${target}:duration-300" />;`,
+      ).length,
+      1,
+    );
+  });
+}
