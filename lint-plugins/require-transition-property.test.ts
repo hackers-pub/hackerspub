@@ -301,3 +301,60 @@ for (const behavior of [
     );
   });
 }
+
+for (const target of [
+  "*",
+  "**",
+  "before",
+  "after",
+  "placeholder",
+  "[&>span]",
+]) {
+  test(`requires a property on the same target as ${target} timing`, () => {
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="transition-none ${target}:duration-300" />;`,
+      ).length,
+      1,
+    );
+    assert.equal(
+      lint(
+        `export const Badge = () => <span class="${target}:transition-none ${target}:hover:duration-300" />;`,
+      ).length,
+      0,
+    );
+  });
+}
+
+test("does not interchange conditions around target changes", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="before:hover:transition-none hover:before:duration-300" />;`,
+    ).length,
+    1,
+  );
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="hover:before:transition-none before:hover:duration-300" />;`,
+    ).length,
+    1,
+  );
+});
+
+test("allows a base property for arbitrary self conditions", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="transition-none [&:hover]:duration-300" />;`,
+    ).length,
+    0,
+  );
+});
+
+test("does not pair different pseudo-element targets", () => {
+  assert.equal(
+    lint(
+      `export const Badge = () => <span class="before:transition-none after:duration-300" />;`,
+    ).length,
+    1,
+  );
+});

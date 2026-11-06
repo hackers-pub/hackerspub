@@ -35,6 +35,8 @@
 //     are read together.  A `transition-*` satisfies timing utilities only in
 //     the same or a broader variant scope: `transition-none` covers
 //     `motion-safe:duration-300`, but `motion-reduce:transition-none` does not.
+//     Target-changing variants (children, pseudo-elements, arbitrary selectors)
+//     must have matching ordered prefixes on both utilities.
 //   - An element whose classes cannot be read statically (a variable, a call,
 //     a template literal with interpolation, a spread attribute) is skipped
 //     entirely rather than guessed at: the missing piece could be the very
@@ -129,20 +131,51 @@ function scanTokens(source: string, attribute: Node, scan: Scan): void {
   }
 }
 
+/** Variants that select another element rather than constrain the current one. */
+const TARGET_VARIANTS = new Set([
+  "*",
+  "**",
+  "before",
+  "after",
+  "first-letter",
+  "first-line",
+  "marker",
+  "selection",
+  "file",
+  "placeholder",
+  "backdrop",
+  "details-content",
+]);
+
+function changesTarget(variant: string): boolean {
+  if (TARGET_VARIANTS.has(variant)) return true;
+  if (!variant.startsWith("[") || variant.startsWith("[@")) return false;
+  // Simple self selectors only add conditions. For other arbitrary selectors,
+  // require an exact prefix match rather than guessing at their target.
+  return !/^\[&(?::[\w-]+|\[[^\]]*\])*\]$/.test(variant);
+}
+
 /**
- * Variant prefixes act as constraints.  A transition property covers a
- * timing utility when every one of its constraints is also present on that
- * timing utility.  The empty scope therefore covers all variants, while
- * `dark:transition-colors` covers `dark:hover:duration-150` but not the
- * unrelated `motion-safe:duration-150`.
+ * Match the ordered prefix through the last target change exactly. Conditions
+ * after that prefix may be broader on the transition utility. This prevents a
+ * property on the parent from covering timing on a child or pseudo-element,
+ * and keeps `hover:before` distinct from `before:hover`.
  */
 function transitionCoversTiming(
   transitionVariants: readonly string[],
   timingVariants: readonly string[],
 ): boolean {
-  return transitionVariants.every((variant) =>
-    timingVariants.includes(variant),
-  );
+  const transitionTarget = transitionVariants.findLastIndex(changesTarget);
+  const timingTarget = timingVariants.findLastIndex(changesTarget);
+  if (transitionTarget !== timingTarget) return false;
+  for (let index = 0; index <= transitionTarget; index++) {
+    if (transitionVariants[index] !== timingVariants[index]) return false;
+  }
+  return transitionVariants
+    .slice(transitionTarget + 1)
+    .every((variant) =>
+      timingVariants.slice(timingTarget + 1).includes(variant),
+    );
 }
 
 function scanClassAttribute(attribute: Node, scan: Scan): void {
