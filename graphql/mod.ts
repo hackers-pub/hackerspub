@@ -1,4 +1,5 @@
 import type { GraphQLSchema } from "graphql";
+import { instrumentRequestWork } from "./request-work.ts";
 import "./account.ts";
 import "./account-email.ts";
 import "./account-security.ts";
@@ -38,4 +39,4 @@ import "./webfinger.ts";
 export type { UserContext as Context } from "./builder.ts";
 export { createYogaServer } from "./server.ts";
 
-export const schema: GraphQLSchema = builder.toSchema();
+export const schema: GraphQLSchema = instrumentRequestWork(builder.toSchema());

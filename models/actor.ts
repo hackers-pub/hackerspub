@@ -10,7 +10,6 @@ import {
 import * as vocab from "@fedify/vocab";
 import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
-import { delay } from "es-toolkit";
 import {
   aliasedTable,
   and,
@@ -37,6 +36,11 @@ import { renderMarkup } from "./markup.ts";
 import { isNewsBotActorType, refreshNewsScoresForActor } from "./news.ts";
 import { isPostObject } from "./post/core.ts";
 import { persistPost, persistSharedPost } from "./post/remote.ts";
+import {
+  getRequestWorkSignal,
+  throwIfRequestWorkAborted,
+  trackRequestWork,
+} from "./request-work.ts";
 import {
   type Account,
   type AccountEmail,
@@ -119,7 +123,7 @@ async function mapWithConcurrencyLimit<T, TResult>(
       return result;
     },
   );
-  return (await Promise.all(workers)).flat();
+  return (await Promise.all(workers.map(trackRequestWork))).flat();
 }
 
 export async function syncActorFromAccount(
@@ -208,6 +212,7 @@ export async function persistActor(
     })
   | undefined
 > {
+  throwIfRequestWorkAborted();
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
     logger.warn("Actor {actorId} has no inbox.", { actorId: actor.id.href });
@@ -241,16 +246,21 @@ export async function persistActor(
     return undefined;
   }
   const getterOpts = { ...options, suppressError: true };
+  throwIfRequestWorkAborted();
   const [attachments, avatar, header, followees, followers] = await Promise.all(
     [
-      Array.fromAsync(actor.getAttachments(getterOpts)),
-      actor.getIcon(getterOpts),
-      actor.getImage(getterOpts),
-      getOptionalActorValue(actor.id, "following", () =>
-        actor.getFollowing(getterOpts),
+      trackRequestWork(Array.fromAsync(actor.getAttachments(getterOpts))),
+      trackRequestWork(actor.getIcon(getterOpts)),
+      trackRequestWork(actor.getImage(getterOpts)),
+      trackRequestWork(
+        getOptionalActorValue(actor.id, "following", () =>
+          actor.getFollowing(getterOpts),
+        ),
       ),
-      getOptionalActorValue(actor.id, "followers", () =>
-        actor.getFollowers(getterOpts),
+      trackRequestWork(
+        getOptionalActorValue(actor.id, "followers", () =>
+          actor.getFollowers(getterOpts),
+        ),
       ),
     ],
   );
@@ -476,6 +486,7 @@ export async function persistActorsByHandles(
   ctx: ApplicationContext,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
+  throwIfRequestWorkAborted();
   const filter: RelationsFilter<"actorTable">[] = [];
   const handlesToFetch = new Set<string>();
   for (let handle of handles) {
@@ -523,16 +534,32 @@ export async function persistActorsByHandles(
   const apActors = await mapWithConcurrencyLimit(
     lookupHandles,
     HANDLE_LOOKUP_CONCURRENCY,
-    (handle) =>
-      Promise.race([
-        ctx.lookupObject(handle, { documentLoader }).catch((error) => {
-          logger.warn("Failed to lookup actor {handle}: {error}", {
-            handle,
-            error,
-          });
-          return null;
+    async (handle) => {
+      throwIfRequestWorkAborted();
+      // The raw lookup still owns work after the rendering timeout wins.
+      // Register it before racing so snapshot/admission ownership survives.
+      const lookup = trackRequestWork(
+        ctx.lookupObject(handle, {
+          documentLoader,
+          signal: getRequestWorkSignal(),
         }),
-        delay(5000).then(async () => {
+      ).catch((error) => {
+        throwIfRequestWorkAborted();
+        logger.warn("Failed to lookup actor {handle}: {error}", {
+          handle,
+          error,
+        });
+        return null;
+      });
+      const timedOut = Symbol("actor lookup timed out");
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<typeof timedOut>((resolve) => {
+        timer = setTimeout(() => resolve(timedOut), 5_000);
+      });
+      try {
+        const actor = await Promise.race([lookup, timeout]);
+        throwIfRequestWorkAborted();
+        if (actor === timedOut) {
           logger.warn("Timeout while looking up actor {handle}, skipping.", {
             handle,
           });
@@ -542,8 +569,12 @@ export async function persistActorsByHandles(
             300_000,
           );
           return null;
-        }),
-      ]),
+        }
+        return actor;
+      } finally {
+        clearTimeout(timer);
+      }
+    },
   );
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;

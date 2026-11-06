@@ -145,15 +145,15 @@ Cutover
     SQL
     ~~~~
 
-    If an existing index has invalid flags or a different definition, remove
-    it with `DROP INDEX CONCURRENTLY idx_post_link_url_latest` and repeat the
+    If an existing index has invalid flags or a different definition, remove it
+    with `DROP INDEX CONCURRENTLY idx_post_link_url_latest` and repeat the
     build in separate invocations. Inspect the index again before continuing.
     Keep `idx_post_link_url_hash` through the rollback window: the previous
     release's lookup needs it because it cannot use the new expression index.
 
 5.  A release that switches email delivery from Mailgun to Maileroo needs a
-    verified Maileroo sending domain before it starts.  Give the API and
-    worker `MAILEROO_KEY` (the domain's sending key) and set `EMAIL_FROM` to an
+    verified Maileroo sending domain before it starts.  Give the API and worker
+    `MAILEROO_KEY` (the domain's sending key) and set `EMAIL_FROM` to an
     address on that domain; `MAILGUN_FROM` is no longer read.  The new image
     refuses to start in production without `MAILEROO_KEY`.  In development,
     test, and build modes without this key, emails are logged with their
@@ -173,11 +173,10 @@ Cutover
     Installations upgraded from the removed Fresh application also need
     `mise run migrate:media` once; it is safe to repeat and never overwrites.
 
-    Installations with articles published before post content variants
-    existed also need `mise run migrate:variants` once, after the API is
-    running on the new image.  It rebuilds each local article's language
-    variants from its published versions, federates nothing, and is safe to
-    repeat.
+    Installations with articles published before post content variants existed
+    also need `mise run migrate:variants` once, after the API is running on the
+    new image.  It rebuilds each local article's language variants from its
+    published versions, federates nothing, and is safe to repeat.
 
 7.  Restart the roles in this order, waiting for each probe to pass before
     continuing: **worker → API → web UI.**  The worker first because it drains
@@ -234,10 +233,10 @@ Nothing automated covers the rest, so walk through it by hand:
 Rollback
 --------
 
-Roll back by redeploying the previously recorded image tag, in reverse
-cutover order: **web UI → API → worker**, then rerunning the post-deploy
-checks.  The web UI goes first because the newer composer queries fields such
-as `Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
+Roll back by redeploying the previously recorded image tag, in reverse cutover
+order: **web UI → API → worker**, then rerunning the post-deploy checks.  The
+web UI goes first because the newer composer queries fields such as
+`Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
 not expose, while the older web UI keeps working against the newer API.
 
 The `idx_post_url_hash` index added for [#390] is additive and can remain in
@@ -298,10 +297,10 @@ WHERE a.kind = 'personal'
 ~~~~
 
 Reconcile these accounts before deploying: email sign-in now requires a
-verified address.  Verify ownership through an established trusted channel;
-do not mark an address verified solely to make the query return no rows.
-Accounts with no remaining credentials cannot use Settings to repair their
-access.  This feature does not provide a standard recovery procedure.
+verified address.  Verify ownership through an established trusted channel; do
+not mark an address verified solely to make the query return no rows. Accounts
+with no remaining credentials cannot use Settings to repair their access.  This
+feature does not provide a standard recovery procedure.
 
 Gravatar now uses the primary verified address only, so adding a secondary
 address does not publish its hash or change the avatar.  Legacy accounts with
@@ -324,35 +323,35 @@ task correctness does not depend on Redis deduplication markers or CAS.
 Model code dispatches through `ApplicationContext.enqueueTask()`.  Put the
 state change and dispatch inside `withTransaction()` and await dispatch there.
 The Fedify envelope is inserted using that same database transaction, before
-commit.  Rollback removes both state and intent; enqueue failure propagates
-and rolls back the transaction.  After commit there is no separate enqueue
-step to lose: a worker can poll the intent even if the API crashes immediately.
-Do not move this dispatch into the in-memory after-commit callbacks or catch
-an enqueue error and continue the transaction.
+commit.  Rollback removes both state and intent; enqueue failure propagates and
+rolls back the transaction.  After commit there is no separate enqueue step to
+lose: a worker can poll the intent even if the API crashes immediately. Do not
+move this dispatch into the in-memory after-commit callbacks or catch an
+enqueue error and continue the transaction.
 
-Payloads are plain JSON identifiers, revisions, and job tokens, validated by
-an idempotent Standard Schema on enqueue and dequeue.  Avoid credentials,
-vocabulary objects, and other values whose encoding could perform network
-I/O inside a transaction.  The application descriptor resolves to the exact
-Fedify handle registered on the shared builder.  The handler receives
+Payloads are plain JSON identifiers, revisions, and job tokens, validated by an
+idempotent Standard Schema on enqueue and dequeue.  Avoid credentials,
+vocabulary objects, and other values whose encoding could perform network I/O
+inside a transaction.  The application descriptor resolves to the exact Fedify
+handle registered on the shared builder.  The handler receives
 `(ApplicationContext, payload, { signal, attempt })`; it must await execution,
 result persistence, and any follow-up dispatch, and pass `signal` to
 cancellable I/O.
 
-Delivery is **at least once**.  Every new enqueue has a new transport ID;
-the DB unique index suppresses replay of that transport ID, not independent
+Delivery is **at least once**.  Every new enqueue has a new transport ID; the
+DB unique index suppresses replay of that transport ID, not independent
 requests for the same job.  Each workload must enforce DB-backed claims,
-revision checks, and side-effect guards.  Enqueue deduplication is not execution
-idempotency.  The `application.probe.v1` task demonstrates this with an
-`application_task_receipt` UUID primary key and an idempotent insert.  Receipts
-are retained independently of the queue's completed-message retention.
+revision checks, and side-effect guards.  Enqueue deduplication is not
+execution idempotency.  The `application.probe.v1` task demonstrates this with
+an `application_task_receipt` UUID primary key and an idempotent insert.
+Receipts are retained independently of the queue's completed-message retention.
 
 Ordering keys are optional and are namespaced separately from ActivityPub
 keys.  The advisory lock taken during enqueue lasts until the caller's
 transaction commits.  Acquire multiple keys in a consistent order: otherwise
-PostgreSQL can abort a deadlock victim, rolling back its state and intents.
-A delayed retry blocks later work with the same key; choose keys only when
-that FIFO behavior is required.
+PostgreSQL can abort a deadlock victim, rolling back its state and intents. A
+delayed retry blocks later work with the same key; choose keys only when that
+FIFO behavior is required.
 
 ### Retries, timeouts, and shutdown
 
@@ -362,56 +361,57 @@ in Fedify's `ParallelMessageQueue`: that wrapper returns to the backend before
 the real handler finishes.
 
 The task backend declares `nativeRetrial: true`, so Fedify rethrows handler
-failures and the DB queue owns the retry budget.  The default is three attempts,
-with 5-second and 10-second delays before retries.  A hard worker termination
-consumes its claimed attempt; repeated terminations cannot cause unlimited
-execution.  Per-task Fedify `retryPolicy` does not run on this backend.  Future
-workloads needing another budget must configure a dedicated task queue with
-`maximumProcessingAttempts` rather than layering a second retry mechanism.
+failures and the DB queue owns the retry budget.  The default is three
+attempts, with 5-second and 10-second delays before retries.  A hard worker
+termination consumes its claimed attempt; repeated terminations cannot cause
+unlimited execution.  Per-task Fedify `retryPolicy` does not run on this
+backend.  Future workloads needing another budget must configure a dedicated
+task queue with `maximumProcessingAttempts` rather than layering a second retry
+mechanism.
 
 Each task has a 30-minute deadline, a 3-minute lease, and 60-second renewal.
-Custom renewal intervals must be shorter than half the lease duration.
-A deadline aborts the execution signal with `ApplicationTaskTimeoutError` and
+Custom renewal intervals must be shorter than half the lease duration. A
+deadline aborts the execution signal with `ApplicationTaskTimeoutError` and
 counts as a failure.  Definitive lease loss cancels execution; transient
 renewal errors are logged and tolerated until the last successful renewal is
 within one heartbeat interval of expiry.  Old lease tokens cannot complete,
 retry, or fail a row reclaimed by another worker.  This fence protects queue
-state; workload guards must also protect application writes and external
-side effects during a network partition.
+state; workload guards must also protect application writes and external side
+effects during a network partition.
 
-SIGINT/SIGTERM stops new claims and cancels running handlers.  The worker
-waits for the **actual handlers and outstanding lease writes** before closing
+SIGINT/SIGTERM stops new claims and cancels running handlers.  The worker waits
+for the **actual handlers and outstanding lease writes** before closing
 resources.  Drained interrupted rows return to `pending` without spending a
-failure attempt, including an interruption on the last allowed attempt.
-If a deadline or lease failure already cancelled execution before shutdown,
-that failure still consumes its attempt.
-`last_error.details.interruptions` and structured release logs expose repeated
-interruption/starvation.  A handler that returns after cancellation is also
-released rather than acknowledged, so an effect committed during drain may
-execute again.  Make the entire operation idempotent.
+failure attempt, including an interruption on the last allowed attempt. If a
+deadline or lease failure already cancelled execution before shutdown, that
+failure still consumes its attempt. `last_error.details.interruptions` and
+structured release logs expose repeated interruption/starvation.  A handler
+that returns after cancellation is also released rather than acknowledged, so
+an effect committed during drain may execute again.  Make the entire operation
+idempotent.
 
 A handler ignoring cancellation can delay shutdown indefinitely.  Its lease
 continues renewing while it drains, avoiding overlap with a still-live worker.
-Timeout logs identify the event immediately, and later renewal ticks warn
-that it is still draining.  The worker health file proves process liveness,
-not task progress.  Give the supervisor a stop grace slightly longer than
-30 minutes for long LLM jobs, or explicitly accept restart when choosing a
-shorter grace.  If draining never ends, terminate the worker with SIGKILL and
-restart it; recovery takes up to three minutes after its last successful
-renewal.  Plan deploy cadence so long tasks can finish, or pause producers
-and drain before deployment.
+Timeout logs identify the event immediately, and later renewal ticks warn that
+it is still draining.  The worker health file proves process liveness, not task
+progress.  Give the supervisor a stop grace slightly longer than 30 minutes for
+long LLM jobs, or explicitly accept restart when choosing a shorter grace.  If
+draining never ends, terminate the worker with SIGKILL and restart it; recovery
+takes up to three minutes after its last successful renewal.  Plan deploy
+cadence so long tasks can finish, or pause producers and drain before
+deployment.
 
 ### Observability and recovery
 
 Fedify emits `fedify.task` spans with `fedify.task.name` and the zero-based
 `fedify.task.attempt`, plus the `fedify.queue.task.*` metrics.  The backend
 presents its DB attempt count to Fedify without rewriting the stored payload.
-On this native-retry backend a retryable handler error records a failed span
-on each attempt; a queue retry log and `processing_attempts` distinguish those
-from terminal dead letters.  Unknown names and codec/schema failures still
-emit Fedify's `unknown_task`, `deserialization`, or `validation` failure reason.
-The registered-handler entry guard retains those dropped messages as `dead`
-with `TaskDispatchRejectedError`, rather than clearing them as completed.
+On this native-retry backend a retryable handler error records a failed span on
+each attempt; a queue retry log and `processing_attempts` distinguish those
+from terminal dead letters.  Unknown names and codec/schema failures still emit
+Fedify's `unknown_task`, `deserialization`, or `validation` failure reason. The
+registered-handler entry guard retains those dropped messages as `dead` with
+`TaskDispatchRejectedError`, rather than clearing them as completed.
 
 Use the operator CLI (with the same environment as the API/worker):
 
@@ -462,16 +462,16 @@ operators must restore compatibility and replay it.
 For rollback, stop/revert the newer producers first and retain compatible
 workers until their pending/processing tasks drain.  Do not rename/remove a
 task or narrow its schema while pending, processing, or recoverable dead rows
-still require it.  The receipt migration can remain in place.  Review
-retained dead rows before retiring a registration.  Restore a compatible
-worker and replay affected IDs after a mistaken incompatible deployment.
+still require it.  The receipt migration can remain in place.  Review retained
+dead rows before retiring a registration.  Restore a compatible worker and
+replay affected IDs after a mistaken incompatible deployment.
 
 The infrastructure regression suite runs a separate producer and task-only
 worker against the test PostgreSQL backend, including SIGKILL both before
 persistence and after persistence but before acknowledgment.  It deliberately
 runs no cron, email, ActivityPub delivery, or LLM calls. Separate regression
-suites cover the migrated translation, summary, and scheduled workloads;
-their execution and recovery behavior is documented in the following sections.
+suites cover the migrated translation, summary, and scheduled workloads; their
+execution and recovery behavior is documented in the following sections.
 
 See [Fedify's task documentation] for the serialization, retry, and telemetry
 contracts.
@@ -525,27 +525,27 @@ including provider quota errors. Exhaustion is visible and replayable.
 
 The guard reserves one DB connection (with its local idle transaction timeout
 disabled); recipient progress uses the root DB and commits independently on
-another connection. Guard rollback cannot erase sent-recipient records.
-The worker checks guard liveness and cancellation before claims/sends, awaits
-an in-flight send without cancelling it, saves accepted recipients, then
-observes cancellation. A retry reclaims unfinished delivery claims immediately
-under the guard and skips recipients already saved. If mail succeeds but both
-progress and failure-record writes fail, or the process is killed between send
-and save, replay may send duplicates. Guard loss during a send has the same
-ambiguity. This is at-least-once email delivery, not exactly once.
+another connection. Guard rollback cannot erase sent-recipient records. The
+worker checks guard liveness and cancellation before claims/sends, awaits an
+in-flight send without cancelling it, saves accepted recipients, then observes
+cancellation. A retry reclaims unfinished delivery claims immediately under the
+guard and skips recipients already saved. If mail succeeds but both progress
+and failure-record writes fail, or the process is killed between send and save,
+replay may send duplicates. Guard loss during a send has the same ambiguity.
+This is at-least-once email delivery, not exactly once.
 
 On shutdown, stop future cron ticks and drain accepted dispatch writes and the
-retained rescore drain. Queue shutdown separately waits for actual handlers
-and their recipient progress before closing transports/DB resources. Task
-payloads contain no credentials; only the worker supplies the execution
-capability with runtime email resources. A missing capability fails visibly
-and eventually leaves a dead task.
+retained rescore drain. Queue shutdown separately waits for actual handlers and
+their recipient progress before closing transports/DB resources. Task payloads
+contain no credentials; only the worker supplies the execution capability with
+runtime email resources. A missing capability fails visibly and eventually
+leaves a dead task.
 
 Apply the dispatch-watermark migration before starting new workers. Stop and
 drain **all legacy worker schedules and digest sends** before enabling the new
 workers: legacy senders do not acquire the digest guard. Avoid a cutover that
-straddles the weekly/daily UTC digest ticks because there is no catch-up.
-Both roles register `scheduled.worker.v1`; retain this registration and payload
+straddles the weekly/daily UTC digest ticks because there is no catch-up. Both
+roles register `scheduled.worker.v1`; retain this registration and payload
 schema on rollback until pending, processing and recoverable dead tasks drain.
 An older worker can consume and dead-letter an unknown scheduled task.
 
@@ -553,9 +553,9 @@ Inspect dead scheduled tasks using the common operator CLI and outbox queries.
 Later poll/pruning ticks usually cover a failed tick's backlog; a later news
 tick recomputes its active window. Decide whether to replay or deliberately
 abandon these old ticks using the documented dead-letter procedure. Digest
-replay always targets its original period and preserves known recipients.
-Do not mistake a dispatch watermark or a later tick for evidence that the
-failed task completed.
+replay always targets its original period and preserves known recipients. Do
+not mistake a dispatch watermark or a later tick for evidence that the failed
+task completed.
 
 ### Article translation tasks
 
@@ -573,39 +573,39 @@ publish conflicting results, but an interrupted call or expired lease can
 repeat LLM work. Retries use the same token and re-read the current claim,
 including after worker termination. A killed worker's event becomes reclaimable
 after the queue lease expires (normally three minutes), consuming one of the
-three attempts. The existing 30-minute reader reclaim window also remains:
-a reader may supersede a slow active or retrying job with a new token. This can
+three attempts. The existing 30-minute reader reclaim window also remains: a
+reader may supersede a slow active or retrying job with a new token. This can
 waste an LLM call; the token and claim checks discard its obsolete result.
 
 Ordinary LLM or persistence failures retain the placeholder and age its claim,
 so either a queued retry or a new reader request can recover it immediately.
-Cancellation retains the claim for worker recovery. Exhausted tasks retain their
-payload in the dead-letter queue. Use the `dead` and `replay` commands above;
-replay is useful only while the placeholder still has the payload's token.
-A completed, deleted, or superseded job is a no-op. If the original changes
-without rotating an unfinished job's token (for example, a title-only edit),
-the worker atomically refreshes its placeholder and queues a replacement
-instead of leaving it without queued work. Existing placeholders from
-before this migration become queued work on their next stale reader request.
+Cancellation retains the claim for worker recovery. Exhausted tasks retain
+their payload in the dead-letter queue. Use the `dead` and `replay` commands
+above; replay is useful only while the placeholder still has the payload's
+token. A completed, deleted, or superseded job is a no-op. If the original
+changes without rotating an unfinished job's token (for example, a title-only
+edit), the worker atomically refreshes its placeholder and queues a replacement
+instead of leaving it without queued work. Existing placeholders from before
+this migration become queued work on their next stale reader request.
 
-A successful translation persists a summary intent and a `summaryStarted`
-claim in the same completion transaction. All persisted article summaries now
-use this task contract, as described below.
+A successful translation persists a summary intent and a `summaryStarted` claim
+in the same completion transaction. All persisted article summaries now use
+this task contract, as described below.
 
 Deploy compatible worker registrations before enabling these producers, and
 retain both task names and payload schemas while their messages remain queued,
 including when migrating the other summary triggers. Rolling back to a worker
-without these registrations drops unknown messages: drain or retain a compatible
-worker rather than relying on rollback to recover them. No database migration
-is required beyond the common application-task infrastructure.
+without these registrations drops unknown messages: drain or retain a
+compatible worker rather than relying on rollback to recover them. No database
+migration is required beyond the common application-task infrastructure.
 
 ### Article summary tasks
 
 Article creation, body/language edits, human translation publication, and
-completed automatic translations persist summary claims and task intents in
-the same database transaction as the corresponding content. The API only
-produces work; it does not call the summarizer. The worker awaits the LLM and
-atomic updates of article content, reader variants, and the original-language
+completed automatic translations persist summary claims and task intents in the
+same database transaction as the corresponding content. The API only produces
+work; it does not call the summarizer. The worker awaits the LLM and atomic
+updates of article content, reader variants, and the original-language
 `post.summary` before acknowledging completion. Additional human translations
 published together with the original retain their existing trigger coverage.
 
@@ -625,22 +625,22 @@ mirrors. Empty summaries and results that are not shorter than visible input
 LLM and database exceptions reach the queue's bounded three-attempt policy.
 Failures and cancellations retain the claim: the same payload retries on the
 queue's backoff without waiting for the 30-minute stale-claim threshold. A
-superseded task completes as a no-op on its next attempt, releasing its ordering
-key for newer work. Invalid task names/payloads are terminal dead letters.
-Queue logs and `last_error` expose failures; use the application-task inspection
-and replay commands above after fixing the underlying problem. Replay of a
-completed or superseded summary does not regenerate it. Exhausted tasks retain
-claims until replay or a body/language edit requests new work; title-only edits
-do not restart summary generation.
+superseded task completes as a no-op on its next attempt, releasing its
+ordering key for newer work. Invalid task names/payloads are terminal dead
+letters. Queue logs and `last_error` expose failures; use the application-task
+inspection and replay commands above after fixing the underlying problem.
+Replay of a completed or superseded summary does not regenerate it. Exhausted
+tasks retain claims until replay or a body/language edit requests new work;
+title-only edits do not restart summary generation.
 
 Worker termination during generation is recovered after lease expiry. A worker
 terminated after summary persistence but before acknowledgement finds completed
-content on retry and skips the LLM. Cancellation before transaction commit rolls
-back all summary writes and can repeat an LLM call on recovery. Neither this
-migration nor the translation migration provides a periodic summary recovery
-scan. Legacy in-process claims without a queued intent require a body/language
-edit or an explicit `startArticleContentSummary` call after the existing
-30-minute reclaim threshold.
+content on retry and skips the LLM. Cancellation before transaction commit
+rolls back all summary writes and can repeat an LLM call on recovery. Neither
+this migration nor the translation migration provides a periodic summary
+recovery scan. Legacy in-process claims without a queued intent require a
+body/language edit or an explicit `startArticleContentSummary` call after the
+existing 30-minute reclaim threshold.
 
 
 Passkey-only accounts and recovery
@@ -654,12 +654,12 @@ login links. A later return to email sign-in does not revive revoked
 credentials.
 
 Users enable the setting in Settings → Passkeys after registering at least one
-passkey. Activation issues ten one-time recovery codes and shows them only once.
-Only hashes are stored. Users must save these codes offline, separately from
-passkeys. Adding or removing passkeys while email sign-in is disabled requires
-a fresh assertion from an existing passkey; the last passkey cannot be removed.
-Native clients retain their existing passkey login API, but must adopt the
-additive security-proof arguments for strict-mode passkey management.
+passkey. Activation issues ten one-time recovery codes and shows them only
+once. Only hashes are stored. Users must save these codes offline, separately
+from passkeys. Adding or removing passkeys while email sign-in is disabled
+requires a fresh assertion from an existing passkey; the last passkey cannot be
+removed. Native clients retain their existing passkey login API, but must adopt
+the additive security-proof arguments for strict-mode passkey management.
 
 A user who loses access to every passkey can choose “Sign in with a recovery
 code” on the sign-in page. Recovery consumes one code, keeps email sign-in
@@ -724,11 +724,188 @@ and the normal application connection's timeout settings.
 
 The single `DO` statement keeps the lock, backfill, and synchronization atomic
 regardless of the migration runner's transaction boundaries. A timeout rolls
-back the relation, functions, triggers, and migration receipt, allowing a retry.
-Old application writers are covered by the triggers after commit. The additive
-relation and triggers can remain when rolling the application back.
+back the relation, functions, triggers, and migration receipt, allowing a
+retry. Old application writers are covered by the triggers after commit. The
+additive relation and triggers can remain when rolling the application back.
 
 See [the benchmark and migration rehearsal](benchmarks/hashtag-search.md) for
 local write/storage costs, query-plan evidence, and the remaining
 high-rejection search cost. Local synthetic timings are not production lock
 estimates.
+
+
+Anonymous web read admission
+----------------------------
+
+The API limits concurrent expensive guest GraphQL queries before opening their
+snapshot transactions. The limit covers queries arriving directly or through
+web-next, including distinct parameters and multiple client addresses. It does
+not apply a blanket cache or throttle to `/_server`. Mutations, authenticated
+query execution, and ActivityPub HTTP traffic have separate behavior. This does
+not implement protocol-process isolation (#443) or SSR deadlines (#444).
+
+Excess requests receive HTTP `503 Service Unavailable`, `Retry-After: 1`,
+`Cache-Control: no-store`, and GraphQL code `ANONYMOUS_READ_OVERLOADED`. There
+is no queue for distinct queries. A disconnected caller stops waiting, but its
+execution slot remains occupied until its actual resolver, SQL, external
+lookup, snapshot retry, and after-commit work finishes. Cancellation reaches
+supported PostgreSQL queries and mention lookups. Dependencies that ignore
+cancellation retain their slot until completion.
+
+These settings are validated at API startup. They do not change the worker's
+configuration:
+
+| Variable                          | Default | Meaning                                                           |
+| --------------------------------- | ------- | ----------------------------------------------------------------- |
+| `ANONYMOUS_READ_GLOBAL_LIMIT`     | `8`     | Expensive guest executions across API replicas sharing the ledger |
+| `ANONYMOUS_READ_LOCAL_LIMIT`      | `4`     | Executing, acquiring, or draining guest leaders per API process   |
+| `ANONYMOUS_READ_FOLLOWER_LIMIT`   | `32`    | Additional callers awaiting shared work per API process           |
+| `ANONYMOUS_READ_AUTH_LIMIT`       | `32`    | Concurrent credential-validation contexts per API process         |
+| `ANONYMOUS_READ_CHEAP_LIMIT`      | `32`    | DB-free guest query executions per API process                    |
+| `ANONYMOUS_READ_REDIS_TIMEOUT_MS` | `1000`  | Dedicated admission connection/command timeout                    |
+| `ANONYMOUS_READ_JOIN_WINDOW_MS`   | `25`    | Time after group creation during which a matching caller can join |
+
+The DB-free lane recognizes the actual guest fields `viewer` (always `null`),
+`webPushVapidPublicKey`, `suggestedFilterLanguages`, and `__typename`,
+including aliases and fragments. A query containing any other root field uses
+normal admission. The guest root layout used by sign-in therefore needs no
+database transaction. Credential-free requests do not compete for the
+credential-validation lane. Forged UUID credentials remain bounded in that
+lane, and never establish an authenticated bypass. Genuine credentials still
+compete with forged ones for validation; these limits do not guarantee
+availability against every attack.
+
+With two API processes, the defaults allow at most eight expensive guest
+executions globally, at most four per process, and up to 64 additional shared
+callers across the two processes. Each API process's existing PostgreSQL pool
+still has 20 connections. Admission does not change that pool size, the
+worker's pool, or other applications' database budgets; account for all of them
+when sizing the host. Parsing, validation, synchronous CPU work, mutations, and
+authenticated traffic are not covered by this guest execution bound.
+
+### Provision the ownership ledger before cutover
+
+Production uses a dedicated Redis client against `KV_URL`. API replicas must
+share the same Redis database, canonical `ORIGIN`, and global limit. The ledger
+stores its format, limit, and owner identifiers, never query results, session
+tokens, or variables. Serving processes never create or erase it. A missing
+ledger or mismatched format/limit closes expensive guest admission while other
+lanes can continue.
+
+This design requires authoritative Redis state to be retained: use
+`maxmemory-policy noeviction`, durable storage, and a failover policy that does
+not discard acknowledged ownership. Redis restart, restore, stale-replica
+failover, `FLUSHDB`, or manual key deletion while old work can still run can
+invalidate the global bound. The application cannot fence such state loss.
+Drain all API work before these operations; do not treat a restored Redis
+connection as recovery.
+
+For the initial installation, stop/drain all API replicas and confirm their SQL
+and external work has ended. Run the following from the repository root with
+production `ORIGIN` and `KV_URL` set, then initialize the absent ledger
+atomically:
+
+~~~~ bash
+mise exec -- bash <<'SH'
+set -eu
+admission_key=$(node --input-type=module -e '
+  import { anonymousReadLedgerKey } from "./runtime/anonymous-read-admission.ts";
+  console.log(anonymousReadLedgerKey(new URL(process.env.ORIGIN)));
+')
+redis-cli -u "$KV_URL" EVAL '
+  if redis.call("EXISTS", KEYS[1]) ~= 0 then
+    return redis.error_reply("ledger already exists; inspect it before recovery")
+  end
+  redis.call("HSET", KEYS[1], "format", "1", "limit", ARGV[1])
+  return "initialized"
+' 1 "$admission_key" "${ANONYMOUS_READ_GLOBAL_LIMIT:-8}"
+SH
+~~~~
+
+Start all API replicas with matching settings afterward. The explicitly allowed
+file-KV development mode uses a process-local memory store and provides no
+cross-process bound; it is not a production fallback.
+
+After an unplanned Redis restart or failover, use the full recovery procedure
+below; restoring connectivity alone is insufficient. A missing or mismatched
+ledger returns the same retryable overload response.
+
+A command timeout or uncertain acquire/release permanently closes that
+process's admission client and disconnects it. It does not retry, queue offline
+commands, reconnect, or expire a possibly live owner. This may conservatively
+leave occupied slots after a process crash or failed release. To recover or
+change the global limit:
+
+1.  Stop admission by draining/stopping **all** API replicas, including old
+    rollout replicas. Confirm old SQL/external work has ended.
+2.  Run only the `node` command inside the initialization script to print the
+    exact ledger key. Inspect that key with `HGETALL`, and remove **only that
+    key** with `DEL` if reinitialization is necessary. Do not flush the
+    session/federation Redis database.
+3.  Run the initialization script with `ANONYMOUS_READ_GLOBAL_LIMIT` set to the
+    intended limit, then start all replicas with matching settings. Starting a
+    new API process does not clear ownership held by a surviving process.
+
+### Sharing and visibility policy
+
+Only complete, audited versions of the web UI's `newsPageQuery` and
+`NewsListQuery` can share an in-flight execution within one API process.
+Identity includes the selected document, all variables (including cursor,
+order, filters, and locale when supplied), origin, `Accept-Language`, and error
+propagation policy. Credential-bearing requests, authenticated responses,
+mutations, and other documents never share. Changed frontend selections safely
+fall back to independent bounded execution until their audit is updated.
+
+There is no completed-response cache. Group members receive separate response
+and error objects. A caller's disconnect does not cancel other members; the
+last member's disconnect closes membership and cancels the group. Subscriber
+counts, distinct groups, and pending Redis commands have finite bounds.
+
+Members of an overlapping cohort observe its leader's snapshot. A deletion,
+moderation decision, or visibility change committed after that snapshot starts
+may therefore not be reflected in that cohort. The join window limits when
+members attach, not how long an already-running snapshot can take to finish. A
+later independent execution rereads current data under the existing field
+visibility rules and derived news-index update policy. No result is retained
+after execution, and no immediate invalidation or maximum snapshot-delivery
+delay is promised. Persistent public-content caching is deferred until shared
+write invalidation can be provided safely.
+
+### Observe and validate
+
+Every 30 seconds each API process logs one structured
+`Anonymous read admission` record with limits, active/acquiring work,
+followers, authentication/cheap occupancy, admitted/completed/cancelled/shared
+totals, rejection counts by reason, and the store failure reason. `queued` is
+always zero. No per-request query, identity, or variables are logged. Inspect
+`HGETALL` for ledger metadata and owners; `HLEN` minus the two metadata fields
+gives global occupied slots, including conservative leaks.
+
+Focused tests exercise actual GraphQL Yoga responses, current Relay news
+documents, PostgreSQL work ownership, Redis cross-client limits, stalled
+commands, cancellation, and subsequent visibility checks. Run them with the
+test database:
+
+~~~~ bash
+mise exec -- godotenv -f .env.test -o node --import temporal-polyfill/global \
+  --test 'graphql/anonymous-read*.test.ts' 'graphql/request-work.test.ts' \
+  'models/*request-work.test.ts' 'models/actor-lookup-work.test.ts' \
+  'runtime/anonymous-read*.test.ts' 'runtime/sql-work*.test.ts' \
+  'test/anonymous-read-replay.test.ts'
+~~~~
+
+The deterministic replay test reports admitted concurrency, work starts,
+followers, zero queue size, overload responses, and interactive latency. Before
+production cutover, also replay representative repeated/distinct public reads
+from many identities on staging while browsing and signing in. Record baseline
+and loaded p95/p99 latency, errors, and database calls against the deployment's
+agreed SLO. Local fixtures do not establish production latency or prove what
+caused the November 2026 incident.
+
+Graceful API shutdown waits for owned anonymous work to finish before disposing
+Yoga or closing the Redis admission client and database resources. This can
+outlast the HTTP connection drain when a dependency ignores cancellation.
+Allow that work to finish during a planned rollout. A forced process kill is a
+crash and can leave conservative owner records requiring the recovery procedure
+above. For admitted reads, normal inbound cancellation does not create a Sentry
+exception; unrelated upstream or application errors remain reportable.

@@ -35,6 +35,7 @@ import { extractExternalLinks } from "../html.ts";
 import { persistPostMedia } from "../medium.ts";
 import { refreshNewsScores, refreshNewsScoresForPostLinks } from "../news.ts";
 import { persistPoll } from "../poll.ts";
+import { getRequestWorkSignal, trackRequestWork } from "../request-work.ts";
 import {
   type Actor,
   actorTable,
@@ -154,32 +155,38 @@ async function enqueueEmojiReactionsBackfill(
   const [locked] = await ctx.kv.getMany<string>([lockKey]);
   if (locked === "1") return;
   await ctx.kv.set(lockKey, "1", EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS);
-  void (async () => {
-    const run = async (attempt: number): Promise<void> => {
-      try {
-        await backfillEmojiReactions(ctx, post, persistedPost, options);
-      } catch (error) {
-        if (attempt < 1) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS),
+  void trackRequestWork(
+    (async () => {
+      const run = async (attempt: number): Promise<void> => {
+        try {
+          await backfillEmojiReactions(ctx, post, persistedPost, options);
+        } catch (error) {
+          if (getRequestWorkSignal()?.aborted) return;
+          if (attempt < 1) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS),
+            );
+            await run(attempt + 1);
+            return;
+          }
+          logger.warn(
+            "Failed to backfill emoji reactions for {postIri} after retry: " +
+              "{error}",
+            { postIri: persistedPost.iri, error },
           );
-          await run(attempt + 1);
-          return;
         }
-        logger.warn(
-          "Failed to backfill emoji reactions for {postIri} after retry: " +
-            "{error}",
-          { postIri: persistedPost.iri, error },
-        );
-      }
-    };
-    await run(0);
-  })().catch((error) => {
-    logger.warn("Emoji reactions backfill task failed for {postIri}: {error}", {
-      postIri: persistedPost.iri,
-      error,
-    });
-  });
+      };
+      await run(0);
+    })().catch((error) => {
+      logger.warn(
+        "Emoji reactions backfill task failed for {postIri}: {error}",
+        {
+          postIri: persistedPost.iri,
+          error,
+        },
+      );
+    }),
+  );
 }
 
 type PersistedQuoteTarget = Post & { actor: Actor & { instance: Instance } };

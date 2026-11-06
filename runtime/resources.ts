@@ -36,6 +36,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
 import { createEmailTransports } from "./email.ts";
+import { trackSqlWork } from "./sql-work.ts";
 import { ShutdownRequeueMessageQueue } from "./shutdown-requeue-message-queue.ts";
 
 export interface DatabaseResources {
@@ -46,7 +47,7 @@ export interface DatabaseResources {
 export function createDatabaseResources(
   config: ServerConfig["database"],
 ): DatabaseResources {
-  const postgres = postgresJs(config.url, { max: 20 });
+  const postgres = trackSqlWork(postgresJs(config.url, { max: 20 }));
   const db: Database = drizzle({
     relations,
     client: postgres,

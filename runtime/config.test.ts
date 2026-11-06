@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   ConfigurationError,
   loadAccountCreationConfig,
+  loadAnonymousReadConfig,
   loadDatabaseConfig,
   loadGraphqlApiConfig,
   loadServerConfig,
@@ -279,4 +280,26 @@ test("loadServerConfig rejects inconsistent email budget values", () => {
     "EMAIL_DIGEST_HOURLY_CAP",
     "EMAIL_DIGEST_WINDOW_START",
   ]);
+});
+
+test("anonymous read configuration validates bounded integer settings", () => {
+  assertEquals(loadAnonymousReadConfig({}), {
+    globalLimit: 8,
+    localLimit: 4,
+    followerLimit: 32,
+    authLimit: 32,
+    cheapLimit: 32,
+    redisTimeoutMs: 1000,
+    joinWindowMs: 25,
+  });
+  assertEquals(
+    loadAnonymousReadConfig({ ANONYMOUS_READ_GLOBAL_LIMIT: "6" }).globalLimit,
+    6,
+  );
+  for (const raw of ["", "0", "1.5", "-1", "10001", "Infinity"]) {
+    assertThrows(
+      () => loadAnonymousReadConfig({ ANONYMOUS_READ_GLOBAL_LIMIT: raw }),
+      ConfigurationError,
+    );
+  }
 });

@@ -83,7 +83,8 @@
     "./userValidation": "./userValidation.ts",
     "./uuid": "./uuid.ts",
     "./webpush": "./webpush.ts",
-    "./tasks": "./tasks.ts"
+    "./tasks": "./tasks.ts",
+    "./request-work": "./request-work.ts"
   },
   "dependencies": {
     "@fedify/fedify": "catalog:",

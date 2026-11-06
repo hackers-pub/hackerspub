@@ -43,6 +43,11 @@ import {
   stripHtml,
 } from "./html.ts";
 import { negotiateLocale } from "./i18n.ts";
+import {
+  getRequestWorkSignal,
+  throwIfRequestWorkAborted,
+  trackRequestWork,
+} from "./request-work.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
@@ -443,6 +448,7 @@ export async function extractMentionsFromHtml(
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
 ): Promise<{ actor: Actor }[]> {
+  throwIfRequestWorkAborted();
   let cacheKey: string | undefined;
   if (options.kv != null) {
     const digest = await crypto.subtle.digest(
@@ -485,15 +491,26 @@ export async function extractMentionsFromHtml(
   );
   const promises = mentionedUrls.map(async (href) => {
     try {
+      throwIfRequestWorkAborted();
       return [
         href,
-        await withTimeout(() => fedCtx.lookupObject(href, options), 3000),
+        await withTimeout(
+          () =>
+            trackRequestWork(
+              fedCtx.lookupObject(href, {
+                ...options,
+                signal: getRequestWorkSignal(),
+              }),
+            ),
+          3000,
+        ),
       ] as [string, vocab.Object | null];
     } catch {
       return null;
     }
   });
-  for (const pair of await Promise.all(promises)) {
+  for (const pair of await Promise.all(promises.map(trackRequestWork))) {
+    throwIfRequestWorkAborted();
     if (pair == null) continue;
     const [href, object] = pair;
     if (!isActor(object)) continue;
