@@ -137,9 +137,15 @@ test(
       assert.equal(failures[0]?.kind, "timeout");
       assert.equal(getSqlWorkStats(sql)?.active, 0);
     } finally {
-      await blocker`select pg_advisory_unlock(${key})`;
-      await blocker.end();
-      await sql.end();
+      try {
+        await blocker`select pg_advisory_unlock(${key})`;
+      } finally {
+        try {
+          await blocker.end();
+        } finally {
+          await sql.end();
+        }
+      }
     }
   },
 );

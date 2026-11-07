@@ -119,7 +119,19 @@ async function start(config: FixtureConfig): Promise<ProcessFixture> {
       return (await request("stats")).value as FixtureStats;
     },
     async close() {
-      if (child.exitCode != null || child.signalCode != null) return;
+      if (child.exitCode != null || child.signalCode != null) {
+        assert.equal(
+          child.signalCode,
+          null,
+          `${config.role} exited by signal\n${output}`,
+        );
+        assert.equal(
+          child.exitCode,
+          0,
+          `${config.role} exited with an error\n${output}`,
+        );
+        return;
+      }
       const exited = once(child, "exit");
       const timer = globalThis.setTimeout(() => child.kill("SIGKILL"), 5000);
       try {
@@ -170,7 +182,11 @@ async function startSsr(
       output = (output + String(chunk)).slice(-12000);
     });
   const close = async () => {
-    if (child.exitCode != null || child.signalCode != null) return;
+    if (child.exitCode != null || child.signalCode != null) {
+      assert.equal(child.signalCode, null, `SSR exited by signal\n${output}`);
+      assert.equal(child.exitCode, 0, `SSR exited with an error\n${output}`);
+      return;
+    }
     const exited = once(child, "exit");
     const timer = globalThis.setTimeout(() => child.kill("SIGKILL"), 5000);
     try {
