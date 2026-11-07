@@ -89,7 +89,19 @@ test("Redis admission connects to a hostname with only an IPv6 address", async (
     port: 0,
     ipv6Only: true,
   });
-  await once(reservation, "listening");
+  try {
+    await once(reservation, "listening");
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error.code === "EADDRNOTAVAIL" || error.code === "EAFNOSUPPORT")
+    ) {
+      t.skip("IPv6 loopback is unavailable");
+      return;
+    }
+    throw error;
+  }
   const address = reservation.address();
   if (address == null || typeof address === "string")
     throw new Error("No port");
