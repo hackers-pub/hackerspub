@@ -283,6 +283,23 @@ docker compose up
 This starts PostgreSQL, Redis, the GraphQL API, the federation worker,
 web-next, and the gateway.  Access the application at http://localhost:8000/.
 
+Docker Compose does not provision the anonymous-read admission ledger. Before
+opening guest pages that query the database:
+
+1.  Stop the API with `docker compose stop graphql` and wait for its work to
+    drain.
+2.  Follow [Provision the ownership ledger before cutover] in *DEPLOYMENT.md*
+    using the configured `ORIGIN` (`http://localhost:8000` by default). Run its
+    `redis-cli` command through `docker compose exec redis redis-cli` because
+    Compose does not publish a Redis port on the host.
+3.  Start the API with `docker compose start graphql` after provisioning. An
+    API process that encountered a missing ledger stays closed to expensive
+    guest reads until it restarts.
+
+Repeat this procedure whenever Redis is recreated. For a planned recreation,
+drain the API before removing Redis, as described in the recovery procedure in
+*DEPLOYMENT.md*.
+
 For focused development, run the API, worker, and frontend in separate
 terminals:
 
@@ -301,6 +318,8 @@ For API-only development, `mise run dev:graphql` also accepts a file-backed
 `KV_URL` such as `file:///tmp/hackerspub-kv.json`.  Do not start the worker in
 this mode: federation queues and scheduled jobs remain inactive.  Use Redis for
 the complete API, worker, and frontend topology shown above.
+
+[Provision the ownership ledger before cutover]: DEPLOYMENT.md#provision-the-ownership-ledger-before-cutover
 
 
 Setting up federation
