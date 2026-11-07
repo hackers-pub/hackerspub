@@ -139,6 +139,8 @@ services:
     volumes:
     - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro,Z
     depends_on:
+      protocol:
+        condition: service_started
       graphql:
         condition: service_healthy
       web-next:

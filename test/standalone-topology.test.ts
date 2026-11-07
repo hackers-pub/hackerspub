@@ -79,6 +79,30 @@ test("Dev Containers and Codespaces start both HTTP roles", async () => {
   }
 });
 
+test("targeted gateway startup includes protocol without a health gate", async () => {
+  const compose = parse(
+    await readTextFile(new URL("../docker-compose.yml", import.meta.url)),
+    { merge: true },
+  ) as {
+    services: Record<
+      string,
+      { depends_on?: Record<string, { condition: string }> }
+    >;
+  };
+  assertEquals(
+    compose.services.gateway.depends_on?.protocol?.condition,
+    "service_started",
+  );
+  assertEquals(
+    compose.services.gateway.depends_on?.graphql?.condition,
+    "service_healthy",
+  );
+  assertEquals(
+    compose.services.gateway.depends_on?.["web-next"]?.condition,
+    "service_healthy",
+  );
+});
+
 test("development gateway preserves trusted tunnel metadata", async () => {
   const gateway = await readTextFile(
     new URL("../Caddyfile.dev", import.meta.url),
