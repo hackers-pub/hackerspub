@@ -89,3 +89,34 @@ test("Relay responses: completion and errors release the controller", async () =
     assert.equal(controller.signal.aborted, false);
   }
 });
+
+test("Relay responses: plain values still emit synchronously", () => {
+  let received = false;
+  createRelayResponseObservable(response, new AbortController()).subscribe({
+    next() {
+      received = true;
+    },
+  });
+  assert.equal(received, true);
+});
+
+test("Relay responses: disposed thenables reject quietly", async (t) => {
+  const errors = t.mock.method(console, "error", () => {});
+  const controller = new AbortController();
+  const pending = Promise.withResolvers<GraphQLResponse>();
+  // Exercise a PromiseLike, rather than depending on instanceof Promise.
+  const thenable = { then: pending.promise.then.bind(pending.promise) };
+  const subscription = createRelayResponseObservable(
+    thenable as Promise<GraphQLResponse>,
+    controller,
+  ).subscribe({
+    error() {
+      assert.fail("A disposed response must not notify the subscriber");
+    },
+  });
+  subscription.unsubscribe();
+  assert.equal(controller.signal.aborted, true);
+  pending.reject(controller.signal.reason);
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  assert.equal(errors.mock.callCount(), 0);
+});

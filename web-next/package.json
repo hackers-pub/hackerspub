@@ -12,6 +12,10 @@
     "build-storybook": "storybook build"
   },
   "imports": {
+    "#relay-transport": {
+      "browser": "./src/lib/relayTransport.browser.ts",
+      "default": "./src/lib/relayTransport.server.ts"
+    },
     "#i18n": {
       "browser": "./src/lib/i18n/client.ts",
       "default": "./src/lib/i18n/server.ts"

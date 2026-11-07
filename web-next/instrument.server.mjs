@@ -5,6 +5,7 @@
 import * as Sentry from "@sentry/solidstart";
 import nodeProcess from "node:process";
 import packageJson from "./package.json" with { type: "json" };
+import { isGraphQLCancellationEvent } from "./src/lib/graphQLCancellation.ts";
 import { isServerNetworkError } from "./src/lib/serverNetworkError.ts";
 import { isTransientUpstreamGraphQLErrorEvent } from "./src/lib/upstreamGraphQLError.ts";
 
@@ -19,6 +20,7 @@ if (nodeProcess.env.SENTRY_DSN) {
     release: packageJson.version,
     sendDefaultPii: true,
     beforeSend(event, hint) {
+      if (isGraphQLCancellationEvent(event, hint)) return null;
       if (isTransientUpstreamGraphQLErrorEvent(event, hint)) return null;
       if (isServerNetworkError(hint.originalException)) return null;
       return event;

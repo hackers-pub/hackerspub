@@ -42,6 +42,44 @@ role. `HTTP_HOST` defaults to `0.0.0.0`; `HTTP_PORT` defaults to 8080 for
 interactive/combined and 8081 for protocol.
 
 
+Web UI GraphQL deadlines
+------------------------
+
+The Web UI bounds Relay requests to `API_URL`, including response body reads.
+These runtime settings apply to the web-next process:
+
+| Variable                             | Default  | Scope                                                 |
+| ------------------------------------ | -------- | ----------------------------------------------------- |
+| `WEB_SSR_GRAPHQL_TIMEOUT_MS`         | `10000`  | One SSR GraphQL operation                             |
+| `WEB_SSR_GRAPHQL_BUDGET_MS`          | `15000`  | Shared data-loading budget from page middleware entry |
+| `WEB_INTERACTIVE_GRAPHQL_TIMEOUT_MS` | `180000` | One browser-initiated Relay RPC query or mutation     |
+
+Each value must be an integer from `1` to `2147483647` milliseconds. Missing
+values use the defaults; an invalid value, including an explicit empty string,
+fails when its policy is first used. Interactive RPC calls read only the
+interactive setting. The bundled *docker-compose.yml* substitutes defaults for
+unset or empty variables before web-next reads them.
+
+SSR operations use the smaller of their own limit and the page's remaining
+budget. Sequential queries cannot reset that budget. There is no shared abort
+controller between requests or operations: disconnecting a caller or disposing
+a Relay request cancels only its upstream fetch. Deadline expiry surfaces in
+Relay as a `TimeoutError`; deliberate cancellation is not sent to Sentry. SSR
+operations and mutations are not retried automatically. Browser queries retain
+their existing transient-network retry policy.
+
+Interactive operations, including alt-text generation, use the separate longer
+limit even when they are queries. These limits stop the Web UI's upstream HTTP
+request and response consumption. They do not preempt synchronous JSON parsing,
+bound all page rendering, or guarantee that downstream API/AI work has stopped.
+
+After `mise run build:web-next`, run `mise run smoke:ssr-graphql` to exercise
+the built server against a local fake GraphQL endpoint. It uses isolated ports
+and needs no database or running API. The checks cover stalled headers/bodies,
+disconnects, Relay disposal, shared page budgets, concurrent requests, and the
+longer interactive policy.
+
+
 Protocol HTTP isolation
 -----------------------
 

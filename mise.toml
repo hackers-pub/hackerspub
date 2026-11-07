@@ -152,6 +152,10 @@ run = "node scripts/healthcheck.ts web-next"
 description = "Smoke test isolated interactive/protocol HTTP, worker, and web-next"
 run = "node scripts/smoke-standalone.ts"
 
+[tasks."smoke:ssr-graphql"]
+description = "Test the built web-next GraphQL deadlines and cancellation with a fake API"
+run = "node scripts/smoke-ssr-graphql.ts"
+
 [tasks.migrate]
 description = "Run database migrations"
 run = "pnpm exec drizzle-kit migrate"
