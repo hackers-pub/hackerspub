@@ -25,9 +25,7 @@ export function isGraphQLCancellationEvent(
 ): boolean {
   return (
     isGraphQLRequestCancelledError(hint?.originalException) ||
-    (event.exception?.values?.some(
-      (value) => value.type === CANCELLATION_NAME,
-    ) ??
-      false)
+    // Sentry prepends linked causes: the last value is the outer exception.
+    event.exception?.values?.at(-1)?.type === CANCELLATION_NAME
   );
 }

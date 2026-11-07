@@ -95,4 +95,14 @@ test("GraphQL cancellation: an unrelated outer failure is not suppressed merely 
     isGraphQLCancellationEvent({}, { originalException: error }),
     false,
   );
+  const event = {
+    exception: {
+      values: [{ type: "GraphQLRequestCancelledError" }, { type: "Error" }],
+    },
+  };
+  assert.equal(isGraphQLCancellationEvent(event), false);
+  assert.equal(
+    isGraphQLCancellationEvent(event, { originalException: error }),
+    false,
+  );
 });
