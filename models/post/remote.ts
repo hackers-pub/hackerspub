@@ -111,14 +111,27 @@ async function backfillEmojiReactions(
     documentLoader?: DocumentLoader;
   },
 ): Promise<void> {
+  const signal = getRequestWorkSignal();
+  signal?.throwIfAborted();
+  const contextLoader = options.contextLoader ?? ctx.contextLoader;
   const opts = {
-    contextLoader: options.contextLoader,
+    contextLoader:
+      contextLoader == null
+        ? undefined
+        : withDocumentLoaderTimeout(
+            contextLoader,
+            REMOTE_FETCH_TIMEOUT_MS,
+            signal,
+          ),
     documentLoader: withDocumentLoaderTimeout(
       options.documentLoader ?? ctx.documentLoader,
+      REMOTE_FETCH_TIMEOUT_MS,
+      signal,
     ),
     suppressError: true,
   };
   const collection = await post.getEmojiReactions(opts);
+  signal?.throwIfAborted();
   if (collection == null) return;
   const { persistReaction, updateReactionsCounts } =
     await import("../reaction.ts");
@@ -126,6 +139,7 @@ async function backfillEmojiReactions(
   try {
     let scanned = 0;
     for await (const item of traverseCollection(collection, opts)) {
+      signal?.throwIfAborted();
       if (scanned >= MAX_EMOJI_REACTIONS_BACKFILL) break;
       scanned++;
       if (!(item instanceof vocab.Like || item instanceof vocab.EmojiReact)) {
@@ -136,7 +150,7 @@ async function backfillEmojiReactions(
       await persistReaction(ctx, item, opts);
     }
   } finally {
-    if (shouldUpdateCounts) {
+    if (shouldUpdateCounts && !signal?.aborted) {
       await updateReactionsCounts(ctx.db, persistedPost.id);
     }
   }
@@ -151,9 +165,11 @@ async function enqueueEmojiReactionsBackfill(
     documentLoader?: DocumentLoader;
   },
 ): Promise<void> {
+  const signal = getRequestWorkSignal();
+  if (signal?.aborted) return;
   const lockKey = `emoji-reactions-backfill/${persistedPost.iri}`;
   const [locked] = await ctx.kv.getMany<string>([lockKey]);
-  if (locked === "1") return;
+  if (locked === "1" || signal?.aborted) return;
   await ctx.kv.set(lockKey, "1", EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS);
   void trackRequestWork(
     (async () => {
@@ -161,8 +177,11 @@ async function enqueueEmojiReactionsBackfill(
         try {
           await backfillEmojiReactions(ctx, post, persistedPost, options);
         } catch (error) {
-          if (getRequestWorkSignal()?.aborted) return;
-          if (attempt < 1) {
+          if (signal?.aborted) return;
+          // A guest owns every attempt until it settles. Do not retain that
+          // response through a retry delay or detach unbounded request work.
+          // Background federation calls keep their existing delayed retry.
+          if (signal == null && attempt < 1) {
             await new Promise((resolve) =>
               setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS),
             );
@@ -170,14 +189,14 @@ async function enqueueEmojiReactionsBackfill(
             return;
           }
           logger.warn(
-            "Failed to backfill emoji reactions for {postIri} after retry: " +
-              "{error}",
+            "Failed to backfill emoji reactions for {postIri}: {error}",
             { postIri: persistedPost.iri, error },
           );
         }
       };
       await run(0);
     })().catch((error) => {
+      if (signal?.aborted) return;
       logger.warn(
         "Emoji reactions backfill task failed for {postIri}: {error}",
         {
