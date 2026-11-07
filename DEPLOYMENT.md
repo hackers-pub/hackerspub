@@ -96,9 +96,17 @@ returns [`503 Service Unavailable`]
 with `Retry-After: 1` and `Cache-Control: no-store`. The absolute deadline and
 server SQL timeouts return
 [`504 Gateway Timeout`].
+A successful response transmission shares the original request deadline. An
+error reply starting after that deadline has at most one second to flush before
+the socket is closed. Admission remains occupied until both owned dependencies
+and the Node.js response transmission have finished or closed; a stalled writer
+cannot release its slot while retaining response buffers.
+
 A local loader timeout cancels that load without aborting sibling work. A fully
-completed fallback response below 400 is preserved; a failed response or thrown
-error after the interruption becomes `504 Gateway Timeout`. Interrupted
+completed optional `GET` or `HEAD` fallback below 400 is preserved. Other
+methods and failed responses become `504 Gateway Timeout` after dependency
+interruption, including a later successful inbox-verification fallback. This
+preserves retryability when verification was interrupted. Interrupted
 public-key lookups cannot persist key-cache entries that would poison a later
 signed retry. Genuine remote key failures retain ordinary negative caching.
 

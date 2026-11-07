@@ -253,10 +253,15 @@ export class ProtocolAdmission {
       },
     )
       .then(
+        // Optional read enrichment may fall back successfully. An inbox must
+        // remain retryable after interrupted verification, even if a later
+        // key produces Fedify's gone-actor Delete acknowledgement.
         (response) =>
           failureStatus != null
             ? failureResponse(failureStatus)
-            : outcome.dependencyInterrupted && response.status >= 400
+            : outcome.dependencyInterrupted &&
+                (response.status >= 400 ||
+                  (request.method !== "GET" && request.method !== "HEAD"))
               ? failureResponse(504)
               : response,
         (error: unknown) => {

@@ -43,7 +43,14 @@ import { ProtocolAdmission } from "../graphql/protocol-admission.ts";
 const localOrigin = "https://local.example";
 const keyPair = generateCryptoKeyPair("RSASSA-PKCS1-v1_5");
 
-async function signer(name = "sender") {
+interface Signer {
+  readonly actorId: URL;
+  readonly keyId: URL;
+  readonly keys: CryptoKeyPair;
+  readonly document: unknown;
+}
+
+async function signer(name = "sender"): Promise<Signer> {
   const keys = await keyPair;
   const actorId = new URL(`https://${name}.example/actor`);
   const keyId = new URL(`${actorId}#key`);
@@ -59,7 +66,6 @@ async function signer(name = "sender") {
   return { actorId, keyId, keys, document: await actor.toJsonLd() };
 }
 
-type Signer = Awaited<ReturnType<typeof signer>>;
 interface FixtureOptions {
   deadlineMs?: number;
   limit?: number;
@@ -71,7 +77,20 @@ interface FixtureOptions {
   optional?: (loader: DocumentLoader) => Promise<void>;
 }
 
-async function fixture(remote: Signer, options: FixtureOptions = {}) {
+interface FederationFixture {
+  readonly admission: ProtocolAdmission;
+  readonly underlying: MemoryKvStore;
+  readonly messages: unknown[];
+  readonly calls: number;
+  readonly handled: number;
+  setLoad(next?: DocumentLoader): void;
+  run(request: Request): Promise<Response>;
+}
+
+async function fixture(
+  remote: Signer,
+  options: FixtureOptions = {},
+): Promise<FederationFixture> {
   const underlying = new MemoryKvStore();
   const kv =
     options.guarded === false ? underlying : createProtocolKvStore(underlying);
@@ -576,18 +595,73 @@ test("normal queued inbox success is acknowledged only after enqueue settles", a
 
 test("inbox enqueue failure never becomes an accepted response", async () => {
   const remote = await signer();
+  const id = crypto.randomUUID();
+  let attempts = 0;
   const app = await fixture(remote, {
     enqueue: async () => {
-      throw new Error("durable queue unavailable");
+      if (++attempts === 1) throw new Error("durable queue unavailable");
     },
   });
   try {
-    const response = await app.run(await signedFollow(remote));
+    const response = await app.run(await signedFollow(remote, undefined, id));
     assert(response.status >= 500);
   } catch (error) {
     assert.match(String(error), /durable queue unavailable/);
   }
   await app.admission.idle();
+  assert.equal(app.messages.length, 0);
+  assert.equal(
+    (await app.run(await signedFollow(remote, undefined, id))).status,
+    202,
+  );
+  await app.admission.idle();
+  assert.equal(attempts, 2);
+  assert.equal(app.messages.length, 1);
+});
+
+test("an interrupted RFC 9421 key followed by a gone key cannot acknowledge a Delete", async () => {
+  const remote = await signer();
+  const goneKey = new URL("https://gone.example/actor#key");
+  const lookups: string[] = [];
+  const app = await fixture(remote, {
+    load: async (url) => {
+      lookups.push(url);
+      if (url.startsWith(remote.actorId.href)) {
+        const error = new Error("local key lookup timeout");
+        reportRequestDependencyInterruption(error);
+        throw error;
+      }
+      assert(url.startsWith("https://gone.example/actor"));
+      throw new FetchError(
+        url,
+        "Actor gone",
+        new Response(null, { status: 410 }),
+      );
+    },
+  });
+  const activity = new Delete({
+    id: new URL("/deletes/multiple-keys", remote.actorId.origin),
+    actor: remote.actorId,
+    object: remote.actorId,
+  });
+  const first = await signRequest(
+    new Request(`${localOrigin}/ap/inbox`, {
+      method: "POST",
+      headers: { "content-type": "application/activity+json" },
+      body: JSON.stringify(await activity.toJsonLd()),
+    }),
+    remote.keys.privateKey,
+    remote.keyId,
+    { spec: "rfc9421", rfc9421: { label: "interrupted" } },
+  );
+  const request = await signRequest(first, remote.keys.privateKey, goneKey, {
+    spec: "rfc9421",
+    rfc9421: { label: "gone" },
+  });
+  assert.equal((await app.run(request)).status, 504);
+  await app.admission.idle();
+  assert(lookups.some((url) => url.startsWith(remote.actorId.href)));
+  assert(lookups.some((url) => url.startsWith("https://gone.example/actor")));
   assert.equal(app.messages.length, 0);
 });
 
