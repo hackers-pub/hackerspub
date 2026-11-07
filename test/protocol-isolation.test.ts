@@ -518,6 +518,26 @@ test(
         );
         assert.equal((await protocolServer.stats()).consumed.length, 0);
         assert.equal((await apiServer.stats()).consumed.length, 0);
+        // IPC work bypasses the two-request HTTP admission cap. Each native
+        // dependency budget must reject its own excess work independently.
+        for (const [kind, budget, limit] of [
+          ["saturate-sql", "sql", fixtureProtocolConfig.sqlLimit],
+          ["saturate-loaders", "loaders", fixtureProtocolConfig.loaderLimit],
+        ] as const) {
+          const result = (await protocolServer.request(kind)).value as {
+            rejected: boolean;
+            full: FixtureStats;
+            afterExcess: FixtureStats;
+            drained: FixtureStats;
+            rawLoaderStarts: number;
+          };
+          assert.equal(result.rejected, true, kind);
+          assert.equal(result.full.http.active, 0, kind);
+          assert.equal(result.full[budget]?.active, limit, kind);
+          assert.equal(result.afterExcess[budget]?.active, limit, kind);
+          assert.equal(result.drained[budget]?.active, 0, kind);
+          if (budget === "loaders") assert.equal(result.rawLoaderStarts, limit);
+        }
         // CPU work deliberately blocks only the protocol child. No protocol
         // shedding-latency assertion is made while its own event loop is blocked.
         let cpuRun = true;

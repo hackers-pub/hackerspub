@@ -90,7 +90,14 @@ async function main(config: FixtureConfig): Promise<void> {
     url: process.env.DATABASE_URL!,
     maxConnections: 2,
     applicationName: `hp-isolation-${config.runId}-${config.role}`,
-    ...(protocol ? { protocolWork: { limit: 32, timeoutMs: 1500 } } : {}),
+    ...(protocol
+      ? {
+          protocolWork: {
+            limit: fixtureProtocolConfig.sqlLimit,
+            timeoutMs: fixtureProtocolConfig.sqlTimeoutMs,
+          },
+        }
+      : {}),
   });
   const rawKv = new adapter.PostgresKvStore(sql, {
     tableName: `hp_iso_kv_${config.runId}`,
@@ -106,6 +113,7 @@ async function main(config: FixtureConfig): Promise<void> {
     await rawKv.initialize();
     await queue.initialize();
   }
+  let slowLoaderStarts = 0;
   const controlledKv: KvStore = new Proxy(rawKv, {
     get(target, property) {
       if (property === "get")
@@ -115,6 +123,7 @@ async function main(config: FixtureConfig): Promise<void> {
             key[1] === "remoteDocument" &&
             key[2] === "https://loader.isolation.example/slow"
           ) {
+            slowLoaderStarts++;
             // Deliberately ignores the caller's signal, proving ownership after
             // the local loader timeout and HTTP deadline have already fired.
             await setTimeout(1000);
@@ -138,8 +147,8 @@ async function main(config: FixtureConfig): Promise<void> {
   const loaders = protocol
     ? createProtocolLoaders({
         kv: federationKv,
-        limit: 8,
-        timeoutMs: 200,
+        limit: fixtureProtocolConfig.loaderLimit,
+        timeoutMs: fixtureProtocolConfig.loaderTimeoutMs,
         userAgent: { software: "HackersPub/protocol-isolation-test" },
       })
     : undefined;
@@ -280,7 +289,53 @@ async function main(config: FixtureConfig): Promise<void> {
   process.on("message", (message: { kind: string; id?: number }) => {
     if (message.kind === "stats")
       process.send?.({ kind: "stats", id: message.id, value: snapshot() });
-    else if (message.kind === "stop-admission") {
+    else if (
+      message.kind === "saturate-sql" ||
+      message.kind === "saturate-loaders"
+    ) {
+      void (async () => {
+        const sqlPhase = message.kind === "saturate-sql";
+        const limit = sqlPhase
+          ? fixtureProtocolConfig.sqlLimit
+          : fixtureProtocolConfig.loaderLimit;
+        const starts = slowLoaderStarts;
+        const begin = () =>
+          sqlPhase
+            ? sql`select pg_sleep(0.05)`.then((result) => result)
+            : loaders!.options.documentLoaderFactory()(
+                "https://loader.isolation.example/slow",
+              );
+        const pending = Array.from({ length: limit }, begin);
+        const settled = Promise.allSettled(pending);
+        const full = snapshot();
+        let rejected = false;
+        try {
+          await begin();
+        } catch {
+          rejected = true;
+        }
+        const afterExcess = snapshot();
+        const rawLoaderStarts = slowLoaderStarts - starts;
+        await settled;
+        process.send?.({
+          kind: "saturation",
+          id: message.id,
+          value: {
+            rejected,
+            full,
+            afterExcess,
+            drained: snapshot(),
+            rawLoaderStarts,
+          },
+        });
+      })().catch((error) =>
+        process.send?.({
+          kind: "fatal",
+          id: message.id,
+          message: String(error),
+        }),
+      );
+    } else if (message.kind === "stop-admission") {
       admission.stop();
       process.send?.({ kind: "stopped", id: message.id });
     } else if (message.kind === "shutdown" && !closing) {
