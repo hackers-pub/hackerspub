@@ -50,7 +50,7 @@ interface Call {
   response: ServerResponse;
 }
 interface Scenario {
-  mode: "healthy" | "headers" | "body" | "trickle" | "slow";
+  mode: "healthy" | "headers" | "body" | "trickle" | "slow" | "budget";
   calls: Call[];
   first: ReturnType<typeof Promise.withResolvers<Call>>;
 }
@@ -99,10 +99,12 @@ const api = createServer(async (request, response) => {
       );
     };
     if (fixture.mode === "healthy") finish();
-    else if (fixture.mode === "slow")
+    else if (fixture.mode === "slow" || fixture.mode === "budget")
       timer = setTimeout(
         finish,
-        operation.startsWith("Sequential") ? 150 : 650,
+        fixture.mode === "budget" || operation.startsWith("Sequential")
+          ? 150
+          : 650,
       );
     else if (fixture.mode !== "headers") {
       response.writeHead(200, { "Content-Type": "application/json" });
@@ -205,10 +207,76 @@ try {
   };
   Object.assign(process.env, environment);
   const ready = Promise.withResolvers<void>();
-  child = spawn(process.execPath, [`${output}index.mjs`], {
-    cwd: webDirectory,
-    env: { ...process.env, ...environment },
-    stdio: ["ignore", "pipe", "pipe"],
+  // Test-only preload observes the built transport, rather than assuming that
+  // writing upstream headers means the web process has received them. Its load
+  // hook delays after the real middleware runs, before any page query starts.
+  const preload = `
+    import assert from "node:assert/strict";
+    import { registerHooks } from "node:module";
+    registerHooks({
+      load(url, context, nextLoad) {
+        const loaded = nextLoad(url, context);
+        if (!url.endsWith("/@solidjs/start/dist/middleware/index.js")) return loaded;
+        const source = String(loaded.source);
+        const anchor = "const response = await onRequest(fetchEvent);";
+        assert.equal(source.split(anchor).length, 2, "Built middleware hook must match once");
+        return { ...loaded, source: source.replace(anchor, anchor + \`
+          if (fetchEvent.request.headers.get("user-agent") === "middleware-budget") {
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        \`) };
+      }
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (...args) => {
+      const label = new Headers(args[1]?.headers).get("user-agent");
+      if (label === "aborted-page") {
+        const signal = args[1].signal;
+        signal.addEventListener("abort", () => {
+          process.send({
+            upstreamAborted: label,
+            name: signal.reason?.name,
+            source: signal.reason?.source,
+          });
+        }, { once: true });
+      }
+      const response = await originalFetch(...args);
+      if (label === "aborted-page") process.send({ headersReceived: label });
+      return response;
+    };
+  `;
+  const pageHeadersReceived = Promise.withResolvers<void>();
+  const pageAbortReason = Promise.withResolvers<unknown>();
+  child = spawn(
+    process.execPath,
+    [
+      "--import",
+      `data:text/javascript,${encodeURIComponent(preload)}`,
+      `${output}index.mjs`,
+    ],
+    {
+      cwd: webDirectory,
+      env: { ...process.env, ...environment },
+      stdio: ["ignore", "pipe", "pipe", "ipc"],
+    },
+  );
+  child.on("message", (message: unknown) => {
+    if (
+      message != null &&
+      typeof message === "object" &&
+      "headersReceived" in message &&
+      message.headersReceived === "aborted-page"
+    ) {
+      pageHeadersReceived.resolve();
+    }
+    if (
+      message != null &&
+      typeof message === "object" &&
+      "upstreamAborted" in message &&
+      message.upstreamAborted === "aborted-page"
+    ) {
+      pageAbortReason.resolve(message);
+    }
   });
   childExit = new Promise<void>((resolve) => {
     child!.once("error", (error) => {
@@ -381,6 +449,19 @@ try {
     "sequential actual SSR environment shares outer budget and fails before dispatch",
   );
 
+  const middlewareBudget = scenario("middleware-budget", "budget");
+  const budgetPage = await bounded(
+    page("middleware-budget"),
+    "middleware-started page budget",
+  );
+  assert.equal(budgetPage.includes(marker), false);
+  assert.match(budgetPage, /SSR GraphQL page budget of 400 ms exceeded/);
+  await closed(middlewareBudget);
+  assert.ok(
+    middlewareBudget.calls.some((call) => !call.response.writableEnded),
+  );
+  passed("HTTP page uses middleware budget before its first query");
+
   for (const mode of ["headers", "body"] as const) {
     const label = `Dispose${mode}`;
     const fixture = scenario(label, mode);
@@ -453,12 +534,24 @@ try {
   const aborted = page("aborted-page", inbound.signal);
   const abortedResult = assert.rejects(aborted, { name: "AbortError" });
   await bounded(aborting.first.promise, "page to abort");
+  await bounded(
+    pageHeadersReceived.promise,
+    "built transport received upstream headers",
+  );
   scenario("concurrent-healthy", "healthy");
   const healthy = page("concurrent-healthy");
   const pageLogStart = logs.length;
   inbound.abort();
   await bounded(abortedResult, "cancel page");
-  await closed(aborting, 150);
+  assert.deepEqual(
+    await bounded(pageAbortReason.promise, "page upstream cancellation reason"),
+    {
+      upstreamAborted: "aborted-page",
+      name: "GraphQLRequestCancelledError",
+      source: "inbound",
+    },
+  );
+  await closed(aborting, 1000);
   assert.doesNotMatch(logs.slice(pageLogStart), /Unhandled Error|TimeoutError/);
   assert.ok(
     (await bounded(healthy, "unaffected concurrent page")).includes(marker),
