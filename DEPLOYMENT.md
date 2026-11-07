@@ -72,6 +72,11 @@ Web-next and the gateway depend only on interactive readiness, so a stopped or
 saturated protocol service does not prevent them from starting or becoming
 ready. The worker remains background only and uses its heartbeat file.
 
+Interactive readiness also becomes unhealthy when its anonymous-read admission
+store reports a permanent failure, even if the cheap GraphQL schema probe still
+succeeds. A full admission budget alone remains healthy. HTTP health probes use
+`HTTP_HOST`, mapping wildcard binds to the matching loopback address.
+
 ### Limits and connection accounting
 
 These defaults apply per protocol process and are validated before listening:

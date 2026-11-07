@@ -195,7 +195,8 @@ export async function main(forcedRole?: HttpRole): Promise<void> {
       yogaServer,
       role: httpConfig.role,
       protocolAdmission,
-      ready: () => !shutdownController.signal.aborted,
+      ready: () =>
+        !shutdownController.signal.aborted && admissionStore?.failure == null,
       assetlinksJson,
       appleAppSiteAssociationJson,
     });

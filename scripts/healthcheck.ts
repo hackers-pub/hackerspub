@@ -31,18 +31,30 @@ export function isHealthCheckRole(value: string): value is HealthCheckRole {
 }
 
 /**
- * Probes the GraphQL API with the cheapest possible executed query.  A reply
- * that parses but carries `errors`, or whose `__typename` is not `Query`, means
+ * Checks admission readiness, then probes the cheapest executed GraphQL query.
+ * A reply that parses but carries `errors`, or whose `__typename` is not `Query`, means
  * the schema failed to build, so it counts as unhealthy rather than healthy.
  */
 export async function checkGraphqlApi(
   url: string = DEFAULT_GRAPHQL_URL,
 ): Promise<boolean> {
+  const signal = AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS);
+  const readiness = await fetch(new URL("/health", url), { signal });
+  const ready =
+    readiness.status === 200
+      ? ((await readiness.json()) as { ready?: unknown; role?: unknown })
+      : null;
+  if (ready == null) await discard(readiness);
+  if (
+    ready?.ready !== true ||
+    (ready.role !== "interactive" && ready.role !== "combined")
+  )
+    return false;
   const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query: "{__typename}" }),
-    signal: AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS),
+    signal,
   });
   if (!response.ok) {
     await discard(response);
@@ -104,15 +116,30 @@ async function discard(response: Response): Promise<void> {
   await response.body?.cancel();
 }
 
+/** Wildcard listeners are reached through their matching loopback family. */
+export function httpHealthOrigin(
+  port: string | number,
+  hostname: string | undefined = process.env.HTTP_HOST,
+): string {
+  const configured = hostname?.trim();
+  const host =
+    configured == null || configured === "" || configured === "0.0.0.0"
+      ? "127.0.0.1"
+      : configured === "::"
+        ? "::1"
+        : configured;
+  return `http://${host.includes(":") && !host.startsWith("[") ? `[${host}]` : host}:${port}`;
+}
+
 export async function runHealthCheck(role: HealthCheckRole): Promise<boolean> {
   switch (role) {
     case "graphql":
       return await checkGraphqlApi(
-        `http://127.0.0.1:${process.env.HTTP_PORT ?? 8080}/graphql`,
+        `${httpHealthOrigin(process.env.HTTP_PORT ?? 8080)}/graphql`,
       );
     case "protocol":
       return await checkProtocol(
-        `http://127.0.0.1:${process.env.HTTP_PORT ?? 8081}/health`,
+        `${httpHealthOrigin(process.env.HTTP_PORT ?? 8081)}/health`,
       );
     case "graphql-worker":
       return await checkWorkerHealth();
