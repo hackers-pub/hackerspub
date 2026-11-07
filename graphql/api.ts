@@ -129,6 +129,12 @@ export function createGraphqlApiHandler(
   return async (request, connectionInfo) => {
     const pathname = new URL(request.url).pathname;
     if (pathname === "/health") {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return new Response("Method Not Allowed", {
+          status: 405,
+          headers: { allow: "GET, HEAD", connection: "close" },
+        });
+      }
       const ready = (options.ready?.() ?? true) && !admission?.stats.stopping;
       return new Response(
         request.method === "HEAD" ? null : JSON.stringify({ ready, role }),
@@ -137,6 +143,9 @@ export function createGraphqlApiHandler(
           headers: {
             "content-type": "application/json",
             "cache-control": "no-store",
+            // Raw HTTP GET/HEAD can carry an unfinished body too. Close the
+            // transport after the reply without buffering health-check bodies.
+            connection: "close",
           },
         },
       );

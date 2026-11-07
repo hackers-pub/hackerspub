@@ -1,12 +1,14 @@
 import type { RuntimeResources } from "@hackerspub/runtime/resources";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { connect } from "node:net";
 import type { YogaServerInstance } from "graphql-yoga";
 import { createGraphqlApiHandler, isFederationRequestPath } from "./api.ts";
 import type { GraphqlApiHandlerOptions } from "./api.ts";
 import { ProtocolAdmission } from "./protocol-admission.ts";
 import { loadProtocolHttpConfig } from "@hackerspub/runtime/config";
 import type { ServerContext, UserContext } from "./builder.ts";
+import { createNodeHttpServer } from "./node-http.ts";
 
 interface FederationFetchOptions {
   readonly onNotAcceptable?: (request: Request) => Promise<Response>;
@@ -414,3 +416,43 @@ test("protocol readiness stays healthy at capacity and is independent of interac
   await occupied;
   await admission.idle();
 });
+
+test(
+  "health only accepts GET/HEAD and closes unfinished raw HTTP bodies",
+  { timeout: 5000 },
+  async (t) => {
+    const admission = new ProtocolAdmission(loadProtocolHttpConfig({}));
+    const fixture = createFixture(false, {
+      role: "protocol",
+      protocolAdmission: admission,
+    });
+    const server = createNodeHttpServer(fixture.handler);
+    const address = await server.listen({ hostname: "127.0.0.1", port: 0 });
+    t.after(() => server.close());
+    for (const method of ["POST", "GET", "HEAD"]) {
+      const socket = connect({ host: "127.0.0.1", port: address.port });
+      t.after(() => socket.destroy());
+      const closed = Promise.withResolvers<void>();
+      let reply = "";
+      socket.setEncoding("utf8");
+      socket.on("data", (data) => {
+        reply += data;
+      });
+      socket.on("error", closed.reject);
+      socket.on("close", () => closed.resolve());
+      socket.write(
+        `${method} /health HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nx\r\n`,
+      );
+      await closed.promise;
+      assert.match(
+        reply,
+        new RegExp(`^HTTP/1.1 ${method === "POST" ? 405 : 200}`),
+      );
+      assert.match(reply, /connection: close/i);
+      if (method === "POST") assert.match(reply, /allow: GET, HEAD/i);
+    }
+    assert.equal(admission.stats.admitted, 0);
+    assert.equal(fixture.federationRequests.length, 0);
+    assert.equal(fixture.yogaRequests.length, 0);
+  },
+);

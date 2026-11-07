@@ -11,6 +11,7 @@ import { loadProtocolHttpConfig } from "@hackerspub/runtime/config";
 import { createNodeHttpServer } from "./node-http.ts";
 import { ProtocolAdmission } from "./protocol-admission.ts";
 import { request as httpRequest } from "node:http";
+import { connect } from "node:net";
 
 function admission(options = {}) {
   return new ProtocolAdmission({
@@ -150,7 +151,21 @@ test("request and response caps count bytes and preserve HEAD/null bodies", asyn
   );
   assert.equal(starts, 0);
   assert.equal(
+    (
+      await gate.run(
+        new Request(request(), { method: "POST", body: "éé" }),
+        execute,
+      )
+    ).status,
+    413,
+  );
+  assert.equal(starts, 0);
+  assert.equal(
     (await gate.run(request(), async () => new Response("four"))).status,
+    500,
+  );
+  assert.equal(
+    (await gate.run(request(), async () => new Response("éé"))).status,
     500,
   );
   assert.equal(
@@ -163,6 +178,96 @@ test("request and response caps count bytes and preserve HEAD/null bodies", asyn
     204,
   );
 });
+
+test(
+  "Node response backpressure retains admission until the write deadline closes the transport",
+  { timeout: 5000 },
+  async (t) => {
+    const gate = admission({
+      deadlineMs: 500,
+      responseLimitBytes: 32 * 1024 * 1024,
+    });
+    const writing = Promise.withResolvers<void>();
+    const closed = Promise.withResolvers<void>();
+    let finishes = 0;
+    let closes = 0;
+    const server = createNodeHttpServer((req) =>
+      gate.run(req, async () => new Response(new Uint8Array(32 * 1024 * 1024))),
+    );
+    const address = await server.listen({ hostname: "127.0.0.1", port: 0 });
+    server.server.on("request", (_req, res) => {
+      res.once("finish", () => finishes++);
+      res.once("close", () => {
+        closes++;
+        closed.resolve();
+      });
+      // Observe the real Node buffer, not the Fetch handler's return.
+      const write = res.write.bind(res);
+      res.write = ((...args: Parameters<typeof res.write>) => {
+        const result = write(...args);
+        if (!result) writing.resolve();
+        return result;
+      }) as typeof res.write;
+    });
+    const socket = connect({ host: "127.0.0.1", port: address.port });
+    socket.on("error", () => {});
+    socket.pause();
+    t.after(async () => {
+      socket.destroy();
+      gate.abort();
+      await server.close();
+      await gate.idle();
+    });
+    socket.write("GET /ap/notes/large HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    await writing.promise;
+    assert.equal(finishes, 0);
+    assert.equal(gate.stats.active, 1);
+    assert.equal(
+      (await gate.run(request(), async () => new Response())).status,
+      503,
+    );
+    await closed.promise;
+    await gate.idle();
+    assert.equal(finishes, 0);
+    assert.equal(closes, 1);
+    assert.equal(gate.stats.timedOut, 1);
+    assert.equal(gate.stats.completed, 1);
+    assert.equal(gate.stats.active, 0);
+  },
+);
+
+test(
+  "a finished Node timeout response does not release unfinished dependency work",
+  { timeout: 5000 },
+  async (t) => {
+    const gate = admission({ deadlineMs: 20 });
+    const release = Promise.withResolvers<void>();
+    const finished = Promise.withResolvers<void>();
+    const server = createNodeHttpServer((req) =>
+      gate.run(req, async () => {
+        await release.promise;
+        return new Response("late");
+      }),
+    );
+    const address = await server.listen({ hostname: "127.0.0.1", port: 0 });
+    server.server.on("request", (_req, res) =>
+      res.once("finish", () => finished.resolve()),
+    );
+    t.after(async () => {
+      release.resolve();
+      await server.close();
+      await gate.idle();
+    });
+    const response = await fetch(`http://127.0.0.1:${address.port}/ap/inbox`);
+    assert.equal(response.status, 504);
+    await response.text();
+    await finished.promise;
+    assert.equal(gate.stats.active, 1);
+    release.resolve();
+    await gate.idle();
+    assert.equal(gate.stats.completed, 1);
+  },
+);
 
 test("stalled response cancellation retains the permit until cancellation settles", async () => {
   const gate = admission({ deadlineMs: 20 });
@@ -186,6 +291,46 @@ test("stalled response cancellation retains the permit until cancellation settle
   cancel.resolve();
   await gate.idle();
 });
+
+test(
+  "Node disconnect retains unfinished work and releases admission exactly once",
+  { timeout: 5000 },
+  async (t) => {
+    const gate = admission();
+    const entered = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    const closed = Promise.withResolvers<void>();
+    const server = createNodeHttpServer((req) =>
+      gate.run(req, async () => {
+        entered.resolve();
+        await release.promise;
+        return new Response("late");
+      }),
+    );
+    const address = await server.listen({ hostname: "127.0.0.1", port: 0 });
+    server.server.on("request", (_req, res) =>
+      res.once("close", () => closed.resolve()),
+    );
+    const socket = connect({ host: "127.0.0.1", port: address.port });
+    socket.on("error", () => {});
+    t.after(async () => {
+      socket.destroy();
+      release.resolve();
+      await server.close();
+      await gate.idle();
+    });
+    socket.write("GET /ap/notes/private HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    await entered.promise;
+    socket.destroy();
+    await closed.promise;
+    assert.equal(gate.stats.active, 1);
+    assert.equal(gate.stats.cancelled, 1);
+    release.resolve();
+    await gate.idle();
+    assert.equal(gate.stats.active, 0);
+    assert.equal(gate.stats.completed, 1);
+  },
+);
 
 test("raw HTTP slow uploads receive a timeout before socket cleanup; excess never reads a body", async (t) => {
   const gate = admission({ deadlineMs: 50 });

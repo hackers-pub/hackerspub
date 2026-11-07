@@ -4,6 +4,7 @@ import {
   type RequestWorkOutcome,
 } from "@hackerspub/models/request-work";
 import type { ProtocolHttpConfig } from "@hackerspub/runtime/config";
+import { getResponseLifetime } from "./response-lifetime.ts";
 
 class ProtocolBodyLimitError extends Error {
   readonly status: number;
@@ -156,6 +157,7 @@ export class ProtocolAdmission {
       return Promise.resolve(failureResponse(503));
     }
     const controller = new AbortController();
+    const transport = getResponseLifetime(request);
     const interrupted = Promise.withResolvers<Response>();
     let failureStatus: number | undefined;
     let outcome: RequestWorkOutcome = { dependencyInterrupted: false };
@@ -173,6 +175,15 @@ export class ProtocolAdmission {
         503,
         new DOMException("Protocol service is stopping.", "AbortError"),
       );
+    transport?.limit(this.config.deadlineMs, () =>
+      abort(
+        504,
+        new DOMException(
+          "Protocol response write deadline exceeded.",
+          "TimeoutError",
+        ),
+      ),
+    );
     this.#aborters.add(onShutdown);
     this.#idle ??= Promise.withResolvers<void>();
     this.#admitted++;
@@ -258,14 +269,24 @@ export class ProtocolAdmission {
       )
       .finally(() => {
         clearTimeout(timer);
-        request.signal.removeEventListener("abort", onDisconnect);
-        this.#aborters.delete(onShutdown);
-        this.#completed++;
-        if (this.#aborters.size === 0) {
-          this.#idle?.resolve();
-          this.#idle = undefined;
-        }
       });
+    // Resolve Fetch as soon as the response is ready, but retain ownership
+    // until both dependencies and Node's buffered write have finished/closed.
+    const release = () => {
+      request.signal.removeEventListener("abort", onDisconnect);
+      this.#aborters.delete(onShutdown);
+      this.#completed++;
+      if (this.#aborters.size === 0) {
+        this.#idle?.resolve();
+        this.#idle = undefined;
+      }
+    };
+    if (transport == null) {
+      // Preserve direct Fetch callers' completion boundary.
+      void work.then(release, release);
+    } else {
+      void Promise.allSettled([work, transport.finished]).then(release);
+    }
     // The race bounds the caller's wait, never the lifetime of the permit.
     return Promise.race([work, interrupted.promise]);
   }
