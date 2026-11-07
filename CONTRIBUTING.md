@@ -386,6 +386,10 @@ We encourage you to write tests for your changes.  Tests use the
 mise run test
 ~~~~
 
+Redis integration tests start isolated local servers and require `redis-server`
+and `redis-cli` on `PATH`, even when the application uses Redis through Docker
+Compose.
+
 To exercise the API, worker, and frontend together as separate processes, run
 `mise run smoke:standalone`.  It needs Redis and a `mise run build:web-next`
 build.
