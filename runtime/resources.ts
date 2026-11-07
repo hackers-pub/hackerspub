@@ -34,6 +34,7 @@ import { KeyvFile } from "keyv-file";
 import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
+import { createBoundedRedisKvStore } from "./bounded-redis-kv.ts";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
 import { createEmailTransports } from "./email.ts";
 import { getSqlWorkStats, trackSqlWork } from "./sql-work.ts";
@@ -401,14 +402,24 @@ export async function createFederationResource(
       import("@hackerspub/federation"),
       import("@hackerspub/federation/outbox-queue"),
     ]);
+  const redisBacked =
+    config.kv.url.protocol === "redis:" || config.kv.url.protocol === "rediss:";
+  const boundedRedis =
+    redisBacked && options.protocolHttp != null
+      ? createBoundedRedisKvStore(
+          config.kv.url,
+          options.protocolHttp.loaderTimeoutMs,
+        )
+      : undefined;
   const redis =
-    config.kv.url.protocol === "redis:" || config.kv.url.protocol === "rediss:"
+    redisBacked && boundedRedis == null
       ? new Redis(config.kv.url.href, {
           family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
         })
       : undefined;
   const baseFederationKv =
-    redis == null ? new PostgresKvStore(postgres) : new RedisKvStore(redis);
+    boundedRedis?.kv ??
+    (redis == null ? new PostgresKvStore(postgres) : new RedisKvStore(redis));
   const federationKv =
     options.protocolHttp == null
       ? baseFederationKv
@@ -456,6 +467,7 @@ export async function createFederationResource(
       ...(protocolLoaders == null ? { userAgent } : protocolLoaders.options),
     });
   } catch (error) {
+    if (boundedRedis != null) await boundedRedis.close();
     if (redis != null) await redis.quit();
     throw error;
   }
@@ -463,6 +475,7 @@ export async function createFederationResource(
     federation,
     protocolLoaderStats,
     async close() {
+      if (boundedRedis != null) await boundedRedis.close();
       if (redis != null) await redis.quit();
     },
   };

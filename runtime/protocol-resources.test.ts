@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { mock } from "node:test";
+import { once } from "node:events";
+import { createServer, type Socket } from "node:net";
+import type { KvStore } from "@fedify/fedify";
+import { PostgresMessageQueue } from "@fedify/postgres";
 import {
   createDatabaseResources,
+  createFederationResource,
   getDatabaseConnectionOptions,
 } from "./resources.ts";
 import { getSqlWorkStats } from "./sql-work.ts";
@@ -181,3 +186,93 @@ test("protocol SQL options preserve Postgres.js multi-host authorities and ports
     /DATABASE_URL/,
   );
 });
+
+test(
+  "production federation composition selects bounded Redis and the interrupted public-key guard",
+  { timeout: 5000 },
+  async () => {
+    const { builder } = await import("@hackerspub/federation");
+    let kv: KvStore | undefined;
+    const build = builder.build.bind(builder);
+    const buildMock = mock.method(
+      builder,
+      "build",
+      (options: Parameters<typeof builder.build>[0]) => {
+        kv = options.kv;
+        return build(options);
+      },
+    );
+    // Queue initialization is covered by database integration tests. This test
+    // exercises the actual resource composition and Fedify build without DDL.
+    const initialize = mock.method(
+      PostgresMessageQueue.prototype,
+      "initialize",
+      async () => {},
+    );
+    const sockets = new Set<Socket>();
+    let connections = 0;
+    const server = createServer((socket) => {
+      connections++;
+      sockets.add(socket);
+      socket.on("data", () => {});
+      socket.on("close", () => sockets.delete(socket));
+      socket.on("error", () => {});
+    });
+    const { postgres: sql, db } = createDatabaseResources({
+      url: "postgres://localhost/unused",
+    });
+    let resources:
+      | Awaited<ReturnType<typeof createFederationResource>>
+      | undefined;
+    try {
+      server.listen(0, "127.0.0.1");
+      await once(server, "listening");
+      const address = server.address();
+      assert(address != null && typeof address !== "string");
+      resources = await createFederationResource(
+        {
+          origin: new URL("https://local.example"),
+          kv: { url: new URL(`redis://127.0.0.1:${address.port}`) },
+        },
+        sql,
+        db,
+        "test",
+        {
+          manuallyStartQueue: true,
+          protocolHttp: { loaderLimit: 8, loaderTimeoutMs: 100 },
+        },
+      );
+      assert(kv != null);
+      assert.equal(resources.protocolLoaderStats?.().limit, 8);
+      const controller = new AbortController();
+      await runWithRequestWork(controller.signal, async () => {
+        controller.abort();
+        await kv!.set(
+          ["_fedify", "publicKey", "https://remote.example/key"],
+          null,
+        );
+      });
+      assert.equal(
+        connections,
+        0,
+        "interrupted key writes must never reach Redis",
+      );
+      await assert.rejects(kv.get(["ordinary"]), { name: "TimeoutError" });
+      assert.equal(
+        connections,
+        1,
+        "ordinary cache reads use the bounded Redis adapter",
+      );
+    } finally {
+      try {
+        await resources?.close();
+      } finally {
+        await sql.end();
+        for (const socket of sockets) socket.destroy();
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+        initialize.mock.restore();
+        buildMock.mock.restore();
+      }
+    }
+  },
+);

@@ -113,6 +113,12 @@ bound driver queue wait, a whole transaction, or a broken network. A dependency
 that ignores cancellation retains its HTTP/SQL/loader permits and can delay
 shutdown.
 
+Protocol federation Redis operations use `PROTOCOL_LOADER_TIMEOUT_MS` to bound
+each command. A stalled operation closes its connection and waits for actual
+command/socket settlement before releasing ownership. Uncertain writes are not
+replayed. Later new operations may open a fresh connection after the failed
+connection ends; interactive and worker Redis behavior is unchanged.
+
 Protocol startup rejects the PostgreSQL URL `options` parameter and overwrites
 conflicting timeout parameters with enforced budgets, regardless of case. Do
 not use this service for migrations requiring longer statements.
