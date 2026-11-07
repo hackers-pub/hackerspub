@@ -37,6 +37,10 @@ import { isNewsBotActorType, refreshNewsScoresForActor } from "./news.ts";
 import { isPostObject } from "./post/core.ts";
 import { persistPost, persistSharedPost } from "./post/remote.ts";
 import {
+  REMOTE_FETCH_TIMEOUT_MS,
+  withDocumentLoaderTimeout,
+} from "./post/remote-fetch.ts";
+import {
   getRequestWorkSignal,
   throwIfRequestWorkAborted,
   trackRequestWork,
@@ -245,7 +249,34 @@ export async function persistActor(
     });
     return undefined;
   }
-  const getterOpts = { ...options, suppressError: true };
+  const signal = getRequestWorkSignal();
+  // Property getters do not expose their inherited loader. When no loader
+  // was supplied, retain authenticated federation fetches using the instance
+  // actor rather than falling back to the generic unauthenticated loader.
+  const documentLoader =
+    signal == null
+      ? options.documentLoader
+      : (options.documentLoader ??
+        (await ctx.getDocumentLoader({
+          identifier: new URL(ctx.canonicalOrigin).host,
+        })));
+  const requestOptions =
+    signal == null
+      ? options
+      : {
+          ...options,
+          documentLoader: withDocumentLoaderTimeout(
+            documentLoader!,
+            REMOTE_FETCH_TIMEOUT_MS,
+            signal,
+          ),
+          contextLoader: withDocumentLoaderTimeout(
+            options.contextLoader ?? ctx.contextLoader,
+            REMOTE_FETCH_TIMEOUT_MS,
+            signal,
+          ),
+        };
+  const getterOpts = { ...requestOptions, suppressError: true };
   throwIfRequestWorkAborted();
   const [attachments, avatar, header, followees, followers] = await Promise.all(
     [
@@ -264,15 +295,19 @@ export async function persistActor(
       ),
     ],
   );
+  // Vocabulary getters may suppress the loader's abort error and return null.
+  throwIfRequestWorkAborted();
   const tags: Record<string, string> = {};
   const emojis: Record<string, string> = {};
   for await (const tag of actor.getTags(getterOpts)) {
+    throwIfRequestWorkAborted();
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
       tags[tag.name.toString().toLowerCase()] = tag.href.href;
     } else if (tag instanceof vocab.Emoji) {
       if (tag.name == null) continue;
       const icon = await tag.getIcon(getterOpts);
+      throwIfRequestWorkAborted();
       if (
         icon?.url == null ||
         (icon.url instanceof vocab.Link && icon.url.href == null)
@@ -283,9 +318,11 @@ export async function persistActor(
         icon.url instanceof URL ? icon.url.href : icon.url.href!.href;
     }
   }
+  throwIfRequestWorkAborted();
   const successor = await actor.getSuccessor(getterOpts);
+  throwIfRequestWorkAborted();
   const successorActor = isActor(successor)
-    ? await persistActor(ctx, successor, options)
+    ? await persistActor(ctx, successor, requestOptions)
     : null;
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
@@ -370,20 +407,23 @@ export async function persistActor(
     await refreshNewsScoresForActor(db, rows[0].id);
   }
   const featured = await actor.getFeatured(getterOpts);
+  throwIfRequestWorkAborted();
   if (featured != null) {
     const featuredPosts: Post[] = [];
     let featuredPostCount = 0;
     for await (const object of traverseCollection(featured, getterOpts)) {
+      throwIfRequestWorkAborted();
       if (!isPostObject(object)) continue;
       if (featuredPostCount >= FEATURED_POST_LIMIT) break;
       const p = await persistPost(ctx, object, {
-        ...options,
+        ...requestOptions,
         actor: result,
         replies: false,
       });
       if (p != null) featuredPosts.push(p);
       featuredPostCount++;
     }
+    throwIfRequestWorkAborted();
     featuredPosts.reverse();
     await db.delete(pinTable).where(eq(pinTable.actorId, result.id));
     for (const p of featuredPosts) {
@@ -395,30 +435,34 @@ export async function persistActor(
     }
   }
   const outbox = options.outbox ? await actor.getOutbox(getterOpts) : null;
+  throwIfRequestWorkAborted();
   if (outbox != null) {
     let i = 0;
     for await (const activity of traverseCollection(outbox, getterOpts)) {
+      throwIfRequestWorkAborted();
       if (activity instanceof vocab.Create) {
         let object: vocab.Object | null;
         try {
           object = await activity.getObject(getterOpts);
         } catch (error) {
+          throwIfRequestWorkAborted();
           logger.warn(
             "Failed to get object for activity {activityId}: {error}",
             { activityId: activity.id?.href, error },
           );
           continue;
         }
+        throwIfRequestWorkAborted();
         if (!isPostObject(object)) continue;
         const persisted = await persistPost(ctx, object, {
-          ...options,
+          ...requestOptions,
           actor: result,
           replies: false,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
         const persisted = await persistSharedPost(ctx, activity, {
-          ...options,
+          ...requestOptions,
           actor: result,
         });
         if (persisted != null) i++;
@@ -426,6 +470,7 @@ export async function persistActor(
       if (i >= 10) break;
     }
   }
+  throwIfRequestWorkAborted();
   return { ...result, account: null, successor: successorActor ?? null };
 }
 
@@ -530,6 +575,15 @@ export async function persistActorsByHandles(
   const documentLoader = await ctx.getDocumentLoader({
     identifier: new URL(ctx.canonicalOrigin).host,
   });
+  const signal = getRequestWorkSignal();
+  const contextLoader =
+    signal == null
+      ? ctx.contextLoader
+      : withDocumentLoaderTimeout(
+          ctx.contextLoader,
+          REMOTE_FETCH_TIMEOUT_MS,
+          signal,
+        );
   const lookupHandles = [...handlesToFetch];
   const apActors = await mapWithConcurrencyLimit(
     lookupHandles,
@@ -541,7 +595,8 @@ export async function persistActorsByHandles(
       const lookup = trackRequestWork(
         ctx.lookupObject(handle, {
           documentLoader,
-          signal: getRequestWorkSignal(),
+          contextLoader,
+          signal,
         }),
       ).catch((error) => {
         throwIfRequestWorkAborted();

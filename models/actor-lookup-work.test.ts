@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setImmediate } from "node:timers/promises";
-import { persistActorsByHandles } from "./actor.ts";
+import type { DocumentLoader } from "@fedify/fedify";
+import { lookupObject, Person } from "@fedify/vocab";
+import { persistActor, persistActorsByHandles } from "./actor.ts";
 import type { ApplicationContext } from "./context.ts";
 import { extractMentionsFromHtml, renderMarkup } from "./markup.ts";
 import { runWithRequestWork } from "./request-work.ts";
+import { instanceTable } from "./schema.ts";
 
 function makeContext(lookup: ApplicationContext["lookupObject"]) {
   const writes: string[] = [];
@@ -180,5 +183,148 @@ test("request cancellation reaches the real actor lookup signal", async () => {
   assert.equal(observed, cancel.signal);
   cancel.abort();
   await assert.rejects(running, { name: "AbortError" });
+  assert.deepEqual(writes, []);
+});
+
+for (const target of ["document", "context"]) {
+  test(`actor property ${target} loader observes cancellation even when the getter suppresses it`, async (t) => {
+    t.mock.method(
+      globalThis,
+      "fetch",
+      async () => new Response(null, { status: 404 }),
+    );
+    const cancel = new AbortController();
+    const started = Promise.withResolvers<void>();
+    let observed: AbortSignal | undefined;
+    const loader: DocumentLoader = async (_url, options) => {
+      observed = options?.signal;
+      started.resolve();
+      return await new Promise((_resolve, reject) => {
+        observed?.addEventListener("abort", () => reject(observed?.reason), {
+          once: true,
+        });
+      });
+    };
+    const actor = new Person({
+      id: new URL("https://remote.test/alice"),
+      preferredUsername: "alice",
+      inbox: new URL("https://remote.test/alice/inbox"),
+      icon: new URL("https://remote.test/alice/icon"),
+    });
+    let tagsStarted = false;
+    t.mock.method(actor, "getTags", () => {
+      tagsStarted = true;
+      throw new Error("cancelled actor must not load tags");
+    });
+    const { ctx } = makeContext(async () => null);
+    const documentLoader: DocumentLoader =
+      target === "document"
+        ? loader
+        : async () => ({
+            contextUrl: null,
+            documentUrl: "https://remote.test/alice/icon",
+            document: {
+              "@context": "https://remote.test/icon-context",
+              id: "https://remote.test/alice/icon",
+              type: "Image",
+            },
+          });
+    let authenticatedLoaderRequested = false;
+    const context = {
+      ...ctx,
+      documentLoader: async () => {
+        throw new Error("must use an authenticated document loader");
+      },
+      getDocumentLoader(options: unknown) {
+        assert.deepEqual(options, { identifier: "example.test" });
+        authenticatedLoaderRequested = true;
+        return documentLoader;
+      },
+      contextLoader: loader,
+      db: {
+        query: {
+          actorTable: {
+            async findFirst() {
+              return undefined;
+            },
+          },
+        },
+        insert(table: unknown) {
+          assert.equal(
+            table,
+            instanceTable,
+            "cancelled actor must not be inserted",
+          );
+          return {
+            values() {
+              return {
+                onConflictDoUpdate() {
+                  return {
+                    async returning() {
+                      return [{ host: "remote.test" }];
+                    },
+                  };
+                },
+              };
+            },
+          };
+        },
+      },
+    } as unknown as ApplicationContext;
+    const running = runWithRequestWork(cancel.signal, () =>
+      persistActor(context, actor),
+    );
+    await started.promise;
+    assert.ok(observed instanceof AbortSignal);
+    assert.equal(observed.aborted, false);
+    cancel.abort();
+    assert.equal(observed.aborted, true);
+    await assert.rejects(running, { name: "AbortError" });
+    assert.equal(observed.aborted, true);
+    assert.equal(authenticatedLoaderRequested, true);
+    assert.equal(tagsStarted, false);
+  });
+}
+
+test("real actor lookup cancels an uncached JSON-LD context load", async () => {
+  const cancel = new AbortController();
+  const started = Promise.withResolvers<void>();
+  let observed: AbortSignal | undefined;
+  const contextLoader: DocumentLoader = async (_url, options) => {
+    observed = options?.signal;
+    started.resolve();
+    return await new Promise((_resolve, reject) => {
+      observed?.addEventListener("abort", () => reject(observed?.reason), {
+        once: true,
+      });
+    });
+  };
+  const documentLoader: DocumentLoader = async () => ({
+    contextUrl: null,
+    documentUrl: "https://remote.test/alice",
+    document: {
+      "@context": "https://remote.test/uncached-context",
+      id: "https://remote.test/alice",
+      type: "Person",
+    },
+  });
+  const { ctx, writes } = makeContext((_handle, options) =>
+    lookupObject(new URL("https://remote.test/alice"), options),
+  );
+  const context = {
+    ...ctx,
+    contextLoader,
+    getDocumentLoader() {
+      return documentLoader;
+    },
+  } as ApplicationContext;
+  const running = runWithRequestWork(cancel.signal, () =>
+    persistActorsByHandles(context, ["@alice@remote.test"]),
+  );
+  await started.promise;
+  assert.ok(observed instanceof AbortSignal);
+  cancel.abort();
+  await assert.rejects(running, { name: "AbortError" });
+  assert.equal(observed.aborted, true);
   assert.deepEqual(writes, []);
 });
