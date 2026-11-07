@@ -9,15 +9,16 @@ build, and how to roll one back.  For local development, read
 Roles
 -----
 
-One container image serves three roles.  They are separate processes with
+One container image serves four roles.  They are separate processes with
 separate lifecycles, and the deployment definition chooses which role a
 container runs and which probe watches it:
 
-| Role   | Start command                  | Health check                      | Port |
-| ------ | ------------------------------ | --------------------------------- | ---- |
-| API    | `mise run prod:graphql`        | `mise run prod:hc:graphql`        | 8080 |
-| Worker | `mise run prod:graphql-worker` | `mise run prod:hc:graphql-worker` | none |
-| Web UI | `mise run prod:web-next`       | `mise run prod:hc:web-next`       | 3000 |
+| Role                                      | Start command                  | Health check                      | Port |
+| ----------------------------------------- | ------------------------------ | --------------------------------- | ---- |
+| Interactive API (`HTTP_ROLE=interactive`) | `mise run prod:graphql`        | `mise run prod:hc:graphql`        | 8080 |
+| Protocol HTTP                             | `mise run prod:protocol`       | `mise run prod:hc:protocol`       | 8081 |
+| Worker                                    | `mise run prod:graphql-worker` | `mise run prod:hc:graphql-worker` | none |
+| Web UI                                    | `mise run prod:web-next`       | `mise run prod:hc:web-next`       | 3000 |
 
 The image declares `HEALTHCHECK NONE` precisely because the probes differ per
 role; a deployment that omits them gets no health signal at all.
@@ -30,9 +31,174 @@ role; a deployment that omits them gets no health signal at all.
 > leases, and idempotent claims, so additional replicas are safe, but each
 > needs its own heartbeat path.
 
-The API and the worker must share one Redis instance through `KV_URL`.  A
-file-backed `KV_URL` is a development-only convenience and will silently give
-the two processes divergent state.
+Both HTTP roles and the worker must share Redis through `KV_URL`. File KV is
+accepted only in explicit combined development mode; split roles and production
+require Redis. Neither HTTP process starts queue consumers.
+
+`prod:graphql` defaults to `HTTP_ROLE=combined` for compatibility. Set
+`HTTP_ROLE=interactive` when routing protocol traffic to the separate service.
+`prod:protocol` forces the protocol role even if the environment selects another
+role. `HTTP_HOST` defaults to `0.0.0.0`; `HTTP_PORT` defaults to 8080 for
+interactive/combined and 8081 for protocol.
+
+
+Protocol HTTP isolation
+-----------------------
+
+The split deployment gives protocol HTTP its own event loop, database pool,
+admission limits, and container resource limits. The interactive process still
+creates federation contexts and produces queue work. It serves GraphQL,
+uploads/media, and the exact application-association files; it rejects protocol
+paths. The protocol process serves ActivityPub, WebFinger, and NodeInfo, and
+constructs no GraphQL Yoga server or anonymous GraphQL admission client.
+Combined mode retains the shared process behavior and does not provide these
+protocol isolation bounds. Protocol settings are ignored by other HTTP roles.
+
+The Compose example runs the interactive API on 8080 and protocol HTTP on 8081.
+Both Caddy examples use an explicit ordered route: exact
+`/.well-known/assetlinks.json` and
+`/.well-known/apple-app-site-association` go to the API first, then
+`/.well-known/*`, `/ap/*`, and `/nodeinfo/*` go to protocol. `/graphql` and
+its subtree, exact `/medium-uploads` and its subtree, and `/media/*` go to
+the API; everything else goes to web-next. Preserve this order when adapting
+another proxy. `/health` is internal and the public gateway rejects it.
+
+Protocol readiness is `GET /health`, returning
+`{"ready":true,"role":"protocol"}` only after resources and the durable inbox
+queue are initialized. A full execution budget stays ready: excess traffic
+receives retryable responses rather than causing health-driven restarts.
+Interactive readiness continues to execute `{__typename}` through GraphQL.
+Web-next and the gateway depend only on interactive readiness, so a stopped or
+saturated protocol service does not prevent them from starting or becoming
+ready. The worker remains background only and uses its heartbeat file.
+
+Interactive readiness also becomes unhealthy when its anonymous-read admission
+store reports a permanent failure, even if the cheap GraphQL schema probe still
+succeeds. A full admission budget alone remains healthy. HTTP health probes use
+`HTTP_HOST`, mapping wildcard binds to the matching loopback address.
+
+### Limits and connection accounting
+
+These defaults apply per protocol process and are validated before listening:
+
+| Variable                             | Default    | Bound                                                                                       |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
+| `PROTOCOL_REQUEST_LIMIT`             | `4`        | Admitted HTTP executions, including body and dependency cleanup; no queue                   |
+| `PROTOCOL_REQUEST_TIMEOUT_MS`        | `15000`    | Absolute HTTP deadline, including drain                                                     |
+| `PROTOCOL_REQUEST_BODY_LIMIT_BYTES`  | `16777216` | Signed request bytes, checked before forwarding                                             |
+| `PROTOCOL_RESPONSE_BODY_LIMIT_BYTES` | `16777216` | Materialized response bytes                                                                 |
+| `DATABASE_MAX_CONNECTIONS`           | `4`        | Protocol PostgreSQL pool; interactive/worker default to `20`                                |
+| `PROTOCOL_SQL_LIMIT`                 | `32`       | Consumed SQL, transaction, and notify operations, including queued work                     |
+| `PROTOCOL_SQL_TIMEOUT_MS`            | `5000`     | Server statement, idle-transaction, and connect budgets; lock timeout is at most one second |
+| `PROTOCOL_LOADER_LIMIT`              | `8`        | Concurrent document, context, and authenticated loads, including KV access                  |
+| `PROTOCOL_LOADER_TIMEOUT_MS`         | `5000`     | Per-load cancellation timer; actual completion remains owned                                |
+
+Admission happens in the protocol service before its own body reads and
+trusted-forwarding processing. The gateway has already accepted the request
+and may buffer or forward body bytes before rejection. Account for gateway
+connections, buffering, and resource limits separately. Excess work
+returns [`503 Service Unavailable`]
+with `Retry-After: 1` and `Cache-Control: no-store`. The absolute deadline and
+server SQL timeouts return
+[`504 Gateway Timeout`].
+A successful response transmission shares the original request deadline. An
+error reply starting after that deadline has at most one second to flush before
+the socket is closed. Admission remains occupied until both owned dependencies
+and the Node.js response transmission have finished or closed; a stalled writer
+cannot release its slot while retaining response buffers.
+
+A local loader timeout cancels that load without aborting sibling work. A fully
+completed optional `GET` or `HEAD` fallback below 400 is preserved. Other
+methods and failed responses become `504 Gateway Timeout` after dependency
+interruption, including a later successful inbox-verification fallback. This
+preserves retryability when verification was interrupted. Interrupted
+public-key lookups cannot persist key-cache entries that would poison a later
+signed retry. Genuine remote key failures retain ordinary negative caching.
+
+Protocol SQL never sends native PostgreSQL `CancelRequest` messages.
+Cancellation prevents new application work; consumed queries and transaction
+completion keep their permits until actual settlement under server budgets. A
+queued write or commit can finish after the HTTP timeout or disconnect. The
+HTTP boundary provides no rollback guarantee, and an inbox enqueue whose
+acknowledgement was lost has an unknown outcome. Preserve existing
+at-least-once retry and deduplication behavior. Statement timeout does not
+bound driver queue wait, a whole transaction, or a broken network. A dependency
+that ignores cancellation retains its HTTP/SQL/loader permits and can delay
+shutdown.
+
+Protocol federation Redis operations use `PROTOCOL_LOADER_TIMEOUT_MS` to bound
+each command. A stalled operation closes its connection and waits for actual
+command/socket settlement before releasing ownership. Uncertain writes are not
+replayed. Later new operations may open a fresh connection after the failed
+connection ends; interactive and worker Redis behavior is unchanged.
+
+Protocol startup rejects the PostgreSQL URL `options` parameter and overwrites
+conflicting timeout parameters with enforced budgets, regardless of case. Do
+not use this service for migrations requiring longer statements.
+
+Count pool limits across all replicas, including old and new replicas during a
+rollout. For example, one interactive API, one protocol service, and one worker
+allow 20 + 4 + 20 pooled PostgreSQL connections, plus one worker `LISTEN`
+connection. Reserve additional capacity for ordinary API cancellation sockets,
+whose peak must be measured, migrations, administration, and other applications.
+Protocol contributes zero cancellation-control sockets. Raising the HTTP or SQL
+limit does not raise the protocol pool, and raising the pool affects the
+aggregate database budget.
+
+The Compose example caps protocol CPU at one core, memory at 512 MiB, and PIDs
+at 128. Override `PROTOCOL_CPUS`, `PROTOCOL_MEMORY_LIMIT`, and
+`PROTOCOL_PIDS_LIMIT` for the host after measurement. Four simultaneous maximum
+request/response buffers alone can occupy 128 MiB; JSON parsing, cloned data,
+SQL, and the runtime require more. Resource limits protect the interactive
+process from protocol CPU/memory pressure but do not promise a timely protocol
+response while its own event loop is blocked.
+
+`PROTOCOL_STOP_GRACE_PERIOD` defaults to 25 seconds in Compose. Size it from
+measured drain times for owned SQL, transactions, and loader cleanup, including
+queued work. The HTTP deadline and its one-second connection-drain allowance
+do not bound that work. Shutdown stops admission, drains HTTP, aborts remaining
+scopes, and waits for actual owned work before closing dependencies, but Compose
+can send `SIGKILL` when its grace period expires, even with the default setting.
+Treat forced termination as a crash: an unacknowledged enqueue or commit has an
+unknown outcome and may already have succeeded. Preserve retries and existing
+deduplication, and allow for duplicate processing under at-least-once delivery.
+
+[`503 Service Unavailable`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/503
+[`504 Gateway Timeout`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/504
+
+### Cutover, rollback, and validation
+
+Start a compatible worker and the protocol service before switching protocol
+proxy routes. While the API remains combined, apply the ordered split routing
+above; then switch the API to `HTTP_ROLE=interactive`. Check both role probes
+and public discovery/associations; stop protocol briefly and verify the API and
+web UI remain ready. Do not make web/gateway readiness depend on protocol or
+start queue consumers in HTTP processes.
+
+To return to combined mode, start `prod:graphql` with `HTTP_ROLE=combined`,
+confirm its GraphQL and discovery responses, then route the protocol path
+families back to that API before stopping the separate protocol service.
+Restore the former container/pool limits consciously: combined mode shares
+resources again. Keep the standalone worker running; no HTTP consumer is needed
+for rollback.
+
+`mise run smoke:standalone` starts both HTTP roles, a worker, and a built web
+UI, checks discovery, exact associations, opposite-role rejections, and
+interactive readiness after stopping protocol. It defaults to ports 18080,
+18081, and 13000; set `STANDALONE_SMOKE_API_PORT`,
+`STANDALONE_SMOKE_PROTOCOL_PORT`, and `STANDALONE_SMOKE_WEB_PORT` when needed.
+It refuses occupied ports and stops only its own children.
+`STANDALONE_SMOKE_KV_URL` selects the test Redis database. Use a dedicated test
+database and Redis instance because the worker runs normal queue consumers and
+schedules.
+
+Before production cutover, rehearse valid signed/private reads, durable inbox
+acceptance and worker consumption, disconnects, stalled dependencies, and proxy
+routing on staging. Measure baseline/loaded interactive errors and p95/p99
+latency, active HTTP/SQL/loader counts, and database connections under protocol
+load and a separate CPU-pressure phase. Local fixtures do not establish a
+production SLO or identify the cause of issue #443. Staging and manual
+sign-in/authenticated GraphQL/SSR checks remain required.
 
 
 Images
@@ -179,9 +345,10 @@ Cutover
     published versions, federates nothing, and is safe to repeat.
 
 7.  Restart the roles in this order, waiting for each probe to pass before
-    continuing: **worker → API → web UI.**  The worker first because it drains
-    federation queues and is the only role that can be down without user-facing
-    effect; the API before the web UI because the web UI proxies to it.
+    continuing: **worker → protocol and API → web UI.**  The worker first
+    so queued federation processing can resume. Inbound updates and outbound
+    delivery wait while no worker is running; a prolonged restart delays them
+    for users. The API precedes the web UI because the web UI proxies to it.
 
 8.  Run the post-deploy checks below.
 
@@ -203,6 +370,7 @@ Each role's own probe:
 
 ~~~~ sh
 mise run prod:hc:graphql
+mise run prod:hc:protocol
 mise run prod:hc:graphql-worker
 mise run prod:hc:web-next
 ~~~~
@@ -233,10 +401,16 @@ Nothing automated covers the rest, so walk through it by hand:
 Rollback
 --------
 
-Roll back by redeploying the previously recorded image tag, in reverse cutover
-order: **web UI → API → worker**, then rerunning the post-deploy checks.  The
-web UI goes first because the newer composer queries fields such as
-`Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
+Roll back the web UI to the previously recorded image first. Before downgrading
+the API to a release that predates protocol isolation, switch the current API
+to `HTTP_ROLE=combined` and route federation and discovery traffic back to it,
+following [Cutover, rollback, and validation]. Verify public discovery and
+interactive routes, then stop and remove the separate protocol role. Do not
+redeploy that role with the older image: it has no `prod:protocol` task. Finish
+by downgrading the API and worker, then rerun the post-deploy checks.
+
+The web UI goes first because the newer composer queries fields such
+as `Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
 not expose, while the older web UI keeps working against the newer API.
 
 The `idx_post_url_hash` index added for [#390] is additive and can remain in
@@ -260,6 +434,7 @@ rolling back across that switch needs the `MAILGUN_*` variables (and
 Rehearse this before you need it: deploy the current tag, then redeploy the
 previous one, and confirm the checks pass at both ends.
 
+[Cutover, rollback, and validation]: #cutover-rollback-and-validation
 [#351]: https://github.com/hackers-pub/hackerspub/issues/351
 
 ### Multiple email addresses
@@ -741,8 +916,9 @@ The API limits concurrent expensive guest GraphQL queries before opening their
 snapshot transactions. The limit covers queries arriving directly or through
 web-next, including distinct parameters and multiple client addresses. It does
 not apply a blanket cache or throttle to `/_server`. Mutations, authenticated
-query execution, and ActivityPub HTTP traffic have separate behavior. This does
-not implement protocol-process isolation (#443) or SSR deadlines (#444).
+query execution, and ActivityPub HTTP traffic have separate behavior. This is
+separate from protocol-process isolation (#443) and does not add SSR deadlines
+(#444).
 
 Excess requests receive HTTP `503 Service Unavailable`, `Retry-After: 1`,
 `Cache-Control: no-store`, and GraphQL code `ANONYMOUS_READ_OVERLOADED`. There

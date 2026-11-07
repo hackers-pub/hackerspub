@@ -25,15 +25,22 @@ AI Policy Compliance
 Application Architecture
 ------------------------
 
-The application has three deployable roles:
+The application has four deployable roles:
 
  -  **Web UI (`web-next/`)**: SolidStart v2, Solid.js, Relay, and Lingui on
     Node.js, managed through the pnpm workspace
- -  **GraphQL API (`graphql/main.ts`)**: GraphQL Yoga plus Fedify protocol
-    endpoints
+ -  **Interactive HTTP (`graphql/main.ts`, `HTTP_ROLE=interactive`)**: GraphQL
+    Yoga, uploads/media, and exact application-association files
+ -  **Protocol HTTP (`graphql/protocol.ts`)**: ActivityPub, WebFinger, and
+    NodeInfo in a separately bounded process with its own PostgreSQL pool
  -  **Federation worker (`graphql/worker.ts`)**: queue delivery and scheduled
     jobs. Run it separately from the API process and never behind a load
     balancer
+
+`graphql/main.ts` defaults to `HTTP_ROLE=combined` for compatibility, serving
+both interactive and protocol paths without protocol isolation. Split HTTP
+roles require Redis; only explicit combined development mode allows file KV.
+Neither HTTP role starts queue consumers.
 
 Shared application behavior lives in `models/`, `federation/`, `runtime/`, and
 `ai/`.  New UI and internationalization work belongs in `web-next/`; API,
@@ -54,17 +61,18 @@ explicit `--env-file` flag.
 
 ### Per-role tasks (via mise)
 
- -  Dev processes: `mise run dev:graphql` /
+ -  Dev processes: `mise run dev:graphql` / `mise run dev:protocol` /
     `mise run dev:graphql-worker` / `mise run dev:web-next`
  -  Build: `mise run build:web-next`
- -  Production processes: `mise run prod:graphql` /
+ -  Production processes: `mise run prod:graphql` / `mise run prod:protocol` /
     `mise run prod:graphql-worker` / `mise run prod:web-next`
- -  Health checks: `mise run prod:hc:graphql` /
+ -  Health checks: `mise run prod:hc:graphql` / `mise run prod:hc:protocol` /
     `mise run prod:hc:graphql-worker` / `mise run prod:hc:web-next`
 
-`mise run dev:graphql` by itself accepts a file-backed `KV_URL` for focused API
-development.  The worker and all production processes require Redis; do not run
-an API and worker against the same file-backed KV store.
+`mise run dev:graphql` in combined mode accepts a file-backed `KV_URL` for
+focused API development. Split HTTP roles, the worker, and all production
+processes require Redis; do not run an API and worker against the same
+file-backed KV store.
 
 Deployment, cutover, and rollback are documented in <DEPLOYMENT.md>.
 
@@ -88,7 +96,7 @@ Deployment, cutover, and rollback are documented in <DEPLOYMENT.md>.
  -  Lint/format/type check: `mise run check`
  -  Format source and Markdown files: `mise run fmt`
  -  Run tests: `mise run test`
- -  Smoke test the API, worker, and web-next together:
+ -  Smoke test both HTTP roles, the worker, and web-next together:
     `mise run smoke:standalone`
  -  Install/update the pre-commit hook:
     `mise generate git-pre-commit --write --task=check`

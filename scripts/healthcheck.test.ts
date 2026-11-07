@@ -8,9 +8,11 @@ import test from "node:test";
 import { withProcessEnv } from "../test/env.ts";
 import {
   checkGraphqlApi,
+  checkProtocol,
   checkWebNext,
   checkWorkerHealth,
   isHealthCheckRole,
+  httpHealthOrigin,
   main,
 } from "./healthcheck.ts";
 
@@ -21,6 +23,7 @@ interface StubResponse {
 
 async function serve(
   respond: (method: string, url: string) => StubResponse,
+  hostname = "127.0.0.1",
 ): Promise<{ origin: string; close: () => Promise<void> }> {
   const server: Server = createServer((request, response) => {
     const { status = 200, body = {} } = respond(
@@ -32,14 +35,14 @@ async function serve(
   });
   await new Promise<void>((resolve, reject) => {
     server.once("error", reject);
-    server.listen(0, "127.0.0.1", resolve);
+    server.listen(0, hostname, resolve);
   });
   const address = server.address();
   if (address == null || typeof address === "string") {
     throw new Error("The stub server did not bind to a TCP port.");
   }
   return {
-    origin: `http://127.0.0.1:${address.port}`,
+    origin: httpHealthOrigin(address.port, hostname),
     close: () =>
       new Promise<void>((resolve, reject) => {
         server.close((error) => (error == null ? resolve() : reject(error)));
@@ -60,6 +63,7 @@ async function withTemporaryDirectory(
 
 test("isHealthCheckRole accepts only the deployable roles", () => {
   assert.ok(isHealthCheckRole("graphql"));
+  assert.ok(isHealthCheckRole("protocol"));
   assert.ok(isHealthCheckRole("graphql-worker"));
   assert.ok(isHealthCheckRole("web-next"));
   assert.ok(!isHealthCheckRole("worker"));
@@ -67,9 +71,15 @@ test("isHealthCheckRole accepts only the deployable roles", () => {
 });
 
 test("checkGraphqlApi accepts a schema that answers __typename", async () => {
-  const { origin, close } = await serve(() => ({
-    body: { data: { __typename: "Query" } },
-  }));
+  const { origin, close } = await serve((_method, url) =>
+    url === "/health"
+      ? {
+          body: { ready: true, role: "interactive" },
+        }
+      : {
+          body: { data: { __typename: "Query" } },
+        },
+  );
   try {
     assert.deepEqual(await checkGraphqlApi(`${origin}/graphql`), true);
   } finally {
@@ -78,9 +88,15 @@ test("checkGraphqlApi accepts a schema that answers __typename", async () => {
 });
 
 test("checkGraphqlApi rejects a GraphQL error payload", async () => {
-  const { origin, close } = await serve(() => ({
-    body: { errors: [{ message: "schema failed to build" }] },
-  }));
+  const { origin, close } = await serve((_method, url) =>
+    url === "/health"
+      ? {
+          body: { ready: true, role: "interactive" },
+        }
+      : {
+          body: { errors: [{ message: "schema failed to build" }] },
+        },
+  );
   try {
     assert.deepEqual(await checkGraphqlApi(`${origin}/graphql`), false);
   } finally {
@@ -89,9 +105,15 @@ test("checkGraphqlApi rejects a GraphQL error payload", async () => {
 });
 
 test("checkGraphqlApi rejects an unexpected __typename", async () => {
-  const { origin, close } = await serve(() => ({
-    body: { data: { __typename: "Mutation" } },
-  }));
+  const { origin, close } = await serve((_method, url) =>
+    url === "/health"
+      ? {
+          body: { ready: true, role: "interactive" },
+        }
+      : {
+          body: { data: { __typename: "Mutation" } },
+        },
+  );
   try {
     assert.deepEqual(await checkGraphqlApi(`${origin}/graphql`), false);
   } finally {
@@ -100,13 +122,66 @@ test("checkGraphqlApi rejects an unexpected __typename", async () => {
 });
 
 test("checkGraphqlApi rejects a failing HTTP status", async () => {
-  const { origin, close } = await serve(() => ({
-    status: 503,
-    body: { data: { __typename: "Query" } },
-  }));
+  const { origin, close } = await serve((_method, url) =>
+    url === "/health"
+      ? {
+          body: { ready: true, role: "interactive" },
+        }
+      : {
+          status: 503,
+          body: { data: { __typename: "Query" } },
+        },
+  );
   try {
     assert.deepEqual(await checkGraphqlApi(`${origin}/graphql`), false);
   } finally {
+    await close();
+  }
+});
+
+test("checkProtocol accepts only ready protocol role responses", async () => {
+  for (const body of [
+    { ready: true, role: "protocol", active: 4 },
+    { ready: false, role: "protocol" },
+    { ready: true, role: "interactive" },
+    { ready: "true", role: "protocol" },
+  ]) {
+    const { origin, close } = await serve(() => ({ body }));
+    try {
+      assert.equal(
+        await checkProtocol(`${origin}/health`),
+        body.ready === true && body.role === "protocol",
+      );
+    } finally {
+      await close();
+    }
+  }
+  const { origin, close } = await serve(() => ({
+    status: 503,
+    body: { ready: true, role: "protocol" },
+  }));
+  try {
+    assert.equal(await checkProtocol(`${origin}/health`), false);
+  } finally {
+    await close();
+  }
+});
+
+test("main probes protocol readiness on the configured HTTP port", async () => {
+  const { origin, close } = await serve((method, url) => {
+    assert.equal(method, "GET");
+    assert.equal(url, "/health");
+    return { body: { ready: true, role: "protocol" } };
+  });
+  const previousExitCode = process.exitCode;
+  try {
+    await withProcessEnv({ HTTP_PORT: new URL(origin).port }, async () => {
+      process.exitCode = 0;
+      await main(["protocol"]);
+      assert.equal(process.exitCode, 0);
+    });
+  } finally {
+    process.exitCode = previousExitCode;
     await close();
   }
 });
@@ -183,5 +258,55 @@ test("main resolves the worker heartbeat from the environment", async () => {
     });
   } finally {
     process.exitCode = previousExitCode;
+  }
+});
+
+test("GraphQL health rejects failed admission even when __typename works", async () => {
+  let queries = 0;
+  const { origin, close } = await serve((_method, url) => {
+    if (url === "/health")
+      return { status: 503, body: { ready: false, role: "interactive" } };
+    queries++;
+    return { body: { data: { __typename: "Query" } } };
+  });
+  try {
+    assert.equal(await checkGraphqlApi(`${origin}/graphql`), false);
+    assert.equal(queries, 0);
+  } finally {
+    await close();
+  }
+});
+
+test("health origins preserve specific hosts and choose wildcard loopback family", () => {
+  for (const [host, expected] of [
+    ["", "127.0.0.1"],
+    ["0.0.0.0", "127.0.0.1"],
+    ["::", "[::1]"],
+    ["::1", "[::1]"],
+    ["[::1]", "[::1]"],
+    ["192.0.2.10", "192.0.2.10"],
+    ["api.internal", "api.internal"],
+  ])
+    assert.equal(httpHealthOrigin(8123, host), `http://${expected}:8123`);
+});
+
+test("protocol main probes a configured IPv6 loopback listener", async () => {
+  const { origin, close } = await serve((_method, url) => {
+    assert.equal(url, "/health");
+    return { body: { ready: true, role: "protocol" } };
+  }, "::1");
+  const previousExitCode = process.exitCode;
+  try {
+    await withProcessEnv(
+      { HTTP_HOST: "::1", HTTP_PORT: new URL(origin).port },
+      async () => {
+        process.exitCode = 0;
+        await main(["protocol"]);
+        assert.equal(process.exitCode, 0);
+      },
+    );
+  } finally {
+    process.exitCode = previousExitCode;
+    await close();
   }
 });

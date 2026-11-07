@@ -1,4 +1,4 @@
-// Container health probes for the three deployable roles.  The production
+// Container health probes for the deployable roles.  The production
 // image serves all of them, so `HEALTHCHECK NONE` in the Dockerfile leaves the
 // choice to the deployment definition, which selects the matching
 // `mise run prod:hc:*` task.
@@ -11,6 +11,7 @@ import {
 
 export const HEALTH_CHECK_ROLES = [
   "graphql",
+  "protocol",
   "graphql-worker",
   "web-next",
 ] as const;
@@ -18,6 +19,7 @@ export const HEALTH_CHECK_ROLES = [
 export type HealthCheckRole = (typeof HEALTH_CHECK_ROLES)[number];
 
 export const DEFAULT_GRAPHQL_URL = "http://127.0.0.1:8080/graphql";
+export const DEFAULT_PROTOCOL_URL = "http://127.0.0.1:8081/health";
 export const DEFAULT_WEB_NEXT_URL = "http://127.0.0.1:3000/search";
 
 // Comfortably below the 5s Compose healthcheck timeout, so a hung upstream
@@ -29,18 +31,30 @@ export function isHealthCheckRole(value: string): value is HealthCheckRole {
 }
 
 /**
- * Probes the GraphQL API with the cheapest possible executed query.  A reply
- * that parses but carries `errors`, or whose `__typename` is not `Query`, means
+ * Checks admission readiness, then probes the cheapest executed GraphQL query.
+ * A reply that parses but carries `errors`, or whose `__typename` is not `Query`, means
  * the schema failed to build, so it counts as unhealthy rather than healthy.
  */
 export async function checkGraphqlApi(
   url: string = DEFAULT_GRAPHQL_URL,
 ): Promise<boolean> {
+  const signal = AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS);
+  const readiness = await fetch(new URL("/health", url), { signal });
+  const ready =
+    readiness.status === 200
+      ? ((await readiness.json()) as { ready?: unknown; role?: unknown })
+      : null;
+  if (ready == null) await discard(readiness);
+  if (
+    ready?.ready !== true ||
+    (ready.role !== "interactive" && ready.role !== "combined")
+  )
+    return false;
   const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ query: "{__typename}" }),
-    signal: AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS),
+    signal,
   });
   if (!response.ok) {
     await discard(response);
@@ -51,6 +65,24 @@ export async function checkGraphqlApi(
     data?: { __typename?: unknown };
   };
   return result.errors == null && result.data?.__typename === "Query";
+}
+
+/** Readiness remains healthy while the protocol execution budget is full. */
+export async function checkProtocol(
+  url: string = DEFAULT_PROTOCOL_URL,
+): Promise<boolean> {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS),
+  });
+  if (response.status !== 200) {
+    await discard(response);
+    return false;
+  }
+  const result = (await response.json()) as {
+    ready?: unknown;
+    role?: unknown;
+  };
+  return result.ready === true && result.role === "protocol";
 }
 
 /**
@@ -84,10 +116,31 @@ async function discard(response: Response): Promise<void> {
   await response.body?.cancel();
 }
 
+/** Wildcard listeners are reached through their matching loopback family. */
+export function httpHealthOrigin(
+  port: string | number,
+  hostname: string | undefined = process.env.HTTP_HOST,
+): string {
+  const configured = hostname?.trim();
+  const host =
+    configured == null || configured === "" || configured === "0.0.0.0"
+      ? "127.0.0.1"
+      : configured === "::"
+        ? "::1"
+        : configured;
+  return `http://${host.includes(":") && !host.startsWith("[") ? `[${host}]` : host}:${port}`;
+}
+
 export async function runHealthCheck(role: HealthCheckRole): Promise<boolean> {
   switch (role) {
     case "graphql":
-      return await checkGraphqlApi();
+      return await checkGraphqlApi(
+        `${httpHealthOrigin(process.env.HTTP_PORT ?? 8080)}/graphql`,
+      );
+    case "protocol":
+      return await checkProtocol(
+        `${httpHealthOrigin(process.env.HTTP_PORT ?? 8081)}/health`,
+      );
     case "graphql-worker":
       return await checkWorkerHealth();
     case "web-next":

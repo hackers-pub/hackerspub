@@ -47,7 +47,81 @@ test("Codespaces exposes a single canonical gateway origin", async () => {
     "ORIGIN: https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
   );
   assertStringIncludes(gateway, "reverse_proxy graphql:8080");
+  assertStringIncludes(gateway, "reverse_proxy protocol:8081");
   assertStringIncludes(gateway, "reverse_proxy web-next:3000");
+  const services = (
+    parse(overlay, { merge: true }) as {
+      services: Record<string, { environment?: Record<string, string> }>;
+    }
+  ).services;
+  for (const role of ["graphql", "protocol", "graphql-worker", "web-next"]) {
+    assertEquals(
+      services[role]?.environment?.ORIGIN,
+      "https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
+    );
+    assertEquals(services[role]?.environment?.BEHIND_PROXY, "true");
+  }
+});
+
+test("Dev Containers and Codespaces start both HTTP roles", async () => {
+  for (const path of [
+    "../.devcontainer/devcontainer.json",
+    "../.devcontainer/codespaces/devcontainer.json",
+  ]) {
+    const configuration = await readTextFile(new URL(path, import.meta.url));
+    // These files are JSON with comments; the service array is plain JSON.
+    const match = configuration.match(/"runServices":\s*(\[[\s\S]*?\])/);
+    assert(match != null);
+    const roles = JSON.parse(match[1]) as string[];
+    for (const role of ["graphql", "protocol", "graphql-worker", "web-next"]) {
+      assert(roles.includes(role), `${path} must start ${role}`);
+    }
+  }
+});
+
+test("targeted gateway startup includes protocol without a health gate", async () => {
+  const compose = parse(
+    await readTextFile(new URL("../docker-compose.yml", import.meta.url)),
+    { merge: true },
+  ) as {
+    services: Record<
+      string,
+      { depends_on?: Record<string, { condition: string }> }
+    >;
+  };
+  assertEquals(
+    compose.services.gateway.depends_on?.protocol?.condition,
+    "service_started",
+  );
+  assertEquals(
+    compose.services.gateway.depends_on?.graphql?.condition,
+    "service_healthy",
+  );
+  assertEquals(
+    compose.services.gateway.depends_on?.["web-next"]?.condition,
+    "service_healthy",
+  );
+});
+
+test("Compose leaves role pool budgets to the inherited runtime environment", async () => {
+  const compose = parse(
+    await readTextFile(new URL("../docker-compose.yml", import.meta.url)),
+    { merge: true },
+  ) as {
+    services: Record<
+      string,
+      { env_file: unknown[]; environment: Record<string, unknown> }
+    >;
+  };
+  for (const role of ["graphql", "protocol", "graphql-worker"]) {
+    assert(compose.services[role].env_file.length > 0);
+    assert(
+      !Object.hasOwn(
+        compose.services[role].environment,
+        "DATABASE_MAX_CONNECTIONS",
+      ),
+    );
+  }
 });
 
 test("development gateway preserves trusted tunnel metadata", async () => {
@@ -176,9 +250,22 @@ test("standalone smoke owns a shared Redis configuration", async () => {
 
   assertStringIncludes(smoke, "process.env.STANDALONE_SMOKE_KV_URL");
   assertStringIncludes(smoke, '"redis://127.0.0.1:6379/0"');
-  assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
+  for (const service of ["api", "protocol", "worker"]) {
+    const start = smoke.match(
+      new RegExp(`const ${service} = start\\([\\s\\S]*?\\n  \\);`),
+    )?.[0];
+    assert(start != null, `The smoke test must start its own ${service}.`);
+    assertStringIncludes(start, "KV_URL: standaloneKvUrl");
+  }
+  assertStringIncludes(smoke, 'HTTP_ROLE: "interactive"');
+  assertStringIncludes(smoke, "HTTP_PORT: String(apiPort)");
+  assertStringIncludes(smoke, "HTTP_PORT: String(protocolPort)");
+  assertStringIncludes(smoke, '"STANDALONE_SMOKE_API_PORT", 18080');
+  assertStringIncludes(smoke, '"STANDALONE_SMOKE_PROTOCOL_PORT", 18081');
+  assertStringIncludes(smoke, '"STANDALONE_SMOKE_WEB_PORT", 13000');
   assertStringIncludes(smoke, '"./instrument.ts"');
   assertStringIncludes(smoke, '"main.ts"');
+  assertStringIncludes(smoke, '"protocol.ts"');
   assertStringIncludes(smoke, '"worker.ts"');
   assertStringIncludes(smoke, "/.well-known/nodeinfo");
   assert(!smoke.includes('spawn("mise"'));

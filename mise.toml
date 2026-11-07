@@ -92,6 +92,11 @@ description = "Run the GraphQL server in development mode"
 run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts main.ts --allow-file-kv"
 dir = "graphql"
 
+[tasks."dev:protocol"]
+description = "Run the isolated protocol HTTP server in development mode"
+run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts protocol.ts"
+dir = "graphql"
+
 [tasks."dev:graphql-worker"]
 description = "Run the GraphQL federation queue worker in development mode"
 run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts worker.ts"
@@ -112,6 +117,11 @@ description = "Start the GraphQL server in production"
 run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts main.ts"
 dir = "graphql"
 
+[tasks."prod:protocol"]
+description = "Start the isolated protocol HTTP server"
+run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts protocol.ts"
+dir = "graphql"
+
 [tasks."prod:graphql-worker"]
 description = "Start the GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
 run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts worker.ts"
@@ -126,6 +136,10 @@ dir = "web-next"
 description = "Health check the GraphQL server with a __typename query"
 run = "node scripts/healthcheck.ts graphql"
 
+[tasks."prod:hc:protocol"]
+description = "Health check the protocol HTTP server readiness"
+run = "node scripts/healthcheck.ts protocol"
+
 [tasks."prod:hc:graphql-worker"]
 description = "Health check the GraphQL worker heartbeat"
 run = "node scripts/healthcheck.ts graphql-worker"
@@ -135,7 +149,7 @@ description = "Health check the web-next stack"
 run = "node scripts/healthcheck.ts web-next"
 
 [tasks."smoke:standalone"]
-description = "Smoke test the standalone GraphQL, worker, and web-next topology"
+description = "Smoke test isolated interactive/protocol HTTP, worker, and web-next"
 run = "node scripts/smoke-standalone.ts"
 
 [tasks.migrate]

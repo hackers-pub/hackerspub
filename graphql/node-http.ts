@@ -7,6 +7,7 @@ import { type AddressInfo, isIP } from "node:net";
 // @ts-types="./srvx-node.d.ts"
 import { serve } from "srvx/node";
 import type { GraphqlApiHandler } from "./api.ts";
+import { attachResponseLifetime } from "./response-lifetime.ts";
 import type {
   ConnectionAddress,
   ConnectionInfo,
@@ -109,12 +110,32 @@ export function createNodeHttpServer(
         // The composition root owns signal handling so it can drain HTTP
         // before closing Yoga, runtime resources, LogTape, and Sentry.
         gracefulShutdown: false,
-        fetch(request) {
+        async fetch(request) {
           const nodeRequest = request.runtime?.node?.req;
-          if (nodeRequest == null) {
+          const nodeResponse = request.runtime?.node?.res;
+          if (nodeRequest == null || nodeResponse == null) {
             throw new TypeError("srvx did not expose its Node.js request.");
           }
-          return handler(request, getNodeConnectionInfo(nodeRequest));
+          const lifetime = attachResponseLifetime(request, nodeResponse);
+          let response: Response | undefined;
+          try {
+            response = await handler(
+              request,
+              getNodeConnectionInfo(nodeRequest),
+            );
+          } finally {
+            // Also bound srvx's error response when the Fetch handler throws.
+            lifetime.start(response?.status ?? 500);
+          }
+          if (response.headers.get("connection")?.toLowerCase() === "close") {
+            // An early reply can finish while an incomplete IncomingMessage
+            // still has a pending Web-stream read. Tear it down only after
+            // the response closes, so the retryable reply is flushed first.
+            nodeResponse.once("close", () => {
+              if (!nodeRequest.complete) nodeRequest.destroy();
+            });
+          }
+          return response;
         },
         error(error) {
           // Capture directly so this remains one exception event. The warning

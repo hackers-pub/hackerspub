@@ -6,6 +6,8 @@ import {
   loadAnonymousReadConfig,
   loadDatabaseConfig,
   loadGraphqlApiConfig,
+  loadHttpConfig,
+  loadProtocolHttpConfig,
   loadServerConfig,
   loadStandaloneServerConfig,
 } from "./config.ts";
@@ -299,6 +301,73 @@ test("anonymous read configuration validates bounded integer settings", () => {
   for (const raw of ["", "0", "1.5", "-1", "10001", "Infinity"]) {
     assertThrows(
       () => loadAnonymousReadConfig({ ANONYMOUS_READ_GLOBAL_LIMIT: raw }),
+      ConfigurationError,
+    );
+  }
+});
+
+test("database pool budget is optional and rejects zero or fractional connections", () => {
+  for (const value of [undefined, "", " \t "]) {
+    assertEquals(
+      loadDatabaseConfig({
+        DATABASE_URL: required.DATABASE_URL,
+        DATABASE_MAX_CONNECTIONS: value,
+      }).maxConnections,
+      undefined,
+    );
+  }
+  assertEquals(
+    loadDatabaseConfig({
+      DATABASE_URL: required.DATABASE_URL,
+      DATABASE_MAX_CONNECTIONS: "4",
+    }).maxConnections,
+    4,
+  );
+  for (const value of ["0", "-1", "1.5", "Infinity", "1001"]) {
+    assertThrows(
+      () =>
+        loadDatabaseConfig({
+          DATABASE_URL: required.DATABASE_URL,
+          DATABASE_MAX_CONNECTIONS: value,
+        }),
+      ConfigurationError,
+    );
+  }
+});
+
+test("HTTP role/port and protocol execution budgets validate at startup", () => {
+  assertEquals(loadHttpConfig({}).role, "combined");
+  assertEquals(loadHttpConfig({}, "protocol").port, 8081);
+  assertEquals(
+    loadHttpConfig({ HTTP_ROLE: "interactive", HTTP_PORT: "18080" }).port,
+    18080,
+  );
+  assertThrows(
+    () => loadHttpConfig({ HTTP_ROLE: "worker" }),
+    ConfigurationError,
+  );
+  assertThrows(
+    () => loadHttpConfig({ HTTP_PORT: "65536" }),
+    ConfigurationError,
+  );
+  assertEquals(loadProtocolHttpConfig({}).sqlLimit, 32);
+  assertEquals(loadProtocolHttpConfig({}).loaderLimit, 8);
+  for (const variable of [
+    "PROTOCOL_REQUEST_LIMIT",
+    "PROTOCOL_REQUEST_TIMEOUT_MS",
+    "PROTOCOL_SQL_LIMIT",
+    "PROTOCOL_SQL_TIMEOUT_MS",
+    "PROTOCOL_LOADER_LIMIT",
+    "PROTOCOL_LOADER_TIMEOUT_MS",
+    "PROTOCOL_REQUEST_BODY_LIMIT_BYTES",
+    "PROTOCOL_RESPONSE_BODY_LIMIT_BYTES",
+  ]) {
+    assertThrows(
+      () => loadProtocolHttpConfig({ [variable]: "0" }),
+      ConfigurationError,
+    );
+    assertThrows(
+      () => loadProtocolHttpConfig({ [variable]: "1.5" }),
       ConfigurationError,
     );
   }
