@@ -6,8 +6,14 @@ import "./logging.ts";
 import { getLogger, dispose as disposeLogging } from "@logtape/logtape";
 import {
   getProcessEnvironment,
+  loadAnonymousReadConfig,
   loadGraphqlApiConfig,
 } from "@hackerspub/runtime/config";
+import {
+  createMemoryAnonymousReadStore,
+  createRedisAnonymousReadStore,
+  type AnonymousReadStore,
+} from "@hackerspub/runtime/anonymous-read-admission";
 import { isMain } from "@hackerspub/runtime/main";
 import {
   createRuntimeResources,
@@ -29,6 +35,7 @@ import {
   waitForNodeHttpShutdown,
 } from "./node-http.ts";
 import metadata from "./package.json" with { type: "json" };
+import { AnonymousReadController } from "./anonymous-reads.ts";
 
 const logger = getLogger(["hackerspub", "graphql"]);
 const SENTRY_CLOSE_TIMEOUT = 2_000;
@@ -62,6 +69,9 @@ export async function main(): Promise<void> {
   let httpServer: NodeHttpServer | undefined;
   let yogaServer: ReturnType<typeof createYogaServer> | undefined;
   let runtimeError: unknown;
+  let admissionStore: AnonymousReadStore | undefined;
+  let admissionController: AnonymousReadController | undefined;
+  let admissionStatsTimer: ReturnType<typeof setInterval> | undefined;
 
   try {
     const [assetlinksJson, appleAppSiteAssociationJson] = await Promise.all([
@@ -90,7 +100,35 @@ export async function main(): Promise<void> {
         },
       },
     );
-    yogaServer = createYogaServer();
+    const admissionConfig = loadAnonymousReadConfig(getProcessEnvironment());
+    admissionStore =
+      resources.config.kv.url.protocol === "file:"
+        ? createMemoryAnonymousReadStore(admissionConfig.globalLimit)
+        : await createRedisAnonymousReadStore(
+            resources.config.kv.url,
+            resources.config.origin,
+            admissionConfig.globalLimit,
+            admissionConfig.redisTimeoutMs,
+          );
+    const admission = new AnonymousReadController(
+      admissionStore,
+      admissionConfig,
+    );
+    admissionController = admission;
+    const reportAdmission = () => {
+      logger.info("Anonymous read admission: {admission}", {
+        admission: {
+          ...admission.stats,
+          limits: admissionConfig,
+          storeFailure: admissionStore?.failure ?? null,
+          queued: 0,
+        },
+      });
+    };
+    reportAdmission();
+    admissionStatsTimer = setInterval(reportAdmission, 30_000);
+    admissionStatsTimer.unref();
+    yogaServer = createYogaServer(admission);
     const handler = createGraphqlApiHandler({
       resources,
       yogaServer,
@@ -108,13 +146,27 @@ export async function main(): Promise<void> {
     runtimeError = error;
   } finally {
     removeSignalListeners();
+    if (admissionStatsTimer != null) clearInterval(admissionStatsTimer);
   }
 
   let closeError: unknown;
   try {
     await closeSequentially([
       () => httpServer?.close(),
+      async () => {
+        if (
+          admissionController != null &&
+          admissionController.stats.active > 0
+        ) {
+          logger.info(
+            "Waiting for {active} anonymous reads to finish before closing admission.",
+            { active: admissionController.stats.active },
+          );
+        }
+        await admissionController?.idle();
+      },
       () => yogaServer?.dispose(),
+      () => admissionStore?.close(),
       () => resources?.close(),
       () => disposeLogging(),
     ]);

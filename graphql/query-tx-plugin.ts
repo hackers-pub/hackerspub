@@ -1,7 +1,13 @@
 import type { AfterCommitTask } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
+import { drainRequestWork } from "@hackerspub/models/request-work";
 import { getLogger } from "@logtape/logtape";
-import { type DocumentNode, Kind, type OperationDefinitionNode } from "graphql";
+import {
+  type DocumentNode,
+  type ExecutionArgs,
+  Kind,
+  type OperationDefinitionNode,
+} from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
 import postgres from "postgres";
 import type { UserContext } from "./builder.ts";
@@ -53,7 +59,11 @@ export function isRetryableError(err: unknown): boolean {
 
 export function useQuerySnapshotTransaction({
   maxRetries = 3,
-}: { maxRetries?: number } = {}): EnvelopPlugin<UserContext> {
+  shouldSkip,
+}: {
+  maxRetries?: number;
+  shouldSkip?: (args: ExecutionArgs, context: UserContext) => boolean;
+} = {}): EnvelopPlugin<UserContext> {
   return {
     onExecute({ args, executeFn, setExecuteFn }) {
       if (!isReadOnlyOperation(args.document, args.operationName)) return;
@@ -64,6 +74,7 @@ export function useQuerySnapshotTransaction({
       // and dropping their configuration.
       const wrappedExecute = executeFn;
       const ctx = args.contextValue as UserContext;
+      if (shouldSkip?.(args, ctx)) return;
       const rootDb = ctx.db;
 
       setExecuteFn(async (innerArgs) => {
@@ -106,6 +117,11 @@ export function useQuerySnapshotTransaction({
                 try {
                   return await wrappedExecute(innerArgs);
                 } finally {
+                  // GraphQL can finish on a non-null error before parallel
+                  // sibling work finishes. Keep every late resolver/SQL task
+                  // on this transaction until its real completion, also when
+                  // execution throws and the transaction will be retried.
+                  await drainRequestWork();
                   liveCtx.db = originalDb;
                   liveCtx.fedCtx = originalFedCtx;
                 }

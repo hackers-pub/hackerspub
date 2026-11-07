@@ -63,6 +63,7 @@ run = ["pnpm exec oxfmt .", "hongdown --write"]
 
 [tasks.test]
 description = "Run the test suite"
+depends = ["next:codegen"]
 shell = "bash -c"
 run = '''
 test_args=(

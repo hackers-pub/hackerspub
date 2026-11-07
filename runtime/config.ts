@@ -566,3 +566,54 @@ export function getProcessEnvironment(): Environment {
  */
 export const getDenoEnvironment = getProcessEnvironment;
 import process from "node:process";
+
+export interface AnonymousReadConfig {
+  readonly globalLimit: number;
+  readonly localLimit: number;
+  readonly followerLimit: number;
+  readonly authLimit: number;
+  readonly cheapLimit: number;
+  readonly redisTimeoutMs: number;
+  readonly joinWindowMs: number;
+}
+
+/** Admission settings are separate from role configuration and validated at startup. */
+export function loadAnonymousReadConfig(env: Environment): AnonymousReadConfig {
+  const issues: ConfigurationIssue[] = [];
+  function positiveInteger(
+    variable: string,
+    fallback: number,
+    max: number,
+  ): number {
+    const raw = env[variable];
+    if (raw == null) return fallback;
+    const value = Number(raw);
+    if (
+      !/^[1-9]\d*$/.test(raw) ||
+      !Number.isSafeInteger(value) ||
+      value > max
+    ) {
+      issues.push({
+        variable,
+        message: `must be an integer between 1 and ${max}`,
+      });
+      return fallback;
+    }
+    return value;
+  }
+  const config: AnonymousReadConfig = {
+    globalLimit: positiveInteger("ANONYMOUS_READ_GLOBAL_LIMIT", 8, 10000),
+    localLimit: positiveInteger("ANONYMOUS_READ_LOCAL_LIMIT", 4, 10000),
+    followerLimit: positiveInteger("ANONYMOUS_READ_FOLLOWER_LIMIT", 32, 100000),
+    authLimit: positiveInteger("ANONYMOUS_READ_AUTH_LIMIT", 32, 10000),
+    cheapLimit: positiveInteger("ANONYMOUS_READ_CHEAP_LIMIT", 32, 10000),
+    redisTimeoutMs: positiveInteger(
+      "ANONYMOUS_READ_REDIS_TIMEOUT_MS",
+      1000,
+      60000,
+    ),
+    joinWindowMs: positiveInteger("ANONYMOUS_READ_JOIN_WINDOW_MS", 25, 60000),
+  };
+  if (issues.length > 0) throw new ConfigurationError(issues);
+  return config;
+}

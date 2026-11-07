@@ -22,17 +22,27 @@ import {
   type YogaServerInstance,
 } from "graphql-yoga";
 import process from "node:process";
+import { createMemoryAnonymousReadStore } from "@hackerspub/runtime/anonymous-read-admission";
+import { loadAnonymousReadConfig } from "@hackerspub/runtime/config";
+import {
+  AnonymousReadController,
+  useAnonymousReadAdmission,
+} from "./anonymous-reads.ts";
+import { isCheapGuestQuery } from "./anonymous-read-policy.ts";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { schema as graphqlSchema } from "./mod.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
+import { instrumentRequestWorkExecution } from "./request-work.ts";
 import { useSentry } from "./sentry-plugin.ts";
 
 const sentryEnabled = Boolean(process.env.SENTRY_DSN);
 
-export function createYogaServer(): YogaServerInstance<
-  ServerContext,
-  UserContext
-> {
+export function createYogaServer(
+  admission = new AnonymousReadController(
+    createMemoryAnonymousReadStore(8),
+    loadAnonymousReadConfig({}),
+  ),
+): YogaServerInstance<ServerContext, UserContext> {
   return createYoga({
     schema: graphqlSchema,
     context: async (ctx) => {
@@ -48,53 +58,68 @@ export function createYogaServer(): YogaServerInstance<
         if (validateUuid(cookies.session)) sessionId = cookies.session;
       }
 
-      let session =
-        sessionId == null ? undefined : await getSession(kv, sessionId);
-      let account:
-        | (Account & {
-            actor: Actor;
-            avatarMedium: Medium | null;
-            emails: AccountEmail[];
-            links: AccountLink[];
-          })
-        | undefined;
+      const authenticate = async () => {
+        let session =
+          sessionId == null ? undefined : await getSession(kv, sessionId);
+        let account:
+          | (Account & {
+              actor: Actor;
+              avatarMedium: Medium | null;
+              emails: AccountEmail[];
+              links: AccountLink[];
+            })
+          | undefined;
 
-      if (session != null) {
-        account = await db.query.accountTable.findFirst({
-          where: { id: session.accountId },
-          with: {
-            actor: true,
-            avatarMedium: true,
-            emails: true,
-            links: true,
-          },
-        });
-        if (account == null) session = undefined;
-        else if (account.kind !== "personal") {
-          // Organization accounts are controlled through personal member
-          // accounts. Any stale direct session must be invalidated.
-          await deleteSession(kv, session.id);
-          session = undefined;
-          account = undefined;
-        } else if (
-          !sessionMatchesAccount(session, account) ||
-          isActorBanned(account.actor)
-        ) {
-          // A ban invalidates existing sessions, not just new logins.
-          await deleteSession(kv, session.id);
-          session = undefined;
-          account = undefined;
-        } else if (
-          account.actor.suspended != null &&
-          account.actor.suspendedUntil != null
-        ) {
-          // Suspension expiry is lazy, so nothing fires near the end of a
-          // temporary suspension; create the suspension_ending
-          // notification when the suspended user visits during the final
-          // window (deduplicated by a partial unique index).
-          await ensureSuspensionEndingNotification(db, account).catch(() => {});
+        if (session != null) {
+          account = await db.query.accountTable.findFirst({
+            where: { id: session.accountId },
+            with: {
+              actor: true,
+              avatarMedium: true,
+              emails: true,
+              links: true,
+            },
+          });
+          if (account == null) session = undefined;
+          else if (account.kind !== "personal") {
+            // Organization accounts are controlled through personal member
+            // accounts. Any stale direct session must be invalidated.
+            await deleteSession(kv, session.id);
+            session = undefined;
+            account = undefined;
+          } else if (
+            !sessionMatchesAccount(session, account) ||
+            isActorBanned(account.actor)
+          ) {
+            // A ban invalidates existing sessions, not just new logins.
+            await deleteSession(kv, session.id);
+            session = undefined;
+            account = undefined;
+          } else if (
+            account.actor.suspended != null &&
+            account.actor.suspendedUntil != null
+          ) {
+            // Suspension expiry is lazy, so nothing fires near the end of a
+            // temporary suspension; create the suspension_ending
+            // notification when the suspended user visits during the final
+            // window (deduplicated by a partial unique index).
+            await ensureSuspensionEndingNotification(db, account).catch(
+              () => {},
+            );
+          }
         }
-      }
+
+        return { session, account };
+      };
+      // Requests without a usable credential perform no authentication I/O.
+      // Forged credentials cannot occupy the independent cheap guest lane.
+      const { session, account } =
+        sessionId == null
+          ? { session: undefined, account: undefined }
+          : await admission.authenticate(authenticate);
+      // HTTP drain can disconnect a request while authentication is pending.
+      // Do not start its execution after authentication unblocks shutdown.
+      req.signal.throwIfAborted();
 
       // Tag the per-request Sentry isolation scope with the signed-in user.
       // The preloaded Node HTTP integration creates a request isolation
@@ -219,10 +244,12 @@ export function createYogaServer(): YogaServerInstance<
               "true" ||
             context.request.headers.get("x-no-propagate") === "true";
           setExecuteFn((args) =>
-            execute({
-              ...args,
-              onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
-            }),
+            execute(
+              instrumentRequestWorkExecution({
+                ...args,
+                onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
+              }),
+            ),
           );
         },
       } as EnvelopPlugin,
@@ -230,7 +257,13 @@ export function createYogaServer(): YogaServerInstance<
       // drizzle's re-fetches see the same snapshot the timeline resolvers
       // used.  Must come after the NO_PROPAGATE wrapper above so the
       // transaction layers on top of the configured executeFn.
-      useQuerySnapshotTransaction(),
+      useQuerySnapshotTransaction({
+        shouldSkip: (args, context) =>
+          isCheapGuestQuery(args.document, args.operationName, context),
+      }),
+      // Own the complete snapshot/retry/after-commit lifetime, and reject
+      // excess guest work before a transaction or resolver can start.
+      useAnonymousReadAdmission(admission),
       // Capture unhandled resolver and execution-wrapper exceptions in Sentry.
       // The latter include snapshot transaction failures. Yoga otherwise
       // catches throws and folds them into the response `errors[]`, so

@@ -1,5 +1,10 @@
 import assert from "node:assert";
 import test from "node:test";
+import { setImmediate } from "node:timers/promises";
+import {
+  runWithRequestWork,
+  trackRequestWork,
+} from "@hackerspub/models/request-work";
 import { parse } from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
 import postgres from "postgres";
@@ -176,6 +181,86 @@ test("useQuerySnapshotTransaction wraps a query in REPEATABLE READ", async () =>
     (result as { data: { __typename: string } }).data.__typename,
     "Query",
   );
+});
+
+test("useQuerySnapshotTransaction skips explicitly classified cheap queries", async () => {
+  const h = buildHarness("query Q { __typename }", "Q");
+  const plugin = useQuerySnapshotTransaction({
+    shouldSkip(args, ctx) {
+      assert.equal(args, h.payload.args);
+      assert.equal(ctx, h.payload.args.contextValue);
+      return true;
+    },
+  });
+  await plugin.onExecute!(h.payload);
+  assert.equal(h.registeredExecute, undefined);
+  assert.equal(h.txCalls.length, 0);
+});
+
+test("useQuerySnapshotTransaction drains raw siblings before context restoration and commit", async () => {
+  const h = buildHarness("query Q { __typename }", "Q");
+  const sibling = Promise.withResolvers<void>();
+  const returned = Promise.withResolvers<void>();
+  h.payload.executeFn = (async () => {
+    trackRequestWork(sibling.promise);
+    returned.resolve();
+    return { data: null };
+  }) as ExecuteFn;
+  await useQuerySnapshotTransaction().onExecute!(h.payload);
+  let completed = false;
+  const execution = runWithRequestWork(
+    new AbortController().signal,
+    async () => {
+      const result = await h.registeredExecute!(h.payload.args);
+      completed = true;
+      return result;
+    },
+  );
+  await returned.promise;
+  await setImmediate();
+  assert.equal(completed, false);
+  assert.equal(h.transactionState.open, true);
+  const live = h.payload.args.contextValue as UserContext;
+  assert.equal((live.db as unknown as { id: string }).id, "tx");
+  assert.equal((live.fedCtx.db as unknown as { id: string }).id, "tx");
+  sibling.resolve();
+  await execution;
+  assert.equal(h.transactionState.open, false);
+  assert.equal(live.db, h.stubDb);
+  assert.equal(live.fedCtx, h.fedData);
+});
+
+test("useQuerySnapshotTransaction drains a failed attempt before retry and after-commit tasks", async () => {
+  const h = buildHarness("query Q { __typename }", "Q");
+  const sibling = Promise.withResolvers<void>();
+  const failed = Promise.withResolvers<void>();
+  let attempts = 0;
+  let afterCommit = false;
+  h.payload.executeFn = (async (args) => {
+    attempts++;
+    if (attempts === 1) {
+      trackRequestWork(sibling.promise);
+      failed.resolve();
+      throw makePgError("40001");
+    }
+    (args.contextValue as UserContext).fedCtx.afterCommit!.push(() => {
+      assert.equal(h.transactionState.open, false);
+      afterCommit = true;
+    });
+    return { data: { __typename: "Query" } };
+  }) as ExecuteFn;
+  await useQuerySnapshotTransaction().onExecute!(h.payload);
+  const execution = runWithRequestWork(new AbortController().signal, async () =>
+    h.registeredExecute!(h.payload.args),
+  );
+  await failed.promise;
+  await setImmediate();
+  assert.equal(attempts, 1);
+  assert.equal(afterCommit, false);
+  sibling.reject(new Error("late sibling also failed"));
+  await execution;
+  assert.equal(attempts, 2);
+  assert.equal(afterCommit, true);
 });
 
 test("useQuerySnapshotTransaction defers work until after commit", async () => {

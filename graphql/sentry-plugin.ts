@@ -106,8 +106,18 @@ export function useSentry(
                   error instanceof GraphQLError
                     ? (error.originalError ?? error)
                     : error;
+                const requestSignal = (
+                  executeArgs.contextValue as { request?: Request } | undefined
+                )?.request?.signal;
+                // Admission detaches a disconnected caller with this exact
+                // reason. Do not hide unrelated upstream/application failures
+                // merely because they are also named AbortError.
+                const requestCancelled =
+                  requestSignal?.aborted &&
+                  originalError === requestSignal.reason;
                 try {
                   if (
+                    !requestCancelled &&
                     !isOriginalGraphQLError(error) &&
                     !(originalError instanceof ForbiddenError) &&
                     !(originalError instanceof PothosValidationError)

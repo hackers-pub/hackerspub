@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "type": "module",
   "exports": {
+    "./anonymous-read-admission": "./anonymous-read-admission.ts",
     "./config": "./config.ts",
     "./email": "./email.ts",
     "./main": "./main.ts",

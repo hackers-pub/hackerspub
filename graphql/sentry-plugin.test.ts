@@ -445,3 +445,74 @@ test("the Sentry plugin describes the selected GraphQL operation", async () => {
     await yoga.dispose();
   }
 });
+
+for (const actualRequestReason of [true, false]) {
+  test(`Sentry ${actualRequestReason ? "ignores actual request cancellation" : "reports unrelated AbortError after cancellation"}`, async () => {
+    const captured: unknown[] = [];
+    let ended = 0;
+    const client: SentryPluginClient = {
+      startSpanManual(_options, callback) {
+        return callback({
+          setAttribute() {},
+          end() {
+            ended++;
+          },
+        });
+      },
+      withActiveSpan(_span, callback) {
+        return callback();
+      },
+      withScope(callback) {
+        return callback({
+          setTransactionName() {},
+          setTag() {},
+          setExtra() {},
+          addBreadcrumb() {},
+        });
+      },
+      captureException(error) {
+        captured.push(error);
+        return "abort-test";
+      },
+    };
+    const cancellation = new AbortController();
+    const ownedRequest = new Request("http://localhost/graphql", {
+      signal: cancellation.signal,
+    });
+    const upstreamError = new DOMException(
+      "Unrelated upstream abort",
+      "AbortError",
+    );
+    const wrapper: Plugin = {
+      onExecute({ setExecuteFn }) {
+        setExecuteFn(() => {
+          cancellation.abort();
+          throw actualRequestReason
+            ? ownedRequest.signal.reason
+            : upstreamError;
+        });
+      },
+    };
+    const yoga = createYoga({
+      logging: false,
+      context: () => ({ request: ownedRequest }),
+      schema: createSchema({
+        typeDefs: "type Query { value: String }",
+        resolvers: { Query: { value: () => "unused" } },
+      }),
+      plugins: [wrapper, useSentry(client)],
+    });
+    try {
+      await yoga.fetch("http://localhost/graphql", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ query: "{value}" }),
+      });
+      assert.equal(captured.length, actualRequestReason ? 0 : 1);
+      if (!actualRequestReason) assert.equal(captured[0], upstreamError);
+      assert.equal(ended, 1);
+    } finally {
+      await yoga.dispose();
+    }
+  });
+}
