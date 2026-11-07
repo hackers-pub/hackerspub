@@ -32,6 +32,7 @@ import { isCheapGuestQuery } from "./anonymous-read-policy.ts";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { schema as graphqlSchema } from "./mod.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
+import { instrumentRequestWorkExecution } from "./request-work.ts";
 import { useSentry } from "./sentry-plugin.ts";
 
 const sentryEnabled = Boolean(process.env.SENTRY_DSN);
@@ -240,10 +241,12 @@ export function createYogaServer(
               "true" ||
             context.request.headers.get("x-no-propagate") === "true";
           setExecuteFn((args) =>
-            execute({
-              ...args,
-              onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
-            }),
+            execute(
+              instrumentRequestWorkExecution({
+                ...args,
+                onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
+              }),
+            ),
           );
         },
       } as EnvelopPlugin,

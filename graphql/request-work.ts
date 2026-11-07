@@ -5,6 +5,8 @@ import {
 } from "@hackerspub/models/request-work";
 import {
   defaultFieldResolver,
+  type ExecutionArgs,
+  type GraphQLFieldResolver,
   type GraphQLOutputType,
   type GraphQLSchema,
   isAbstractType,
@@ -54,6 +56,32 @@ function trackOutput(value: unknown, type: GraphQLOutputType): unknown {
   };
 }
 
+function trackResolver(
+  resolve: GraphQLFieldResolver<unknown, unknown>,
+): GraphQLFieldResolver<unknown, unknown> {
+  return function (this: unknown, source, args, context, info) {
+    if (!hasRequestWork()) {
+      return resolve.call(this, source, args, context, info);
+    }
+    throwIfRequestWorkAborted();
+    return trackOutput(
+      resolve.call(this, source, args, context, info),
+      info.returnType,
+    );
+  };
+}
+
+/** Track the caller's fallback resolver without changing schema precedence. */
+export function instrumentRequestWorkExecution<T extends ExecutionArgs>(
+  args: T,
+): T {
+  if (!hasRequestWork()) return args;
+  return {
+    ...args,
+    fieldResolver: trackResolver(args.fieldResolver ?? defaultFieldResolver),
+  };
+}
+
 /** Wrap final Pothos resolvers, including its authorization/refetch layers. */
 export function instrumentRequestWork(schema: GraphQLSchema): GraphQLSchema {
   if (instrumented.has(schema)) return schema;
@@ -61,17 +89,7 @@ export function instrumentRequestWork(schema: GraphQLSchema): GraphQLSchema {
   for (const type of Object.values(schema.getTypeMap())) {
     if (isObjectType(type)) {
       for (const field of Object.values(type.getFields())) {
-        const resolve = field.resolve ?? defaultFieldResolver;
-        field.resolve = function (source, args, context, info) {
-          if (!hasRequestWork()) {
-            return resolve.call(this, source, args, context, info);
-          }
-          throwIfRequestWorkAborted();
-          return trackOutput(
-            resolve.call(this, source, args, context, info),
-            field.type,
-          );
-        };
+        if (field.resolve != null) field.resolve = trackResolver(field.resolve);
       }
       const isTypeOf = type.isTypeOf;
       if (isTypeOf != null) {

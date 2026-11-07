@@ -3,7 +3,8 @@ import test from "node:test";
 import { setImmediate } from "node:timers/promises";
 import {
   buildSchema,
-  execute,
+  execute as graphqlExecute,
+  type ExecutionArgs,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
@@ -13,7 +14,76 @@ import {
   parse,
 } from "graphql";
 import { runWithRequestWork } from "@hackerspub/models/request-work";
-import { instrumentRequestWork } from "./request-work.ts";
+import {
+  instrumentRequestWork,
+  instrumentRequestWorkExecution,
+} from "./request-work.ts";
+
+const execute = (args: ExecutionArgs) =>
+  graphqlExecute(instrumentRequestWorkExecution(args));
+
+test("schema instrumentation preserves execution-time field resolver precedence", async () => {
+  const schema = buildSchema(
+    "type Query { fallback: String explicit: String }",
+  );
+  const fields = schema.getQueryType()!.getFields();
+  fields.explicit.resolve = () => "schema resolver";
+  instrumentRequestWork(schema);
+  assert.equal(fields.fallback.resolve, undefined);
+  const input = {
+    schema,
+    document: parse("{ fallback explicit }"),
+    rootValue: { fallback: "source property" },
+    fieldResolver: () => "execution resolver",
+  };
+  assert.equal(instrumentRequestWorkExecution(input), input);
+  // Ordinary GraphQL callers retain their fallback even without our execution
+  // wrapper, because instrumentation leaves absent schema resolvers absent.
+  const unscoped = graphqlExecute(input);
+  assert.ok(!(unscoped instanceof Promise));
+  assert.equal(unscoped.data?.fallback, "execution resolver");
+  assert.equal(unscoped.data?.explicit, "schema resolver");
+  const scoped = await runWithRequestWork(
+    new AbortController().signal,
+    async () => {
+      const result = execute(input);
+      assert.ok(!(result instanceof Promise));
+      return result;
+    },
+  );
+  assert.deepEqual(scoped.data, unscoped.data);
+});
+
+test("execution-time fallback resolver work remains owned after a non-null failure", async () => {
+  const pending = Promise.withResolvers<string>();
+  const returned = Promise.withResolvers<void>();
+  const schema = instrumentRequestWork(
+    buildSchema("type Query { fallback: String fail: String! }"),
+  );
+  let finished = false;
+  const request = runWithRequestWork(new AbortController().signal, async () => {
+    const result = await execute({
+      schema,
+      document: parse("{ fallback fail }"),
+      rootValue: { fallback: "source property" },
+      fieldResolver(_source, _args, _context, info) {
+        if (info.fieldName === "fallback") return pending.promise;
+        return Promise.reject(new Error("non-null failure"));
+      },
+    });
+    assert.equal(result.data, null);
+    returned.resolve();
+    return result;
+  }).then(() => {
+    finished = true;
+  });
+  await returned.promise;
+  await setImmediate();
+  assert.equal(finished, false);
+  pending.resolve("execution resolver");
+  await request;
+  assert.equal(finished, true);
+});
 
 test("request tracking drains promised list items, abstract types and late nested resolvers", async () => {
   const item = Promise.withResolvers<object>();
@@ -295,4 +365,40 @@ test("request tracking consumes a one-shot list exactly once and remains idempot
     assert.equal(consumed, 1);
     return result;
   });
+});
+
+test("a pending one-shot list item remains owned after a later non-null item fails", async () => {
+  const pending = Promise.withResolvers<string>();
+  const returned = Promise.withResolvers<void>();
+  const schema = instrumentRequestWork(
+    buildSchema("type Query { values: [String!] }"),
+  );
+  let consumed = 0;
+  function* values() {
+    consumed++;
+    yield pending.promise;
+    yield Promise.resolve(null);
+  }
+  let finished = false;
+  const request = runWithRequestWork(new AbortController().signal, async () => {
+    const result = await execute({
+      schema,
+      document: parse("{ values }"),
+      rootValue: { values: values() },
+    });
+    assert.equal(result.data?.values, null);
+    assert.equal(result.errors?.length, 1);
+    returned.resolve();
+    return result;
+  }).then(() => {
+    finished = true;
+  });
+  await returned.promise;
+  await setImmediate();
+  assert.equal(consumed, 1);
+  assert.equal(finished, false);
+  pending.resolve("late item");
+  await request;
+  assert.equal(consumed, 1);
+  assert.equal(finished, true);
 });
