@@ -103,6 +103,27 @@ test("targeted gateway startup includes protocol without a health gate", async (
   );
 });
 
+test("Compose leaves role pool budgets to the inherited runtime environment", async () => {
+  const compose = parse(
+    await readTextFile(new URL("../docker-compose.yml", import.meta.url)),
+    { merge: true },
+  ) as {
+    services: Record<
+      string,
+      { env_file: unknown[]; environment: Record<string, unknown> }
+    >;
+  };
+  for (const role of ["graphql", "protocol", "graphql-worker"]) {
+    assert(compose.services[role].env_file.length > 0);
+    assert(
+      !Object.hasOwn(
+        compose.services[role].environment,
+        "DATABASE_MAX_CONNECTIONS",
+      ),
+    );
+  }
+});
+
 test("development gateway preserves trusted tunnel metadata", async () => {
   const gateway = await readTextFile(
     new URL("../Caddyfile.dev", import.meta.url),

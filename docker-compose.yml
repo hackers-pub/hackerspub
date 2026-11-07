@@ -70,7 +70,6 @@ services:
       HTTP_ROLE: protocol
       HTTP_HOST: 0.0.0.0
       HTTP_PORT: "8081"
-      DATABASE_MAX_CONNECTIONS: "4"
     ports:
     - "8081:8081"
     cpus: ${PROTOCOL_CPUS:-1.0}

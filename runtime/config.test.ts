@@ -307,6 +307,15 @@ test("anonymous read configuration validates bounded integer settings", () => {
 });
 
 test("database pool budget is optional and rejects zero or fractional connections", () => {
+  for (const value of [undefined, "", " \t "]) {
+    assertEquals(
+      loadDatabaseConfig({
+        DATABASE_URL: required.DATABASE_URL,
+        DATABASE_MAX_CONNECTIONS: value,
+      }).maxConnections,
+      undefined,
+    );
+  }
   assertEquals(
     loadDatabaseConfig({
       DATABASE_URL: required.DATABASE_URL,

@@ -370,10 +370,9 @@ function parseDatabaseConfig(
   issues: ConfigurationIssue[],
 ): DatabaseConfig | undefined {
   const url = nonEmpty(env, "DATABASE_URL", issues);
-  const maxConnections =
-    env.DATABASE_MAX_CONNECTIONS == null
-      ? undefined
-      : parseInteger(env, "DATABASE_MAX_CONNECTIONS", issues, 20, 1, 1000);
+  const maxConnections = !env.DATABASE_MAX_CONNECTIONS?.trim()
+    ? undefined
+    : parseInteger(env, "DATABASE_MAX_CONNECTIONS", issues, 20, 1, 1000);
   return url == null
     ? undefined
     : {
