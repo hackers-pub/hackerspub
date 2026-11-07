@@ -88,7 +88,10 @@ These defaults apply per protocol process and are validated before listening:
 | `PROTOCOL_LOADER_LIMIT`              | `8`        | Concurrent document, context, and authenticated loads, including KV access                  |
 | `PROTOCOL_LOADER_TIMEOUT_MS`         | `5000`     | Per-load cancellation timer; actual completion remains owned                                |
 
-Admission happens before request-body reads or proxy forwarding. Excess work
+Admission happens in the protocol service before its own body reads and
+trusted-forwarding processing. The gateway has already accepted the request
+and may buffer or forward body bytes before rejection. Account for gateway
+connections, buffering, and resource limits separately. Excess work
 returns [`503 Service Unavailable`]
 with `Retry-After: 1` and `Cache-Control: no-store`. The absolute deadline and
 server SQL timeouts return
@@ -131,11 +134,15 @@ SQL, and the runtime require more. Resource limits protect the interactive
 process from protocol CPU/memory pressure but do not promise a timely protocol
 response while its own event loop is blocked.
 
-`PROTOCOL_STOP_GRACE_PERIOD` defaults to 25 seconds in Compose. Keep it longer
-than the configured HTTP deadline plus its one-second drain allowance. Shutdown
-stops admission, drains HTTP, aborts remaining scopes, and waits for actual
-owned work before closing dependencies. Uncooperative work may need an operator
-force-kill; treat that as a crash and retain retry/unknown-outcome semantics.
+`PROTOCOL_STOP_GRACE_PERIOD` defaults to 25 seconds in Compose. Size it from
+measured drain times for owned SQL, transactions, and loader cleanup, including
+queued work. The HTTP deadline and its one-second connection-drain allowance
+do not bound that work. Shutdown stops admission, drains HTTP, aborts remaining
+scopes, and waits for actual owned work before closing dependencies, but Compose
+can send `SIGKILL` when its grace period expires, even with the default setting.
+Treat forced termination as a crash: an unacknowledged enqueue or commit has an
+unknown outcome and may already have succeeded. Preserve retries and existing
+deduplication, and allow for duplicate processing under at-least-once delivery.
 
 [`503 Service Unavailable`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/503
 [`504 Gateway Timeout`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/504
@@ -320,9 +327,9 @@ Cutover
 
 7.  Restart the roles in this order, waiting for each probe to pass before
     continuing: **worker → protocol and API → web UI.**  The worker first
-    because it drains federation queues and is the only role that can be down
-    without user-facing effect; the API before the web UI because the web UI
-    proxies to it.
+    so queued federation processing can resume. Inbound updates and outbound
+    delivery wait while no worker is running; a prolonged restart delays them
+    for users. The API precedes the web UI because the web UI proxies to it.
 
 8.  Run the post-deploy checks below.
 
@@ -375,9 +382,15 @@ Nothing automated covers the rest, so walk through it by hand:
 Rollback
 --------
 
-Roll back by redeploying the previously recorded image tag, in reverse cutover
-order: **web UI → API and protocol → worker**, then rerunning the post-deploy
-checks.  The web UI goes first because the newer composer queries fields such
+Roll back the web UI to the previously recorded image first. Before downgrading
+the API to a release that predates protocol isolation, switch the current API
+to `HTTP_ROLE=combined` and route federation and discovery traffic back to it,
+following [Cutover, rollback, and validation]. Verify public discovery and
+interactive routes, then stop and remove the separate protocol role. Do not
+redeploy that role with the older image: it has no `prod:protocol` task. Finish
+by downgrading the API and worker, then rerun the post-deploy checks.
+
+The web UI goes first because the newer composer queries fields such
 as `Account.viewerCanActAs` and `ArticleDraft.revision` that the older API does
 not expose, while the older web UI keeps working against the newer API.
 
@@ -402,6 +415,7 @@ rolling back across that switch needs the `MAILGUN_*` variables (and
 Rehearse this before you need it: deploy the current tag, then redeploy the
 previous one, and confirm the checks pass at both ends.
 
+[Cutover, rollback, and validation]: #cutover-rollback-and-validation
 [#351]: https://github.com/hackers-pub/hackerspub/issues/351
 
 ### Multiple email addresses
