@@ -1,9 +1,10 @@
-import type { IncomingMessage, Server } from "node:http";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
 
 export interface SrvxNodeRequest extends Request {
   readonly runtime?: {
     readonly node?: {
       readonly req?: IncomingMessage;
+      readonly res?: ServerResponse;
     };
   };
 }

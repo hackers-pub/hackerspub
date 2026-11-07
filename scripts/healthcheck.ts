@@ -1,4 +1,4 @@
-// Container health probes for the three deployable roles.  The production
+// Container health probes for the deployable roles.  The production
 // image serves all of them, so `HEALTHCHECK NONE` in the Dockerfile leaves the
 // choice to the deployment definition, which selects the matching
 // `mise run prod:hc:*` task.
@@ -11,6 +11,7 @@ import {
 
 export const HEALTH_CHECK_ROLES = [
   "graphql",
+  "protocol",
   "graphql-worker",
   "web-next",
 ] as const;
@@ -18,6 +19,7 @@ export const HEALTH_CHECK_ROLES = [
 export type HealthCheckRole = (typeof HEALTH_CHECK_ROLES)[number];
 
 export const DEFAULT_GRAPHQL_URL = "http://127.0.0.1:8080/graphql";
+export const DEFAULT_PROTOCOL_URL = "http://127.0.0.1:8081/health";
 export const DEFAULT_WEB_NEXT_URL = "http://127.0.0.1:3000/search";
 
 // Comfortably below the 5s Compose healthcheck timeout, so a hung upstream
@@ -51,6 +53,24 @@ export async function checkGraphqlApi(
     data?: { __typename?: unknown };
   };
   return result.errors == null && result.data?.__typename === "Query";
+}
+
+/** Readiness remains healthy while the protocol execution budget is full. */
+export async function checkProtocol(
+  url: string = DEFAULT_PROTOCOL_URL,
+): Promise<boolean> {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(PROBE_TIMEOUT_MILLISECONDS),
+  });
+  if (response.status !== 200) {
+    await discard(response);
+    return false;
+  }
+  const result = (await response.json()) as {
+    ready?: unknown;
+    role?: unknown;
+  };
+  return result.ready === true && result.role === "protocol";
 }
 
 /**
@@ -87,7 +107,13 @@ async function discard(response: Response): Promise<void> {
 export async function runHealthCheck(role: HealthCheckRole): Promise<boolean> {
   switch (role) {
     case "graphql":
-      return await checkGraphqlApi();
+      return await checkGraphqlApi(
+        `http://127.0.0.1:${process.env.HTTP_PORT ?? 8080}/graphql`,
+      );
+    case "protocol":
+      return await checkProtocol(
+        `http://127.0.0.1:${process.env.HTTP_PORT ?? 8081}/health`,
+      );
     case "graphql-worker":
       return await checkWorkerHealth();
     case "web-next":

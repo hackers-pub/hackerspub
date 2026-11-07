@@ -43,6 +43,11 @@ services:
   graphql:
     <<: *application
     command: mise run dev:graphql
+    environment:
+      <<: *application-environment
+      HTTP_ROLE: interactive
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: "8080"
     ports:
     - "8080:8080"
     depends_on:
@@ -52,6 +57,33 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "mise", "run", "prod:hc:graphql"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  protocol:
+    <<: *application
+    command: mise run dev:protocol
+    environment:
+      <<: *application-environment
+      HTTP_ROLE: protocol
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: "8081"
+      DATABASE_MAX_CONNECTIONS: "4"
+    ports:
+    - "8081:8081"
+    cpus: ${PROTOCOL_CPUS:-1.0}
+    mem_limit: ${PROTOCOL_MEMORY_LIMIT:-512m}
+    pids_limit: ${PROTOCOL_PIDS_LIMIT:-128}
+    stop_grace_period: ${PROTOCOL_STOP_GRACE_PERIOD:-25s}
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mise", "run", "prod:hc:protocol"]
       interval: 10s
       timeout: 5s
       retries: 6

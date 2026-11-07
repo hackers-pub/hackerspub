@@ -11,17 +11,37 @@
 }
 
 :8000 {
-	@api path /graphql /graphql/* /medium-uploads/* /media/* /.well-known/* /ap/* /nodeinfo/*
-
-	handle @api {
-		reverse_proxy graphql:8080 {
-			import proxy_headers
+	route {
+		@internal_health path /health
+		handle @internal_health {
+			respond 404
 		}
-	}
 
-	handle {
-		reverse_proxy web-next:3000 {
-			import proxy_headers
+		@associations path /.well-known/assetlinks.json /.well-known/apple-app-site-association
+		handle @associations {
+			reverse_proxy graphql:8080 {
+				import proxy_headers
+			}
+		}
+
+		@protocol path /.well-known/* /ap/* /nodeinfo/*
+		handle @protocol {
+			reverse_proxy protocol:8081 {
+				import proxy_headers
+			}
+		}
+
+		@api path /graphql /graphql/* /medium-uploads /medium-uploads/* /media/*
+		handle @api {
+			reverse_proxy graphql:8080 {
+				import proxy_headers
+			}
+		}
+
+		handle {
+			reverse_proxy web-next:3000 {
+				import proxy_headers
+			}
 		}
 	}
 }

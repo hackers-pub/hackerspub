@@ -36,7 +36,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
 import { createEmailTransports } from "./email.ts";
-import { trackSqlWork } from "./sql-work.ts";
+import { getSqlWorkStats, trackSqlWork } from "./sql-work.ts";
+import {
+  createProtocolKvStore,
+  createProtocolLoaders,
+} from "./protocol-loaders.ts";
 import { ShutdownRequeueMessageQueue } from "./shutdown-requeue-message-queue.ts";
 
 export interface DatabaseResources {
@@ -44,10 +48,81 @@ export interface DatabaseResources {
   readonly db: Database;
 }
 
+// Postgres.js consumes this option but omits it from its public declarations.
+type DatabaseConnectionOptions = postgresJs.Options<{}> & {
+  readonly max_pipeline?: number;
+};
+
+/** Build protocol startup limits after URL options, which otherwise win. */
+export function getDatabaseConnectionOptions(
+  config: ServerConfig["database"],
+): {
+  readonly url: string;
+  readonly options: DatabaseConnectionOptions;
+} {
+  const options: postgresJs.Options<{}> = { max: config.maxConnections ?? 20 };
+  if (config.applicationName != null) {
+    options.connection = { application_name: config.applicationName };
+  }
+  const work = config.protocolWork;
+  if (work == null) return { url: config.url, options };
+  if (
+    !Number.isSafeInteger(work.timeoutMs) ||
+    work.timeoutMs < 1 ||
+    work.timeoutMs > 600_000
+  ) {
+    throw new RangeError(
+      "The protocol SQL timeout must be an integer from 1 to 600000 ms.",
+    );
+  }
+  const url = new URL(config.url);
+  const protectedParameters = new Set([
+    "statement_timeout",
+    "lock_timeout",
+    "idle_in_transaction_session_timeout",
+    "application_name",
+  ]);
+  for (const name of new Set(url.searchParams.keys())) {
+    const normalized = name.toLowerCase();
+    if (normalized === "options") {
+      throw new TypeError(
+        "DATABASE_URL must not include startup options for protocol HTTP.",
+      );
+    }
+    // PostgreSQL GUC names ignore case; remove aliases before appending limits.
+    if (protectedParameters.has(normalized)) url.searchParams.delete(name);
+  }
+  url.searchParams.set("statement_timeout", `${work.timeoutMs}ms`);
+  url.searchParams.set("lock_timeout", `${Math.min(work.timeoutMs, 1000)}ms`);
+  url.searchParams.set(
+    "idle_in_transaction_session_timeout",
+    `${work.timeoutMs}ms`,
+  );
+  url.searchParams.set(
+    "application_name",
+    config.applicationName ?? "hackerspub-protocol",
+  );
+  return {
+    url: url.href,
+    options: {
+      ...options,
+      max: config.maxConnections ?? 4,
+      max_pipeline: 1,
+      connect_timeout: Math.max(1, Math.ceil(work.timeoutMs / 1000)),
+    },
+  };
+}
+
 export function createDatabaseResources(
   config: ServerConfig["database"],
 ): DatabaseResources {
-  const postgres = trackSqlWork(postgresJs(config.url, { max: 20 }));
+  const connection = getDatabaseConnectionOptions(config);
+  const postgres = trackSqlWork(
+    postgresJs(connection.url, connection.options),
+    config.protocolWork == null
+      ? undefined
+      : { strict: { limit: config.protocolWork.limit } },
+  );
   const db: Database = drizzle({
     relations,
     client: postgres,
@@ -138,6 +213,10 @@ export interface FederationResourceOptions {
   readonly firstKnock?: NonNullable<
     FederationOptions<ContextData>["firstKnock"]
   >;
+  readonly protocolHttp?: {
+    readonly loaderLimit: number;
+    readonly loaderTimeoutMs: number;
+  };
 }
 
 export function getFederationBehaviorOptions(
@@ -303,6 +382,9 @@ export async function createFederationResource(
   options: FederationResourceOptions,
 ): Promise<{
   readonly federation: Federation<ContextData>;
+  readonly protocolLoaderStats?: ReturnType<
+    typeof createProtocolLoaders
+  >["stats"];
   close(): Promise<void>;
 }> {
   const [{ builder }, { recordOutboxDeliveryError, TransactionalOutboxQueue }] =
@@ -316,18 +398,40 @@ export async function createFederationResource(
           family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
         })
       : undefined;
-  const federationKv =
+  const baseFederationKv =
     redis == null ? new PostgresKvStore(postgres) : new RedisKvStore(redis);
-  const inboxQueue = new ShutdownRequeueMessageQueue(
-    new PostgresMessageQueue(postgres, {
-      handlerTimeout: { seconds: 180 },
-    }),
-  );
+  const federationKv =
+    options.protocolHttp == null
+      ? baseFederationKv
+      : createProtocolKvStore(baseFederationKv);
+  const baseInboxQueue = new PostgresMessageQueue(postgres, {
+    handlerTimeout: { seconds: 180 },
+  });
+  const inboxQueue = new ShutdownRequeueMessageQueue(baseInboxQueue);
   const fanoutQueue = new TransactionalOutboxQueue(db, "activitypub.fanout");
   const outboxQueue = new TransactionalOutboxQueue(db, "activitypub.delivery");
   const taskQueue = new TransactionalOutboxQueue(db, "application.task");
   let federation: Federation<ContextData>;
+  let protocolLoaderStats:
+    | ReturnType<typeof createProtocolLoaders>["stats"]
+    | undefined;
   try {
+    const userAgent = {
+      software: `HackersPub/${softwareVersion}`,
+      url: config.origin,
+    };
+    const protocolLoaders =
+      options.protocolHttp == null
+        ? undefined
+        : createProtocolLoaders({
+            kv: federationKv,
+            userAgent,
+            firstKnock: options.firstKnock,
+            limit: options.protocolHttp.loaderLimit,
+            timeoutMs: options.protocolHttp.loaderTimeoutMs,
+          });
+    protocolLoaderStats = protocolLoaders?.stats;
+    if (protocolLoaders != null) await baseInboxQueue.initialize();
     federation = await builder.build({
       kv: federationKv,
       queue: {
@@ -340,10 +444,7 @@ export async function createFederationResource(
       onOutboxError: (error) => recordOutboxDeliveryError(error),
       ...getFederationBehaviorOptions(options),
       origin: config.origin.href,
-      userAgent: {
-        software: `HackersPub/${softwareVersion}`,
-        url: config.origin,
-      },
+      ...(protocolLoaders == null ? { userAgent } : protocolLoaders.options),
     });
   } catch (error) {
     if (redis != null) await redis.quit();
@@ -351,6 +452,7 @@ export async function createFederationResource(
   }
   return {
     federation,
+    protocolLoaderStats,
     async close() {
       if (redis != null) await redis.quit();
     },
@@ -370,6 +472,10 @@ export interface RuntimeResources {
   readonly federation: Awaited<
     ReturnType<typeof createFederationResource>
   >["federation"];
+  readonly protocolLoaderStats?: ReturnType<
+    typeof createProtocolLoaders
+  >["stats"];
+  readonly sqlWorkStats?: () => ReturnType<typeof getSqlWorkStats>;
   close(): Promise<void>;
 }
 
@@ -439,6 +545,8 @@ export async function createRuntimeResources(
       digestEmail: emails.digestEmail,
       models,
       federation,
+      protocolLoaderStats: federationResources.protocolLoaderStats,
+      sqlWorkStats: () => getSqlWorkStats(postgres),
       async close() {
         await closeResourceHandles(cleanups);
       },

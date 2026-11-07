@@ -7,6 +7,10 @@ services:
     environment:
       <<: *codespaces-environment
 
+  protocol:
+    environment:
+      <<: *codespaces-environment
+
   graphql-worker:
     environment:
       <<: *codespaces-environment

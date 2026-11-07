@@ -1,5 +1,6 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import { rm } from "node:fs/promises";
+import { createServer } from "node:net";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
@@ -15,6 +16,38 @@ const webNextDirectory = fileURLToPath(
 );
 const standaloneKvUrl =
   process.env.STANDALONE_SMOKE_KV_URL ?? "redis://127.0.0.1:6379/0";
+
+// Use dedicated ports so the smoke run does not collide with ordinary dev tasks.
+function smokePort(name: string, fallback: number): number {
+  const value = process.env[name] ?? String(fallback);
+  const port = Number(value);
+  if (
+    !/^\d+$/.test(value) ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65535
+  ) {
+    throw new Error(`${name} must be a TCP port between 1 and 65535.`);
+  }
+  return port;
+}
+const apiPort = smokePort("STANDALONE_SMOKE_API_PORT", 18080);
+const protocolPort = smokePort("STANDALONE_SMOKE_PROTOCOL_PORT", 18081);
+const webPort = smokePort("STANDALONE_SMOKE_WEB_PORT", 13000);
+const apiOrigin = `http://127.0.0.1:${apiPort}`;
+const protocolOrigin = `http://127.0.0.1:${protocolPort}`;
+const webOrigin = `http://127.0.0.1:${webPort}`;
+
+async function requireFreePort(port: number): Promise<void> {
+  const server = createServer();
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", resolve);
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => (error == null ? resolve() : reject(error)));
+  });
+}
 
 interface ServiceExit {
   readonly code: number | null;
@@ -125,7 +158,7 @@ async function waitForReadiness(
   await Promise.race([waitUntil(description, check), died]);
 }
 
-const GRACEFUL_SHUTDOWN_TIMEOUT = 10_000;
+const GRACEFUL_SHUTDOWN_TIMEOUT = 25_000;
 const FORCED_SHUTDOWN_TIMEOUT = 5_000;
 
 async function hasExited(
@@ -165,6 +198,11 @@ async function stop(service: Service): Promise<string | undefined> {
   );
 }
 
+if (new Set([apiPort, protocolPort, webPort]).size !== 3) {
+  throw new Error("Standalone smoke ports must be distinct.");
+}
+await Promise.all([apiPort, protocolPort, webPort].map(requireFreePort));
+
 try {
   const api = start(
     "the GraphQL API",
@@ -178,10 +216,15 @@ try {
       "main.ts",
     ],
     graphqlDirectory,
-    { KV_URL: standaloneKvUrl },
+    {
+      KV_URL: standaloneKvUrl,
+      HTTP_ROLE: "interactive",
+      HTTP_HOST: "127.0.0.1",
+      HTTP_PORT: String(apiPort),
+    },
   );
   await waitForReadiness(api, "the standalone GraphQL API", async (signal) => {
-    const response = await fetch("http://127.0.0.1:8080/graphql", {
+    const response = await fetch(`${apiOrigin}/graphql`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ query: "{__typename}" }),
@@ -194,47 +237,79 @@ try {
       await discard(response);
     }
   });
-  await waitForReadiness(
-    api,
-    "the standalone federation routes",
-    async (signal) => {
-      const settled = await Promise.allSettled([
-        fetch("http://127.0.0.1:8080/.well-known/nodeinfo", { signal }),
-        fetch("http://127.0.0.1:8080/.well-known/assetlinks.json", {
-          signal,
-        }),
-        fetch("http://127.0.0.1:8080/.well-known/apple-app-site-association", {
-          signal,
-        }),
-      ]);
-      try {
-        const [nodeInfo, assetlinks, appleAssociation] = settled.map(
-          (result) => {
-            if (result.status === "rejected") throw result.reason;
-            return result.value;
-          },
-        );
-        return (
-          nodeInfo.ok &&
-          assetlinks.ok &&
-          appleAssociation.ok &&
-          nodeInfo.headers
-            .get("content-type")
-            ?.startsWith("application/jrd+json") === true &&
-          assetlinks.headers
-            .get("content-type")
-            ?.startsWith("application/json") === true &&
-          appleAssociation.headers
-            .get("content-type")
-            ?.startsWith("application/json") === true
-        );
-      } finally {
-        for (const result of settled) {
-          if (result.status === "fulfilled") await discard(result.value);
-        }
-      }
+
+  const protocol = start(
+    "the protocol HTTP service",
+    "node",
+    [
+      "--enable-source-maps",
+      "--import",
+      "temporal-polyfill/global",
+      "--import",
+      "./instrument.ts",
+      "protocol.ts",
+    ],
+    graphqlDirectory,
+    {
+      KV_URL: standaloneKvUrl,
+      HTTP_HOST: "127.0.0.1",
+      HTTP_PORT: String(protocolPort),
+      DATABASE_MAX_CONNECTIONS: "4",
     },
   );
+  await waitForReadiness(protocol, "protocol readiness", async (signal) => {
+    const response = await fetch(`${protocolOrigin}/health`, { signal });
+    try {
+      const result = await response.json();
+      return response.ok && result.ready === true && result.role === "protocol";
+    } finally {
+      await discard(response);
+    }
+  });
+  await waitForReadiness(protocol, "split protocol routing", async (signal) => {
+    const probes = [
+      {
+        url: `${protocolOrigin}/.well-known/nodeinfo`,
+        status: 200,
+        type: "application/jrd+json",
+      },
+      {
+        url: `${apiOrigin}/.well-known/assetlinks.json`,
+        status: 200,
+        type: "application/json",
+      },
+      {
+        url: `${apiOrigin}/.well-known/apple-app-site-association`,
+        status: 200,
+        type: "application/json",
+      },
+      { url: `${apiOrigin}/.well-known/nodeinfo`, status: 404 },
+      { url: `${protocolOrigin}/graphql`, status: 404 },
+      { url: `${protocolOrigin}/.well-known/assetlinks.json`, status: 404 },
+      {
+        url: `${protocolOrigin}/.well-known/apple-app-site-association`,
+        status: 404,
+      },
+    ];
+    const results = await Promise.allSettled(
+      probes.map(async (probe) => {
+        const response = await fetch(probe.url, { signal });
+        try {
+          return (
+            response.status === probe.status &&
+            (probe.type == null ||
+              response.headers.get("content-type")?.startsWith(probe.type) ===
+                true)
+          );
+        } finally {
+          await discard(response);
+        }
+      }),
+    );
+    return results.every(
+      (result) => result.status === "fulfilled" && result.value,
+    );
+  });
 
   const worker = start(
     "the federation worker",
@@ -267,16 +342,58 @@ try {
       ".output/server/index.mjs",
     ],
     webNextDirectory,
-    { API_URL: "http://127.0.0.1:8080/graphql" },
+    {
+      API_URL: `${apiOrigin}/graphql`,
+      HOST: "127.0.0.1",
+      PORT: String(webPort),
+      NITRO_PORT: String(webPort),
+    },
   );
   await waitForReadiness(webNext, "web-next", async (signal) => {
-    const response = await fetch("http://127.0.0.1:3000/search", { signal });
+    const response = await fetch(`${webOrigin}/search`, { signal });
     try {
       return response.ok;
     } finally {
       await discard(response);
     }
   });
+
+  const stopProblem = await stop(protocol);
+  if (stopProblem != null) throw new Error(stopProblem);
+  await waitForReadiness(
+    api,
+    "interactive readiness after protocol stops",
+    async (signal) => {
+      const response = await fetch(`${apiOrigin}/graphql`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ query: "{__typename}" }),
+        signal,
+      });
+      try {
+        const result = await response.json();
+        return (
+          response.ok &&
+          result.errors == null &&
+          result.data?.__typename === "Query"
+        );
+      } finally {
+        await discard(response);
+      }
+    },
+  );
+  await waitForReadiness(
+    webNext,
+    "web readiness after protocol stops",
+    async (signal) => {
+      const response = await fetch(`${webOrigin}/search`, { signal });
+      try {
+        return response.ok;
+      } finally {
+        await discard(response);
+      }
+    },
+  );
 } finally {
   const problems: string[] = [];
   for (const service of services.reverse()) {

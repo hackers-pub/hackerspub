@@ -90,6 +90,7 @@
   },
   "runServices": [
     "graphql",
+    "protocol",
     "graphql-worker",
     "web-next",
     "gateway",

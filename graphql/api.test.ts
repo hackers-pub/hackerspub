@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { YogaServerInstance } from "graphql-yoga";
 import { createGraphqlApiHandler, isFederationRequestPath } from "./api.ts";
+import type { GraphqlApiHandlerOptions } from "./api.ts";
+import { ProtocolAdmission } from "./protocol-admission.ts";
+import { loadProtocolHttpConfig } from "@hackerspub/runtime/config";
 import type { ServerContext, UserContext } from "./builder.ts";
 
 interface FederationFetchOptions {
@@ -54,7 +57,10 @@ function createFedifyContext(data: unknown): object {
   return context;
 }
 
-function createFixture(behindProxy = false): HandlerFixture {
+function createFixture(
+  behindProxy = false,
+  options: Partial<GraphqlApiHandlerOptions> = {},
+): HandlerFixture {
   const federationRequests: Request[] = [];
   const federationOptions: FederationFetchOptions[] = [];
   const yogaRequests: Request[] = [];
@@ -119,6 +125,7 @@ function createFixture(behindProxy = false): HandlerFixture {
       assetlinksJson:
         '[{"relation":["delegate_permission/common.handle_all_urls"]}]',
       appleAppSiteAssociationJson: '{"applinks":{"details":[]}}',
+      ...options,
     }),
   };
 }
@@ -144,6 +151,12 @@ test("isFederationRequestPath covers every Fedify route family", () => {
   }
   assert.equal(isFederationRequestPath("/graphql"), false);
   assert.equal(isFederationRequestPath("/media/image.png"), false);
+  assert.equal(isFederationRequestPath("/.well-known/assetlinks.json"), false);
+  assert.equal(
+    isFederationRequestPath("/.well-known/apple-app-site-association"),
+    false,
+  );
+  assert.equal(isFederationRequestPath("/.well-known/apgateway/example"), true);
 });
 
 test("the runtime-neutral handler serves application association files", async () => {
@@ -270,4 +283,134 @@ test("aborted request work maps to status 499", async () => {
     connectionInfo,
   );
   assert.equal(response.status, 499);
+});
+
+test("split roles reject opposite ownership before forwarding or body reads", async () => {
+  const admission = new ProtocolAdmission(loadProtocolHttpConfig({}));
+  const protocol = createFixture(true, {
+    role: "protocol",
+    protocolAdmission: admission,
+    yogaServer: undefined,
+  });
+  const interactive = createFixture(true, { role: "interactive" });
+  for (const [fixture, path] of [
+    [interactive, "/ap/inbox"],
+    [interactive, "/.well-known/webfinger"],
+    [interactive, "/nodeinfo/2.1"],
+    [protocol, "/graphql"],
+    [protocol, "/medium-uploads/test"],
+    [protocol, "/media/test"],
+    [protocol, "/.well-known/assetlinks.json"],
+    [protocol, "/.well-known/apple-app-site-association"],
+  ] as const) {
+    let pulled = false;
+    const request = new Request(`http://internal.example${path}`, {
+      method: "POST",
+      body: new ReadableStream(
+        {
+          pull() {
+            pulled = true;
+            throw Error("must not read");
+          },
+        },
+        { highWaterMark: 0 },
+      ),
+      // Node requires this only for a streaming body.
+      ...({ duplex: "half" } as RequestInit),
+    });
+    assert.equal(
+      (await fixture.handler(request, connectionInfo)).status,
+      404,
+      path,
+    );
+    assert.equal(pulled, false, path);
+    assert.equal(fixture.federationRequests.length, 0);
+    assert.equal(fixture.yogaRequests.length, 0);
+  }
+  for (const path of [
+    "/.well-known/assetlinks.json",
+    "/.well-known/apple-app-site-association",
+  ]) {
+    assert.equal(
+      (
+        await interactive.handler(
+          new Request(`http://internal.example${path}`),
+          connectionInfo,
+        )
+      ).status,
+      200,
+    );
+  }
+  for (const path of [
+    "/.well-known/nodeinfo",
+    "/.well-known/apgateway/x",
+    "/ap/actors/alice",
+    "/nodeinfo/2.1",
+  ]) {
+    assert.equal(
+      (
+        await protocol.handler(
+          new Request(`http://internal.example${path}`),
+          connectionInfo,
+        )
+      ).status,
+      200,
+    );
+  }
+});
+
+test("protocol readiness stays healthy at capacity and is independent of interactive readiness", async () => {
+  const admission = new ProtocolAdmission({
+    ...loadProtocolHttpConfig({}),
+    limit: 1,
+  });
+  const protocol = createFixture(false, {
+    role: "protocol",
+    protocolAdmission: admission,
+    yogaServer: undefined,
+  });
+  const interactive = createFixture(false, { role: "interactive" });
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  const occupied = admission.run(
+    new Request("http://internal.example/ap/inbox"),
+    async () => {
+      entered.resolve();
+      await release.promise;
+      return new Response("ok");
+    },
+  );
+  await entered.promise;
+  const probe = () =>
+    protocol.handler(
+      new Request("http://internal.example/health"),
+      connectionInfo,
+    );
+  assert.deepEqual(await (await probe()).json(), {
+    ready: true,
+    role: "protocol",
+  });
+  admission.stop();
+  assert.equal((await probe()).status, 503);
+  assert.equal(
+    (
+      await interactive.handler(
+        new Request("http://internal.example/health"),
+        connectionInfo,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await interactive.handler(
+        new Request("http://internal.example/graphql"),
+        connectionInfo,
+      )
+    ).status,
+    200,
+  );
+  release.resolve();
+  await occupied;
+  await admission.idle();
 });

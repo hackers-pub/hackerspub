@@ -8,6 +8,7 @@ import test from "node:test";
 import { withProcessEnv } from "../test/env.ts";
 import {
   checkGraphqlApi,
+  checkProtocol,
   checkWebNext,
   checkWorkerHealth,
   isHealthCheckRole,
@@ -60,6 +61,7 @@ async function withTemporaryDirectory(
 
 test("isHealthCheckRole accepts only the deployable roles", () => {
   assert.ok(isHealthCheckRole("graphql"));
+  assert.ok(isHealthCheckRole("protocol"));
   assert.ok(isHealthCheckRole("graphql-worker"));
   assert.ok(isHealthCheckRole("web-next"));
   assert.ok(!isHealthCheckRole("worker"));
@@ -107,6 +109,53 @@ test("checkGraphqlApi rejects a failing HTTP status", async () => {
   try {
     assert.deepEqual(await checkGraphqlApi(`${origin}/graphql`), false);
   } finally {
+    await close();
+  }
+});
+
+test("checkProtocol accepts only ready protocol role responses", async () => {
+  for (const body of [
+    { ready: true, role: "protocol", active: 4 },
+    { ready: false, role: "protocol" },
+    { ready: true, role: "interactive" },
+    { ready: "true", role: "protocol" },
+  ]) {
+    const { origin, close } = await serve(() => ({ body }));
+    try {
+      assert.equal(
+        await checkProtocol(`${origin}/health`),
+        body.ready === true && body.role === "protocol",
+      );
+    } finally {
+      await close();
+    }
+  }
+  const { origin, close } = await serve(() => ({
+    status: 503,
+    body: { ready: true, role: "protocol" },
+  }));
+  try {
+    assert.equal(await checkProtocol(`${origin}/health`), false);
+  } finally {
+    await close();
+  }
+});
+
+test("main probes protocol readiness on the configured HTTP port", async () => {
+  const { origin, close } = await serve((method, url) => {
+    assert.equal(method, "GET");
+    assert.equal(url, "/health");
+    return { body: { ready: true, role: "protocol" } };
+  });
+  const previousExitCode = process.exitCode;
+  try {
+    await withProcessEnv({ HTTP_PORT: new URL(origin).port }, async () => {
+      process.exitCode = 0;
+      await main(["protocol"]);
+      assert.equal(process.exitCode, 0);
+    });
+  } finally {
+    process.exitCode = previousExitCode;
     await close();
   }
 });

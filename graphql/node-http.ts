@@ -109,12 +109,24 @@ export function createNodeHttpServer(
         // The composition root owns signal handling so it can drain HTTP
         // before closing Yoga, runtime resources, LogTape, and Sentry.
         gracefulShutdown: false,
-        fetch(request) {
+        async fetch(request) {
           const nodeRequest = request.runtime?.node?.req;
           if (nodeRequest == null) {
             throw new TypeError("srvx did not expose its Node.js request.");
           }
-          return handler(request, getNodeConnectionInfo(nodeRequest));
+          const response = await handler(
+            request,
+            getNodeConnectionInfo(nodeRequest),
+          );
+          if (response.headers.get("connection")?.toLowerCase() === "close") {
+            // An early reply can finish while an incomplete IncomingMessage
+            // still has a pending Web-stream read. Tear it down only after
+            // the response closes, so the retryable reply is flushed first.
+            request.runtime?.node?.res?.once("close", () => {
+              if (!nodeRequest.complete) nodeRequest.destroy();
+            });
+          }
+          return response;
         },
         error(error) {
           // Capture directly so this remains one exception event. The warning

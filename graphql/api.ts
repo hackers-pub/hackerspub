@@ -1,11 +1,13 @@
 import { toApplicationContext } from "@hackerspub/federation/context";
 import { handleNotAcceptable } from "@hackerspub/federation/html-redirect";
 import type { RuntimeResources } from "@hackerspub/runtime/resources";
+import type { HttpRole } from "@hackerspub/runtime/config";
 import type { YogaServerInstance } from "graphql-yoga";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { handleFileSystemMedia } from "./file-system-media.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
 import { services } from "./services.ts";
+import type { ProtocolAdmission } from "./protocol-admission.ts";
 import {
   applyTrustedForwarding,
   type ConnectionAddress,
@@ -14,9 +16,12 @@ import {
 
 export interface GraphqlApiHandlerOptions {
   readonly resources: RuntimeResources;
-  readonly yogaServer: YogaServerInstance<ServerContext, UserContext>;
+  readonly yogaServer?: YogaServerInstance<ServerContext, UserContext>;
   readonly assetlinksJson: string;
   readonly appleAppSiteAssociationJson: string;
+  readonly role?: HttpRole;
+  readonly protocolAdmission?: ProtocolAdmission;
+  readonly ready?: () => boolean;
 }
 
 export type GraphqlApiHandler = (
@@ -26,7 +31,9 @@ export type GraphqlApiHandler = (
 
 export function isFederationRequestPath(pathname: string): boolean {
   return (
-    pathname.startsWith("/.well-known/") ||
+    (pathname.startsWith("/.well-known/") &&
+      pathname !== "/.well-known/assetlinks.json" &&
+      pathname !== "/.well-known/apple-app-site-association") ||
     pathname.startsWith("/ap/") ||
     pathname.startsWith("/nodeinfo/")
   );
@@ -51,8 +58,16 @@ export function createGraphqlApiHandler(
     options;
   const { db, drive, email, emailAuth, federation, kv, models } = resources;
   const fileSystemRoot = drive.fileSystemRoot;
+  const role = options.role ?? "combined";
+  const admission = options.protocolAdmission;
+  if (role !== "protocol" && yogaServer == null) {
+    throw new TypeError("Interactive HTTP requires a GraphQL server.");
+  }
+  if (role === "protocol" && admission == null) {
+    throw new TypeError("Protocol HTTP requires bounded admission.");
+  }
 
-  return async (request, connectionInfo) => {
+  const dispatch: GraphqlApiHandler = async (request, connectionInfo) => {
     try {
       const forwarded = await applyTrustedForwarding(
         request,
@@ -90,7 +105,7 @@ export function createGraphqlApiHandler(
             ),
         });
       }
-      return await yogaServer.fetch(request, {
+      return await yogaServer!.fetch(request, {
         altTextGenerator: models.altTextGenerator,
         db,
         kv,
@@ -110,5 +125,38 @@ export function createGraphqlApiHandler(
       if (isAbortError(error)) return new Response(null, { status: 499 });
       throw error;
     }
+  };
+  return async (request, connectionInfo) => {
+    const pathname = new URL(request.url).pathname;
+    if (pathname === "/health") {
+      const ready = (options.ready?.() ?? true) && !admission?.stats.stopping;
+      return new Response(
+        request.method === "HEAD" ? null : JSON.stringify({ ready, role }),
+        {
+          status: ready ? 200 : 503,
+          headers: {
+            "content-type": "application/json",
+            "cache-control": "no-store",
+          },
+        },
+      );
+    }
+    const protocol = isFederationRequestPath(pathname);
+    // Forwarding can buffer a body. Reject ownership/capacity first.
+    if (
+      (role === "interactive" && protocol) ||
+      (role === "protocol" && !protocol)
+    ) {
+      return new Response("Not Found", {
+        status: 404,
+        headers: { connection: "close" },
+      });
+    }
+    if (protocol && admission != null) {
+      return await admission.run(request, (admitted) =>
+        dispatch(admitted, connectionInfo),
+      );
+    }
+    return await dispatch(request, connectionInfo);
   };
 }

@@ -4,10 +4,50 @@ import { setImmediate } from "node:timers/promises";
 interface RequestWork {
   readonly signal: AbortSignal;
   readonly pending: Set<Promise<unknown>>;
+  readonly outcome: MutableRequestWorkOutcome;
+  readonly onFailure?: (failure: RequestWorkFailure) => void;
   generation: number;
 }
 
 const requestWork = new AsyncLocalStorage<RequestWork>();
+
+export interface RequestWorkFailure {
+  readonly kind: "overload" | "timeout";
+  readonly error: unknown;
+}
+
+export interface RequestWorkOutcome {
+  readonly hardFailure?: RequestWorkFailure;
+  readonly dependencyInterrupted: boolean;
+}
+
+interface MutableRequestWorkOutcome {
+  hardFailure?: RequestWorkFailure;
+  dependencyInterrupted: boolean;
+}
+
+const emptyOutcome: RequestWorkOutcome = Object.freeze({
+  dependencyInterrupted: false,
+});
+
+/** Nested scopes share outcomes; independent requests never share failures. */
+export function getRequestWorkOutcome(): RequestWorkOutcome {
+  return requestWork.getStore()?.outcome ?? emptyOutcome;
+}
+
+/** Record before notifying admission, so synchronous abort observers see it. */
+export function reportRequestWorkFailure(failure: RequestWorkFailure): void {
+  const scope = requestWork.getStore();
+  if (scope == null || scope.outcome.hardFailure != null) return;
+  scope.outcome.hardFailure = failure;
+  scope.onFailure?.(failure);
+}
+
+/** A local lookup can fail while a best-effort response still succeeds. */
+export function reportRequestDependencyInterruption(_error: unknown): void {
+  const scope = requestWork.getStore();
+  if (scope != null) scope.outcome.dependencyInterrupted = true;
+}
 
 /** Whether this asynchronous execution owns a bounded request work scope. */
 export function hasRequestWork(): boolean {
@@ -28,8 +68,8 @@ export function throwIfRequestWorkAborted(): void {
  * Own the actual promise, even when a caller stops awaiting it or races it
  * against a timeout. Rejections remain visible to its caller and are also
  * observed here, so a deliberately abandoned branch cannot reject unhandled.
- * Do not track a transaction's lifecycle promise: its callback drains before
- * commit and would otherwise wait for itself.
+ * A transaction lifecycle belongs to its parent's scope; its callback must
+ * have a separate child scope so draining cannot wait on the transaction itself.
  */
 export function trackRequestWork<T>(promise: PromiseLike<T>): Promise<T> {
   const owned = Promise.resolve(promise);
@@ -72,9 +112,17 @@ export async function drainRequestWork(): Promise<void> {
 export function runWithRequestWork<T>(
   signal: AbortSignal,
   callback: () => Promise<T>,
+  options: { readonly onFailure?: (failure: RequestWorkFailure) => void } = {},
 ): Promise<T> {
+  const parent = requestWork.getStore();
   return requestWork.run(
-    { signal, pending: new Set(), generation: 0 },
+    {
+      signal,
+      pending: new Set(),
+      generation: 0,
+      outcome: parent?.outcome ?? { dependencyInterrupted: false },
+      onFailure: options.onFailure ?? parent?.onFailure,
+    },
     async () => {
       try {
         throwIfRequestWorkAborted();

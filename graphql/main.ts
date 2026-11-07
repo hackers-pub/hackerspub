@@ -8,6 +8,9 @@ import {
   getProcessEnvironment,
   loadAnonymousReadConfig,
   loadGraphqlApiConfig,
+  loadHttpConfig,
+  loadProtocolHttpConfig,
+  type HttpRole,
 } from "@hackerspub/runtime/config";
 import {
   createMemoryAnonymousReadStore,
@@ -28,7 +31,8 @@ import {
   combineRuntimeAndCloseErrors,
   closeSequentially,
 } from "./lifecycle.ts";
-import { createYogaServer } from "./mod.ts";
+import type { createYogaServer } from "./server.ts";
+import { ProtocolAdmission } from "./protocol-admission.ts";
 import {
   createNodeHttpServer,
   type NodeHttpServer,
@@ -46,7 +50,7 @@ function registerShutdownSignals(controller: AbortController): () => void {
   for (const signal of signals) {
     const listener = () => {
       if (controller.signal.aborted) return;
-      logger.info("Received {signal}; shutting down the GraphQL API.", {
+      logger.info("Received {signal}; shutting down the HTTP service.", {
         signal,
       });
       controller.abort();
@@ -62,7 +66,7 @@ function registerShutdownSignals(controller: AbortController): () => void {
   };
 }
 
-export async function main(): Promise<void> {
+export async function main(forcedRole?: HttpRole): Promise<void> {
   const shutdownController = new AbortController();
   const removeSignalListeners = registerShutdownSignals(shutdownController);
   let resources: RuntimeResources | undefined;
@@ -72,6 +76,12 @@ export async function main(): Promise<void> {
   let admissionStore: AnonymousReadStore | undefined;
   let admissionController: AnonymousReadController | undefined;
   let admissionStatsTimer: ReturnType<typeof setInterval> | undefined;
+  let protocolStatsTimer: ReturnType<typeof setInterval> | undefined;
+  let protocolAdmission: ProtocolAdmission | undefined;
+  const stopProtocol = () => protocolAdmission?.stop();
+  shutdownController.signal.addEventListener("abort", stopProtocol, {
+    once: true,
+  });
 
   try {
     const [assetlinksJson, appleAppSiteAssociationJson] = await Promise.all([
@@ -87,57 +97,118 @@ export async function main(): Promise<void> {
         "utf8",
       ),
     ]);
-    const allowFileKv = process.argv.includes("--allow-file-kv");
-    resources = await createRuntimeResources(
-      loadGraphqlApiConfig(getProcessEnvironment(), { allowFileKv }),
-      metadata.version,
-      {
-        fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
-        federation: {
-          manuallyStartQueue: true,
-          // Keep this aligned with the queue worker.
-          firstKnock: "draft-cavage-http-signatures-12",
-        },
+    const environment = getProcessEnvironment();
+    const httpConfig = loadHttpConfig(environment, forcedRole);
+    const protocolConfig =
+      httpConfig.role === "protocol"
+        ? loadProtocolHttpConfig(environment)
+        : undefined;
+    const allowFileKv =
+      httpConfig.role === "combined" &&
+      process.argv.includes("--allow-file-kv");
+    const baseConfig = loadGraphqlApiConfig(environment, { allowFileKv });
+    const config = {
+      ...baseConfig,
+      database: {
+        ...baseConfig.database,
+        maxConnections:
+          baseConfig.database.maxConnections ??
+          (httpConfig.role === "protocol" ? 4 : 20),
+        applicationName: `hackerspub-${httpConfig.role}`,
+        ...(httpConfig.role !== "protocol" || protocolConfig == null
+          ? {}
+          : {
+              protocolWork: {
+                limit: protocolConfig.sqlLimit,
+                timeoutMs: protocolConfig.sqlTimeoutMs,
+              },
+            }),
       },
-    );
-    const admissionConfig = loadAnonymousReadConfig(getProcessEnvironment());
-    admissionStore =
-      resources.config.kv.url.protocol === "file:"
-        ? createMemoryAnonymousReadStore(admissionConfig.globalLimit)
-        : await createRedisAnonymousReadStore(
-            resources.config.kv.url,
-            resources.config.origin,
-            admissionConfig.globalLimit,
-            admissionConfig.redisTimeoutMs,
-          );
-    const admission = new AnonymousReadController(
-      admissionStore,
-      admissionConfig,
-    );
-    admissionController = admission;
-    const reportAdmission = () => {
-      logger.info("Anonymous read admission: {admission}", {
-        admission: {
-          ...admission.stats,
-          limits: admissionConfig,
-          storeFailure: admissionStore?.failure ?? null,
-          queued: 0,
-        },
-      });
     };
-    reportAdmission();
-    admissionStatsTimer = setInterval(reportAdmission, 30_000);
-    admissionStatsTimer.unref();
-    yogaServer = createYogaServer(admission);
+    resources = await createRuntimeResources(config, metadata.version, {
+      fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
+      federation: {
+        manuallyStartQueue: true,
+        ...(httpConfig.role !== "protocol" || protocolConfig == null
+          ? {}
+          : {
+              protocolHttp: {
+                loaderLimit: protocolConfig.loaderLimit,
+                loaderTimeoutMs: protocolConfig.loaderTimeoutMs,
+              },
+            }),
+        // Keep this aligned with the queue worker.
+        firstKnock: "draft-cavage-http-signatures-12",
+      },
+    });
+    if (protocolConfig != null) {
+      const protocol = new ProtocolAdmission(protocolConfig);
+      protocolAdmission = protocol;
+      if (shutdownController.signal.aborted) protocol.stop();
+      const reportProtocol = () =>
+        logger.info("Protocol HTTP admission: {admission}", () => ({
+          admission: {
+            ...protocol.stats,
+            limits: protocolConfig,
+            sql: resources?.sqlWorkStats?.(),
+            loaders: resources?.protocolLoaderStats?.(),
+          },
+        }));
+      reportProtocol();
+      protocolStatsTimer = setInterval(reportProtocol, 30_000);
+      protocolStatsTimer.unref();
+    }
+    if (httpConfig.role !== "protocol") {
+      const admissionConfig = loadAnonymousReadConfig(getProcessEnvironment());
+      admissionStore =
+        resources.config.kv.url.protocol === "file:"
+          ? createMemoryAnonymousReadStore(admissionConfig.globalLimit)
+          : await createRedisAnonymousReadStore(
+              resources.config.kv.url,
+              resources.config.origin,
+              admissionConfig.globalLimit,
+              admissionConfig.redisTimeoutMs,
+            );
+      const admission = new AnonymousReadController(
+        admissionStore,
+        admissionConfig,
+      );
+      admissionController = admission;
+      const reportAdmission = () => {
+        logger.info("Anonymous read admission: {admission}", {
+          admission: {
+            ...admission.stats,
+            limits: admissionConfig,
+            storeFailure: admissionStore?.failure ?? null,
+            queued: 0,
+          },
+        });
+      };
+      reportAdmission();
+      admissionStatsTimer = setInterval(reportAdmission, 30_000);
+      admissionStatsTimer.unref();
+      const { createYogaServer } = await import("./mod.ts");
+      yogaServer = createYogaServer(admission);
+    }
     const handler = createGraphqlApiHandler({
       resources,
       yogaServer,
+      role: httpConfig.role,
+      protocolAdmission,
+      ready: () => !shutdownController.signal.aborted,
       assetlinksJson,
       appleAppSiteAssociationJson,
     });
-    httpServer = createNodeHttpServer(handler);
-    const address = await httpServer.listen();
-    logger.info("The Node.js GraphQL API is listening on {hostname}:{port}.", {
+    httpServer = createNodeHttpServer(handler, {
+      drainTimeout:
+        protocolConfig == null ? 10_000 : protocolConfig.deadlineMs + 1000,
+    });
+    const address = await httpServer.listen({
+      hostname: httpConfig.hostname,
+      port: httpConfig.port,
+    });
+    logger.info("The {role} HTTP service is listening on {hostname}:{port}.", {
+      role: httpConfig.role,
       hostname: address.address,
       port: address.port,
     });
@@ -147,12 +218,18 @@ export async function main(): Promise<void> {
   } finally {
     removeSignalListeners();
     if (admissionStatsTimer != null) clearInterval(admissionStatsTimer);
+    if (protocolStatsTimer != null) clearInterval(protocolStatsTimer);
+    shutdownController.signal.removeEventListener("abort", stopProtocol);
   }
 
   let closeError: unknown;
   try {
     await closeSequentially([
       () => httpServer?.close(),
+      () => {
+        protocolAdmission?.abort();
+      },
+      () => protocolAdmission?.idle(),
       async () => {
         if (
           admissionController != null &&

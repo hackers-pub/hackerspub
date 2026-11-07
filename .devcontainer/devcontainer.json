@@ -61,6 +61,7 @@
   // Add a name to the Docker network used by docker-compose.
   "runServices": [
     "graphql",
+    "protocol",
     "graphql-worker",
     "web-next",
     "gateway",

@@ -69,6 +69,12 @@ export interface EmailBudgetConfig {
 
 export interface DatabaseConfig {
   readonly url: string;
+  readonly maxConnections?: number;
+  readonly applicationName?: string;
+  readonly protocolWork?: {
+    readonly limit: number;
+    readonly timeoutMs: number;
+  };
 }
 
 export interface KeyValueConfig {
@@ -364,13 +370,22 @@ function parseDatabaseConfig(
   issues: ConfigurationIssue[],
 ): DatabaseConfig | undefined {
   const url = nonEmpty(env, "DATABASE_URL", issues);
-  return url == null ? undefined : { url };
+  const maxConnections =
+    env.DATABASE_MAX_CONNECTIONS == null
+      ? undefined
+      : parseInteger(env, "DATABASE_MAX_CONNECTIONS", issues, 20, 1, 1000);
+  return url == null
+    ? undefined
+    : {
+        url,
+        ...(maxConnections == null ? {} : { maxConnections }),
+      };
 }
 
 export function loadDatabaseConfig(env: Environment): DatabaseConfig {
   const issues: ConfigurationIssue[] = [];
   const config = parseDatabaseConfig(env, issues);
-  if (config == null) throw new ConfigurationError(issues);
+  if (config == null || issues.length > 0) throw new ConfigurationError(issues);
   return config;
 }
 
@@ -614,6 +629,104 @@ export function loadAnonymousReadConfig(env: Environment): AnonymousReadConfig {
     ),
     joinWindowMs: positiveInteger("ANONYMOUS_READ_JOIN_WINDOW_MS", 25, 60000),
   };
+  if (issues.length > 0) throw new ConfigurationError(issues);
+  return config;
+}
+
+export type HttpRole = "combined" | "interactive" | "protocol";
+
+export interface HttpConfig {
+  readonly role: HttpRole;
+  readonly hostname: string;
+  readonly port: number;
+}
+
+export function loadHttpConfig(
+  env: Environment,
+  forcedRole?: HttpRole,
+): HttpConfig {
+  const issues: ConfigurationIssue[] = [];
+  const role = forcedRole ?? env.HTTP_ROLE ?? "combined";
+  if (role !== "combined" && role !== "interactive" && role !== "protocol") {
+    issues.push({
+      variable: "HTTP_ROLE",
+      message: "must be combined, interactive, or protocol",
+    });
+  }
+  const port = parseInteger(
+    env,
+    "HTTP_PORT",
+    issues,
+    role === "protocol" ? 8081 : 8080,
+    1,
+    65535,
+  );
+  if (issues.length > 0) throw new ConfigurationError(issues);
+  return {
+    role: role as HttpRole,
+    hostname: env.HTTP_HOST?.trim() || "0.0.0.0",
+    port,
+  };
+}
+
+export interface ProtocolHttpConfig {
+  readonly limit: number;
+  readonly deadlineMs: number;
+  readonly bodyLimitBytes: number;
+  readonly responseLimitBytes: number;
+  readonly sqlLimit: number;
+  readonly sqlTimeoutMs: number;
+  readonly loaderLimit: number;
+  readonly loaderTimeoutMs: number;
+}
+
+export function loadProtocolHttpConfig(env: Environment): ProtocolHttpConfig {
+  const issues: ConfigurationIssue[] = [];
+  const config = {
+    limit: parseInteger(env, "PROTOCOL_REQUEST_LIMIT", issues, 4, 1, 1000),
+    deadlineMs: parseInteger(
+      env,
+      "PROTOCOL_REQUEST_TIMEOUT_MS",
+      issues,
+      15_000,
+      1,
+      600_000,
+    ),
+    bodyLimitBytes: parseInteger(
+      env,
+      "PROTOCOL_REQUEST_BODY_LIMIT_BYTES",
+      issues,
+      16 * 1024 * 1024,
+      1,
+      64 * 1024 * 1024,
+    ),
+    responseLimitBytes: parseInteger(
+      env,
+      "PROTOCOL_RESPONSE_BODY_LIMIT_BYTES",
+      issues,
+      16 * 1024 * 1024,
+      1,
+      64 * 1024 * 1024,
+    ),
+    sqlLimit: parseInteger(env, "PROTOCOL_SQL_LIMIT", issues, 32, 1, 10000),
+    sqlTimeoutMs: parseInteger(
+      env,
+      "PROTOCOL_SQL_TIMEOUT_MS",
+      issues,
+      5000,
+      1,
+      600_000,
+    ),
+    loaderLimit: parseInteger(env, "PROTOCOL_LOADER_LIMIT", issues, 8, 1, 1000),
+    loaderTimeoutMs: parseInteger(
+      env,
+      "PROTOCOL_LOADER_TIMEOUT_MS",
+      issues,
+      5000,
+      1,
+      600_000,
+    ),
+  } satisfies ProtocolHttpConfig;
   if (issues.length > 0) throw new ConfigurationError(issues);
   return config;
 }
