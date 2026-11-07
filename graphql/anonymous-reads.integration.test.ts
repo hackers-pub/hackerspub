@@ -7,7 +7,12 @@ import { Note, PUBLIC_COLLECTION } from "@fedify/vocab";
 import { persistPost } from "@hackerspub/models/post/remote";
 import { runWithRequestWork } from "@hackerspub/models/request-work";
 import { recomputeNewsScores } from "@hackerspub/models/news";
-import { postLinkTable, postTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  postLinkTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { createSession } from "@hackerspub/models/session";
 import { createMemoryAnonymousReadStore } from "@hackerspub/runtime/anonymous-read-admission";
 import { loadAnonymousReadConfig } from "@hackerspub/runtime/config";
 import { AnonymousReadController } from "./anonymous-reads.ts";
@@ -49,6 +54,97 @@ async function relayText(name: string): Promise<string> {
   assert.ok(match);
   return JSON.parse(match[1]);
 }
+
+test("cancelled authentication drains its account lookup without starting execution", async (t) => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "admissionauthcancel",
+      name: "Admission Auth Cancel",
+      email: "admissionauthcancel@example.com",
+    });
+    const admission = controller();
+    const yoga = createYogaServer(admission);
+    const context = makeGuestContext(tx);
+    const session = await createSession(context.kv, {
+      accountId: author.account.id,
+      authenticationMethod: "passkey",
+    });
+    const entered = Promise.withResolvers<void>();
+    const release = Promise.withResolvers<void>();
+    const events: string[] = [];
+    const getSession = context.kv.get.bind(context.kv);
+    t.mock.method(context.kv, "get", async (key: string) => {
+      entered.resolve();
+      await release.promise;
+      return await getSession(key);
+    });
+    const findAccount = tx.query.accountTable.findFirst.bind(
+      tx.query.accountTable,
+    );
+    t.mock.method(
+      tx.query.accountTable,
+      "findFirst",
+      async (...args: Parameters<typeof findAccount>) => {
+        const account = await findAccount(...args);
+        events.push("account lookup finished");
+        return account;
+      },
+    );
+    let executions = 0;
+    const countedDb = new Proxy(tx, {
+      get(target, property) {
+        if (property === "transaction") {
+          return async (...args: Parameters<typeof target.transaction>) => {
+            executions++;
+            return await target.transaction(...args);
+          };
+        }
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const cancellation = new AbortController();
+    const req = new Request("http://localhost/graphql?no-propagate=true", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${session.id}`,
+      },
+      body: JSON.stringify({ query: "{ viewer { id } }" }),
+      signal: cancellation.signal,
+    });
+    const { account: _account, session: _session, ...serverContext } = context;
+    const pending = Promise.resolve(
+      yoga.fetch(req, { ...serverContext, db: countedDb }),
+    ).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+    try {
+      await entered.promise;
+      cancellation.abort();
+      const drained = admission.idle().then(() => {
+        events.push("resources may close");
+      });
+      release.resolve();
+      assert.equal(await pending, cancellation.signal.reason);
+      await drained;
+      // The HTTP promise can reject before Yoga's context continuation runs.
+      // Give that continuation a turn to expose execution after the drain.
+      await setImmediate();
+      assert.deepEqual(events, [
+        "account lookup finished",
+        "resources may close",
+      ]);
+      assert.equal(executions, 0);
+      assert.equal(admission.stats.authentication, 0);
+    } finally {
+      release.resolve();
+      await pending;
+      await yoga.dispose();
+    }
+  });
+});
 
 test("real guest news documents share a snapshot, keep moderator data private and refresh restricted/deleted content", async () => {
   await withRollback(async (tx) => {
@@ -118,6 +214,57 @@ test("real guest news documents share a snapshot, keep moderator data private an
       assert.equal(transactions, 1);
       const distinct = await fetch(publicReadDocuments[1]);
       assert.equal(distinct.status, 503);
+      await tx
+        .update(accountTable)
+        .set({ moderator: true })
+        .where(eq(accountTable.id, author.account.id));
+      const authenticated = makeGuestContext(tx);
+      const session = await createSession(authenticated.kv, {
+        accountId: author.account.id,
+        authenticationMethod: "passkey",
+      });
+      const authenticatedRequest = new Request(
+        "http://localhost/graphql?no-propagate=true",
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${session.id}`,
+          },
+          body: JSON.stringify({
+            query: publicReadDocuments[0],
+            variables: { order: "NEWEST" },
+          }),
+        },
+      );
+      // This actual authenticated execution must not join the guest snapshot
+      // or consume the guest lane, which remains saturated throughout.
+      authenticated.request = authenticatedRequest;
+      // The transport supplies ServerContext, without UserContext identity
+      // fields that would override the authentication result during merging.
+      const {
+        account: _account,
+        session: _session,
+        ...serverContext
+      } = authenticated;
+      const moderator = await (
+        await yoga.fetch(authenticatedRequest, serverContext)
+      ).json();
+      assert.equal(moderator.errors, undefined);
+      assert.equal(moderator.data.viewer.moderator, true);
+      assert.ok(
+        Buffer.from(moderator.data.viewer.id, "base64")
+          .toString()
+          .endsWith(author.account.id),
+      );
+      assert.equal(
+        moderator.data.newsStories.edges.find(
+          (edge: { node: { url: string } }) => edge.node.url === link.url,
+        ).node.penalty,
+        "DEMOTE",
+      );
+      assert.equal(admission.stats.active, 1);
+      assert.equal(admission.stats.shared, 1);
       block = false;
       release.resolve();
       const [a, b] = await Promise.all([

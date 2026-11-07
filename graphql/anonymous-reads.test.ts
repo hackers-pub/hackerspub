@@ -100,7 +100,13 @@ test("leader disconnect cannot cancel surviving follower; last abort retains rea
 test("cancelled follower subscriptions are removed and do not accumulate reactions", async () => {
   const controller = makeController({ followerLimit: 1 });
   const finished = deferred();
-  const leader = controller.run(request(), "same", () => finished.promise);
+  const cancellation = new AbortController();
+  let workSignal: AbortSignal | undefined;
+  const leader = controller.run(request(cancellation), "same", (req) => {
+    workSignal = req.signal;
+    return finished.promise;
+  });
+  await setImmediate();
   for (let i = 0; i < 100; i++) {
     const cancellation = new AbortController();
     const follower = controller.run(
@@ -112,8 +118,13 @@ test("cancelled follower subscriptions are removed and do not accumulate reactio
     await assert.rejects(follower);
     assert.equal(controller.stats.followers, 0);
   }
+  // Retained callbacks would prevent this last-subscriber cancellation from
+  // reaching the work, even if the follower counter had been decremented.
+  cancellation.abort();
+  await assert.rejects(leader);
+  assert.equal(workSignal?.aborted, true);
   finished.resolve();
-  await leader;
+  await controller.idle();
 });
 
 test("cancellation during acquire skips SQL and releases a confirmed owner", async () => {
@@ -308,4 +319,34 @@ test("shutdown waits for actual ownership release before closing the store", asy
   await shutdown;
   assert.deepEqual(events, ["released", "closed"]);
   assert.equal(admission.stats.active, 0);
+});
+
+test("shutdown drains authentication and cheap work after guest reads finish", async () => {
+  const admission = makeController();
+  const authentication = deferred();
+  const cheapWork = deferred();
+  const guest = deferred();
+  const auth = admission.authenticate(() => authentication.promise);
+  const cheap = admission.cheap(request(), () => cheapWork.promise);
+  const read = admission.run(request(), undefined, () => guest.promise);
+  let closed = false;
+  const idle = admission.idle();
+  const shutdown = idle.then(() => {
+    closed = true;
+  });
+  guest.resolve();
+  await read;
+  assert.equal(admission.idle(), idle);
+  await setImmediate();
+  assert.equal(closed, false);
+  authentication.reject(new Error("authentication failed"));
+  await assert.rejects(auth, /authentication failed/);
+  await setImmediate();
+  assert.equal(closed, false);
+  cheapWork.resolve();
+  await cheap;
+  await shutdown;
+  assert.equal(closed, true);
+  assert.equal(admission.stats.authentication, 0);
+  assert.equal(admission.stats.cheap, 0);
 });

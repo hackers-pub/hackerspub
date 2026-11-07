@@ -78,9 +78,20 @@ export class AnonymousReadController {
     };
   }
 
-  /** Wait for confirmed release of every admitted/acquiring execution. */
+  /** Drain execution and authentication before their shared resources close. */
   idle(): Promise<void> {
     return this.#idle?.promise ?? Promise.resolve();
+  }
+
+  #resolveIdle(): void {
+    if (
+      this.#stats.active === 0 &&
+      this.#stats.authentication === 0 &&
+      this.#stats.cheap === 0
+    ) {
+      this.#idle?.resolve();
+      this.#idle = undefined;
+    }
   }
 
   #reject(reason: string): never {
@@ -94,10 +105,12 @@ export class AnonymousReadController {
     if (this.#stats.authentication >= this.config.authLimit)
       this.#reject("authentication");
     this.#stats.authentication++;
+    this.#idle ??= Promise.withResolvers<void>();
     try {
       return await execute();
     } finally {
       this.#stats.authentication--;
+      this.#resolveIdle();
     }
   }
 
@@ -105,10 +118,12 @@ export class AnonymousReadController {
     request.signal.throwIfAborted();
     if (this.#stats.cheap >= this.config.cheapLimit) this.#reject("cheap");
     this.#stats.cheap++;
+    this.#idle ??= Promise.withResolvers<void>();
     try {
       return await execute();
     } finally {
       this.#stats.cheap--;
+      this.#resolveIdle();
     }
   }
 
@@ -131,7 +146,7 @@ export class AnonymousReadController {
       return this.#subscribe(existing as ReadGroup<T>, request.signal, true);
     }
     if (this.#stats.active >= this.config.localLimit) this.#reject("local");
-    if (this.#stats.active === 0) this.#idle = Promise.withResolvers<void>();
+    this.#idle ??= Promise.withResolvers<void>();
     this.#stats.active++;
     const controller = new AbortController();
     const owner = crypto.randomUUID();
@@ -171,10 +186,7 @@ export class AnonymousReadController {
         }
         this.#stats.active--;
         this.#stats.completed++;
-        if (this.#stats.active === 0) {
-          this.#idle?.resolve();
-          this.#idle = undefined;
-        }
+        this.#resolveIdle();
         if (key != null && this.#groups.get(key) === group)
           this.#groups.delete(key);
       }

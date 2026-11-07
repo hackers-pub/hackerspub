@@ -117,6 +117,9 @@ export function createYogaServer(
         sessionId == null
           ? { session: undefined, account: undefined }
           : await admission.authenticate(authenticate);
+      // HTTP drain can disconnect a request while authentication is pending.
+      // Do not start its execution after authentication unblocks shutdown.
+      req.signal.throwIfAborted();
 
       // Tag the per-request Sentry isolation scope with the signed-in user.
       // The preloaded Node HTTP integration creates a request isolation
