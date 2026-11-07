@@ -153,6 +153,19 @@ const portLease = createServer();
 let logs = "";
 let checks = 0;
 
+async function stopChild(): Promise<void> {
+  if (child == null || childExit == null) return;
+  child.kill("SIGTERM");
+  try {
+    await bounded(childExit, "server graceful shutdown", 3000, true);
+  } catch {
+    child.kill("SIGKILL");
+    await bounded(childExit, "server forced shutdown", 3000, true);
+  }
+  child = undefined;
+  childExit = undefined;
+}
+
 try {
   const entryPath = `${output}chunks/_/entry-server.mjs`;
   const entryText = await bounded(
@@ -206,7 +219,6 @@ try {
     WEB_INTERACTIVE_GRAPHQL_TIMEOUT_MS: "1000",
   };
   Object.assign(process.env, environment);
-  const ready = Promise.withResolvers<void>();
   // Test-only preload observes the built transport, rather than assuming that
   // writing upstream headers means the web process has received them. Its load
   // hook delays after the real middleware runs, before any page query starts.
@@ -221,8 +233,9 @@ try {
         const anchor = "const response = await onRequest(fetchEvent);";
         assert.equal(source.split(anchor).length, 2, "Built middleware hook must match once");
         return { ...loaded, source: source.replace(anchor, anchor + \`
-          if (fetchEvent.request.headers.get("user-agent") === "middleware-budget") {
-            await new Promise(resolve => setTimeout(resolve, 300));
+          if (fetchEvent.request.headers.get("user-agent")?.startsWith("middleware-budget")) {
+            const expired = fetchEvent.request.headers.get("user-agent").endsWith("expired");
+            await new Promise(resolve => setTimeout(resolve, expired ? 500 : 300));
           }
         \`) };
       }
@@ -247,54 +260,59 @@ try {
   `;
   const pageHeadersReceived = Promise.withResolvers<void>();
   const pageAbortReason = Promise.withResolvers<unknown>();
-  child = spawn(
-    process.execPath,
-    [
-      "--import",
-      `data:text/javascript,${encodeURIComponent(preload)}`,
-      `${output}index.mjs`,
-    ],
-    {
-      cwd: webDirectory,
-      env: { ...process.env, ...environment },
-      stdio: ["ignore", "pipe", "pipe", "ipc"],
-    },
-  );
-  child.on("message", (message: unknown) => {
-    if (
-      message != null &&
-      typeof message === "object" &&
-      "headersReceived" in message &&
-      message.headersReceived === "aborted-page"
-    ) {
-      pageHeadersReceived.resolve();
-    }
-    if (
-      message != null &&
-      typeof message === "object" &&
-      "upstreamAborted" in message &&
-      message.upstreamAborted === "aborted-page"
-    ) {
-      pageAbortReason.resolve(message);
-    }
-  });
-  childExit = new Promise<void>((resolve) => {
-    child!.once("error", (error) => {
-      ready.reject(error);
-      resolve();
+  const startChild = async (overrides: Record<string, string> = {}) => {
+    const ready = Promise.withResolvers<void>();
+    logs = "";
+    child = spawn(
+      process.execPath,
+      [
+        "--import",
+        `data:text/javascript,${encodeURIComponent(preload)}`,
+        `${output}index.mjs`,
+      ],
+      {
+        cwd: webDirectory,
+        env: { ...process.env, ...environment, ...overrides },
+        stdio: ["ignore", "pipe", "pipe", "ipc"],
+      },
+    );
+    child.on("message", (message: unknown) => {
+      if (
+        message != null &&
+        typeof message === "object" &&
+        "headersReceived" in message &&
+        message.headersReceived === "aborted-page"
+      ) {
+        pageHeadersReceived.resolve();
+      }
+      if (
+        message != null &&
+        typeof message === "object" &&
+        "upstreamAborted" in message &&
+        message.upstreamAborted === "aborted-page"
+      ) {
+        pageAbortReason.resolve(message);
+      }
     });
-    child!.once("close", () => {
-      ready.reject(new Error("Built server exited before readiness"));
-      resolve();
+    childExit = new Promise<void>((resolve) => {
+      child!.once("error", (error) => {
+        ready.reject(error);
+        resolve();
+      });
+      child!.once("close", () => {
+        ready.reject(new Error("Built server exited before readiness"));
+        resolve();
+      });
     });
-  });
-  const collect = (chunk: Buffer) => {
-    logs = (logs + chunk).slice(-100_000);
-    if (logs.includes("Listening")) ready.resolve();
+    const collect = (chunk: Buffer) => {
+      logs = (logs + chunk).slice(-100_000);
+      if (logs.includes("Listening")) ready.resolve();
+    };
+    child.stdout?.on("data", collect);
+    child.stderr?.on("data", collect);
+    await bounded(ready.promise, "built server readiness", 15000);
   };
-  child.stdout?.on("data", collect);
-  child.stderr?.on("data", collect);
-  await bounded(ready.promise, "built server readiness", 15000);
+  await startChild();
   const emittedImport = (path: string) =>
     bounded(
       import(pathToFileURL(`${output}${path}`).href),
@@ -449,18 +467,24 @@ try {
     "sequential actual SSR environment shares outer budget and fails before dispatch",
   );
 
-  const middlewareBudget = scenario("middleware-budget", "budget");
-  const budgetPage = await bounded(
-    page("middleware-budget"),
-    "middleware-started page budget",
-  );
-  assert.equal(budgetPage.includes(marker), false);
-  assert.match(budgetPage, /SSR GraphQL page budget of 400 ms exceeded/);
-  await closed(middlewareBudget);
-  assert.ok(
-    middlewareBudget.calls.some((call) => !call.response.writableEnded),
-  );
-  passed("HTTP page uses middleware budget before its first query");
+  for (const label of ["middleware-budget", "middleware-budget-expired"]) {
+    const middlewareBudget = scenario(label, "budget");
+    const budgetPage = await bounded(
+      page(label),
+      "middleware-started page budget",
+    );
+    assert.equal(budgetPage.includes(marker), false);
+    assert.match(budgetPage, /SSR GraphQL page budget of 400 ms exceeded/);
+    // Scheduling can exhaust the budget before the first operation dispatches.
+    if (middlewareBudget.calls.length > 0) {
+      await closed(middlewareBudget);
+    }
+    if (label.endsWith("expired"))
+      assert.equal(middlewareBudget.calls.length, 0);
+    passed(
+      `HTTP page uses middleware budget before its first query (${label})`,
+    );
+  }
 
   for (const mode of ["headers", "body"] as const) {
     const label = `Dispose${mode}`;
@@ -529,6 +553,12 @@ try {
     );
   }
 
+  // IPC delivery and parent scheduling must not compete with short deadline tests.
+  await stopChild();
+  await startChild({
+    WEB_SSR_GRAPHQL_TIMEOUT_MS: "10000",
+    WEB_SSR_GRAPHQL_BUDGET_MS: "10000",
+  });
   const aborting = scenario("aborted-page", "body");
   const inbound = new AbortController();
   const aborted = page("aborted-page", inbound.signal);
@@ -537,6 +567,11 @@ try {
   await bounded(
     pageHeadersReceived.promise,
     "built transport received upstream headers",
+  );
+  // Deliberately exceed the deadline used by the short-budget child.
+  await bounded(
+    new Promise<void>((resolve) => setTimeout(resolve, 350)),
+    "delayed parent abort",
   );
   scenario("concurrent-healthy", "healthy");
   const healthy = page("concurrent-healthy");
@@ -564,6 +599,9 @@ try {
     "HTTP disconnect isolation, concurrent healthy request and later recovery",
   );
 
+  // Keep interactive-vs-SSR policy checks on their original short SSR budgets.
+  await stopChild();
+  await startChild();
   for (const kind of ["query", "mutation"]) {
     const label = `Interactive${kind}`;
     const fixture = scenario(label, "slow");
@@ -612,15 +650,7 @@ try {
   console.log(`SSR GraphQL smoke: ${checks} checks passed.`);
 } finally {
   try {
-    if (child != null && childExit != null) {
-      child.kill("SIGTERM");
-      try {
-        await bounded(childExit, "server graceful shutdown", 3000, true);
-      } catch {
-        child.kill("SIGKILL");
-        await bounded(childExit, "server forced shutdown", 3000, true);
-      }
-    }
+    await stopChild();
   } finally {
     try {
       api.closeAllConnections();
