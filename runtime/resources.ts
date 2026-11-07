@@ -75,14 +75,23 @@ export function getDatabaseConnectionOptions(
       "The protocol SQL timeout must be an integer from 1 to 600000 ms.",
     );
   }
-  const url = new URL(config.url);
+  // Only rewrite the query: Postgres.js accepts multi-host authorities with
+  // individual ports that WHATWG URL rejects. Preserve that authority verbatim.
+  const hashIndex = config.url.indexOf("#");
+  const base = hashIndex < 0 ? config.url : config.url.slice(0, hashIndex);
+  const fragment = hashIndex < 0 ? "" : config.url.slice(hashIndex);
+  const queryIndex = base.indexOf("?");
+  const location = queryIndex < 0 ? base : base.slice(0, queryIndex);
+  const searchParams = new URLSearchParams(
+    queryIndex < 0 ? "" : base.slice(queryIndex + 1),
+  );
   const protectedParameters = new Set([
     "statement_timeout",
     "lock_timeout",
     "idle_in_transaction_session_timeout",
     "application_name",
   ]);
-  for (const name of new Set(url.searchParams.keys())) {
+  for (const name of new Set(searchParams.keys())) {
     const normalized = name.toLowerCase();
     if (normalized === "options") {
       throw new TypeError(
@@ -90,20 +99,20 @@ export function getDatabaseConnectionOptions(
       );
     }
     // PostgreSQL GUC names ignore case; remove aliases before appending limits.
-    if (protectedParameters.has(normalized)) url.searchParams.delete(name);
+    if (protectedParameters.has(normalized)) searchParams.delete(name);
   }
-  url.searchParams.set("statement_timeout", `${work.timeoutMs}ms`);
-  url.searchParams.set("lock_timeout", `${Math.min(work.timeoutMs, 1000)}ms`);
-  url.searchParams.set(
+  searchParams.set("statement_timeout", `${work.timeoutMs}ms`);
+  searchParams.set("lock_timeout", `${Math.min(work.timeoutMs, 1000)}ms`);
+  searchParams.set(
     "idle_in_transaction_session_timeout",
     `${work.timeoutMs}ms`,
   );
-  url.searchParams.set(
+  searchParams.set(
     "application_name",
     config.applicationName ?? "hackerspub-protocol",
   );
   return {
-    url: url.href,
+    url: `${location}?${searchParams}${fragment}`,
     options: {
       ...options,
       max: config.maxConnections ?? 4,

@@ -62,7 +62,7 @@ test(
     url.searchParams.set("application_name", "wrong");
     url.searchParams.set("APPLICATION_NAME", "wrong");
     const { postgres: sql } = createDatabaseResources({
-      url: url.href,
+      url: url.href.replace(url.host, `${url.host},${url.host}`),
       maxConnections: 1,
       protocolWork: { limit: 8, timeoutMs: 150 },
     });
@@ -143,3 +143,35 @@ test(
     }
   },
 );
+
+test("protocol SQL options preserve Postgres.js multi-host authorities and ports", async () => {
+  const original =
+    "postgres://user:p%40ss@db1:5432,db2:5433/app?STATEMENT_TIMEOUT=0&Lock_Timeout=0&sslmode=require";
+  const result = getDatabaseConnectionOptions({
+    url: original,
+    protocolWork: { limit: 8, timeoutMs: 150 },
+  });
+  assert.ok(
+    result.url.startsWith("postgres://user:p%40ss@db1:5432,db2:5433/app?"),
+  );
+  const sql = postgres(result.url, result.options);
+  try {
+    assert.deepEqual(sql.options.host, ["db1", "db2"]);
+    assert.deepEqual(sql.options.port, [5432, 5433]);
+    assert.equal(sql.options.pass, "p@ss");
+    assert.equal(sql.options.connection.statement_timeout, "150ms");
+    assert.equal(sql.options.connection.lock_timeout, "150ms");
+    assert.equal(sql.options.connection.STATEMENT_TIMEOUT, undefined);
+    assert.equal(sql.options.ssl, "require");
+  } finally {
+    await sql.end();
+  }
+  assert.throws(
+    () =>
+      getDatabaseConnectionOptions({
+        url: `${original}&OpTiOnS=-c%20statement_timeout%3D0`,
+        protocolWork: { limit: 8, timeoutMs: 150 },
+      }),
+    /DATABASE_URL/,
+  );
+});
