@@ -65,7 +65,7 @@ export async function createRedisAnonymousReadStore(
     connectTimeout: timeoutMs,
     commandTimeout: timeoutMs,
     maxRetriesPerRequest: 0,
-    family: url.hostname.endsWith(".upstash.io") ? 6 : 4,
+    family: url.hostname.endsWith(".upstash.io") ? 6 : 0,
   });
   let failure: string | undefined;
   let closed = false;

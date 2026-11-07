@@ -1,5 +1,6 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { spawn } from "node:child_process";
+import dns, { type LookupAddress, type LookupOptions } from "node:dns";
 import { createServer } from "node:net";
 import { once } from "node:events";
 import test from "node:test";
@@ -80,6 +81,100 @@ test("Redis ledger is shared, requires provisioning, and permanently fails close
   assertEquals(a.failure, "ledger_missing_or_mismatched");
   await admin.hset(key, "format", "1", "limit", "2");
   await assertRejects(() => a.acquire("e"));
+});
+
+test("Redis admission connects to a hostname with only an IPv6 address", async (t) => {
+  const reservation = createServer().listen({
+    host: "::1",
+    port: 0,
+    ipv6Only: true,
+  });
+  await once(reservation, "listening");
+  const address = reservation.address();
+  if (address == null || typeof address === "string")
+    throw new Error("No port");
+  await new Promise<void>((resolve, reject) =>
+    reservation.close((error) => (error ? reject(error) : resolve())),
+  );
+  const server = spawn(
+    "redis-server",
+    [
+      "--bind",
+      "::1",
+      "--port",
+      String(address.port),
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+    ],
+    { stdio: "ignore" },
+  );
+  t.after(() => {
+    server.kill();
+  });
+  const admin = new Redis({
+    host: "::1",
+    port: address.port,
+    family: 6,
+    maxRetriesPerRequest: 20,
+    retryStrategy: () => 20,
+  });
+  admin.on("error", () => {});
+  t.after(() => admin.disconnect());
+  await admin.ping();
+  const origin = new URL("https://ipv6.example.test");
+  const key = anonymousReadLedgerKey(origin);
+  await admin.hset(key, "format", "1", "limit", "1");
+  const actualLookup = dns.lookup;
+  const families: number[] = [];
+  type LookupCallback = (
+    error: NodeJS.ErrnoException | null,
+    address: string | LookupAddress[],
+    family: number,
+  ) => void;
+  // Keep real TCP/Redis behavior, but make this hostname deterministically
+  // AAAA-only regardless of the machine's resolver or hosts-file settings.
+  t.mock.method(dns, "lookup", ((
+    hostname: string,
+    options: LookupOptions,
+    callback: LookupCallback,
+  ) => {
+    if (hostname !== "ipv6-only.example.test") {
+      return Reflect.apply(actualLookup, dns, [hostname, options, callback]);
+    }
+    const family =
+      options.family === "IPv4"
+        ? 4
+        : options.family === "IPv6"
+          ? 6
+          : (options.family ?? 0);
+    families.push(family);
+    queueMicrotask(() => {
+      if (family === 4) {
+        const error = Object.assign(new Error("No IPv4 address"), {
+          code: "ENOTFOUND",
+        });
+        callback(error, "", 4);
+      } else if (options.all) {
+        callback(null, [{ address: "::1", family: 6 }], 6);
+      } else {
+        callback(null, "::1", 6);
+      }
+    });
+  }) as typeof dns.lookup);
+  const store = await createRedisAnonymousReadStore(
+    new URL(`redis://ipv6-only.example.test:${address.port}`),
+    origin,
+    1,
+    1000,
+  );
+  t.after(() => store.close());
+  assertEquals(await store.acquire("ipv6-owner"), true);
+  assertEquals(families, [0]);
+  assertEquals(await admin.hexists(key, "owner:ipv6-owner"), 1);
+  await store.release("ipv6-owner");
+  assertEquals(await admin.hlen(key), 2);
 });
 
 test("a stalled Redis command latches the store closed and disconnects", async (t) => {
