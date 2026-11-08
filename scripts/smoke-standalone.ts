@@ -1,4 +1,6 @@
+import { Redis } from "ioredis";
 import { type ChildProcess, spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { rm } from "node:fs/promises";
 import { createServer } from "node:net";
 import process from "node:process";
@@ -7,6 +9,8 @@ import {
   checkWorkerHeartbeat,
   WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS,
 } from "../graphql/worker-health.ts";
+import { loadAnonymousReadConfig } from "../runtime/config.ts";
+import { provisionSmokeAdmissionLedger } from "./smoke-admission.ts";
 import { type ReadinessCheck, waitUntil } from "./smoke-readiness.ts";
 
 const heartbeatPath = `/tmp/hackerspub-standalone-smoke-${process.pid}.health`;
@@ -16,6 +20,9 @@ const webNextDirectory = fileURLToPath(
 );
 const standaloneKvUrl =
   process.env.STANDALONE_SMOKE_KV_URL ?? "redis://127.0.0.1:6379/0";
+
+// A new canonical origin isolates the admission ledger even when Redis is shared.
+const smokeOrigin = new URL(`http://standalone-smoke-${randomUUID()}.invalid`);
 
 // Use dedicated ports so the smoke run does not collide with ordinary dev tasks.
 function smokePort(name: string, fallback: number): number {
@@ -62,6 +69,7 @@ interface Service {
   readonly exit: Promise<ServiceExit>;
   /** Whether {@link exit} has already settled. */
   readonly gone: boolean;
+  forced: boolean;
 }
 
 const services: Service[] = [];
@@ -77,7 +85,7 @@ function start(
     cwd,
     // `spawn` replaces the environment outright, so the ambient configuration
     // (DATABASE_URL, SECRET_KEY, PATH, ...) has to be carried over explicitly.
-    env: { ...process.env, ...environment },
+    env: { ...process.env, ORIGIN: smokeOrigin.origin, ...environment },
     stdio: ["ignore", "inherit", "inherit"],
   });
   let gone = false;
@@ -112,6 +120,7 @@ function start(
     name,
     child,
     exit,
+    forced: false,
     get gone() {
       return gone;
     },
@@ -185,6 +194,7 @@ async function hasExited(
 async function stop(service: Service): Promise<string | undefined> {
   if (!service.gone) service.child.kill("SIGTERM");
   if (await hasExited(service, GRACEFUL_SHUTDOWN_TIMEOUT)) return undefined;
+  service.forced = true;
   service.child.kill("SIGKILL");
   if (await hasExited(service, FORCED_SHUTDOWN_TIMEOUT)) return undefined;
   // A live child handle keeps this process's event loop alive, so giving up on
@@ -203,7 +213,26 @@ if (new Set([apiPort, protocolPort, webPort]).size !== 3) {
 }
 await Promise.all([apiPort, protocolPort, webPort].map(requireFreePort));
 
+const redisUrl = new URL(standaloneKvUrl);
+const admissionClient = new Redis(redisUrl.href, {
+  lazyConnect: true,
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: 0,
+  retryStrategy: () => null,
+  connectTimeout: 1000,
+  commandTimeout: 1000,
+  family: redisUrl.hostname.endsWith(".upstash.io") ? 6 : 0,
+});
+admissionClient.on("error", () => {});
+let cleanupAdmission: ((drained: boolean) => Promise<void>) | undefined;
+let admissionApi: Service | undefined;
 try {
+  await admissionClient.connect();
+  cleanupAdmission = await provisionSmokeAdmissionLedger(
+    admissionClient,
+    smokeOrigin,
+    loadAnonymousReadConfig(process.env).globalLimit,
+  );
   const api = start(
     "the GraphQL API",
     "node",
@@ -223,6 +252,7 @@ try {
       HTTP_PORT: String(apiPort),
     },
   );
+  admissionApi = api;
   await waitForReadiness(api, "the standalone GraphQL API", async (signal) => {
     const response = await fetch(`${apiOrigin}/graphql`, {
       method: "POST",
@@ -400,7 +430,27 @@ try {
     const problem = await stop(service);
     if (problem != null) problems.push(problem);
   }
-  await rm(heartbeatPath, { force: true });
+  try {
+    // Only the interactive API can own this ledger. Other services may need
+    // SIGKILL after draining their work (for example during logging disposal).
+    const admissionDrained =
+      admissionApi == null ||
+      (admissionApi.gone &&
+        !admissionApi.forced &&
+        (await admissionApi.exit).code === 0);
+    await cleanupAdmission?.(
+      services.every((service) => service.gone) && admissionDrained,
+    );
+  } catch (error) {
+    problems.push(String(error));
+  } finally {
+    admissionClient.disconnect();
+  }
+  try {
+    await rm(heartbeatPath, { force: true });
+  } catch (error) {
+    problems.push(String(error));
+  }
   if (problems.length > 0) {
     // Reported rather than thrown: a smoke failure is more interesting than
     // the cleanup trouble that follows it, so it must not be overwritten.
