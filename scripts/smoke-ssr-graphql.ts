@@ -258,9 +258,9 @@ try {
       return response;
     };
   `;
-  const pageHeadersReceived = Promise.withResolvers<void>();
-  const pageAbortReason = Promise.withResolvers<unknown>();
   const startChild = async (overrides: Record<string, string> = {}) => {
+    const pageHeadersReceived = Promise.withResolvers<void>();
+    const pageAbortReason = Promise.withResolvers<unknown>();
     const ready = Promise.withResolvers<void>();
     logs = "";
     child = spawn(
@@ -311,8 +311,12 @@ try {
     child.stdout?.on("data", collect);
     child.stderr?.on("data", collect);
     await bounded(ready.promise, "built server readiness", 15000);
+    return {
+      headersReceived: pageHeadersReceived.promise,
+      upstreamAborted: pageAbortReason.promise,
+    };
   };
-  await startChild();
+  const deadlineChild = await startChild();
   const emittedImport = (path: string) =>
     bounded(
       import(pathToFileURL(`${output}${path}`).href),
@@ -553,9 +557,31 @@ try {
     );
   }
 
+  // Settle this child's IPC signals with a timeout before starting the next one.
+  const earlierAbort = scenario("aborted-page", "body");
+  assert.equal(
+    (await bounded(page("aborted-page"), "earlier child timeout")).includes(
+      marker,
+    ),
+    false,
+  );
+  await bounded(
+    deadlineChild.headersReceived,
+    "earlier child response headers",
+  );
+  assert.deepEqual(
+    await bounded(deadlineChild.upstreamAborted, "earlier child abort reason"),
+    {
+      upstreamAborted: "aborted-page",
+      name: "TimeoutError",
+    },
+  );
+  await closed(earlierAbort);
+  passed("earlier child settles its own timeout signals before restart");
+
   // IPC delivery and parent scheduling must not compete with short deadline tests.
   await stopChild();
-  await startChild({
+  const disconnectChild = await startChild({
     WEB_SSR_GRAPHQL_TIMEOUT_MS: "10000",
     WEB_SSR_GRAPHQL_BUDGET_MS: "10000",
   });
@@ -565,7 +591,7 @@ try {
   const abortedResult = assert.rejects(aborted, { name: "AbortError" });
   await bounded(aborting.first.promise, "page to abort");
   await bounded(
-    pageHeadersReceived.promise,
+    disconnectChild.headersReceived,
     "built transport received upstream headers",
   );
   // Deliberately exceed the deadline used by the short-budget child.
@@ -579,7 +605,10 @@ try {
   inbound.abort();
   await bounded(abortedResult, "cancel page");
   assert.deepEqual(
-    await bounded(pageAbortReason.promise, "page upstream cancellation reason"),
+    await bounded(
+      disconnectChild.upstreamAborted,
+      "page upstream cancellation reason",
+    ),
     {
       upstreamAborted: "aborted-page",
       name: "GraphQLRequestCancelledError",
