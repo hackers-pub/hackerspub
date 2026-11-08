@@ -13,6 +13,7 @@ import {
   type HttpRole,
 } from "@hackerspub/runtime/config";
 import {
+  anonymousReadLedgerKey,
   createMemoryAnonymousReadStore,
   createRedisAnonymousReadStore,
   type AnonymousReadStore,
@@ -169,6 +170,15 @@ export async function main(forcedRole?: HttpRole): Promise<void> {
               admissionConfig.globalLimit,
               admissionConfig.redisTimeoutMs,
             );
+      if (admissionStore.failure != null) {
+        throw new Error(
+          `Anonymous read admission startup failed: ${admissionStore.failure}. ` +
+            `Ledger ${anonymousReadLedgerKey(resources.config.origin)} ` +
+            `must have format 1 and limit ${admissionConfig.globalLimit}. ` +
+            "Inspect Redis and follow the drained recovery procedure in " +
+            "DEPLOYMENT.md before restarting all API replicas.",
+        );
+      }
       const admission = new AnonymousReadController(
         admissionStore,
         admissionConfig,
