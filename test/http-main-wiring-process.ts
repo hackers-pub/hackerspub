@@ -164,6 +164,23 @@ if (startupFailure != null) {
     );
     assert.match(error.message, /\b8\b/);
     assert.match(error.message, /DEPLOYMENT\.md/);
+    if (startupFailure === "ledger_missing_or_mismatched") {
+      assert.match(error.message, /Drain all API replicas before repairing/);
+      assert.ok(!error.message.includes("retry only this failed replica"));
+    } else {
+      assert.match(
+        error.message,
+        /Check Redis connectivity and ledger metadata/,
+      );
+      assert.match(
+        error.message,
+        /If acknowledged ownership state is intact, retry only this failed replica/,
+      );
+      assert.match(
+        error.message,
+        /metadata repair or suspected Redis state loss/,
+      );
+    }
     return true;
   });
   assert.equal(yogaCreated, false);

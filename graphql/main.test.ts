@@ -30,6 +30,7 @@ test("production main rejects a failed admission store before serving", async ()
     for (const failure of [
       "ledger_missing_or_mismatched",
       "redis_connect_failed",
+      "redis_command_failed",
     ]) {
       const { stderr } = await execute(
         process.execPath,

@@ -110,7 +110,8 @@ export async function createRedisAnonymousReadStore(
   try {
     await command(VALIDATE, "");
   } catch {
-    // command() or connect() has already recorded the permanent failure.
+    // command() or connect() has already recorded the permanent failure. This
+    // startup probe never acquires ownership, even if its reply is lost.
   }
   return {
     get failure() {
