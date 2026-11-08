@@ -74,6 +74,10 @@ import {
   or,
 } from "drizzle-orm";
 import { builder } from "./builder.ts";
+import {
+  authorizePostFetch,
+  isPostVisibleToRequester,
+} from "./post-authorization.ts";
 
 const EMOJI_REACTIONS_WINDOW = 50;
 const REPLIES_WINDOW = 50;
@@ -771,34 +775,12 @@ builder
     if (!validateUuid(values.id)) return false;
     const post = await ctx.data.db.query.postTable.findFirst({
       with: {
-        actor: {
-          with: {
-            followers: {
-              with: { follower: true },
-            },
-            blockees: {
-              with: { blockee: true },
-            },
-            blockers: {
-              with: { blocker: true },
-            },
-          },
-        },
-        mentions: {
-          with: { actor: true },
-        },
+        actor: true,
       },
       where: { noteSourceId: values.id, type: "Note" },
     });
     if (post == null || post.actor.accountId == null) return false;
-    const documentLoader = await ctx.getDocumentLoader({
-      identifier: post.actor.accountId,
-    });
-    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    return isPostVisibleTo(
-      post,
-      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
-    );
+    return await authorizePostFetch(ctx, post, post.actor.accountId);
   });
 
 builder
@@ -853,34 +835,12 @@ builder
     if (!validateUuid(values.id)) return false;
     const post = await ctx.data.db.query.postTable.findFirst({
       with: {
-        actor: {
-          with: {
-            followers: {
-              with: { follower: true },
-            },
-            blockees: {
-              with: { blockee: true },
-            },
-            blockers: {
-              with: { blocker: true },
-            },
-          },
-        },
-        mentions: {
-          with: { actor: true },
-        },
+        actor: true,
       },
       where: { noteSourceId: values.id, type: "Question" },
     });
     if (post == null || post.actor.accountId == null) return false;
-    const documentLoader = await ctx.getDocumentLoader({
-      identifier: post.actor.accountId,
-    });
-    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    return isPostVisibleTo(
-      post,
-      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
-    );
+    return await authorizePostFetch(ctx, post, post.actor.accountId);
   });
 
 builder
@@ -921,14 +881,7 @@ builder
         with: {
           quotedPost: {
             with: {
-              actor: {
-                with: {
-                  followers: { with: { follower: true } },
-                  blockees: { with: { blockee: true } },
-                  blockers: { with: { blocker: true } },
-                },
-              },
-              mentions: { with: { actor: true } },
+              actor: true,
             },
           },
         },
@@ -942,13 +895,10 @@ builder
     // before any key/document-loader work); isPostVisibleTo below ignores
     // `censored`, so this is what actually gates the moderation-hidden case.
     if (authorization.quotedPost.censored != null) return false;
-    const documentLoader = await ctx.getDocumentLoader({
-      identifier: authorization.quotedPost.actor.accountId ?? values.id,
-    });
-    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    return isPostVisibleTo(
+    return await authorizePostFetch(
+      ctx,
       authorization.quotedPost,
-      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
+      authorization.quotedPost.actor.accountId ?? values.id,
     );
   });
 
@@ -1068,22 +1018,7 @@ builder
     if (!validateUuid(values.id)) return false;
     const post = await ctx.data.db.query.postTable.findFirst({
       with: {
-        actor: {
-          with: {
-            followers: {
-              with: { follower: true },
-            },
-            blockees: {
-              with: { blockee: true },
-            },
-            blockers: {
-              with: { blocker: true },
-            },
-          },
-        },
-        mentions: {
-          with: { actor: true },
-        },
+        actor: true,
       },
       where: {
         id: values.id,
@@ -1091,14 +1026,7 @@ builder
       },
     });
     if (post == null || post.actor.accountId == null) return false;
-    const documentLoader = await ctx.getDocumentLoader({
-      identifier: post.actor.accountId,
-    });
-    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    return isPostVisibleTo(
-      post,
-      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
-    );
+    return await authorizePostFetch(ctx, post, post.actor.accountId);
   });
 
 function getEmojiReactType(
@@ -1226,14 +1154,7 @@ async function getCustomEmojiReact(
       customEmoji: true,
       post: {
         with: {
-          actor: {
-            with: {
-              followers: { with: { follower: true } },
-              blockees: { with: { blockee: true } },
-              blockers: { with: { blocker: true } },
-            },
-          },
-          mentions: { with: { actor: true } },
+          actor: true,
         },
       },
     },
@@ -1351,25 +1272,16 @@ function hasHttpSignature(ctx: RequestContext<ContextData>): boolean {
 async function canViewEmojiReactionPost(
   ctx: RequestContext<ContextData>,
   kind: EmojiReactionCollectionKind,
-  post: Parameters<typeof isPostVisibleTo>[0] & {
-    actor: { accountId?: Uuid | null };
-    censored?: Date | null;
-  },
+  post: Post & { actor: Actor },
 ): Promise<boolean> {
   if (post.censored != null) return false;
   if (kind === "article" && isActorSanctionHidden(post.actor)) return false;
-  if (kind === "article") return isEmojiReactionCollectionVisible(kind, post);
-  let signedActor: { iri: string } | undefined;
+  if (kind === "article") return true;
   if (hasHttpSignature(ctx)) {
     if (post.actor.accountId == null) return false;
-    const documentLoader = await ctx.getDocumentLoader({
-      identifier: post.actor.accountId,
-    });
-    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    signedActor =
-      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href };
+    return await authorizePostFetch(ctx, post, post.actor.accountId);
   }
-  return isEmojiReactionCollectionVisible(kind, post, signedActor);
+  return await isPostVisibleToRequester(ctx.data.db, post);
 }
 
 function encodeBase64Url(value: string): string {
@@ -1672,14 +1584,7 @@ async function getPostForEmojiReactions(
 ) {
   const post = await ctx.data.db.query.postTable.findFirst({
     with: {
-      actor: {
-        with: {
-          followers: { with: { follower: true } },
-          blockees: { with: { blockee: true } },
-          blockers: { with: { blocker: true } },
-        },
-      },
-      mentions: { with: { actor: true } },
+      actor: true,
     },
     where:
       kind === "article"
