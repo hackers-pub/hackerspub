@@ -1,3 +1,4 @@
+import { fetchInteractiveGraphQL, fetchSsrGraphQL } from "#relay-transport";
 import * as Sentry from "@sentry/solidstart";
 import type {
   FetchFunction,
@@ -12,297 +13,14 @@ import {
   Store,
 } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
-import { getApiUrl, getBehindProxy } from "~/lib/env.ts";
-import {
-  isExpectedAuthError,
-  isExpectedAuthResponse,
-} from "~/lib/graphqlAuthError.ts";
+import { isExpectedAuthResponse } from "~/lib/graphqlAuthError.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
 import { createRelayResponseObservable } from "~/lib/relayResponse.ts";
-import { readSessionCookie } from "~/lib/sessionCookie.ts";
-import { createUpstreamRequestInit } from "~/lib/upstreamRequest.ts";
-import {
-  shouldCaptureUpstreamError,
-  TransientUpstreamGraphQLError,
-} from "~/lib/upstreamGraphQLError.ts";
-
-const UPSTREAM_BODY_PREVIEW_LENGTH = 2048;
-
-function isSensitiveResponseHeader(name: string): boolean {
-  const headerName = name.toLowerCase();
-  return (
-    headerName.includes("cookie") ||
-    headerName.includes("authorization") ||
-    headerName.includes("token") ||
-    headerName.includes("secret") ||
-    headerName.includes("key")
-  );
-}
-
-function getSafeResponseHeaders(headers: Headers): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const [name, value] of headers) {
-    result[name] = isSensitiveResponseHeader(name) ? "[redacted]" : value;
-  }
-  return result;
-}
-
-function isJsonLikeBody(body: string): boolean {
-  const firstNonWhitespace = body.trimStart().at(0);
-  return firstNonWhitespace === "{" || firstNonWhitespace === "[";
-}
-
-function getBodyPreview(body: string): string {
-  if (isJsonLikeBody(body)) {
-    return "[omitted: JSON-like response body]";
-  }
-  if (body.length <= UPSTREAM_BODY_PREVIEW_LENGTH) return body;
-  return `${body.slice(0, UPSTREAM_BODY_PREVIEW_LENGTH)}... [truncated ${
-    body.length - UPSTREAM_BODY_PREVIEW_LENGTH
-  } chars]`;
-}
-
-function getUpstreamResponseDiagnostics(
-  response: Response,
-  body?: string,
-): Record<string, unknown> {
-  return {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok,
-    url: response.url,
-    redirected: response.redirected,
-    headers: getSafeResponseHeaders(response.headers),
-    bodyLength: body?.length,
-    bodyPreview: body == null ? undefined : getBodyPreview(body),
-  };
-}
-
-// The session cookie doubles as the GraphQL bearer token (see the
-// `Authorization` header below), is the lookup key in the session KV, and
-// is long-lived — so it's an auth credential, not just an identifier.
-// Hash it before sending to Sentry so the value in Sentry's UI can't be
-// replayed as a session token. SHA-256 is one-way; truncating to 16 bytes
-// is plenty of entropy for per-session grouping.
-async function fingerprintSessionId(sessionId: string): Promise<string> {
-  const data = new TextEncoder().encode(sessionId);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  const hex = Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return "session:" + hex.slice(0, 32);
-}
-
-// Report an upstream GraphQL failure to the console and Sentry with the HTTP
-// status, operation, and a (redacted) response diagnostic, returning the
-// `Error` the caller should throw or attach. Used both for non-OK JSON
-// responses (where Relay still receives the `errors` payload, so we report
-// but don't throw) and for non-OK responses whose body isn't even JSON (e.g.
-// a Caddy 504 Gateway Timeout with an empty body), where there's nothing to
-// return and the caller throws this instead of a raw `SyntaxError`.
-function reportUpstreamError(args: {
-  params: Parameters<FetchFunction>[0];
-  variables: Parameters<FetchFunction>[1];
-  response: Response;
-  responseText?: string;
-  errors?: ReadonlyArray<unknown>;
-  userIdentity?: { id: string };
-}): Error {
-  const { params, variables, response, responseText, errors, userIdentity } =
-    args;
-  const summary = `GraphQL upstream error: ${params.name ?? "<unnamed>"}`;
-  // Keep request `variables` out of stdout: for auth mutations they can carry
-  // replayable sign-in tokens / codes, and server logs are routinely shipped
-  // to aggregators. The operation, status, and any GraphQL `errors` are enough
-  // to triage from logs; the full variables still go to Sentry below, which is
-  // access-controlled.
-  console.error("[RelayNetwork upstream error]", {
-    operation: params.name,
-    operationKind: params.operationKind,
-    query: params.text,
-    status: response.status,
-    statusText: response.statusText,
-    errors,
-  });
-  const shouldCapture = shouldCaptureUpstreamError({
-    status: response.status,
-    responseText,
-    errors,
-  });
-  const error = shouldCapture
-    ? new Error(summary)
-    : new TransientUpstreamGraphQLError(params.name, response.status);
-  if (shouldCapture) {
-    Sentry.captureException(error, {
-      extra: {
-        operation: params.name,
-        operationKind: params.operationKind,
-        query: params.text,
-        variables,
-        status: response.status,
-        statusText: response.statusText,
-        upstreamResponse: getUpstreamResponseDiagnostics(
-          response,
-          responseText,
-        ),
-        errors,
-      },
-      ...(userIdentity == null ? {} : { user: userIdentity }),
-    });
-  }
-  return error;
-}
 
 const fetchFn: FetchFunction = async (params, variables) => {
   "use server";
 
-  if (!params.text) throw new Error("Operation document must be provided");
-
-  const event = getRequestEvent();
-  const sessionId = readSessionCookie(event?.request);
-  // Propagate the inbound request's abort signal to the upstream fetch so
-  // that when the client unsubscribes the Relay observable (which closes
-  // the inbound `/_server` request), the GraphQL server — and any AI work
-  // it's blocked on, e.g. alt-text generation — gets cancelled too instead
-  // of running to completion uselessly.
-  const upstreamSignal = event?.request.signal;
-  // Per-event user identity for any Sentry capture below. Relay loaders
-  // fire from `route.preload()` (e.g. the layout's own `loadRootLayoutQuery`)
-  // before any component renders, which is before `(root).tsx`'s render
-  // effect can call `Sentry.setUser` — so without this, SSR-side captures
-  // of preload-time GraphQL failures would have no user context. Setting
-  // `user` on the CaptureContext scopes the identity to a single event
-  // instead of mutating the request's isolation scope, so it doesn't
-  // conflict with the account-uuid-based `setUser` the layout fires once
-  // the viewer query resolves later in the same request.
-  const userIdentity =
-    sessionId == null
-      ? undefined
-      : { id: await fingerprintSessionId(sessionId) };
-
-  let response: Response;
-  let responseText: string;
-  let body: GraphQLResponse;
-  try {
-    response = await fetch(
-      getApiUrl(),
-      createUpstreamRequestInit({
-        request: event?.request,
-        sessionId,
-        behindProxy: getBehindProxy(),
-        body: JSON.stringify({ query: params.text, variables }),
-      }),
-    );
-  } catch (cause) {
-    // The client unsubscribed (e.g. the user clicked Cancel on alt-text
-    // generation) and that closed our inbound request, which in turn
-    // aborted the upstream fetch. This is a normal cancellation, not a
-    // defect — don't page anyone via Sentry. We narrow on the error name
-    // rather than just `upstreamSignal.aborted` so that a real fetch /
-    // JSON-parse failure that happens to land while an unrelated abort
-    // is in flight still gets captured.
-    if (cause instanceof Error && cause.name === "AbortError") throw cause;
-    // Upstream unreachable / connection reset. Relay catches network errors
-    // internally and only logs them to the console (see comment below), so
-    // without an explicit capture here they wouldn't reach Sentry at all.
-    Sentry.captureException(cause, {
-      extra: {
-        operation: params.name,
-        operationKind: params.operationKind,
-        query: params.text,
-        variables,
-      },
-      ...(userIdentity == null ? {} : { user: userIdentity }),
-    });
-    throw cause;
-  }
-
-  try {
-    responseText = await response.text();
-  } catch (cause) {
-    if (cause instanceof Error && cause.name === "AbortError") throw cause;
-    Sentry.captureException(cause, {
-      extra: {
-        operation: params.name,
-        operationKind: params.operationKind,
-        query: params.text,
-        variables,
-        upstreamResponse: getUpstreamResponseDiagnostics(response),
-      },
-      ...(userIdentity == null ? {} : { user: userIdentity }),
-    });
-    throw cause;
-  }
-
-  try {
-    body = JSON.parse(responseText) as GraphQLResponse;
-  } catch (cause) {
-    // When the signal fires after response headers arrive but while the
-    // body is still being read, undici may leave us with a truncated body
-    // that fails JSON.parse. That is still a normal cancellation when the
-    // inbound request signal is aborted.
-    if (
-      cause instanceof SyntaxError &&
-      cause.message === "Unexpected end of JSON input" &&
-      upstreamSignal?.aborted
-    ) {
-      throw cause;
-    }
-    // A non-OK status whose body isn't JSON is an upstream HTTP failure, not
-    // a parsing defect on our side: e.g. Caddy returns a 504 Gateway Timeout
-    // with an empty body when the GraphQL server doesn't respond in time, and
-    // `JSON.parse("")` then throws `Unexpected end of JSON input`. Capturing
-    // that raw `SyntaxError` buries the real cause (the status code) and lumps
-    // every gateway timeout into one misleading issue, so route it through the
-    // same upstream-error path as a non-OK JSON response instead, carrying the
-    // status and the (non-JSON) body preview.
-    if (!response.ok) {
-      throw reportUpstreamError({
-        params,
-        variables,
-        response,
-        responseText,
-        userIdentity,
-      });
-    }
-    // A 2xx response whose body isn't valid JSON is a genuine defect; keep
-    // capturing it verbatim.
-    Sentry.captureException(cause, {
-      extra: {
-        operation: params.name,
-        operationKind: params.operationKind,
-        query: params.text,
-        variables,
-        upstreamResponse: getUpstreamResponseDiagnostics(
-          response,
-          responseText,
-        ),
-      },
-      ...(userIdentity == null ? {} : { user: userIdentity }),
-    });
-    throw cause;
-  }
-
-  // Relay surfaces upstream GraphQL errors as a generic "Unexpected error"
-  // on the client, which makes them impossible to diagnose from logs.
-  // Log a structured entry on the SSR side whenever the upstream returns
-  // a non-OK status or an `errors` field so we can correlate the failing
-  // operation with whatever the GraphQL server actually said, and forward
-  // the same context to Sentry. (Default Sentry integrations do not
-  // capture Relay errors because Relay catches them internally and only
-  // logs to the console — we have to report them by hand.)
-  const errors = "errors" in body ? body.errors : undefined;
-  if (!response.ok || errors != null) {
-    if (response.ok && errors != null && isExpectedAuthError(errors)) {
-      // The upstream resolver intentionally rejected an unauthenticated
-      // request (e.g. a stale session cookie that survived the route
-      // gate). The route layer renders a sign-in redirect for these,
-      // so they're not bugs and should not page anyone via Sentry.
-      return body;
-    }
-    reportUpstreamError({ params, variables, response, errors, userIdentity });
-  }
-  return body;
+  return fetchInteractiveGraphQL(params, variables);
 };
 
 let clientEnvironment: IEnvironment | undefined;
@@ -450,22 +168,19 @@ function createRelayEnvironment(): IEnvironment {
         if (disposed) return;
         attempt += 1;
         const controller = new AbortController();
-        // SSR runs `fetchFn` in-process; the server-side `try/catch` already
-        // propagates the inbound request's signal to the upstream fetch, so
-        // the client-side controller is only meaningful in the browser.
+        // SSR passes the attempt signal directly to the server transport.
+        // The RPC wrapper keeps serializable arguments and its longer budget.
         const callable: FetchFunction = isServer
-          ? fetchFn
+          ? (params, variables) =>
+              fetchSsrGraphQL(params, variables, controller.signal)
           : (fetchFn as ClientFetchFn).withOptions({
               signal: controller.signal,
             });
         const handleAttemptError = (error: Error) => {
-          // Treat aborts as a normal completion: the subscriber is
-          // gone, and we don't want a toast or a Sentry capture for a
-          // deliberate user-initiated cancellation.
-          if (controller.signal.aborted) {
-            sink.complete();
-            return;
-          }
+          // A disposed attempt has no subscriber left to notify.
+          if (controller.signal.aborted) return;
+          // Inbound SSR cancellation must remain an error: empty completion
+          // activates solid-relay's preloaded-query ifEmpty fallback fetch.
           if (
             canRetry &&
             attempt < MAX_RETRY_ATTEMPTS &&

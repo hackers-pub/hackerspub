@@ -5,6 +5,7 @@ interface UpstreamRequestOptions {
   readonly sessionId: Uuid | null;
   readonly behindProxy: boolean;
   readonly body: BodyInit;
+  readonly signal?: AbortSignal;
 }
 
 export function createUpstreamRequestInit(
@@ -34,6 +35,6 @@ export function createUpstreamRequestInit(
     headers,
     credentials: "include",
     body: options.body,
-    signal: options.request?.signal,
+    signal: options.signal ?? options.request?.signal,
   };
 }

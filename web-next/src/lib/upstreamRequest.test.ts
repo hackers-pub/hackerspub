@@ -58,3 +58,84 @@ test("createUpstreamRequestInit drops untrusted forwarded headers", () => {
   assert.equal(headers.has("x-forwarded-proto"), false);
   assert.equal(headers.get("user-agent"), "Browser/1.0");
 });
+
+test("createUpstreamRequestInit explicit signal preserves trusted headers and request options", () => {
+  const inbound = new AbortController();
+  const composed = new AbortController();
+  const request = new Request("http://web-next:3000/_server", {
+    signal: inbound.signal,
+    headers: {
+      "user-agent": "Browser/1.0",
+      "x-forwarded-for": "203.0.113.4, 198.51.100.9",
+      "x-forwarded-host": "public.example",
+      "x-forwarded-proto": "https",
+    },
+  });
+  const options = {
+    request,
+    sessionId: SESSION_ID,
+    behindProxy: true,
+    body: "request-body",
+  };
+  const original = createUpstreamRequestInit(options);
+  const overridden = createUpstreamRequestInit({
+    ...options,
+    signal: composed.signal,
+  });
+  assert.strictEqual(original.signal, request.signal);
+  assert.strictEqual(overridden.signal, composed.signal);
+  assert.deepEqual(
+    [...new Headers(overridden.headers)],
+    [...new Headers(original.headers)],
+  );
+  assert.equal(overridden.method, original.method);
+  assert.equal(overridden.credentials, original.credentials);
+  assert.equal(overridden.body, original.body);
+  inbound.abort();
+  assert.equal(composed.signal.aborted, false);
+});
+
+test("createUpstreamRequestInit explicit signal does not trust forwarded headers", () => {
+  const composed = new AbortController();
+  const init = createUpstreamRequestInit({
+    request: new Request("http://web-next:3000/_server", {
+      headers: {
+        "x-forwarded-for": "attacker",
+        "x-forwarded-host": "attacker.example",
+        "x-forwarded-proto": "https",
+        "user-agent": "Browser/1.0",
+      },
+    }),
+    sessionId: SESSION_ID,
+    behindProxy: false,
+    body: "request-body",
+    signal: composed.signal,
+  });
+  const headers = new Headers(init.headers);
+  assert.strictEqual(init.signal, composed.signal);
+  assert.equal(headers.get("authorization"), `Bearer ${SESSION_ID}`);
+  assert.equal(headers.get("user-agent"), "Browser/1.0");
+  assert.equal(headers.has("x-forwarded-for"), false);
+  assert.equal(headers.has("x-forwarded-host"), false);
+  assert.equal(headers.has("x-forwarded-proto"), false);
+});
+
+test("createUpstreamRequestInit without an event still accepts the owned signal", () => {
+  const composed = new AbortController();
+  const init = createUpstreamRequestInit({
+    request: undefined,
+    sessionId: null,
+    behindProxy: true,
+    body: "request-body",
+    signal: composed.signal,
+  });
+  assert.strictEqual(init.signal, composed.signal);
+  assert.equal(new Headers(init.headers).get("authorization"), null);
+  const fallback = createUpstreamRequestInit({
+    request: undefined,
+    sessionId: null,
+    behindProxy: false,
+    body: "request-body",
+  });
+  assert.equal(fallback.signal, undefined);
+});

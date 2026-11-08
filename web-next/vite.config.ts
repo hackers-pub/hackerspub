@@ -89,6 +89,7 @@ export default defineConfig(() => ({
       },
     }),
     nitroV2Plugin({
+      plugins: [resolve(import.meta.dirname, "nitro-cancellation.js")],
       esbuild: {
         options: {
           target: "esnext",

@@ -4,9 +4,11 @@ import { negotiateActivityPubAlternate } from "~/lib/activityPubNegotiation.ts";
 import { createMediumUploadPreflightResponse } from "~/lib/mediumUploadProxy.ts";
 import { hasMalformedPathEncoding } from "~/lib/requestPath.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
+import { startSsrGraphQLBudget } from "~/lib/ssrGraphQLBudget.ts";
 
 export default createMiddleware({
   onRequest(event) {
+    startSsrGraphQLBudget(event.locals);
     const url = new URL(event.request.url);
     if (hasMalformedPathEncoding(url.pathname)) {
       return new Response("Bad Request", {
