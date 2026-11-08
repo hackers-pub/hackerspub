@@ -271,8 +271,12 @@ test("standalone smoke owns a shared Redis configuration", async () => {
   assert(!smoke.includes('spawn("mise"'));
   // `spawn` replaces the child environment, unlike `Deno.Command`, so the
   // ambient configuration has to be forwarded explicitly or every service
-  // starts without a database.
-  assertStringIncludes(smoke, "env: { ...process.env, ...environment }");
+  // starts without a database. Every role must also share the per-run origin
+  // used to provision the isolated admission ledger.
+  assertStringIncludes(
+    smoke,
+    "env: { ...process.env, ORIGIN: smokeOrigin.origin, ...environment }",
+  );
 });
 
 test("role health checks run on Node.js", async () => {
