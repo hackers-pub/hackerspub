@@ -1003,8 +1003,26 @@ Production uses a dedicated Redis client against `KV_URL`. API replicas must
 share the same Redis database, canonical `ORIGIN`, and global limit. The ledger
 stores its format, limit, and owner identifiers, never query results, session
 tokens, or variables. Serving processes never create or erase it. A missing
-ledger or mismatched format/limit closes expensive guest admission while other
-lanes can continue.
+ledger, or a ledger whose format or limit does not match, prevents interactive
+and combined HTTP processes from starting. Before listening, each process
+validates the ledger without acquiring a slot or changing any owners. A valid
+ledger at full capacity still permits startup. Startup errors identify the
+store failure, ledger key, and expected limit.
+
+The startup probe only reads metadata and cannot leave an admission owner
+behind, even if it times out. For a connection or validation-command failure,
+check Redis connectivity and the ledger metadata. If acknowledged ownership
+state is known to be intact, retry only the failed replica; healthy replicas
+need not be stopped. Missing or mismatched metadata requires repair after
+draining all API replicas. Suspected Redis state loss also requires the full
+drained recovery procedure below, even if connectivity has returned.
+
+Known store failures after startup make `/health` return
+[`503 Service Unavailable`] and close expensive guest admission while other
+lanes can continue. Use `mise run prod:hc:graphql` for API health checks: a
+protocol endpoint or the cheap `{__typename}` query alone cannot detect
+disabled guest admission. Ledger deletion or metadata changes are detected by
+the next slot acquisition or release, not by a background ledger poll.
 
 This design requires authoritative Redis state to be retained: use
 `maxmemory-policy noeviction`, durable storage, and a failover policy that does
@@ -1045,7 +1063,9 @@ below; restoring connectivity alone is insufficient. A missing or mismatched
 ledger returns the same retryable overload response.
 
 A command timeout or uncertain acquire/release permanently closes that
-process's admission client and disconnects it. It does not retry, queue offline
+process's admission client and disconnects it. The startup-only retry guidance
+above does not apply after an acquire/release with an unknown outcome. The
+client does not retry, queue offline
 commands, reconnect, or expire a possibly live owner. This may conservatively
 leave occupied slots after a process crash or failed release. To recover or
 change the global limit:

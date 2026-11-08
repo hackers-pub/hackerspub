@@ -13,6 +13,7 @@ import {
   type HttpRole,
 } from "@hackerspub/runtime/config";
 import {
+  anonymousReadLedgerKey,
   createMemoryAnonymousReadStore,
   createRedisAnonymousReadStore,
   type AnonymousReadStore,
@@ -66,6 +67,10 @@ function registerShutdownSignals(controller: AbortController): () => void {
   };
 }
 
+/**
+ * Start the selected HTTP role only after its admission resources validate.
+ * Startup failures and shutdown both drain and close acquired resources.
+ */
 export async function main(forcedRole?: HttpRole): Promise<void> {
   const shutdownController = new AbortController();
   const removeSignalListeners = registerShutdownSignals(shutdownController);
@@ -169,6 +174,21 @@ export async function main(forcedRole?: HttpRole): Promise<void> {
               admissionConfig.globalLimit,
               admissionConfig.redisTimeoutMs,
             );
+      if (admissionStore.failure != null) {
+        const recovery =
+          admissionStore.failure === "ledger_missing_or_mismatched"
+            ? "Drain all API replicas before repairing ledger metadata. "
+            : "Check Redis connectivity and ledger metadata. If acknowledged " +
+              "ownership state is intact, retry only this failed replica. ";
+        throw new Error(
+          `Anonymous read admission startup failed: ${admissionStore.failure}. ` +
+            `Ledger ${anonymousReadLedgerKey(resources.config.origin)} ` +
+            `must have format 1 and limit ${admissionConfig.globalLimit}. ` +
+            recovery +
+            "For metadata repair or suspected Redis state loss, follow the " +
+            "drained recovery procedure in DEPLOYMENT.md.",
+        );
+      }
       const admission = new AnonymousReadController(
         admissionStore,
         admissionConfig,

@@ -28,6 +28,7 @@
     "drizzle-orm": "catalog:",
     "eslint-plugin-solid": "catalog:",
     "gettext-parser": "catalog:",
+    "ioredis": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "skills-npm": "^1.2.0",

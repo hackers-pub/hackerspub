@@ -60,10 +60,35 @@ test("Redis ledger is shared, requires provisioning, and permanently fails close
   await admin.ping();
   const key = anonymousReadLedgerKey(origin);
   const missing = await createRedisAnonymousReadStore(url, origin, 2, 1000);
+  t.after(() => missing.close());
+  // Startup must fail before any expensive guest request and must not create
+  // the ledger. A later provisioning operation cannot reopen this client.
+  assertEquals(missing.failure, "ledger_missing_or_mismatched");
+  assertEquals(await admin.exists(key), 0);
   await assertRejects(() => missing.acquire("missing"));
   assertEquals(missing.failure, "ledger_missing_or_mismatched");
   await admin.hset(key, "format", "1", "limit", "2");
   await assertRejects(() => missing.acquire("still-closed"));
+  for (const [field, value] of [
+    ["format", "2"],
+    ["limit", "3"],
+  ]) {
+    await admin.hset(key, field, value);
+    const before = await admin.hgetall(key);
+    const invalid = await createRedisAnonymousReadStore(url, origin, 2, 1000);
+    t.after(() => invalid.close());
+    assertEquals(invalid.failure, "ledger_missing_or_mismatched");
+    assertEquals(await admin.hgetall(key), before);
+    await admin.hset(key, "format", "1", "limit", "2");
+  }
+  await admin.del(key);
+  await admin.set(key, "wrong-type");
+  const corrupt = await createRedisAnonymousReadStore(url, origin, 2, 1000);
+  t.after(() => corrupt.close());
+  assertEquals(corrupt.failure, "redis_command_failed");
+  assertEquals(await admin.get(key), "wrong-type");
+  await admin.del(key);
+  await admin.hset(key, "format", "1", "limit", "2");
   const a = await createRedisAnonymousReadStore(url, origin, 2, 1000);
   const b = await createRedisAnonymousReadStore(url, origin, 2, 1000);
   t.after(async () => {
@@ -74,6 +99,12 @@ test("Redis ledger is shared, requires provisioning, and permanently fails close
   assertEquals(await a.acquire("a"), true);
   assertEquals(await b.acquire("b"), true);
   assertEquals(await b.acquire("c"), false);
+  const fullLedger = await admin.hgetall(key);
+  const full = await createRedisAnonymousReadStore(url, origin, 2, 1000);
+  t.after(() => full.close());
+  assertEquals(full.failure, undefined);
+  assertEquals(await admin.hgetall(key), fullLedger);
+  assertEquals(await full.acquire("full"), false);
   await a.release("a");
   assertEquals(await b.acquire("c"), true);
   await admin.del(key);
@@ -242,6 +273,8 @@ test("a stalled Redis command latches the store closed and disconnects", async (
     100,
   );
   t.after(() => store.close());
+  assertEquals(store.failure, "redis_command_failed");
+  assertEquals(evalCommands, 1);
   await assertRejects(() => store.acquire("first"));
   assertEquals(evalCommands, 1);
   assertEquals(typeof store.failure, "string");

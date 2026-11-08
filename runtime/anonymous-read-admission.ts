@@ -39,6 +39,10 @@ export function createMemoryAnonymousReadStore(
 // Never bootstrap this key from a serving API process. A missing marker may
 // mean Redis lost live ownership records. The ledger must be initialized while
 // all API processes and their downstream work are drained.
+// Validation must not acquire a slot: a full, valid ledger is still ready.
+const VALIDATE = `
+if redis.call('HGET', KEYS[1], 'format') ~= '1' or redis.call('HGET', KEYS[1], 'limit') ~= ARGV[1] then return -1 end
+return 1`;
 const ACQUIRE = `
 if redis.call('HGET', KEYS[1], 'format') ~= '1' or redis.call('HGET', KEYS[1], 'limit') ~= ARGV[1] then return -1 end
 if redis.call('HEXISTS', KEYS[1], 'owner:' .. ARGV[2]) == 1 then return -2 end
@@ -99,6 +103,15 @@ export async function createRedisAnonymousReadStore(
       fail("redis_command_failed");
       throw error;
     }
+  }
+  // Detect provisioning/configuration errors before the first guest query.
+  // Keep the same latched failure contract as acquire/release so the caller can
+  // report the reason and close its other startup resources before exiting.
+  try {
+    await command(VALIDATE, "");
+  } catch {
+    // command() or connect() has already recorded the permanent failure. This
+    // startup probe never acquires ownership, even if its reply is lost.
   }
   return {
     get failure() {

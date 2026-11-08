@@ -4,12 +4,20 @@ import { mock } from "node:test";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import * as config from "../runtime/config.ts";
+import { anonymousReadLedgerKey } from "../runtime/anonymous-read-admission.ts";
 import type { GraphqlApiHandlerOptions } from "../graphql/api.ts";
 import type { createRuntimeResources } from "../runtime/resources.ts";
 
-const role = process.argv[2] as "interactive" | "protocol";
-assert.ok(role === "interactive" || role === "protocol");
+const role = process.argv[2] as "interactive" | "protocol" | "combined";
+assert.ok(["interactive", "protocol", "combined"].includes(role));
+const startupFailure = process.argv[3];
+if (startupFailure != null) assert.notEqual(role, "protocol");
+const closed: string[] = [];
+let yogaCreated = false;
+let transportCreated = false;
+let listening = false;
 process.env.HTTP_ROLE = role;
+process.env.ANONYMOUS_READ_GLOBAL_LIMIT = "8";
 process.env.PROTOCOL_SQL_LIMIT = "7";
 process.env.PROTOCOL_SQL_TIMEOUT_MS = "333";
 process.env.PROTOCOL_LOADER_LIMIT = "3";
@@ -18,10 +26,12 @@ let capturedConfig: Parameters<typeof createRuntimeResources>[0] | undefined;
 let capturedOptions: Parameters<typeof createRuntimeResources>[2] | undefined;
 let handlerOptions: GraphqlApiHandlerOptions | undefined;
 const store = {
-  failure: undefined as string | undefined,
+  failure: startupFailure as string | undefined,
   acquire: async () => false,
   release: async () => {},
-  close: async () => {},
+  close: async () => {
+    closed.push("store");
+  },
 };
 mock.module(new URL("../graphql/logging.ts", import.meta.url).href, {
   namedExports: {},
@@ -59,19 +69,28 @@ mock.module("@hackerspub/runtime/resources", {
     ) => {
       capturedConfig = runtimeConfig;
       capturedOptions = options;
-      return { config: runtimeConfig, close: async () => {} };
+      return {
+        config: runtimeConfig,
+        close: async () => {
+          closed.push("resources");
+        },
+      };
     },
   },
 });
 mock.module("@hackerspub/runtime/anonymous-read-admission", {
   namedExports: {
+    anonymousReadLedgerKey,
     createMemoryAnonymousReadStore: () => store,
     createRedisAnonymousReadStore: async () => store,
   },
 });
 mock.module(new URL("../graphql/mod.ts", import.meta.url).href, {
   namedExports: {
-    createYogaServer: () => ({ dispose: async () => {} }),
+    createYogaServer: () => {
+      yogaCreated = true;
+      return { dispose: async () => {} };
+    },
   },
 });
 mock.module(new URL("../graphql/api.ts", import.meta.url).href, {
@@ -84,11 +103,17 @@ mock.module(new URL("../graphql/api.ts", import.meta.url).href, {
 });
 mock.module(new URL("../graphql/node-http.ts", import.meta.url).href, {
   namedExports: {
-    createNodeHttpServer: () => ({
-      server: {},
-      listen: async () => ({ address: "127.0.0.1", port: 12345 }),
-      close: async () => {},
-    }),
+    createNodeHttpServer: () => {
+      transportCreated = true;
+      return {
+        server: {},
+        listen: async () => {
+          listening = true;
+          return { address: "127.0.0.1", port: 12345 };
+        },
+        close: async () => {},
+      };
+    },
     waitForNodeHttpShutdown: async () => {
       assert.equal(handlerOptions?.ready?.(), true);
       if (role === "interactive") {
@@ -105,23 +130,94 @@ mock.module(new URL("../graphql/node-http.ts", import.meta.url).href, {
   },
 });
 const { main } = await import("../graphql/main.ts");
-await main(role);
-assert.equal(handlerOptions?.role, role);
-assert.equal(capturedOptions?.federation?.manuallyStartQueue, true);
-if (role === "protocol") {
-  assert.deepEqual(capturedConfig?.database.protocolWork, {
-    limit: 7,
-    timeoutMs: 333,
+const signals = ["SIGINT", "SIGTERM"] as const;
+const signalListeners = signals.map((signal) => process.listeners(signal));
+const intervals = new Set<ReturnType<typeof setInterval>>();
+const originalSetInterval = globalThis.setInterval;
+const originalClearInterval = globalThis.clearInterval;
+mock.method(
+  globalThis,
+  "setInterval",
+  (...args: Parameters<typeof setInterval>) => {
+    const timer = originalSetInterval(...args);
+    intervals.add(timer);
+    return timer;
+  },
+);
+mock.method(
+  globalThis,
+  "clearInterval",
+  (timer: ReturnType<typeof setInterval>) => {
+    intervals.delete(timer);
+    originalClearInterval(timer);
+  },
+);
+if (startupFailure != null) {
+  await assert.rejects(main(role), (error: unknown) => {
+    assert.ok(error instanceof Error);
+    assert.ok(error.message.includes(startupFailure), error.message);
+    assert.ok(
+      error.message.includes(
+        anonymousReadLedgerKey(new URL("https://fixture.example")),
+      ),
+      error.message,
+    );
+    assert.match(error.message, /\b8\b/);
+    assert.match(error.message, /DEPLOYMENT\.md/);
+    if (startupFailure === "ledger_missing_or_mismatched") {
+      assert.match(error.message, /Drain all API replicas before repairing/);
+      assert.ok(!error.message.includes("retry only this failed replica"));
+    } else {
+      assert.match(
+        error.message,
+        /Check Redis connectivity and ledger metadata/,
+      );
+      assert.match(
+        error.message,
+        /If acknowledged ownership state is intact, retry only this failed replica/,
+      );
+      assert.match(
+        error.message,
+        /metadata repair or suspected Redis state loss/,
+      );
+    }
+    return true;
   });
-  assert.deepEqual(capturedOptions?.federation?.protocolHttp, {
-    loaderLimit: 3,
-    loaderTimeoutMs: 222,
-  });
-  assert.equal(capturedConfig?.database.applicationName, "hackerspub-protocol");
-  assert.equal(handlerOptions?.yogaServer, undefined);
-  assert.ok(handlerOptions?.protocolAdmission);
+  assert.equal(yogaCreated, false);
+  assert.equal(handlerOptions, undefined);
+  assert.equal(transportCreated, false);
+  assert.equal(listening, false);
+  assert.deepEqual(closed, ["store", "resources"]);
 } else {
-  assert.equal(capturedConfig?.database.protocolWork, undefined);
-  assert.equal(capturedOptions?.federation?.protocolHttp, undefined);
-  assert.ok(handlerOptions?.yogaServer);
+  await main(role);
+  assert.equal(handlerOptions?.role, role);
+}
+for (const [index, signal] of signals.entries()) {
+  assert.deepEqual(process.listeners(signal), signalListeners[index]);
+}
+assert.equal(intervals.size, 0, "main must clear its reporting timers");
+mock.restoreAll();
+if (startupFailure == null) {
+  assert.equal(handlerOptions?.role, role);
+  assert.equal(capturedOptions?.federation?.manuallyStartQueue, true);
+  if (role === "protocol") {
+    assert.deepEqual(capturedConfig?.database.protocolWork, {
+      limit: 7,
+      timeoutMs: 333,
+    });
+    assert.deepEqual(capturedOptions?.federation?.protocolHttp, {
+      loaderLimit: 3,
+      loaderTimeoutMs: 222,
+    });
+    assert.equal(
+      capturedConfig?.database.applicationName,
+      "hackerspub-protocol",
+    );
+    assert.equal(handlerOptions?.yogaServer, undefined);
+    assert.ok(handlerOptions?.protocolAdmission);
+  } else {
+    assert.equal(capturedConfig?.database.protocolWork, undefined);
+    assert.equal(capturedOptions?.federation?.protocolHttp, undefined);
+    assert.ok(handlerOptions?.yogaServer);
+  }
 }
