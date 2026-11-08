@@ -557,17 +557,13 @@ try {
     );
   }
 
-  // Settle this child's IPC signals with a timeout before starting the next one.
-  const earlierAbort = scenario("aborted-page", "body");
+  // Settle this child's abort signal before headers, then start the next child.
+  const earlierAbort = scenario("aborted-page", "headers");
   assert.equal(
     (await bounded(page("aborted-page"), "earlier child timeout")).includes(
       marker,
     ),
     false,
-  );
-  await bounded(
-    deadlineChild.headersReceived,
-    "earlier child response headers",
   );
   assert.deepEqual(
     await bounded(deadlineChild.upstreamAborted, "earlier child abort reason"),
@@ -577,7 +573,7 @@ try {
     },
   );
   await closed(earlierAbort);
-  passed("earlier child settles its own timeout signals before restart");
+  passed("earlier child times out without headers before restart");
 
   // IPC delivery and parent scheduling must not compete with short deadline tests.
   await stopChild();
