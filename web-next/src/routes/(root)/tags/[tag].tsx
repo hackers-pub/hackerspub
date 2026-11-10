@@ -30,7 +30,7 @@ const TagPageQuery = graphql`
       pinnedHashtags
     }
     ...SearchResults_posts
-      @arguments(query: $query, locale: $locale, languages: $languages)
+      @arguments(count: 5, query: $query, locale: $locale, languages: $languages)
   }
 `;
 

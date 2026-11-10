@@ -234,18 +234,19 @@ test("ordered hashtag pages equal the original compiler for compound expressions
           ],
         };
         for (const until of [undefined, new Date("2026-04-12T00:00:00Z")]) {
-          const expected: { id: Uuid }[] = await tx.query.postTable.findMany({
-            columns: { id: true },
-            where: {
-              AND: [
-                common,
-                compileQuery(expr),
-                ...(until == null ? [] : [{ published: { lte: until } }]),
-              ],
-            },
-            orderBy: { published: "desc" },
-            limit: 3,
-          });
+          const expected: { id: Uuid; published: Date }[] =
+            await tx.query.postTable.findMany({
+              columns: { id: true, published: true },
+              where: {
+                AND: [
+                  common,
+                  compileQuery(expr),
+                  ...(until == null ? [] : [{ published: { lte: until } }]),
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit: 3,
+            });
           assert.deepEqual(
             await getSearchPostPage(tx, expr, common, { limit: 3, until }),
             expected,

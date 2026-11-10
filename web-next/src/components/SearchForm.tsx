@@ -1,6 +1,6 @@
 import { parseQuery } from "@hackerspub/models/search";
 import { useNavigate } from "@solidjs/router";
-import { createEffect, createSignal, Show } from "solid-js";
+import { createEffect, createSignal, Show, Suspense } from "solid-js";
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -13,6 +13,7 @@ export function SearchForm(props: SearchFormProps) {
   const { t } = useLingui();
   const navigate = useNavigate();
   const [isPending, setIsPending] = createSignal(false);
+  const [guideRequested, setGuideRequested] = createSignal(false);
   let searchInput: HTMLInputElement | undefined;
 
   createEffect(() => {
@@ -40,7 +41,7 @@ export function SearchForm(props: SearchFormProps) {
         navigate(`/search?q=${encodeURIComponent(query)}`);
       }}
     >
-      <div class="relative min-w-0 flex-1">
+      <div class="group/search relative min-w-0 flex-1">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -61,13 +62,16 @@ export function SearchForm(props: SearchFormProps) {
           type="search"
           name="q"
           value={props.value ?? ""}
+          onFocus={() => setGuideRequested(true)}
           placeholder={t`Search posts…`}
           aria-label={t`Search`}
           class="peer flex h-10 w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         />
-        <Show when={props.value}>
-          <div class="absolute left-0 right-0 top-full z-10 mt-2 hidden peer-focus:block">
-            <SearchGuide />
+        <Show when={props.value && guideRequested()}>
+          <div class="absolute left-0 right-0 top-full z-10 mt-2 hidden group-focus-within/search:block">
+            <Suspense>
+              <SearchGuide />
+            </Suspense>
           </div>
         </Show>
       </div>
