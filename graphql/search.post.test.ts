@@ -576,3 +576,130 @@ test("searchPost rejects invalid search syntax and respects hidden foreign langu
     );
   });
 });
+
+test("searchPost keeps lookahead cursors without hydrating the lookahead post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "searchlookahead",
+      name: "Search Lookahead",
+      email: "searchlookahead@example.com",
+    });
+    const posts = [];
+    for (let index = 0; index < 3; index++) {
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        contentHtml: `<p>searchlookaheadtarget ${index}</p>`,
+        published: new Date(`2026-04-1${3 - index}T00:00:00Z`),
+      });
+      await tx
+        .update(postTable)
+        .set({
+          tags: { searchlookahead: "http://localhost/tags/searchlookahead" },
+        })
+        .where(eq(postTable.id, post.id));
+      posts.push(post);
+    }
+    const document =
+      parse(`query Lookahead($query: String!, $first: Int!, $after: String) {
+      searchPost(query: $query, first: $first, after: $after) {
+        edges { cursor node { id } }
+        pageInfo { hasNextPage startCursor endCursor }
+      }
+    }`);
+    const queries: { query: string; params: unknown[] }[] = [];
+    const originalDebug = postgres.options.debug;
+    postgres.options.debug = (_connection, query, params) =>
+      queries.push({ query, params });
+    try {
+      for (const query of ["searchlookaheadtarget", "#searchlookahead"]) {
+        queries.length = 0;
+        const result = await execute({
+          schema,
+          document,
+          variableValues: { query, first: 2 },
+          contextValue: makeGuestContext(tx),
+          onError: "NO_PROPAGATE",
+        });
+        assert.equal(result.errors, undefined);
+        assert.deepEqual(toPlainJson(result.data), {
+          searchPost: {
+            edges: [
+              {
+                node: { id: encodeGlobalID("Note", posts[0].id) },
+                cursor: posts[1].published.toISOString(),
+              },
+              {
+                node: { id: encodeGlobalID("Note", posts[1].id) },
+                cursor: posts[2].published.toISOString(),
+              },
+            ],
+            pageInfo: {
+              hasNextPage: true,
+              startCursor: posts[1].published.toISOString(),
+              endCursor: posts[2].published.toISOString(),
+            },
+          },
+        });
+        const hydrated = queries.filter(({ query }) => {
+          const from = query.indexOf('from "post" as "d0"');
+          return from >= 0 && query.slice(0, from).includes('"content_html"');
+        });
+        assert.equal(hydrated.length, 1);
+        assert.ok(hydrated[0].params.includes(posts[0].id));
+        assert.ok(hydrated[0].params.includes(posts[1].id));
+        assert.ok(
+          !hydrated[0].params.includes(posts[2].id),
+          "Lookahead must not load post bodies and relations",
+        );
+        const last = await execute({
+          schema,
+          document,
+          variableValues: {
+            query,
+            first: 2,
+            after: posts[2].published.toISOString(),
+          },
+          contextValue: makeGuestContext(tx),
+          onError: "NO_PROPAGATE",
+        });
+        assert.equal(last.errors, undefined);
+        assert.deepEqual(toPlainJson(last.data), {
+          searchPost: {
+            edges: [
+              { node: { id: encodeGlobalID("Note", posts[2].id) }, cursor: "" },
+            ],
+            pageInfo: {
+              hasNextPage: false,
+              startCursor: null,
+              endCursor: null,
+            },
+          },
+        });
+        queries.length = 0;
+        const zero = await execute({
+          schema,
+          document,
+          variableValues: { query, first: 0 },
+          contextValue: makeGuestContext(tx),
+          onError: "NO_PROPAGATE",
+        });
+        assert.equal(zero.errors, undefined);
+        assert.deepEqual(toPlainJson(zero.data), {
+          searchPost: {
+            edges: [],
+            pageInfo: { hasNextPage: true, startCursor: null, endCursor: null },
+          },
+        });
+        assert.ok(
+          !queries.some(({ query }) => {
+            const from = query.indexOf('from "post" as "d0"');
+            return from >= 0 && query.slice(0, from).includes('"content_html"');
+          }),
+          "Zero-size pages must not hydrate the lookahead row",
+        );
+      }
+    } finally {
+      postgres.options.debug = originalDebug;
+    }
+  });
+});

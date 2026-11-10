@@ -306,7 +306,9 @@ builder.queryFields((t) => ({
         },
       );
 
-      const postIds = postPage.map(({ id }) => id);
+      // The extra candidate supplies the next cursor without loading its body
+      // and relations along with the posts that will actually be returned.
+      const postIds = postPage.slice(0, window).map(({ id }) => id);
       const loadedPosts =
         postIds.length < 1
           ? []
@@ -539,13 +541,15 @@ builder.queryFields((t) => ({
           hasNextPage: postPage.length > window,
           hasPreviousPage: false,
           startCursor:
-            posts.length < 2 ? null : posts[1].published.toISOString(),
+            postPage.length < 2 ? null : postPage[1].published.toISOString(),
           endCursor:
-            posts.length < 2 ? null : posts.at(-1)!.published.toISOString(),
+            postPage.length < 2
+              ? null
+              : postPage.at(-1)!.published.toISOString(),
         },
-        edges: posts.slice(0, window).map((post, i) => ({
+        edges: posts.map((post, i) => ({
           node: post,
-          cursor: posts[i + 1]?.published?.toISOString() ?? "",
+          cursor: postPage[i + 1]?.published.toISOString() ?? "",
           added: post.published,
         })),
       };

@@ -96,8 +96,8 @@ export function getRequiredHashtags(expr: Expr): string[] {
 }
 
 /**
- * Select IDs before hydrating search results, applying all filters before the
- * page limit. Expressions with required tags use the ordered relation; other
+ * Select IDs and cursor dates before hydrating search results, applying all
+ * filters before the page limit. Required tags use the ordered relation; other
  * expressions retain the fenced generic query. Pass a limit including any
  * connection lookahead; `until` bounds both the source and candidate dates.
  */
@@ -106,7 +106,7 @@ export async function getSearchPostPage(
   expr: Expr,
   commonFilter: RelationsFilter<"postTable">,
   options: { limit: number; until?: Date },
-): Promise<{ id: Uuid }[]> {
+): Promise<{ id: Uuid; published: Date }[]> {
   const hashtags = getRequiredHashtags(expr);
   const where: RelationsFilter<"postTable"> = {
     AND: [
@@ -117,7 +117,7 @@ export async function getSearchPostPage(
   };
   if (hashtags.length < 1) {
     return await db.query.postTable.findMany({
-      columns: { id: true },
+      columns: { id: true, published: true },
       where,
       orderBy: { published: "desc" },
       limit: options.limit,
@@ -125,7 +125,7 @@ export async function getSearchPostPage(
   }
 
   const page = await db.query.postHashtagTable.findMany({
-    columns: { postId: true },
+    columns: { postId: true, published: true },
     where: {
       AND: [
         { RAW: (t) => sql`${t.tagHash} = md5(${hashtags[0]})::uuid` },
@@ -146,5 +146,5 @@ export async function getSearchPostPage(
     orderBy: { published: "desc" },
     limit: options.limit,
   });
-  return page.map(({ postId }) => ({ id: postId }));
+  return page.map(({ postId, published }) => ({ id: postId, published }));
 }
