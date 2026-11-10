@@ -1143,3 +1143,58 @@ Allow that work to finish during a planned rollout. A forced process kill is a
 crash and can leave conservative owner records requiring the recovery procedure
 above. For admitted reads, normal inbound cancellation does not create a Sentry
 exception; unrelated upstream or application errors remain reportable.
+
+
+Hashtag language prefilter
+--------------------------
+
+Apply `20261110103305_hashtag_language` before starting code that filters
+`post_hashtag.language`. This migration replaces the ordered tag index with
+`(tag_hash, published DESC, post_id, left(language, 64))`, preserving global
+publication order across multiple locales. The bounded language prefix prevents
+oversized B-tree keys for long private-use language tags; the complete derived
+and source language values are preserved, with exact source checks rejecting
+prefix collisions before the page limit. Database triggers copy language
+changes from `post`, including writes from older application versions. The
+application can be rolled back while leaving this additive column, index and
+synchronization in place.
+
+Unlike the original ordered-hashtag migration, this upgrade blocks hashtag
+reads as well as post writes. It first takes `SHARE ROW EXCLUSIVE` on `post`,
+then `ACCESS EXCLUSIVE` on `post_hashtag`, holding both through the backfill,
+index build and `ANALYZE`. Existing transactions can delay acquisition of these
+locks; new hashtag reads and post writes can queue behind them. A transaction
+that reads memberships and then writes a post can deadlock with the migration.
+Schedule a quiet window and rehearse against representative data and
+transactions.
+
+The migration sets transaction-local `lock_timeout = '5s'` before acquiring
+locks. A timeout or deadlock aborts the whole change, including the migration
+receipt; drain the blocking transactions and retry. Rehearse with the normal
+statement timeout first. If the measured backfill needs a larger budget, use
+the migration-only URL `statement_timeout` override shown in the ordered
+hashtag section. A statement timeout also rolls the change back. Increasing
+that budget does not remove the five-second lock wait limit: changing the
+latter requires an intentional edit to the migration before its first
+application, after staging rehearsal. The local setting lasts until the runner
+transaction ends and can affect later pending migrations in that transaction.
+
+After dropping the old secondary index, the backfill updates only memberships
+whose source language is non-null. It creates dead tuples and can grow the
+primary-key index; the replacement secondary index is built afterwards.
+After committing, run maintenance outside a transaction:
+
+~~~~ sql
+VACUUM (ANALYZE) post_hashtag;
+~~~~
+
+This reclaims dead tuples for reuse and updates the visibility map; it does
+not promise to shrink physical files. Language rejection reduces post lookups
+even on recently changed memberships that still need derived-table heap
+fetches. The expression index can require derived-table heap access even after
+maintenance; reduced source-post lookups do not require an index-only plan.
+
+See [the language-prefilter benchmark](benchmarks/hashtag-language.md) for
+complete-query comparisons, storage/write costs, and migration rollback
+rehearsals. These local measurements are not production lock-duration or
+latency estimates.

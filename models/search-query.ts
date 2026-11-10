@@ -96,21 +96,46 @@ export function getRequiredHashtags(expr: Expr): string[] {
 }
 
 /**
+ * Return a necessary finite language bound, or undefined when unrestricted.
+ * Keep literals exact, just like compileQuery(). Non-language and negated
+ * terms cannot safely narrow the bound; OR needs bounds on both sides.
+ * An empty intersection is impossible, not unrestricted.
+ */
+export function getRequiredLanguages(expr: Expr): string[] | undefined {
+  if (expr.type === "language") return [expr.language];
+  if (expr.type !== "and" && expr.type !== "or") return undefined;
+  const left = getRequiredLanguages(expr.left);
+  const right = getRequiredLanguages(expr.right);
+  if (expr.type === "or") {
+    return left == null || right == null
+      ? undefined
+      : [...new Set([...left, ...right])];
+  }
+  if (left == null) return right;
+  if (right == null) return left;
+  return left.filter((language) => right.includes(language));
+}
+
+/**
  * Select IDs and cursor dates before hydrating search results, applying all
  * filters before the page limit. Required tags use the ordered relation; other
  * expressions retain the fenced generic query. Pass a limit including any
  * connection lookahead; `until` bounds both the source and candidate dates.
+ * `languages` applies to both paths (undefined means unrestricted, [] means
+ * no results). Required language terms also narrow hashtag candidates, while
+ * the full expression and source language restriction remain authoritative.
  */
 export async function getSearchPostPage(
   db: Database | Transaction,
   expr: Expr,
   commonFilter: RelationsFilter<"postTable">,
-  options: { limit: number; until?: Date },
+  options: { limit: number; until?: Date; languages?: string[] },
 ): Promise<{ id: Uuid; published: Date }[]> {
   const hashtags = getRequiredHashtags(expr);
   const where: RelationsFilter<"postTable"> = {
     AND: [
       commonFilter,
+      options.languages == null ? {} : { language: { in: options.languages } },
       compileQuery(expr, hashtags.length > 0),
       options.until == null ? {} : { published: { lte: options.until } },
     ],
@@ -124,11 +149,37 @@ export async function getSearchPostPage(
     });
   }
 
+  const requiredLanguages = getRequiredLanguages(expr);
+  const languages =
+    options.languages == null
+      ? requiredLanguages
+      : requiredLanguages == null
+        ? options.languages
+        : options.languages.filter((language) =>
+            requiredLanguages.includes(language),
+          );
   const page = await db.query.postHashtagTable.findMany({
     columns: { postId: true, published: true },
     where: {
       AND: [
         { RAW: (t) => sql`${t.tagHash} = md5(${hashtags[0]})::uuid` },
+        languages == null
+          ? {}
+          : {
+              // Bound B-tree keys without discarding the full language value.
+              // Prefix collisions only add candidates: source filters below
+              // still compare complete values before LIMIT. Use PostgreSQL
+              // left() for both sides so Unicode character counting agrees.
+              RAW: (t) =>
+                languages.length < 1
+                  ? sql`false`
+                  : sql`left(${t.language}, 64) IN (${sql.join(
+                      languages.map(
+                        (language) => sql`left(${language}::text, 64)`,
+                      ),
+                      sql`, `,
+                    )})`,
+            },
         // Intersect all required tags in the candidate relation, allowing
         // the planner to start with a sparse tag even when it is written last.
         ...hashtags.slice(1).map(

@@ -7,6 +7,7 @@ import { relations } from "./relations.ts";
 import {
   compileQuery,
   getRequiredHashtags,
+  getRequiredLanguages,
   getSearchPostPage,
 } from "./search-query.ts";
 import { parseQuery } from "./search.ts";
@@ -52,6 +53,26 @@ test("candidate rechecks retain exact existence semantics without the GIN operat
   assert.deepEqual(query.params, ["fediverse"]);
 });
 
+test("necessary language bounds preserve exact literals and boolean semantics", () => {
+  const cases: [string, string[] | undefined][] = [
+    ["#tag", undefined],
+    ["#tag lang:KO", ["KO"]],
+    ["#tag lang:ko lang:en", []],
+    ["#tag lang:ko lang:ko", ["ko"]],
+    ["#tag (lang:ko OR lang:en )", ["ko", "en"]],
+    ["#tag (lang:ko OR keyword )", undefined],
+    ["#tag (keyword OR lang:ko )", undefined],
+    ["#tag -lang:ko", undefined],
+    ["#tag -(lang:ko OR lang:en )", undefined],
+    ["#tag (lang:ko OR lang:en ) lang:ko", ["ko"]],
+  ];
+  for (const [query, expected] of cases) {
+    const expr = parseQuery(query);
+    assert.ok(expr, query);
+    assert.deepEqual(getRequiredLanguages(expr), expected, query);
+  }
+});
+
 test("actual page SQL filters before limiting and intersects distinct required tags", async () => {
   const queries: { sql: string; params: unknown[] }[] = [];
   const client = {
@@ -92,10 +113,14 @@ test("actual page SQL filters before limiting and intersects distinct required t
   assert.match(query.sql, /"shared_post_id" is null/);
   assert.match(query.sql, /"suspended" is null/);
   assert.match(query.sql, /"language" = \$\d+/);
+  assert.match(
+    query.sql,
+    /left\("d0"\."language", 64\) IN \(left\(\$\d+::text, 64\)\)/,
+  );
   assert.equal((query.sql.match(/"published" <=/g) ?? []).length, 2);
   assert.match(query.sql, /order by .*"published" desc limit \$\d+$/);
   assert.doesNotMatch(query.sql, /MATERIALIZED|LATERAL|OFFSET|\?/);
-  assert.deepEqual(query.params.slice(0, 2), ["popular", "sparse"]);
+  assert.deepEqual(query.params.slice(0, 3), ["popular", "ko", "sparse"]);
   assert.equal(query.params.at(-1), 26);
 
   queries.length = 0;
@@ -106,4 +131,43 @@ test("actual page SQL filters before limiting and intersects distinct required t
   assert.match(queries[0].sql, /from "post"/);
   assert.match(queries[0].sql, /AS MATERIALIZED/);
   assert.doesNotMatch(queries[0].sql, /post_hashtag|jsonb_exists/);
+});
+
+test("effective language options filter candidates and source rows on both query paths", async () => {
+  const queries: { sql: string; params: unknown[] }[] = [];
+  const client = {
+    options: { parsers: {}, serializers: {} },
+    unsafe(query: string, params: unknown[]) {
+      queries.push({ sql: query, params });
+      return { values: async () => [] };
+    },
+  } as unknown as ReturnType<typeof postgres>;
+  const db = drizzle({ client, relations });
+  for (const query of ["#tag", "keyword"]) {
+    const expr = parseQuery(query);
+    assert.ok(expr);
+    await getSearchPostPage(
+      db,
+      expr,
+      {},
+      {
+        limit: 6,
+        languages: ["ko-KR", "ko"],
+      },
+    );
+    const actual = queries.pop()!;
+    assert.equal((actual.sql.match(/"language" in/g) ?? []).length, 1);
+    if (query === "#tag")
+      assert.match(actual.sql, /left\("d0"\."language", 64\) IN/);
+    assert.equal(
+      actual.params.filter((value) => value === "ko-KR").length,
+      query === "#tag" ? 2 : 1,
+    );
+    await getSearchPostPage(db, expr, {}, { limit: 6, languages: [] });
+    assert.match(queries.pop()!.sql, /false/);
+  }
+  const expr = parseQuery("#tag lang:ko");
+  assert.ok(expr);
+  await getSearchPostPage(db, expr, {}, { limit: 6, languages: ["en"] });
+  assert.match(queries.pop()!.sql, /false/);
 });

@@ -198,6 +198,16 @@ test("hashtag pagination refills after moderation and visibility filters and ret
     await add({ actorId: author.id });
     await add({ actorId: author.id });
     await add({ actorId: author.id });
+    for (const language of [
+      "ko-KR",
+      "en-US",
+      "ko-KR",
+      "en-US",
+      "ko-KR",
+      "en-US",
+    ]) {
+      await add({ actorId: author.id, language });
+    }
     await add({ actorId: author.id, visibility: "followers" });
     await add({ actorId: author.id, visibility: "unlisted" });
     const direct = await add({ actorId: author.id, visibility: "direct" });
@@ -228,6 +238,20 @@ test("hashtag pagination refills after moderation and visibility filters and ret
         context: makeGuestContext(tx),
         languages: ["ko"],
         allowedLanguages: ["ko"],
+      },
+      {
+        context: makeGuestContext(tx),
+        languages: ["ko-KR", "en-US"],
+        allowedLanguages: ["ko-KR", "ko", "en-US", "en"],
+      },
+      {
+        context: makeUserContext(tx, {
+          ...viewer.account,
+          hideForeignLanguages: true,
+          locales: ["ko-KR"],
+        }),
+        languages: [],
+        allowedLanguages: ["ko-KR", "ko"],
       },
       {
         context: makeUserContext(tx, {
@@ -266,7 +290,7 @@ test("hashtag pagination refills after moderation and visibility filters and ret
           ],
         };
         const baseline = await tx.query.postTable.findMany({
-          columns: { id: true },
+          columns: { id: true, published: true },
           where: { AND: [common, compileQuery(expression)] },
           orderBy: { published: "desc" },
           limit: 3,
@@ -295,6 +319,14 @@ test("hashtag pagination refills after moderation and visibility filters and ret
           edges.map(({ node }) => node.id),
           baseline.slice(0, 2).map(({ id }) => encodeGlobalID("Note", id)),
         );
+        assert.deepEqual(
+          edges.map(({ cursor }) => cursor),
+          baseline
+            .slice(0, 2)
+            .map(
+              (_, index) => baseline[index + 1]?.published.toISOString() ?? "",
+            ),
+        );
         assert.equal(data.searchPost.pageInfo.hasNextPage, baseline.length > 2);
         assert.equal(data.searchPost.pageInfo.hasPreviousPage, false);
         seen.push(...edges.map(({ node }) => node.id));
@@ -309,6 +341,73 @@ test("hashtag pagination refills after moderation and visibility filters and ret
         "forward pages must not repeat posts",
       );
       assert.ok(seen.length >= 3, "each case must traverse more than one page");
+    }
+  });
+});
+
+test("hashtag language preferences preserve empty, null and overridden locale behavior", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "hashtagemptylocales",
+      name: "Empty locales",
+      email: "hashtagemptylocales@example.com",
+    });
+    const post = await insertRemotePost(tx, {
+      actorId: viewer.actor.id,
+      language: "ko",
+    });
+    await tx
+      .update(postTable)
+      .set({ tags: { emptylocales461: "url" } })
+      .where(eq(postTable.id, post.id));
+    for (const { hideForeignLanguages, locales, languages, count } of [
+      { hideForeignLanguages: true, locales: [], languages: [], count: 0 },
+      { hideForeignLanguages: true, locales: null, languages: [], count: 1 },
+      { hideForeignLanguages: false, locales: [], languages: [], count: 1 },
+      {
+        hideForeignLanguages: true,
+        locales: [],
+        languages: ["ko-KR"],
+        count: 1,
+      },
+      {
+        hideForeignLanguages: true,
+        locales: ["ko-KR"],
+        languages: ["en-US"],
+        count: 0,
+      },
+    ] satisfies {
+      hideForeignLanguages: boolean;
+      locales: typeof viewer.account.locales;
+      languages: string[];
+      count: number;
+    }[]) {
+      for (const query of [
+        "#emptylocales461",
+        "#emptylocales461 OR absent461",
+      ]) {
+        const result = await execute({
+          schema,
+          document: searchPostQuery,
+          variableValues: { query, languages, first: 5 },
+          contextValue: makeUserContext(tx, {
+            ...viewer.account,
+            hideForeignLanguages,
+            locales,
+          }),
+          onError: "NO_PROPAGATE",
+        });
+        assert.equal(result.errors, undefined);
+        const data = toPlainJson(result.data) as {
+          searchPost: { edges: unknown[]; pageInfo: { hasNextPage: boolean } };
+        };
+        assert.equal(
+          data.searchPost.edges.length,
+          count,
+          JSON.stringify({ query, hideForeignLanguages, locales, languages }),
+        );
+        assert.equal(data.searchPost.pageInfo.hasNextPage, false);
+      }
     }
   });
 });

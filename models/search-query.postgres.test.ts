@@ -24,8 +24,13 @@ function hash(token: string): string {
 
 async function memberships(tx: Transaction, postId: Uuid) {
   return Array.from(
-    await tx.execute<{ tag_hash: string; published: Date; tuple: string }>(sql`
-      SELECT tag_hash, published, ctid::text AS tuple
+    await tx.execute<{
+      tag_hash: string;
+      published: Date;
+      language: string | null;
+      tuple: string;
+    }>(sql`
+      SELECT tag_hash, published, language, ctid::text AS tuple
       FROM post_hashtag WHERE post_id = ${postId} ORDER BY tag_hash
     `),
   );
@@ -103,13 +108,37 @@ test("hashtag memberships synchronize inserts, upserts, edits, cascades and roll
       .values(values)
       .onConflictDoUpdate({
         target: postTable.id,
-        set: { tags: values.tags, published: values.published },
+        set: {
+          tags: values.tags,
+          published: values.published,
+          language: values.language,
+        },
       });
     assert.deepEqual(
       await memberships(tx, id),
       before,
       "unchanged remote upserts must not rewrite derived rows",
     );
+    // Raw SQL mimics old application writers that know nothing about the
+    // derived column. Language-only edits (including NULL) must synchronize.
+    for (const language of ["ko-KR", null, "en-US"]) {
+      await tx.execute(
+        sql`UPDATE post SET language = ${language} WHERE id = ${id}`,
+      );
+      const rows = await memberships(tx, id);
+      assert.deepEqual(
+        rows.map((row) => row.language),
+        [language, language],
+      );
+      await tx.execute(
+        sql`UPDATE post SET language = ${language} WHERE id = ${id}`,
+      );
+      assert.deepEqual(
+        await memberships(tx, id),
+        rows,
+        "same language is a no-op",
+      );
+    }
     await tx.update(postTable).set({ published }).where(eq(postTable.id, id));
     assert.deepEqual(
       (await memberships(tx, id)).map((row) =>
@@ -121,7 +150,7 @@ test("hashtag memberships synchronize inserts, upserts, edits, cascades and roll
       tx.transaction(async (savepoint) => {
         await savepoint
           .update(postTable)
-          .set({ tags: { rolledback: "url" } })
+          .set({ tags: { rolledback: "url" }, language: "ja" })
           .where(eq(postTable.id, id));
         assert.deepEqual(
           (await memberships(savepoint, id)).map((row) => row.tag_hash),
@@ -135,6 +164,32 @@ test("hashtag memberships synchronize inserts, upserts, edits, cascades and roll
       (await memberships(tx, id)).map((row) => row.tag_hash),
       [hash("first"), hash("second")].sort(),
     );
+    assert.deepEqual(
+      (await memberships(tx, id)).map((row) => row.language),
+      ["en-US", "en-US"],
+    );
+    await assert.rejects(
+      tx.transaction(async (savepoint) => {
+        const movedId = generateUuidV7();
+        await savepoint
+          .update(postTable)
+          .set({ id: movedId, language: "ja" })
+          .where(eq(postTable.id, id));
+        assert.deepEqual(await memberships(savepoint, id), []);
+        const moved = await memberships(savepoint, movedId);
+        assert.equal(moved.length, 2);
+        assert.deepEqual(
+          moved.map((row) => row.language),
+          ["ja", "ja"],
+        );
+        throw new Error("rollback id and language edit");
+      }),
+      /rollback id and language edit/,
+    );
+    assert.deepEqual(
+      (await memberships(tx, id)).map((row) => row.language),
+      ["en-US", "en-US"],
+    );
     const nextId = generateUuidV7();
     const nextPublished = new Date("2026-04-17T00:00:00Z");
     await tx
@@ -143,6 +198,7 @@ test("hashtag memberships synchronize inserts, upserts, edits, cascades and roll
         id: nextId,
         tags: { replacement: "url" },
         published: nextPublished,
+        language: "ko",
       })
       .where(eq(postTable.id, id));
     assert.deepEqual(await memberships(tx, id), []);
@@ -155,6 +211,7 @@ test("hashtag memberships synchronize inserts, upserts, edits, cascades and roll
       new Date(combined[0].published).toISOString(),
       nextPublished.toISOString(),
     );
+    assert.equal(combined[0].language, "ko");
     await tx
       .update(postTable)
       .set({ tags: {} })
@@ -186,26 +243,29 @@ test("ordered hashtag pages equal the original compiler for compound expressions
       { tags: { sparse: "url" }, language: "en", visibility: "public" },
       { tags: { Popular: "url" }, language: "en", visibility: "public" },
       { tags: { popular: "url" }, language: "en", visibility: "direct" },
+      { tags: { popular: "url" }, language: "ko-KR", visibility: "public" },
+      { tags: { popular: "url" }, language: "en-US", visibility: "public" },
+      { tags: { popular: "url" }, language: null, visibility: "public" },
     ] as const;
     const ids: Uuid[] = [];
     for (const [index, fixture] of fixtures.entries()) {
       const post = await insertRemotePost(tx, {
         actorId: author.actor.id,
-        language: fixture.language,
+        language: fixture.language ?? undefined,
         visibility: fixture.visibility,
         contentHtml: `<p>${index % 2 ? "other" : "needle"}</p>`,
         published: new Date(Date.UTC(2026, 3, 10 + index)),
       });
       await tx
         .update(postTable)
-        .set({ tags: fixture.tags })
+        .set({ tags: fixture.tags, language: fixture.language })
         .where(eq(postTable.id, post.id));
       ids.push(post.id);
     }
     // Simulate a hash collision or corrupt extra candidate. The source JSONB
     // remains authoritative even for a required positive tag.
     await tx.execute(
-      sql`INSERT INTO post_hashtag(post_id, tag_hash, published) SELECT id, ${hash("popular")}::uuid, published FROM post WHERE id = ${ids[2]}`,
+      sql`INSERT INTO post_hashtag(post_id, tag_hash, published, language) SELECT id, ${hash("popular")}::uuid, published, language FROM post WHERE id = ${ids[2]}`,
     );
     const queries = [
       "#POPULAR",
@@ -219,41 +279,125 @@ test("ordered hashtag pages equal the original compiler for compound expressions
       "-#popular",
       "#popular (needle OR other )",
       "#popular -(#sparse OR lang:ko )",
+      "#popular (lang:ko OR lang:en )",
+      "#popular (lang:ko OR needle )",
+      "#popular lang:ko lang:en",
+      "#popular lang:KO",
     ];
     for (const viewer of [null, author.actor]) {
       for (const query of queries) {
-        const expr = parseQuery(query);
-        assert.ok(expr, query);
-        const common: RelationsFilter<"postTable"> = {
-          AND: [
-            { id: { in: ids } },
-            getPostVisibilityFilter(viewer),
-            getCensoredPostExclusionFilter(viewer?.id),
-            { sharedPostId: { isNull: true } },
-            ...(viewer == null ? [{ visibility: "public" } as const] : []),
-          ],
-        };
-        for (const until of [undefined, new Date("2026-04-12T00:00:00Z")]) {
-          const expected: { id: Uuid; published: Date }[] =
-            await tx.query.postTable.findMany({
-              columns: { id: true, published: true },
-              where: {
-                AND: [
-                  common,
-                  compileQuery(expr),
-                  ...(until == null ? [] : [{ published: { lte: until } }]),
-                ],
-              },
-              orderBy: { published: "desc" },
-              limit: 3,
-            });
-          assert.deepEqual(
-            await getSearchPostPage(tx, expr, common, { limit: 3, until }),
-            expected,
-            `${query}, viewer=${viewer?.id ?? "guest"}, until=${until?.toISOString()}`,
-          );
+        for (const languages of [
+          undefined,
+          [],
+          ["ko", "ko-KR"],
+          ["ko", "ko-KR", "en", "en-US"],
+          ["ja"],
+        ]) {
+          const expr = parseQuery(query);
+          assert.ok(expr, query);
+          const common: RelationsFilter<"postTable"> = {
+            AND: [
+              { id: { in: ids } },
+              getPostVisibilityFilter(viewer),
+              getCensoredPostExclusionFilter(viewer?.id),
+              { sharedPostId: { isNull: true } },
+              ...(viewer == null ? [{ visibility: "public" } as const] : []),
+            ],
+          };
+          for (const until of [undefined, new Date("2026-04-12T00:00:00Z")]) {
+            const expected: { id: Uuid; published: Date }[] =
+              await tx.query.postTable.findMany({
+                columns: { id: true, published: true },
+                where: {
+                  AND: [
+                    common,
+                    compileQuery(expr),
+                    ...(languages == null
+                      ? []
+                      : [{ language: { in: languages } }]),
+                    ...(until == null ? [] : [{ published: { lte: until } }]),
+                  ],
+                },
+                orderBy: { published: "desc" },
+                limit: 3,
+              });
+            assert.deepEqual(
+              await getSearchPostPage(tx, expr, common, {
+                limit: 3,
+                until,
+                languages,
+              }),
+              expected,
+              `${query}, viewer=${viewer?.id ?? "guest"}, until=${until?.toISOString()}`,
+            );
+          }
         }
       }
     }
+  });
+});
+
+test("hashtag language keys preserve long values, prefix collisions and Unicode boundaries", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "longhashtaglanguage",
+      name: "Long hashtag language",
+      email: "longhashtaglanguage@example.com",
+    });
+    const target = await insertRemotePost(tx, { actorId: author.actor.id });
+    // Replies bypass the older top-level post indexes that also store full
+    // language values. This input was accepted before the hashtag migration.
+    const privateUse = Array.from({ length: 1000 }, (_, index) =>
+      createHash("sha256").update(String(index)).digest("hex").slice(0, 8),
+    ).join("-");
+    const long = new Intl.Locale(`en-x-${privateUse}`).toString();
+    const languages = [
+      long,
+      `${long}-another`,
+      `${"a".repeat(63)}😀first`,
+      `${"a".repeat(63)}😀second`,
+    ];
+    const ids: Uuid[] = [];
+    for (const [index, language] of languages.entries()) {
+      const post = await insertRemotePost(tx, {
+        actorId: author.actor.id,
+        replyTargetId: target.id,
+        language,
+        published: new Date(Date.UTC(2026, 3, index + 1)),
+      });
+      await tx
+        .update(postTable)
+        .set({ tags: { longlanguage461: "url" } })
+        .where(eq(postTable.id, post.id));
+      ids.push(post.id);
+      assert.equal((await memberships(tx, post.id))[0].language, language);
+    }
+    const expr = parseQuery("#longlanguage461");
+    assert.ok(expr);
+    for (const [index, language] of languages.entries()) {
+      const page = await getSearchPostPage(
+        tx,
+        expr,
+        { id: { in: ids } },
+        { limit: 2, languages: [language] },
+      );
+      assert.deepEqual(
+        page.map(({ id }) => id),
+        [ids[index]],
+        "prefix collisions must recheck the full source language before limiting",
+      );
+    }
+    await tx.execute(sql`UPDATE post SET language = NULL WHERE id = ${ids[0]}`);
+    assert.equal((await memberships(tx, ids[0]))[0].language, null);
+    await tx.execute(
+      sql`UPDATE post SET language = ${long} WHERE id = ${ids[0]}`,
+    );
+    assert.equal((await memberships(tx, ids[0]))[0].language, long);
+    assert.deepEqual(
+      (
+        await getSearchPostPage(tx, expr, {}, { limit: 2, languages: [long] })
+      ).map(({ id }) => id),
+      [ids[0]],
+    );
   });
 });

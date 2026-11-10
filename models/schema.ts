@@ -1934,8 +1934,10 @@ export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
 
 // A candidate index for recent hashtag pages. Database triggers keep these
-// rows in sync with post.tags and post.published, including old-code writes.
-// Hashes bound index entry size; queries still recheck the exact JSONB key.
+// rows in sync with post.tags, post.published and post.language, including
+// old-code writes.
+// Hashes and language prefixes bound index entry size; queries still recheck
+// the exact JSONB key and full source language.
 export const postHashtagTable = pgTable(
   "post_hashtag",
   {
@@ -1948,6 +1950,7 @@ export const postHashtagTable = pgTable(
       }),
     tagHash: uuid("tag_hash").notNull(),
     published: timestamp({ withTimezone: true }).notNull(),
+    language: varchar(),
   },
   (table) => [
     primaryKey({ columns: [table.postId, table.tagHash] }),
@@ -1955,6 +1958,7 @@ export const postHashtagTable = pgTable(
       table.tagHash,
       desc(table.published),
       table.postId,
+      sql`left(${table.language}, 64)`,
     ),
   ],
 );

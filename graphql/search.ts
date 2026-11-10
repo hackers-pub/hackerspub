@@ -267,6 +267,18 @@ builder.queryFields((t) => ({
       const signedAccount = ctx.account;
 
       const languages = args.languages ?? [];
+      const filterLanguages =
+        languages.length < 1
+          ? signedAccount?.hideForeignLanguages && signedAccount.locales != null
+            ? expandLocales(signedAccount.locales)
+            : undefined
+          : expandLocales(
+              languages.flatMap((l) =>
+                l.language !== l.baseName
+                  ? [l.baseName, l.language]
+                  : [l.baseName],
+              ),
+            );
 
       const postFilter: RelationsFilter<"postTable"> = {
         AND: [
@@ -277,22 +289,6 @@ builder.queryFields((t) => ({
             : []),
           getCensoredPostExclusionFilter(signedAccount?.actor.id),
           { sharedPostId: { isNull: true } },
-          languages.length < 1
-            ? signedAccount?.hideForeignLanguages &&
-              signedAccount.locales != null
-              ? { language: { in: expandLocales(signedAccount.locales) } }
-              : {}
-            : {
-                language: {
-                  in: expandLocales(
-                    languages.flatMap((l) =>
-                      l.language !== l.baseName
-                        ? [l.baseName, l.language]
-                        : [l.baseName],
-                    ),
-                  ),
-                },
-              },
         ],
       };
 
@@ -303,6 +299,7 @@ builder.queryFields((t) => ({
         {
           limit: window + 1,
           until,
+          languages: filterLanguages,
         },
       );
 
