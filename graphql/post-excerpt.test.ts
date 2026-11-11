@@ -52,6 +52,12 @@ for (const { label, summary, expected } of [
   { label: "empty", summary: "", expected: "Remote reply body" },
   { label: "whitespace", summary: " \t\n ", expected: "Remote reply body" },
   { label: "null", summary: null, expected: "Remote reply body" },
+  { label: "HTML-only", summary: "<p> </p>", expected: "Remote reply body" },
+  {
+    label: "entity-only",
+    summary: "<p>&nbsp;</p>",
+    expected: "Remote reply body",
+  },
   {
     label: "meaningful",
     summary: "A real summary",
