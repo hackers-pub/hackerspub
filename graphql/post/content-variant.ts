@@ -416,12 +416,15 @@ export const PostContentVariant = builder
       }),
       excerpt: t.string({
         description:
-          "Plain-text excerpt: `summary` when set, otherwise the content " +
+          "Plain-text excerpt: `summary` when nonblank, otherwise the content " +
           "stripped of tags. Empty when redacted for the viewer.",
         resolve: (shape) => {
           if (shape.redacted) return "";
           // Remote summaries can carry markup, and this field is plain text.
-          if (shape.variant.summary != null) {
+          if (
+            shape.variant.summary != null &&
+            shape.variant.summary.trim() !== ""
+          ) {
             return stripHtml(shape.variant.summary);
           }
           let html = shape.variant.contentHtml;

@@ -673,7 +673,7 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     excerpt: t.string({
       description:
-        "Plain-text excerpt of the post. Returns `summary` when set; " +
+        "Plain-text excerpt of the post. Returns `summary` when nonblank; " +
         "otherwise falls back to the HTML content stripped of tags. " +
         "For a truncated HTML preview, use `excerptHtml` instead.  " +
         "Empty when the post is censored or its author is hidden by a " +
@@ -697,7 +697,10 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       resolve(post, _, ctx) {
         if (isCensoredForViewer(post, ctx)) return "";
-        if (post.summary != null) return post.summary;
+        // Some remote servers send an empty summary alongside a full body.
+        if (post.summary != null && post.summary.trim() !== "") {
+          return post.summary;
+        }
         let html = post.contentHtml;
         if (post.quotedPostId != null) html = removeQuoteInlineFallback(html);
         return stripHtml(html);
