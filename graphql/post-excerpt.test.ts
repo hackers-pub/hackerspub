@@ -48,68 +48,72 @@ async function readExcerpts(
   return node;
 }
 
-for (const { label, summary, expected } of [
-  { label: "empty", summary: "", expected: "Remote reply body" },
-  { label: "whitespace", summary: " \t\n ", expected: "Remote reply body" },
-  { label: "null", summary: null, expected: "Remote reply body" },
-  { label: "HTML-only", summary: "<p> </p>", expected: "Remote reply body" },
-  {
-    label: "entity-only",
-    summary: "<p>&nbsp;</p>",
-    expected: "Remote reply body",
-  },
-  {
-    label: "meaningful",
-    summary: "A real summary",
-    expected: "A real summary",
-  },
-]) {
-  test(`remote post excerpts handle ${label} summaries`, async () => {
-    await withRollback(async (tx) => {
-      const actor = await insertRemoteActor(tx, {
-        username: "excerptauthor",
-        name: "Excerpt Author",
-        host: "remote.example",
-      });
-      const contentHtml = "<p>Remote reply body</p>";
-      const post = await insertRemotePost(tx, {
-        actorId: actor.id,
-        contentHtml,
-      });
-      await tx
-        .update(postTable)
-        .set({ summary })
-        .where(eq(postTable.id, post.id));
+for (const sensitive of [false, true]) {
+  for (const { label, summary, expected } of [
+    { label: "empty", summary: "", expected: "Remote reply body" },
+    { label: "whitespace", summary: " \t\n ", expected: "Remote reply body" },
+    { label: "null", summary: null, expected: "Remote reply body" },
+    { label: "HTML-only", summary: "<p> </p>", expected: "Remote reply body" },
+    {
+      label: "entity-only",
+      summary: "<p>&nbsp;</p>",
+      expected: "Remote reply body",
+    },
+    {
+      label: "meaningful",
+      summary: "A real summary",
+      expected: "A real summary",
+    },
+  ]) {
+    test(`${sensitive ? "sensitive" : "ordinary"} post excerpts handle ${label} summaries`, async () => {
+      const expectedExcerpt =
+        sensitive && expected === "Remote reply body" ? "" : expected;
+      await withRollback(async (tx) => {
+        const actor = await insertRemoteActor(tx, {
+          username: "excerptauthor",
+          name: "Excerpt Author",
+          host: "remote.example",
+        });
+        const contentHtml = "<p>Remote reply body</p>";
+        const post = await insertRemotePost(tx, {
+          actorId: actor.id,
+          contentHtml,
+        });
+        await tx
+          .update(postTable)
+          .set({ summary, sensitive })
+          .where(eq(postTable.id, post.id));
 
-      // A remote post without language alternatives uses its stored post row
-      // as the default content variant.
-      const guest = makeGuestContext(tx);
-      const fallback = await readExcerpts(guest, post.id);
-      assert.equal(fallback.excerpt, expected);
-      assert.equal(fallback.contentVariant.excerpt, expected);
+        // A remote post without language alternatives uses its stored post row
+        // as the default content variant.
+        const guest = makeGuestContext(tx);
+        const fallback = await readExcerpts(guest, post.id);
+        assert.equal(fallback.excerpt, expectedExcerpt);
+        assert.equal(fallback.contentVariant.excerpt, expectedExcerpt);
 
-      await tx.insert(postContentVariantTable).values({
-        id: generateUuidV7(),
-        postId: post.id,
-        language: "en",
-        default: true,
-        summary,
-        contentHtml,
+        await tx.insert(postContentVariantTable).values({
+          id: generateUuidV7(),
+          postId: post.id,
+          language: "en",
+          default: true,
+          summary,
+          contentHtml,
+        });
+        const variant = await readExcerpts(makeGuestContext(tx), post.id);
+        assert.equal(variant.excerpt, expectedExcerpt);
+        assert.equal(variant.contentVariant.excerpt, expectedExcerpt);
+
+        // Falling back to the body must still respect moderation redaction.
+        await tx
+          .update(postTable)
+          .set({ censored: new Date() })
+          .where(eq(postTable.id, post.id));
+        const censored = await readExcerpts(makeGuestContext(tx), post.id);
+        assert.equal(censored.excerpt, "");
+        assert.equal(censored.contentVariant.excerpt, "");
       });
-      const variant = await readExcerpts(makeGuestContext(tx), post.id);
-      assert.equal(variant.excerpt, expected);
-      assert.equal(variant.contentVariant.excerpt, expected);
-
-      // Falling back to the body must still respect moderation redaction.
-      await tx
-        .update(postTable)
-        .set({ censored: new Date() })
-        .where(eq(postTable.id, post.id));
-      const censored = await readExcerpts(makeGuestContext(tx), post.id);
-      assert.equal(censored.excerpt, "");
-      assert.equal(censored.contentVariant.excerpt, "");
     });
-  });
+  }
 }
 
 test("blank-summary excerpts omit the inline quote fallback", async () => {

@@ -675,6 +675,8 @@ export const Post = builder.drizzleInterface("postTable", {
       description:
         "Plain-text excerpt of the post. Returns `summary` when its text is nonblank; " +
         "otherwise falls back to the HTML content stripped of tags. " +
+        "Sensitive posts without a nonblank summary return an empty string " +
+        "so previews do not reveal their body without a content warning. " +
         "For a truncated HTML preview, use `excerptHtml` instead.  " +
         "Empty when the post is censored or its author is hidden by a " +
         "moderation sanction (or it boosts such a post) " +
@@ -686,6 +688,7 @@ export const Post = builder.drizzleInterface("postTable", {
           summary: true,
           contentHtml: true,
           quotedPostId: true,
+          sensitive: true,
         },
         with: {
           actor: sanctionActorSelection,
@@ -701,6 +704,7 @@ export const Post = builder.drizzleInterface("postTable", {
         if (post.summary != null && stripHtml(post.summary).trim() !== "") {
           return post.summary;
         }
+        if (post.sensitive) return "";
         let html = post.contentHtml;
         if (post.quotedPostId != null) html = removeQuoteInlineFallback(html);
         return stripHtml(html);
