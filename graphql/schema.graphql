@@ -1326,7 +1326,7 @@ type Article implements Node & Post & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when its text is nonblank; otherwise falls back to the HTML content stripped of tags. Sensitive posts without a nonblank summary return an empty string so previews do not reveal their body without a content warning. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
@@ -5177,7 +5177,7 @@ type Note implements Node & Post & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when its text is nonblank; otherwise falls back to the HTML content stripped of tags. Sensitive posts without a nonblank summary return an empty string so previews do not reveal their body without a content warning. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
@@ -5994,7 +5994,7 @@ interface Post implements Node & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when its text is nonblank; otherwise falls back to the HTML content stripped of tags. Sensitive posts without a nonblank summary return an empty string so previews do not reveal their body without a content warning. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
@@ -6326,7 +6326,7 @@ type PostContentVariant {
   default: Boolean!
 
   """
-  Plain-text excerpt: `summary` when set, otherwise the content stripped of tags. Empty when redacted for the viewer.
+  Plain-text excerpt: `summary` when its text is nonblank, otherwise the content stripped of tags. Empty when redacted for the viewer or when the post is sensitive and this variant has no nonblank summary.
   """
   excerpt: String!
 
@@ -7322,7 +7322,7 @@ type Question implements Node & Post & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when its text is nonblank; otherwise falls back to the HTML content stripped of tags. Sensitive posts without a nonblank summary return an empty string so previews do not reveal their body without a content warning. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 

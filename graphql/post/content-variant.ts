@@ -93,6 +93,7 @@ const variantPostSelection = {
     name: true,
     quotedPostId: true,
     summary: true,
+    sensitive: true,
     tags: true,
     url: true,
   },
@@ -126,6 +127,7 @@ type VariantPost = Pick<
   | "name"
   | "quotedPostId"
   | "summary"
+  | "sensitive"
   | "tags"
   | "url"
 > & {
@@ -416,14 +418,18 @@ export const PostContentVariant = builder
       }),
       excerpt: t.string({
         description:
-          "Plain-text excerpt: `summary` when set, otherwise the content " +
-          "stripped of tags. Empty when redacted for the viewer.",
+          "Plain-text excerpt: `summary` when its text is nonblank, otherwise the content " +
+          "stripped of tags. Empty when redacted for the viewer or when the " +
+          "post is sensitive and this variant has no nonblank summary.",
         resolve: (shape) => {
           if (shape.redacted) return "";
           // Remote summaries can carry markup, and this field is plain text.
-          if (shape.variant.summary != null) {
-            return stripHtml(shape.variant.summary);
-          }
+          const summary =
+            shape.variant.summary == null
+              ? ""
+              : stripHtml(shape.variant.summary);
+          if (summary.trim() !== "") return summary;
+          if (shape.post.sensitive) return "";
           let html = shape.variant.contentHtml;
           if (shape.post.quotedPostId != null) {
             html = removeQuoteInlineFallback(html);
