@@ -13,6 +13,7 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
+import { createWebAuthnCredential } from "../test/webauthn.ts";
 
 test("getRegistrationOptions() stores a challenge and excludes existing credentials", async () => {
   await withRollback(async (tx) => {
@@ -49,6 +50,9 @@ test("getRegistrationOptions() stores a challenge and excludes existing credenti
     assert.ok(options.challenge.length > 0);
     assert.deepEqual(options.rp.id, "pub.hackers.pub");
     assert.deepEqual(options.user.name, "passkeymodelowner");
+    assert.equal(options.authenticatorSelection?.residentKey, "required");
+    assert.equal(options.authenticatorSelection?.requireResidentKey, true);
+    assert.equal(options.authenticatorSelection?.userVerification, "required");
     assert.deepEqual(options.excludeCredentials, [
       {
         id: "credential-id",
@@ -117,6 +121,52 @@ test("verifyRegistration() returns unverified for invalid responses", async () =
   });
 });
 
+for (const userVerified of [false, true]) {
+  test(`verifyRegistration() ${userVerified ? "persists" : "rejects"} a credential with UV=${userVerified}`, async () => {
+    await withRollback(async (tx) => {
+      const { kv } = createTestKv();
+      const account = await insertAccountWithActor(tx, {
+        username: "registrationuv",
+        name: "Registration UV",
+        email: "registrationuv@example.com",
+      });
+      const origin = "https://pub.hackers.pub";
+      const credential = createWebAuthnCredential(origin);
+      const options = await getRegistrationOptions(kv, origin, {
+        ...account.account,
+        passkeys: [],
+      });
+      // UP and AT stay set in both cases; only UV changes.
+      const response = credential.registration(
+        options.challenge,
+        userVerified ? 0x45 : 0x41,
+      );
+
+      const result = await verifyRegistration(
+        tx,
+        kv,
+        [origin],
+        "pub.hackers.pub",
+        account.account,
+        " Laptop ",
+        response,
+      );
+
+      assert.equal(result.verified, userVerified);
+      const stored = await tx.query.passkeyTable.findFirst({
+        where: { id: credential.id },
+      });
+      if (userVerified) {
+        assert.equal(stored?.accountId, account.account.id);
+        assert.equal(stored?.name, "Laptop");
+        assert.equal(stored?.webauthnUserId, options.user.id);
+      } else {
+        assert.equal(stored, undefined);
+      }
+    });
+  });
+}
+
 test("getAuthenticationOptions() stores a challenge for the session", async () => {
   const { kv, store } = createTestKv();
   const sessionId = "019d9162-ffff-7fff-8fff-ffffffffffff";
@@ -129,6 +179,10 @@ test("getAuthenticationOptions() stores a challenge for the session", async () =
 
   assert.ok(options.challenge.length > 0);
   assert.deepEqual(options.rpId, "pub.hackers.pub");
+  assert.equal(options.userVerification, "required");
+  assert.ok(
+    options.allowCredentials == null || options.allowCredentials.length === 0,
+  );
   assert.ok(store.has(`passkey/authentication/${sessionId}`));
 });
 
@@ -203,3 +257,43 @@ test("verifyAuthentication() returns undefined when WebAuthn verification throws
     assert.deepEqual(result, undefined);
   });
 });
+
+for (const userVerified of [false, true]) {
+  test(`verifyAuthentication() ${userVerified ? "accepts" : "rejects"} a signed assertion with UV=${userVerified}`, async () => {
+    await withRollback(async (tx) => {
+      const { kv } = createTestKv();
+      const account = await insertAccountWithActor(tx, {
+        username: "authenticationuv",
+        name: "Authentication UV",
+        email: "authenticationuv@example.com",
+      });
+      const origin = "https://pub.hackers.pub";
+      const sessionId = "019d9163-0000-7000-8000-000000000001";
+      const credential = createWebAuthnCredential(origin);
+      await credential.insert(tx, account.account.id);
+      const options = await getAuthenticationOptions(kv, origin, sessionId);
+
+      const result = await verifyAuthentication(
+        tx,
+        kv,
+        [origin],
+        "pub.hackers.pub",
+        sessionId,
+        credential.assertion(options.challenge, userVerified ? 0x05 : 0x01),
+      );
+
+      const stored = await tx.query.passkeyTable.findFirst({
+        where: { id: credential.id },
+      });
+      if (userVerified) {
+        assert.equal(result?.response.verified, true);
+        assert.equal(result?.response.authenticationInfo.userVerified, true);
+        assert.equal(result?.account.id, account.account.id);
+        assert.ok(stored?.lastUsed instanceof Date);
+      } else {
+        assert.equal(result, undefined);
+        assert.equal(stored?.lastUsed, null);
+      }
+    });
+  });
+}

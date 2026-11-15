@@ -119,7 +119,8 @@ builder.mutationFields((t) => ({
   getPasskeyRegistrationOptions: t.field({
     type: "JSON",
     description:
-      "Generate WebAuthn registration options for adding a new passkey. " +
+      "Generate WebAuthn registration options requiring user verification " +
+      "and a discoverable credential for sign-in without a username. " +
       "Options are bound to the authenticated session for five minutes. Send the authenticator's " +
       "response to `verifyPasskeyRegistration`. Requires authentication.",
     args: {

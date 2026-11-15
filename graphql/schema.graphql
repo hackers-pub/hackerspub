@@ -4248,7 +4248,7 @@ type Mutation {
   ): GetAccountSecurityAuthenticationOptionsResult!
 
   """
-  Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
+  Generate WebAuthn authentication options requiring user verification for passkey sign-in without a username. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
   """
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
@@ -4256,7 +4256,7 @@ type Mutation {
   ): JSON!
 
   """
-  Generate WebAuthn registration options for adding a new passkey. Options are bound to the authenticated session for five minutes. Send the authenticator's response to `verifyPasskeyRegistration`. Requires authentication.
+  Generate WebAuthn registration options requiring user verification and a discoverable credential for sign-in without a username. Options are bound to the authenticated session for five minutes. Send the authenticator's response to `verifyPasskeyRegistration`. Requires authentication.
   """
   getPasskeyRegistrationOptions(accountId: ID!): JSON!
 
