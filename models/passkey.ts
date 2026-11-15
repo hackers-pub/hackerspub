@@ -73,6 +73,10 @@ export async function getRegistrationOptions(
     rpID: new URL(origin).hostname,
     userName: account.username,
     attestationType: "none",
+    authenticatorSelection: {
+      residentKey: "required",
+      userVerification: "required",
+    },
     excludeCredentials: account.passkeys.map((passkey) => ({
       id: passkey.id,
       transports: passkey.transports ?? undefined,
@@ -113,6 +117,7 @@ export async function verifyRegistration(
       expectedChallenge: options.challenge,
       expectedOrigin: origins,
       expectedRPID: rpId,
+      requireUserVerification: true,
     });
   } catch (error) {
     // Authenticator responses are untrusted input.  Verification failures are
@@ -146,6 +151,7 @@ export async function getAuthenticationOptions(
 ): Promise<PublicKeyCredentialRequestOptionsJSON> {
   const options = await generateAuthenticationOptions({
     rpID: new URL(origin).hostname,
+    userVerification: "required",
   });
   await kv.set(
     `${KV_NAMESPACE}/authentication/${sessionId}`,
@@ -188,6 +194,7 @@ export async function verifyAuthentication(
       expectedChallenge: options.challenge,
       expectedOrigin: origins,
       expectedRPID: rpId,
+      requireUserVerification: true,
       credential: {
         id: response.id,
         publicKey: new Uint8Array(passkey.publicKey),

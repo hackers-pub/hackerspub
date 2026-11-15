@@ -75,11 +75,19 @@ test("getPasskeyRegistrationOptions stores a challenge for the signed-in account
         getPasskeyRegistrationOptions: {
           challenge: string;
           user: { name: string };
+          authenticatorSelection: {
+            residentKey: string;
+            requireResidentKey: boolean;
+            userVerification: string;
+          };
         };
       }
     ).getPasskeyRegistrationOptions;
     assert.ok(options.challenge.length > 0);
     assert.deepEqual(options.user.name, "passkeyowner");
+    assert.equal(options.authenticatorSelection.residentKey, "required");
+    assert.equal(options.authenticatorSelection.requireResidentKey, true);
+    assert.equal(options.authenticatorSelection.userVerification, "required");
     assert.ok(
       [...store.keys()].some((key) =>
         key.startsWith(`passkey/registration/${account.account.id}/`),
@@ -104,10 +112,16 @@ test("getPasskeyAuthenticationOptions and loginByPasskey return null for unknown
     assert.deepEqual(optionsResult.errors, undefined);
     const options = (
       optionsResult.data as {
-        getPasskeyAuthenticationOptions: { challenge: string };
+        getPasskeyAuthenticationOptions: {
+          challenge: string;
+          userVerification: string;
+          allowCredentials?: unknown[];
+        };
       }
     ).getPasskeyAuthenticationOptions;
     assert.ok(options.challenge.length > 0);
+    assert.equal(options.userVerification, "required");
+    assert.equal(options.allowCredentials?.length ?? 0, 0);
     assert.ok(store.has(`passkey/authentication/${sessionId}`));
 
     const loginResult = await execute({

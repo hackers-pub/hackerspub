@@ -671,7 +671,8 @@ builder.mutationFields((t) => ({
   getPasskeyAuthenticationOptions: t.field({
     type: "JSON",
     description:
-      "Generate WebAuthn authentication options for passkey sign-in. " +
+      "Generate WebAuthn authentication options requiring user verification " +
+      "for passkey sign-in without a username. " +
       "Pass a fresh client-generated UUID as `sessionId`; this same " +
       "`sessionId` must be passed back to `loginByPasskey`.",
     args: {

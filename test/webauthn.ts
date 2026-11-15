@@ -80,13 +80,13 @@ export function createWebAuthnCredential(origin = "http://localhost") {
         },
       };
     },
-    registration(challenge: string): RegistrationResponseJSON {
+    registration(challenge: string, flags = 0x45): RegistrationResponseJSON {
       const credentialId = Buffer.from(id, "base64url");
       const length = Buffer.alloc(2);
       length.writeUInt16BE(credentialId.length);
       const authData = Buffer.concat([
         rpHash,
-        Buffer.from([0x45]),
+        Buffer.from([flags]),
         Buffer.alloc(4),
         Buffer.alloc(16),
         length,
